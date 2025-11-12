@@ -362,13 +362,10 @@ function App() {
                 <div className="bg-blue-50/80 border border-blue-200 rounded-lg p-3">
                   <p className="text-sm text-blue-900 font-semibold mb-1">✨ Normalización automática completa</p>
                   <p className="text-xs text-blue-700 leading-relaxed mb-2">
-                    <strong>Coordenadas:</strong> Detecta y corrige automáticamente errores de formato en las columnas de coordenadas: 
-                    caracteres extraños, comas o puntos decimales incorrectos, y coordenadas en formato grados/minutos/segundos (DMS).
+                    <strong>Coordenadas:</strong> se detecta y corrige automáticamente errores de formato, caracteres extraños, comas o puntos decimales incorrectos así como coordenadas en formato grados/minutos/segundos (DMS).
                   </p>
                   <p className="text-xs text-blue-700 leading-relaxed">
-                    <strong>Texto UTF-8 (ES):</strong> Todas las columnas de texto se normalizan para compatibilidad con GIS/QGIS: 
-                    conversión a ASCII (elimina tildes y diacríticos), unificación de comillas y guiones, eliminación de caracteres de control, 
-                    y codificación UTF-8 con BOM para correcta visualización en QGIS.
+                    La conversión se hace a texto UTF-8 (ES). Todas las columnas de texto se normalizan para compatibilidad con GIS/QGIS: conversión a ASCII (elimina tildes y diacríticos), unificación de comillas y guiones, eliminación de caracteres de control y codificación UTF-8 con BOM para correcta visualización en QGIS.
                   </p>
                 </div>
                 <div className="bg-purple-50/80 border border-purple-200 rounded-lg p-4">
