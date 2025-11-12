@@ -543,72 +543,189 @@ function App() {
                       Información del archivo
                     </CardTitle>
                   </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                      <div className="space-y-1">
-                        <p className="text-sm text-muted-foreground">Nombre del archivo</p>
-                        <p className="font-medium truncate">{selectedFile.parsedFile.filename}</p>
-                      </div>
-                      <div className="space-y-1">
-                        <p className="text-sm text-muted-foreground">Tipo de archivo</p>
-                        <Badge>{selectedFile.parsedFile.fileType}</Badge>
-                      </div>
-                      <div className="space-y-1">
-                        <p className="text-sm text-muted-foreground">Filas totales</p>
-                        <p className="font-medium">{selectedFile.parsedFile.rowCount.toLocaleString()}</p>
-                      </div>
-                      <div className="space-y-1">
-                        <p className="text-sm text-muted-foreground">Columnas</p>
-                        <p className="font-medium">{selectedFile.parsedFile.columnCount}</p>
-                      </div>
-                    </div>
+                  <CardContent>
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                      <div className="space-y-4">
+                        <div className="flex items-center gap-2 pb-2">
+                          <File className="text-primary" size={20} />
+                          <h4 className="font-semibold">Archivo Original</h4>
+                        </div>
+                        
+                        <div className="bg-muted/30 rounded-lg p-4 space-y-3">
+                          <div className="space-y-1">
+                            <p className="text-sm text-muted-foreground">Nombre del archivo</p>
+                            <p className="font-medium truncate">{selectedFile.parsedFile.filename}</p>
+                          </div>
+                          
+                          <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-1">
+                              <p className="text-sm text-muted-foreground">Tipo</p>
+                              <Badge>{selectedFile.parsedFile.fileType}</Badge>
+                            </div>
+                            <div className="space-y-1">
+                              <p className="text-sm text-muted-foreground">Columnas</p>
+                              <p className="font-medium">{selectedFile.parsedFile.columnCount}</p>
+                            </div>
+                          </div>
+                          
+                          <div className="space-y-1">
+                            <p className="text-sm text-muted-foreground">Filas totales</p>
+                            <p className="font-medium text-lg">{selectedFile.parsedFile.rowCount.toLocaleString()}</p>
+                          </div>
+                        </div>
 
-                    <Separator />
+                        <div className="space-y-3">
+                          <div className="flex items-center gap-2">
+                            <Globe className="text-primary" size={20} />
+                            <h4 className="font-medium">Sistema detectado</h4>
+                          </div>
+                          <div className="bg-muted/30 rounded-lg p-4 space-y-2">
+                            <div className="flex items-center justify-between">
+                              <span className="text-sm text-muted-foreground">Sistema</span>
+                              <Badge variant="secondary">{selectedFile.detection.system.name}</Badge>
+                            </div>
+                            <div className="flex items-center justify-between">
+                              <span className="text-sm text-muted-foreground">Código</span>
+                              <span className="font-mono text-sm">{selectedFile.detection.system.code}</span>
+                            </div>
+                            <div className="flex items-center justify-between">
+                              <span className="text-sm text-muted-foreground">Columna X</span>
+                              <span className="font-medium text-sm">{selectedFile.detection.xColumn}</span>
+                            </div>
+                            <div className="flex items-center justify-between">
+                              <span className="text-sm text-muted-foreground">Columna Y</span>
+                              <span className="font-medium text-sm">{selectedFile.detection.yColumn}</span>
+                            </div>
+                          </div>
+                        </div>
 
-                    <div className="space-y-3">
-                      <div className="flex items-center gap-2">
-                        <Globe className="text-primary" size={20} />
-                        <h4 className="font-medium">Sistema de coordenadas detectado</h4>
-                      </div>
-                      <div className="bg-muted/50 rounded-lg p-4 space-y-2">
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm text-muted-foreground">Sistema</span>
-                          <Badge variant="secondary">{selectedFile.detection.system.name}</Badge>
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm text-muted-foreground">Código</span>
-                          <span className="font-mono text-sm">{selectedFile.detection.system.code}</span>
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm text-muted-foreground">Columna X</span>
-                          <span className="font-medium text-sm">{selectedFile.detection.xColumn}</span>
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm text-muted-foreground">Columna Y</span>
-                          <span className="font-medium text-sm">{selectedFile.detection.yColumn}</span>
-                        </div>
-                        {selectedFile.detection.normalizedCount > 0 && (
-                          <div className="flex items-center justify-between pt-2 border-t border-border">
-                            <span className="text-sm text-muted-foreground">Coordenadas normalizadas</span>
-                            <Badge variant="default" className="bg-green-600 text-white">
-                              {selectedFile.detection.normalizedCount}
-                            </Badge>
+                        {originalBounds && (
+                          <div className="space-y-2">
+                            <h4 className="font-medium text-sm">Límites de coordenadas</h4>
+                            <div className="bg-muted/30 rounded-lg p-4 space-y-2 text-sm">
+                              <div className="flex justify-between">
+                                <span className="text-muted-foreground">Mín. X:</span>
+                                <span className="font-mono">{formatCoordinate(originalBounds.minX, 6)}</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-muted-foreground">Máx. X:</span>
+                                <span className="font-mono">{formatCoordinate(originalBounds.maxX, 6)}</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-muted-foreground">Mín. Y:</span>
+                                <span className="font-mono">{formatCoordinate(originalBounds.minY, 6)}</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-muted-foreground">Máx. Y:</span>
+                                <span className="font-mono">{formatCoordinate(originalBounds.maxY, 6)}</span>
+                              </div>
+                            </div>
                           </div>
                         )}
                       </div>
-                    </div>
 
-                    {invalidCoords.length > 0 && (
-                      <>
-                        <Separator />
-                        <Alert variant="destructive">
-                          <Warning size={20} />
-                          <AlertDescription>
-                            {invalidCoords.length} coordenada{invalidCoords.length > 1 ? 's' : ''} no {invalidCoords.length > 1 ? 'pasaron' : 'pasó'} la validación y será{invalidCoords.length > 1 ? 'n' : ''} excluida{invalidCoords.length > 1 ? 's' : ''} del archivo de salida
-                          </AlertDescription>
-                        </Alert>
-                      </>
-                    )}
+                      <div className="space-y-4">
+                        <div className="flex items-center gap-2 pb-2">
+                          <ArrowsClockwise className="text-primary" size={20} />
+                          <h4 className="font-semibold">Archivo Convertido</h4>
+                        </div>
+                        
+                        <div className="bg-accent/10 rounded-lg p-4 space-y-3 border border-accent/20">
+                          <div className="space-y-1">
+                            <p className="text-sm text-muted-foreground">Nombre de salida</p>
+                            <p className="font-medium truncate">{getOutputFilename(selectedFile.parsedFile.filename)}</p>
+                          </div>
+                          
+                          <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-1">
+                              <p className="text-sm text-muted-foreground">Formato</p>
+                              <Badge variant="outline">CSV</Badge>
+                            </div>
+                            <div className="space-y-1">
+                              <p className="text-sm text-muted-foreground">Sistema</p>
+                              <Badge className="bg-accent text-accent-foreground">UTM30N</Badge>
+                            </div>
+                          </div>
+                          
+                          <div className="space-y-1">
+                            <p className="text-sm text-muted-foreground">Código EPSG</p>
+                            <p className="font-mono font-medium">EPSG:25830</p>
+                          </div>
+                        </div>
+
+                        <div className="space-y-3">
+                          <h4 className="font-medium">Estadísticas de conversión</h4>
+                          <div className="space-y-2">
+                            <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                  <CheckCircle size={20} className="text-green-600" />
+                                  <span className="text-sm font-medium">Coordenadas válidas</span>
+                                </div>
+                                <span className="text-xl font-semibold text-green-600">{validCoords.length}</span>
+                              </div>
+                            </div>
+                            
+                            {invalidCoords.length > 0 && (
+                              <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-3">
+                                <div className="flex items-center justify-between">
+                                  <div className="flex items-center gap-2">
+                                    <Warning size={20} className="text-destructive" />
+                                    <span className="text-sm font-medium">Coordenadas inválidas</span>
+                                  </div>
+                                  <span className="text-xl font-semibold text-destructive">{invalidCoords.length}</span>
+                                </div>
+                              </div>
+                            )}
+
+                            {selectedFile.detection.normalizedCount > 0 && (
+                              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                                <div className="flex items-center justify-between">
+                                  <div className="flex items-center gap-2">
+                                    <ArrowsClockwise size={20} className="text-blue-600" />
+                                    <span className="text-sm font-medium">Normalizadas</span>
+                                  </div>
+                                  <span className="text-xl font-semibold text-blue-600">{selectedFile.detection.normalizedCount}</span>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+
+                        {convertedBounds && (
+                          <div className="space-y-2">
+                            <h4 className="font-medium text-sm">Límites UTM30 (metros)</h4>
+                            <div className="bg-accent/10 rounded-lg p-4 space-y-2 text-sm border border-accent/20">
+                              <div className="flex justify-between">
+                                <span className="text-muted-foreground">Mín. X:</span>
+                                <span className="font-mono">{formatCoordinate(convertedBounds.minX, 2)} m</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-muted-foreground">Máx. X:</span>
+                                <span className="font-mono">{formatCoordinate(convertedBounds.maxX, 2)} m</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-muted-foreground">Mín. Y:</span>
+                                <span className="font-mono">{formatCoordinate(convertedBounds.minY, 2)} m</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-muted-foreground">Máx. Y:</span>
+                                <span className="font-mono">{formatCoordinate(convertedBounds.maxY, 2)} m</span>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
+                        {invalidCoords.length > 0 && (
+                          <Alert variant="destructive">
+                            <Warning size={20} />
+                            <AlertDescription>
+                              {invalidCoords.length} coordenada{invalidCoords.length > 1 ? 's' : ''} excluida{invalidCoords.length > 1 ? 's' : ''} del archivo de salida
+                            </AlertDescription>
+                          </Alert>
+                        )}
+                      </div>
+                    </div>
                   </CardContent>
                 </Card>
 
@@ -626,80 +743,33 @@ function App() {
                       </TabsList>
 
                       <TabsContent value="stats" className="space-y-4">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div className="space-y-3">
-                            <h4 className="font-medium text-sm">Coordenadas originales</h4>
-                            <div className="bg-muted/50 rounded-lg p-4 space-y-2 text-sm">
-                              {originalBounds ? (
-                                <>
-                                  <div className="flex justify-between">
-                                    <span className="text-muted-foreground">Mín. X:</span>
-                                    <span className="font-mono">{formatCoordinate(originalBounds.minX, 6)}</span>
-                                  </div>
-                                  <div className="flex justify-between">
-                                    <span className="text-muted-foreground">Máx. X:</span>
-                                    <span className="font-mono">{formatCoordinate(originalBounds.maxX, 6)}</span>
-                                  </div>
-                                  <div className="flex justify-between">
-                                    <span className="text-muted-foreground">Mín. Y:</span>
-                                    <span className="font-mono">{formatCoordinate(originalBounds.minY, 6)}</span>
-                                  </div>
-                                  <div className="flex justify-between">
-                                    <span className="text-muted-foreground">Máx. Y:</span>
-                                    <span className="font-mono">{formatCoordinate(originalBounds.maxY, 6)}</span>
-                                  </div>
-                                </>
-                              ) : (
-                                <p className="text-muted-foreground">No hay coordenadas válidas</p>
-                              )}
-                            </div>
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                          <div className="text-center p-6 bg-green-50 border border-green-200 rounded-lg">
+                            <p className="text-3xl font-semibold text-green-600">{validCoords.length}</p>
+                            <p className="text-sm text-muted-foreground mt-2">Coordenadas válidas</p>
                           </div>
-
-                          <div className="space-y-3">
-                            <h4 className="font-medium text-sm">Convertidas a UTM30</h4>
-                            <div className="bg-muted/50 rounded-lg p-4 space-y-2 text-sm">
-                              {convertedBounds ? (
-                                <>
-                                  <div className="flex justify-between">
-                                    <span className="text-muted-foreground">Mín. X:</span>
-                                    <span className="font-mono">{formatCoordinate(convertedBounds.minX, 2)} m</span>
-                                  </div>
-                                  <div className="flex justify-between">
-                                    <span className="text-muted-foreground">Máx. X:</span>
-                                    <span className="font-mono">{formatCoordinate(convertedBounds.maxX, 2)} m</span>
-                                  </div>
-                                  <div className="flex justify-between">
-                                    <span className="text-muted-foreground">Mín. Y:</span>
-                                    <span className="font-mono">{formatCoordinate(convertedBounds.minY, 2)} m</span>
-                                  </div>
-                                  <div className="flex justify-between">
-                                    <span className="text-muted-foreground">Máx. Y:</span>
-                                    <span className="font-mono">{formatCoordinate(convertedBounds.maxY, 2)} m</span>
-                                  </div>
-                                </>
-                              ) : (
-                                <p className="text-muted-foreground">No hay coordenadas válidas</p>
-                              )}
-                            </div>
+                          <div className="text-center p-6 bg-destructive/10 border border-destructive/20 rounded-lg">
+                            <p className="text-3xl font-semibold text-destructive">{invalidCoords.length}</p>
+                            <p className="text-sm text-muted-foreground mt-2">Inválidas</p>
+                          </div>
+                          <div className="text-center p-6 bg-blue-50 border border-blue-200 rounded-lg">
+                            <p className="text-3xl font-semibold text-blue-600">{selectedFile.detection.normalizedCount}</p>
+                            <p className="text-sm text-muted-foreground mt-2">Normalizadas</p>
                           </div>
                         </div>
 
                         <Separator />
 
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                          <div className="text-center p-4 bg-green-50 border border-green-200 rounded-lg">
-                            <p className="text-2xl font-semibold text-green-600">{validCoords.length}</p>
-                            <p className="text-xs text-muted-foreground mt-1">Coordenadas válidas</p>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                          <div className="text-center p-4 bg-muted/50 rounded-lg">
+                            <p className="text-2xl font-semibold">{selectedFile.parsedFile.rowCount.toLocaleString()}</p>
+                            <p className="text-xs text-muted-foreground mt-1">Filas procesadas</p>
                           </div>
-                          <div className="text-center p-4 bg-muted rounded-lg">
-                            <p className="text-2xl font-semibold">{invalidCoords.length}</p>
-                            <p className="text-xs text-muted-foreground mt-1">Inválidas</p>
-                          </div>
-                          <div className="text-center p-4 bg-muted rounded-lg">
+                          <div className="text-center p-4 bg-muted/50 rounded-lg">
                             <p className="text-2xl font-semibold">{selectedFile.parsedFile.columnCount}</p>
                             <p className="text-xs text-muted-foreground mt-1">Columnas totales</p>
                           </div>
-                          <div className="text-center p-4 bg-accent/10 rounded-lg">
+                          <div className="text-center p-4 bg-accent/10 rounded-lg border border-accent/20">
                             <p className="text-2xl font-semibold text-accent-foreground">UTM30N</p>
                             <p className="text-xs text-muted-foreground mt-1">EPSG:25830</p>
                           </div>
@@ -794,15 +864,6 @@ function App() {
                     </Tabs>
                   </CardContent>
                 </Card>
-
-                <div className="bg-muted/50 rounded-lg p-4 text-sm text-muted-foreground">
-                  <p>
-                    <strong>Archivo de salida:</strong> {getOutputFilename(selectedFile.parsedFile.filename)}
-                  </p>
-                  <p className="mt-1">
-                    Formato: CSV con coordenadas UTM30 (EPSG:25830), optimizado para importar en QGIS
-                  </p>
-                </div>
               </>
             )}
           </>
