@@ -242,7 +242,15 @@ function App() {
       if (selectedFileId === fileId) {
         setSelectedFileId(remaining[0]?.id || null)
       }
+      if (remaining.length === 0) {
+        setProcessing({ stage: 'idle', progress: 0, message: '' })
+        setShowSuccessAlert(false)
+      }
       return remaining
+    })
+    
+    toast.success('Archivo eliminado', {
+      description: 'El archivo ha sido eliminado correctamente'
     })
   }
 
