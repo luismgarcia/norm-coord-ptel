@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Alert, AlertDescription } from '@/components/ui/alert'
@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Progress } from '@/components/ui/progress'
+import { motion, AnimatePresence } from 'framer-motion'
 import { 
   UploadSimple, 
   FileCsv, 
@@ -46,6 +47,16 @@ function App() {
     message: ''
   })
   const [isDragging, setIsDragging] = useState(false)
+  const [showSuccessAlert, setShowSuccessAlert] = useState(false)
+
+  useEffect(() => {
+    if (showSuccessAlert) {
+      const timer = setTimeout(() => {
+        setShowSuccessAlert(false)
+      }, 3500)
+      return () => clearTimeout(timer)
+    }
+  }, [showSuccessAlert])
 
   const handleFileUpload = async (file: File) => {
     setProcessing({ stage: 'uploading', progress: 10, message: 'Leyendo archivo...' })
@@ -83,6 +94,8 @@ function App() {
             progress: 100, 
             message: `¡Conversión completada! ${validCount} coordenadas convertidas${invalidCount > 0 ? `, ${invalidCount} fallidas` : ''}` 
           })
+
+          setShowSuccessAlert(true)
 
           toast.success('Conversión completada', {
             description: `Se convirtieron exitosamente ${validCount} coordenadas a UTM30`
@@ -142,6 +155,7 @@ function App() {
     setDetection(null)
     setConvertedData([])
     setProcessing({ stage: 'idle', progress: 0, message: '' })
+    setShowSuccessAlert(false)
   }
 
   const validCoords = convertedData.filter(c => c.isValid)
@@ -273,12 +287,23 @@ function App() {
 
         {processing.stage === 'complete' && parsedFile && detection && (
           <>
-            <Alert className="bg-accent/10 border-accent">
-              <CheckCircle size={20} className="text-accent-foreground" />
-              <AlertDescription className="text-accent-foreground">
-                {processing.message}
-              </AlertDescription>
-            </Alert>
+            <AnimatePresence>
+              {showSuccessAlert && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <Alert className="bg-green-50 border-green-300">
+                    <CheckCircle size={20} className="text-green-600" />
+                    <AlertDescription className="text-green-800">
+                      {processing.message}
+                    </AlertDescription>
+                  </Alert>
+                </motion.div>
+              )}
+            </AnimatePresence>
 
             <Card>
               <CardHeader>
