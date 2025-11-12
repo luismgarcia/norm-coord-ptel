@@ -221,6 +221,30 @@ function detectDelimiter(line: string): string {
   return bestDelimiter
 }
 
+export function normalizeTextForGIS(value: any): string {
+  if (value === null || value === undefined) {
+    return ''
+  }
+
+  let text = String(value).trim()
+
+  text = text.normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+
+  text = text.replace(/[""]/g, '"')
+  text = text.replace(/['']/g, "'")
+  text = text.replace(/[–—]/g, '-')
+  text = text.replace(/…/g, '...')
+  text = text.replace(/[\u2022\u2023\u2043]/g, '*')
+
+  text = text.replace(/[\u0000-\u001F\u007F-\u009F]/g, '')
+
+  text = text.replace(/\s+/g, ' ')
+
+  text = text.replace(/"/g, '""')
+
+  return text.trim()
+}
+
 export function generateCSV(
   data: any[],
   xColumn: string,
@@ -229,8 +253,15 @@ export function generateCSV(
 ): string {
   const rows: string[] = []
   
-  const headers = ['X_UTM30', 'Y_UTM30', `${xColumn}_original`, `${yColumn}_original`]
-  rows.push(headers.join(','))
+  if (data.length === 0) {
+    return ''
+  }
+
+  const allColumns = Object.keys(data[0])
+  const otherColumns = allColumns.filter(col => col !== xColumn && col !== yColumn)
+  
+  const headers = ['X_UTM30', 'Y_UTM30', ...otherColumns.map(col => normalizeTextForGIS(col))]
+  rows.push(headers.map(h => `"${h}"`).join(','))
 
   data.forEach((row, index) => {
     const converted = convertedCoords[index]
@@ -238,14 +269,17 @@ export function generateCSV(
       const csvRow = [
         converted.x.toFixed(2),
         converted.y.toFixed(2),
-        row[xColumn],
-        row[yColumn]
+        ...otherColumns.map(col => {
+          const value = row[col]
+          const normalized = normalizeTextForGIS(value)
+          return `"${normalized}"`
+        })
       ]
       rows.push(csvRow.join(','))
     }
   })
 
-  return rows.join('\n')
+  return '\ufeff' + rows.join('\n')
 }
 
 export function downloadCSV(csvContent: string, filename: string) {

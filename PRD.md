@@ -26,6 +26,13 @@ Una aplicación web profesional que detecta, analiza, normaliza y convierte auto
 - **Progresión**: Coordenadas sin procesar → Limpieza de caracteres → Normalización decimal → Conversión DMS → Detección del sistema → Validación de formato → Visualización de estadísticas con recuento de normalización
 - **Criterios de éxito**: Identifica correctamente más de 15 sistemas de coordenadas en diferentes zonas y datums, normaliza exitosamente coordenadas con errores de formato (decimales incorrectos, caracteres especiales, notación DMS), informa problemas de validación con mensajes de error detallados
 
+### Normalización de texto UTF-8 para GIS
+- **Funcionalidad**: Normaliza todas las columnas de texto del documento para compatibilidad total con GIS/QGIS: conversión de caracteres Unicode a ASCII (elimina tildes y diacríticos), unificación de comillas tipográficas y guiones a formatos estándar, eliminación de caracteres de control y no imprimibles, normalización de espacios múltiples, escape correcto de comillas en CSV, y codificación UTF-8 con BOM para visualización correcta en QGIS
+- **Propósito**: Asegura que todos los datos de texto se importen y visualicen correctamente en aplicaciones GIS sin errores de codificación, caracteres corruptos o problemas de formato, manteniendo la compatibilidad regional española
+- **Activador**: Automático durante la generación del archivo de salida CSV
+- **Progresión**: Datos de texto originales → Normalización NFD (descomposición de diacríticos) → Eliminación de diacríticos → Unificación de caracteres tipográficos → Eliminación de caracteres de control → Normalización de espacios → Escape de comillas → Adición de BOM UTF-8 → CSV listo para QGIS
+- **Criterios de éxito**: Todos los campos de texto se visualizan correctamente en QGIS sin errores de codificación, nombres de columnas normalizadas sin caracteres especiales, datos de texto sin corrupción, compatibilidad con software GIS en español (ES)
+
 ### Conversión a UTM30
 - **Funcionalidad**: Transforma las coordenadas detectadas al formato UTM Zona 30N con estructura compatible con QGIS
 - **Propósito**: Estandariza las coordenadas para aplicaciones SIG profesionales
@@ -64,6 +71,10 @@ Una aplicación web profesional que detecta, analiza, normaliza y convierte auto
 - **Gestión de archivos**: Permite la eliminación individual de archivos del lote sin afectar otros archivos procesados
 - **Gestión de memoria**: Procesa archivos secuencialmente para evitar problemas de memoria del navegador con cargas masivas grandes
 - **Archivos duplicados**: Acepta y procesa archivos con nombres idénticos asignando identificadores únicos
+- **Normalización de texto**: Maneja correctamente caracteres especiales en todo tipo de texto (acentos, tildes, ñ, comillas tipográficas) convirtiéndolos a ASCII estándar
+- **Codificación UTF-8 con BOM**: Añade BOM (Byte Order Mark) al CSV de salida para garantizar la correcta visualización de caracteres en QGIS y otras herramientas GIS
+- **Caracteres de control**: Elimina caracteres de control y no imprimibles que pueden causar problemas en la importación GIS
+- **Escape de CSV**: Maneja correctamente comillas y comas en los datos de texto con escape adecuado según el estándar RFC 4180
 
 ## Dirección de diseño
 El diseño debe sentirse profesional, preciso y eficiente, como una herramienta técnica construida para profesionales de SIG. Interfaz limpia y enfocada con énfasis en la claridad de datos y transparencia del procesamiento. Distracciones mínimas con uso intencional del espacio para mostrar información técnica de manera clara.
