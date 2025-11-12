@@ -262,7 +262,7 @@ function App() {
       <div className="max-w-6xl mx-auto space-y-6">
         <div className="text-center space-y-2">
           <h1 className="text-3xl md:text-4xl font-semibold tracking-tight">
-            Conversor de Coordenadas UTM30
+            Conversor de coordenadas UTM30
           </h1>
           <p className="text-muted-foreground text-sm md:text-base">
             Conversor automático de coordenadas para QGIS y aplicaciones SIG
