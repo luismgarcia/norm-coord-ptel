@@ -211,20 +211,20 @@ function App() {
       })
       
       const blob = await zip.generateAsync({ type: 'blob' })
-      
-      const link = document.createElement('a')
       const url = URL.createObjectURL(blob)
       
+      const link = document.createElement('a')
       link.href = url
       link.download = 'coordenadas_UTM30.zip'
+      link.style.display = 'none'
       
       document.body.appendChild(link)
       link.click()
       
-      setTimeout(() => {
+      requestAnimationFrame(() => {
         document.body.removeChild(link)
         URL.revokeObjectURL(url)
-      }, 100)
+      })
       
       toast.success('Archivos descargados', {
         description: `${processedFiles.length} archivos en formato ZIP`
