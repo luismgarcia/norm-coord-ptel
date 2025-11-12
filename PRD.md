@@ -12,12 +12,12 @@ A professional web application that automatically detects, analyzes, normalizes,
 
 ## Essential Features
 
-### File Upload & Detection
-- **Functionality**: Accepts multiple file formats (CSV, Excel XLS/XLSX/XLSM/XLSB, OpenDocument ODS/FODS, Word DOC/DOCX, OpenDocument Text ODT, RTF, TXT) and automatically detects coordinate columns
-- **Purpose**: Eliminates manual configuration and supports diverse professional workflows across all major document formats
-- **Trigger**: User drags file or clicks upload button
-- **Progression**: File selection → Upload → Automatic parsing → Coordinate column detection → Display results
-- **Success criteria**: Successfully parses all supported formats and identifies coordinate pairs with 95%+ accuracy
+### File Upload & Detection (Multi-File Support)
+- **Functionality**: Accepts multiple files simultaneously in various formats (CSV, Excel XLS/XLSX/XLSM/XLSB, OpenDocument ODS/FODS, Word DOC/DOCX, OpenDocument Text ODT, RTF, TXT) and automatically detects coordinate columns in each file
+- **Purpose**: Eliminates manual configuration and supports batch processing of diverse professional workflows across all major document formats, enabling efficient mass coordinate conversion
+- **Trigger**: User drags one or multiple files or clicks upload button to select multiple files
+- **Progression**: Multiple file selection → Sequential upload & processing → Automatic parsing for each → Coordinate column detection per file → Display all processed files with individual management
+- **Success criteria**: Successfully parses all supported formats, identifies coordinate pairs with 95%+ accuracy, processes multiple files sequentially without data loss, and maintains individual file state for review and download
 
 ### Coordinate Analysis & Normalization
 - **Functionality**: Identifies coordinate system from 15+ supported formats (WGS84, ETRS89, ED50, Web Mercator, Lambert 93, etc.), detects and corrects coordinate formatting errors, normalizes inconsistent decimal separators (commas vs periods), removes invalid characters, converts DMS (degrees/minutes/seconds) format to decimal, and validates data quality
@@ -40,12 +40,12 @@ A professional web application that automatically detects, analyzes, normalizes,
 - **Progression**: File info → Detected system (with zone info) → Normalization report → Sample preview → Conversion statistics → Download ready
 - **Success criteria**: Clear presentation of all relevant metadata, transformation details, and count of normalized coordinates with visual indicators
 
-### Download with Smart Naming
-- **Functionality**: Generates CSV file with original filename + "_UTM30" suffix, triggers browser download
-- **Purpose**: Maintains file organization and indicates transformation status
-- **Trigger**: User clicks download button after successful conversion
-- **Progression**: Click download → Browser save dialog → User selects location → File saved
-- **Success criteria**: Correct filename format, valid CSV structure, browser download initiated
+### Download with Smart Naming & Batch Export
+- **Functionality**: Generates CSV file with original filename + "_UTM30" suffix, triggers browser download. Supports downloading individual files or batch downloading all processed files at once
+- **Purpose**: Maintains file organization and indicates transformation status. Enables efficient bulk export of multiple converted coordinate files
+- **Trigger**: User clicks download button for individual file or "Download All" button for batch export after successful conversion
+- **Progression**: Click download → Browser save dialog → User selects location → File(s) saved
+- **Success criteria**: Correct filename format, valid CSV structure, browser download initiated for single or multiple files
 
 ## Edge Case Handling
 - **Mixed coordinate formats**: Detect and warn if multiple coordinate systems exist in single file
@@ -60,6 +60,10 @@ A professional web application that automatically detects, analyzes, normalizes,
 - **Multiple delimiters**: Auto-detect delimiter type in text files (tabs, commas, semicolons, pipes, spaces)
 - **Zone detection**: Automatically detect correct UTM zone (29, 30, 31) based on coordinate ranges for accurate conversions
 - **Character encoding issues**: Strip non-numeric characters while preserving coordinate format indicators
+- **Multiple file processing**: Handle sequential processing of multiple files without state conflicts or data loss
+- **File management**: Allow individual file removal from batch without affecting other processed files
+- **Memory management**: Process files sequentially to avoid browser memory issues with large batch uploads
+- **Duplicate files**: Accept and process files with identical names by assigning unique identifiers
 
 ## Design Direction
 The design should feel professional, precise, and efficient - like a technical tool built for GIS professionals. Clean and focused interface with emphasis on data clarity and processing transparency. Minimal distractions with purposeful use of space to display technical information clearly.
@@ -101,25 +105,27 @@ Subtle and functional - animations should reinforce the sense of professional to
 
 ## Component Selection
 - **Components**: 
-  - Card: Main container for upload area and results display
-  - Button: Primary for "Download CSV", secondary for "New Conversion"
+  - Card: Main container for upload area, file list, and results display
+  - Button: Primary for "Download CSV" and "Download All", secondary for "New Conversion", tertiary for individual file actions (download/remove)
   - Table: Display coordinate samples and statistics with proper alignment
   - Badge: Show detected coordinate system type and file format
   - Progress: Visual indicator for large file processing
   - Alert: Display warnings for validation issues or errors
-  - Separator: Divide sections (upload, analysis, results)
+  - Separator: Divide sections (upload, file list, analysis, results)
   - Tabs: Switch between "File Info", "Original Data", "Converted Data" views
   
 - **Customizations**: 
-  - Custom drag-and-drop upload zone with file type icons
+  - Custom drag-and-drop upload zone with file type icons supporting multiple file drops
   - Coordinate display component with monospace font for precise alignment
   - Custom statistics cards showing row counts, coordinate bounds, etc.
+  - File list component with selectable items, individual download/remove actions
   
 - **States**: 
-  - Upload Button: Hover shows file type hints, active state during file selection
-  - Download Button: Disabled until conversion complete, success state with checkmark
+  - Upload Button: Hover shows file type hints, active state during file selection, supports multiple file selection
+  - Download Button: Individual file download, batch download all, success state with checkmark
   - Drop Zone: Neutral → Drag-over highlight → Processing → Success/Error
   - Table Rows: Hover highlight for data inspection
+  - File List Items: Default → Selected (highlighted) → Hover states
   
 - **Icon Selection**: 
   - UploadSimple: Main upload action
@@ -127,8 +133,10 @@ Subtle and functional - animations should reinforce the sense of professional to
   - MapPin, Globe: Coordinate system indicators
   - CheckCircle: Successful conversion
   - Warning: Validation issues
-  - DownloadSimple: Download action
-  - ArrowsClockwise: New conversion
+  - DownloadSimple: Download action (individual and batch)
+  - ArrowsClockwise: New conversion/reset
+  - Stack: Multiple files indicator
+  - Trash: Remove individual file from batch
   
 - **Spacing**: 
   - Card padding: p-6
@@ -136,10 +144,12 @@ Subtle and functional - animations should reinforce the sense of professional to
   - Element spacing: gap-4
   - Tight groups: gap-2
   - Table cells: px-4 py-2
+  - File list items: gap-3
   
 - **Mobile**: 
   - Single column layout on mobile (<768px)
   - Reduced table columns showing only essential data
   - Stacked info cards instead of grid
   - Full-width upload zone with touch-friendly size
-  - Sticky download button at bottom on mobile
+  - Simplified file list with vertical stacking
+  - Individual action buttons stack vertically on mobile

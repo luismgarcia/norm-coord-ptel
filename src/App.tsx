@@ -17,7 +17,9 @@ import {
   DownloadSimple,
   ArrowsClockwise,
   Globe,
-  File
+  File,
+  Trash,
+  Stack
 } from '@phosphor-icons/react'
 import { parseFile, generateCSV, downloadCSV, getOutputFilename, type ParsedFile } from '@/lib/fileParser'
 import { 
@@ -37,10 +39,17 @@ interface ProcessingState {
   message: string
 }
 
+interface ProcessedFile {
+  id: string
+  parsedFile: ParsedFile
+  detection: DetectionResult
+  convertedData: CoordinateData[]
+  timestamp: number
+}
+
 function App() {
-  const [parsedFile, setParsedFile] = useState<ParsedFile | null>(null)
-  const [detection, setDetection] = useState<DetectionResult | null>(null)
-  const [convertedData, setConvertedData] = useState<CoordinateData[]>([])
+  const [processedFiles, setProcessedFiles] = useState<ProcessedFile[]>([])
+  const [selectedFileId, setSelectedFileId] = useState<string | null>(null)
   const [processing, setProcessing] = useState<ProcessingState>({
     stage: 'idle',
     progress: 0,
@@ -48,6 +57,8 @@ function App() {
   })
   const [isDragging, setIsDragging] = useState(false)
   const [showSuccessAlert, setShowSuccessAlert] = useState(false)
+  
+  const selectedFile = processedFiles.find(f => f.id === selectedFileId)
 
   useEffect(() => {
     if (showSuccessAlert) {
@@ -63,7 +74,6 @@ function App() {
 
     try {
       const parsed = await parseFile(file)
-      setParsedFile(parsed)
       setProcessing({ stage: 'detecting', progress: 40, message: 'Detectando sistema de coordenadas...' })
 
       setTimeout(() => {
@@ -73,7 +83,6 @@ function App() {
           throw new Error('No se pudieron detectar columnas de coordenadas. Asegúrese de que su archivo contiene datos de coordenadas.')
         }
 
-        setDetection(detected)
         setProcessing({ stage: 'converting', progress: 70, message: 'Convirtiendo a UTM30...' })
 
         setTimeout(() => {
@@ -84,11 +93,20 @@ function App() {
             detected.yColumn
           )
 
-          setConvertedData(converted)
-          
           const validCount = converted.filter(c => c.isValid).length
           const invalidCount = converted.length - validCount
 
+          const newFile: ProcessedFile = {
+            id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+            parsedFile: parsed,
+            detection: detected,
+            convertedData: converted,
+            timestamp: Date.now()
+          }
+
+          setProcessedFiles(prev => [...prev, newFile])
+          setSelectedFileId(newFile.id)
+          
           setProcessing({ 
             stage: 'complete', 
             progress: 100, 
@@ -98,7 +116,7 @@ function App() {
           setShowSuccessAlert(true)
 
           toast.success('Conversión completada', {
-            description: `Se convirtieron exitosamente ${validCount} coordenadas a UTM30`
+            description: `${parsed.filename}: ${validCount} coordenadas a UTM30`
           })
         }, 500)
       }, 500)
@@ -115,34 +133,54 @@ function App() {
     }
   }
 
+  const handleMultipleFiles = async (files: FileList) => {
+    const fileArray = Array.from(files)
+    
+    for (const file of fileArray) {
+      await handleFileUpload(file)
+    }
+  }
+
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault()
     setIsDragging(false)
 
-    const file = e.dataTransfer.files[0]
-    if (file) {
-      handleFileUpload(file)
+    const files = e.dataTransfer.files
+    if (files.length > 0) {
+      if (files.length === 1) {
+        handleFileUpload(files[0])
+      } else {
+        handleMultipleFiles(files)
+      }
     }
   }
 
   const handleFileInput = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (file) {
-      handleFileUpload(file)
+    const files = e.target.files
+    if (files && files.length > 0) {
+      if (files.length === 1) {
+        handleFileUpload(files[0])
+      } else {
+        handleMultipleFiles(files)
+      }
     }
   }
 
-  const handleDownload = () => {
-    if (!parsedFile || !detection || convertedData.length === 0) return
+  const handleDownload = (fileId?: string) => {
+    const file = fileId 
+      ? processedFiles.find(f => f.id === fileId)
+      : selectedFile
+
+    if (!file) return
 
     const csvContent = generateCSV(
-      parsedFile.data,
-      detection.xColumn,
-      detection.yColumn,
-      convertedData.map(c => ({ x: c.converted.x, y: c.converted.y, isValid: c.isValid }))
+      file.parsedFile.data,
+      file.detection.xColumn,
+      file.detection.yColumn,
+      file.convertedData.map(c => ({ x: c.converted.x, y: c.converted.y, isValid: c.isValid }))
     )
 
-    const filename = getOutputFilename(parsedFile.filename)
+    const filename = getOutputFilename(file.parsedFile.filename)
     downloadCSV(csvContent, filename)
 
     toast.success('Archivo descargado', {
@@ -150,17 +188,32 @@ function App() {
     })
   }
 
+  const handleDownloadAll = () => {
+    processedFiles.forEach(file => {
+      handleDownload(file.id)
+    })
+    toast.success('Archivos descargados', {
+      description: `${processedFiles.length} archivos procesados`
+    })
+  }
+
+  const handleRemoveFile = (fileId: string) => {
+    setProcessedFiles(prev => prev.filter(f => f.id !== fileId))
+    if (selectedFileId === fileId) {
+      setSelectedFileId(processedFiles[0]?.id || null)
+    }
+  }
+
   const handleReset = () => {
-    setParsedFile(null)
-    setDetection(null)
-    setConvertedData([])
+    setProcessedFiles([])
+    setSelectedFileId(null)
     setProcessing({ stage: 'idle', progress: 0, message: '' })
     setShowSuccessAlert(false)
   }
 
-  const validCoords = convertedData.filter(c => c.isValid)
-  const invalidCoords = convertedData.filter(c => !c.isValid)
-  const originalBounds = detection ? calculateBounds(detection.sampleCoords) : null
+  const validCoords = selectedFile ? selectedFile.convertedData.filter(c => c.isValid) : []
+  const invalidCoords = selectedFile ? selectedFile.convertedData.filter(c => !c.isValid) : []
+  const originalBounds = selectedFile ? calculateBounds(selectedFile.detection.sampleCoords) : null
   const convertedBounds = validCoords.length > 0 
     ? calculateBounds(validCoords.map(c => c.converted)) 
     : null
@@ -177,15 +230,15 @@ function App() {
           </p>
         </div>
 
-        {processing.stage === 'idle' && (
+        {processing.stage === 'idle' && processedFiles.length === 0 && (
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <UploadSimple className="text-primary" size={24} />
-                Subir Archivo
+                Subir Archivo(s)
               </CardTitle>
               <CardDescription>
-                Soporta CSV, Excel (XLS/XLSX/XLSM/XLSB), OpenDocument (ODS), documentos de Word (DOC/DOCX), OpenDocument Text (ODT), RTF y TXT con datos tabulares
+                Soporta múltiples archivos simultáneos: CSV, Excel (XLS/XLSX/XLSM/XLSB), OpenDocument (ODS), documentos de Word (DOC/DOCX), OpenDocument Text (ODT), RTF y TXT con datos tabulares
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -209,10 +262,10 @@ function App() {
                   </div>
                   <div>
                     <p className="text-lg font-medium mb-1">
-                      Arrastra tu archivo aquí o haz clic para seleccionar
+                      Arrastra tus archivos aquí o haz clic para seleccionar
                     </p>
                     <p className="text-sm text-muted-foreground">
-                      Múltiples formatos soportados, hasta 50MB
+                      Múltiples formatos y archivos soportados, hasta 50MB por archivo
                     </p>
                   </div>
                   <input
@@ -220,11 +273,12 @@ function App() {
                     id="file-upload"
                     accept=".csv,.xlsx,.xls,.xlsb,.xlsm,.ods,.fods,.doc,.docx,.odt,.rtf,.txt"
                     onChange={handleFileInput}
+                    multiple
                     className="hidden"
                   />
                   <Button asChild className="mt-4">
                     <label htmlFor="file-upload" className="cursor-pointer">
-                      Seleccionar Archivo
+                      Seleccionar Archivo(s)
                     </label>
                   </Button>
                 </div>
@@ -285,7 +339,7 @@ function App() {
           </Alert>
         )}
 
-        {processing.stage === 'complete' && parsedFile && detection && (
+        {processedFiles.length > 0 && (
           <>
             <AnimatePresence>
               {showSuccessAlert && (
@@ -307,290 +361,392 @@ function App() {
 
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <MapPin className="text-primary" size={24} />
-                  Información del Archivo
+                <CardTitle className="flex items-center gap-2 justify-between">
+                  <div className="flex items-center gap-2">
+                    <Stack className="text-primary" size={24} />
+                    Archivos Procesados ({processedFiles.length})
+                  </div>
+                  <div className="flex gap-2">
+                    {processedFiles.length > 1 && (
+                      <Button onClick={handleDownloadAll} variant="outline" size="sm">
+                        <DownloadSimple size={16} className="mr-2" />
+                        Descargar Todos
+                      </Button>
+                    )}
+                    <Button onClick={handleReset} variant="outline" size="sm">
+                      <ArrowsClockwise size={16} className="mr-2" />
+                      Reiniciar
+                    </Button>
+                  </div>
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                  <div className="space-y-1">
-                    <p className="text-sm text-muted-foreground">Nombre del archivo</p>
-                    <p className="font-medium truncate">{parsedFile.filename}</p>
-                  </div>
-                  <div className="space-y-1">
-                    <p className="text-sm text-muted-foreground">Tipo de archivo</p>
-                    <Badge>{parsedFile.fileType}</Badge>
-                  </div>
-                  <div className="space-y-1">
-                    <p className="text-sm text-muted-foreground">Filas totales</p>
-                    <p className="font-medium">{parsedFile.rowCount.toLocaleString()}</p>
-                  </div>
-                  <div className="space-y-1">
-                    <p className="text-sm text-muted-foreground">Columnas</p>
-                    <p className="font-medium">{parsedFile.columnCount}</p>
-                  </div>
-                </div>
-
-                <Separator />
-
-                <div className="space-y-3">
-                  <div className="flex items-center gap-2">
-                    <Globe className="text-primary" size={20} />
-                    <h4 className="font-medium">Sistema de Coordenadas Detectado</h4>
-                  </div>
-                  <div className="bg-muted/50 rounded-lg p-4 space-y-2">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-muted-foreground">Sistema</span>
-                      <Badge variant="secondary">{detection.system.name}</Badge>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-muted-foreground">Código</span>
-                      <span className="font-mono text-sm">{detection.system.code}</span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-muted-foreground">Columna X</span>
-                      <span className="font-medium text-sm">{detection.xColumn}</span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-muted-foreground">Columna Y</span>
-                      <span className="font-medium text-sm">{detection.yColumn}</span>
-                    </div>
-                    {detection.normalizedCount > 0 && (
-                      <div className="flex items-center justify-between pt-2 border-t border-border">
-                        <span className="text-sm text-muted-foreground">Coordenadas normalizadas</span>
-                        <Badge variant="default" className="bg-green-600 text-white">
-                          {detection.normalizedCount}
-                        </Badge>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {invalidCoords.length > 0 && (
-                  <>
-                    <Separator />
-                    <Alert variant="destructive">
-                      <Warning size={20} />
-                      <AlertDescription>
-                        {invalidCoords.length} coordenada{invalidCoords.length > 1 ? 's' : ''} no {invalidCoords.length > 1 ? 'pasaron' : 'pasó'} la validación y será{invalidCoords.length > 1 ? 'n' : ''} excluida{invalidCoords.length > 1 ? 's' : ''} del archivo de salida
-                      </AlertDescription>
-                    </Alert>
-                  </>
-                )}
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Datos de Coordenadas</CardTitle>
-                <CardDescription>Vista previa de las coordenadas originales y convertidas</CardDescription>
-              </CardHeader>
               <CardContent>
-                <Tabs defaultValue="stats" className="w-full">
-                  <TabsList className="grid w-full grid-cols-3">
-                    <TabsTrigger value="stats">Estadísticas</TabsTrigger>
-                    <TabsTrigger value="original">Originales</TabsTrigger>
-                    <TabsTrigger value="converted">UTM30</TabsTrigger>
-                  </TabsList>
-
-                  <TabsContent value="stats" className="space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="space-y-3">
-                        <h4 className="font-medium text-sm">Coordenadas Originales</h4>
-                        <div className="bg-muted/50 rounded-lg p-4 space-y-2 text-sm">
-                          {originalBounds ? (
-                            <>
-                              <div className="flex justify-between">
-                                <span className="text-muted-foreground">Min X:</span>
-                                <span className="font-mono">{formatCoordinate(originalBounds.minX, 6)}</span>
+                <div className="space-y-3">
+                  {processedFiles.map((file) => {
+                    const fileValidCoords = file.convertedData.filter(c => c.isValid).length
+                    const fileInvalidCoords = file.convertedData.length - fileValidCoords
+                    const isSelected = selectedFileId === file.id
+                    
+                    return (
+                      <div
+                        key={file.id}
+                        onClick={() => setSelectedFileId(file.id)}
+                        className={`
+                          border rounded-lg p-4 cursor-pointer transition-all
+                          ${isSelected 
+                            ? 'border-primary bg-primary/5 shadow-sm' 
+                            : 'border-border hover:border-primary/50 hover:bg-muted/30'
+                          }
+                        `}
+                      >
+                        <div className="flex items-start justify-between gap-4">
+                          <div className="flex-1 space-y-2">
+                            <div className="flex items-center gap-2">
+                              <File size={20} className="text-primary" />
+                              <h4 className="font-medium truncate">{file.parsedFile.filename}</h4>
+                              <Badge variant="secondary" className="text-xs">{file.parsedFile.fileType}</Badge>
+                            </div>
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+                              <div>
+                                <span className="text-muted-foreground">Sistema: </span>
+                                <span className="font-medium">{file.detection.system.code}</span>
                               </div>
-                              <div className="flex justify-between">
-                                <span className="text-muted-foreground">Max X:</span>
-                                <span className="font-mono">{formatCoordinate(originalBounds.maxX, 6)}</span>
+                              <div>
+                                <span className="text-muted-foreground">Filas: </span>
+                                <span className="font-medium">{file.parsedFile.rowCount.toLocaleString()}</span>
                               </div>
-                              <div className="flex justify-between">
-                                <span className="text-muted-foreground">Min Y:</span>
-                                <span className="font-mono">{formatCoordinate(originalBounds.minY, 6)}</span>
+                              <div>
+                                <span className="text-muted-foreground">Válidas: </span>
+                                <span className="font-medium text-green-600">{fileValidCoords}</span>
                               </div>
-                              <div className="flex justify-between">
-                                <span className="text-muted-foreground">Max Y:</span>
-                                <span className="font-mono">{formatCoordinate(originalBounds.maxY, 6)}</span>
-                              </div>
-                            </>
-                          ) : (
-                            <p className="text-muted-foreground">No hay coordenadas válidas</p>
-                          )}
+                              {fileInvalidCoords > 0 && (
+                                <div>
+                                  <span className="text-muted-foreground">Inválidas: </span>
+                                  <span className="font-medium text-destructive">{fileInvalidCoords}</span>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                          <div className="flex gap-2">
+                            <Button
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                handleDownload(file.id)
+                              }}
+                              size="sm"
+                              variant="outline"
+                            >
+                              <DownloadSimple size={16} />
+                            </Button>
+                            <Button
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                handleRemoveFile(file.id)
+                              }}
+                              size="sm"
+                              variant="outline"
+                            >
+                              <Trash size={16} />
+                            </Button>
+                          </div>
                         </div>
                       </div>
+                    )
+                  })}
+                </div>
 
-                      <div className="space-y-3">
-                        <h4 className="font-medium text-sm">Convertidas a UTM30</h4>
-                        <div className="bg-muted/50 rounded-lg p-4 space-y-2 text-sm">
-                          {convertedBounds ? (
-                            <>
-                              <div className="flex justify-between">
-                                <span className="text-muted-foreground">Min X:</span>
-                                <span className="font-mono">{formatCoordinate(convertedBounds.minX, 2)} m</span>
-                              </div>
-                              <div className="flex justify-between">
-                                <span className="text-muted-foreground">Max X:</span>
-                                <span className="font-mono">{formatCoordinate(convertedBounds.maxX, 2)} m</span>
-                              </div>
-                              <div className="flex justify-between">
-                                <span className="text-muted-foreground">Min Y:</span>
-                                <span className="font-mono">{formatCoordinate(convertedBounds.minY, 2)} m</span>
-                              </div>
-                              <div className="flex justify-between">
-                                <span className="text-muted-foreground">Max Y:</span>
-                                <span className="font-mono">{formatCoordinate(convertedBounds.maxY, 2)} m</span>
-                              </div>
-                            </>
-                          ) : (
-                            <p className="text-muted-foreground">No hay coordenadas válidas</p>
-                          )}
-                        </div>
+                <Separator className="my-4" />
+
+                <div className="text-center">
+                  <input
+                    type="file"
+                    id="file-upload-more"
+                    accept=".csv,.xlsx,.xls,.xlsb,.xlsm,.ods,.fods,.doc,.docx,.odt,.rtf,.txt"
+                    onChange={handleFileInput}
+                    multiple
+                    className="hidden"
+                  />
+                  <Button asChild variant="outline">
+                    <label htmlFor="file-upload-more" className="cursor-pointer">
+                      <UploadSimple size={20} className="mr-2" />
+                      Añadir Más Archivos
+                    </label>
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            {selectedFile && (
+              <>
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <MapPin className="text-primary" size={24} />
+                      Información del Archivo
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                      <div className="space-y-1">
+                        <p className="text-sm text-muted-foreground">Nombre del archivo</p>
+                        <p className="font-medium truncate">{selectedFile.parsedFile.filename}</p>
+                      </div>
+                      <div className="space-y-1">
+                        <p className="text-sm text-muted-foreground">Tipo de archivo</p>
+                        <Badge>{selectedFile.parsedFile.fileType}</Badge>
+                      </div>
+                      <div className="space-y-1">
+                        <p className="text-sm text-muted-foreground">Filas totales</p>
+                        <p className="font-medium">{selectedFile.parsedFile.rowCount.toLocaleString()}</p>
+                      </div>
+                      <div className="space-y-1">
+                        <p className="text-sm text-muted-foreground">Columnas</p>
+                        <p className="font-medium">{selectedFile.parsedFile.columnCount}</p>
                       </div>
                     </div>
 
                     <Separator />
 
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                      <div className="text-center p-4 bg-primary/5 rounded-lg">
-                        <p className="text-2xl font-semibold text-primary">{validCoords.length}</p>
-                        <p className="text-xs text-muted-foreground mt-1">Coordenadas Válidas</p>
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-2">
+                        <Globe className="text-primary" size={20} />
+                        <h4 className="font-medium">Sistema de Coordenadas Detectado</h4>
                       </div>
-                      <div className="text-center p-4 bg-muted rounded-lg">
-                        <p className="text-2xl font-semibold">{invalidCoords.length}</p>
-                        <p className="text-xs text-muted-foreground mt-1">Inválidas</p>
-                      </div>
-                      <div className="text-center p-4 bg-muted rounded-lg">
-                        <p className="text-2xl font-semibold">{parsedFile.columnCount}</p>
-                        <p className="text-xs text-muted-foreground mt-1">Columnas Totales</p>
-                      </div>
-                      <div className="text-center p-4 bg-accent/10 rounded-lg">
-                        <p className="text-2xl font-semibold text-accent-foreground">UTM30N</p>
-                        <p className="text-xs text-muted-foreground mt-1">EPSG:25830</p>
+                      <div className="bg-muted/50 rounded-lg p-4 space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm text-muted-foreground">Sistema</span>
+                          <Badge variant="secondary">{selectedFile.detection.system.name}</Badge>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm text-muted-foreground">Código</span>
+                          <span className="font-mono text-sm">{selectedFile.detection.system.code}</span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm text-muted-foreground">Columna X</span>
+                          <span className="font-medium text-sm">{selectedFile.detection.xColumn}</span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm text-muted-foreground">Columna Y</span>
+                          <span className="font-medium text-sm">{selectedFile.detection.yColumn}</span>
+                        </div>
+                        {selectedFile.detection.normalizedCount > 0 && (
+                          <div className="flex items-center justify-between pt-2 border-t border-border">
+                            <span className="text-sm text-muted-foreground">Coordenadas normalizadas</span>
+                            <Badge variant="default" className="bg-green-600 text-white">
+                              {selectedFile.detection.normalizedCount}
+                            </Badge>
+                          </div>
+                        )}
                       </div>
                     </div>
-                  </TabsContent>
 
-                  <TabsContent value="original">
-                    <div className="border rounded-lg overflow-hidden">
-                      <div className="overflow-x-auto">
-                        <table className="w-full text-sm">
-                          <thead className="bg-muted">
-                            <tr>
-                              <th className="px-4 py-2 text-left font-medium">Fila</th>
-                              <th className="px-4 py-2 text-left font-medium">{detection.xColumn}</th>
-                              <th className="px-4 py-2 text-left font-medium">{detection.yColumn}</th>
-                              <th className="px-4 py-2 text-left font-medium">Estado</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {convertedData.slice(0, 10).map((coord, idx) => (
-                              <tr key={idx} className="border-t hover:bg-muted/30">
-                                <td className="px-4 py-2">{idx + 1}</td>
-                                <td className="px-4 py-2 font-mono text-xs">
-                                  {formatCoordinate(coord.original.x, 6)}
-                                  {coord.normalizedFrom && (
-                                    <span className="ml-1 text-accent" title={coord.normalizedFrom}>✓</span>
-                                  )}
-                                </td>
-                                <td className="px-4 py-2 font-mono text-xs">
-                                  {formatCoordinate(coord.original.y, 6)}
-                                </td>
-                                <td className="px-4 py-2">
-                                  {coord.isValid ? (
-                                    <Badge variant="outline" className="text-xs">Válida</Badge>
-                                  ) : (
-                                    <Badge variant="destructive" className="text-xs" title={coord.error}>
-                                      Inválida
-                                    </Badge>
-                                  )}
-                                </td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
-                      {convertedData.length > 10 && (
-                        <div className="bg-muted px-4 py-2 text-xs text-muted-foreground text-center">
-                          Mostrando 10 de {convertedData.length} filas. 
-                          {convertedData.filter(c => c.normalizedFrom).length > 0 && (
-                            <span className="ml-2 text-accent">
-                              ✓ = Coordenada normalizada automáticamente
-                            </span>
+                    {invalidCoords.length > 0 && (
+                      <>
+                        <Separator />
+                        <Alert variant="destructive">
+                          <Warning size={20} />
+                          <AlertDescription>
+                            {invalidCoords.length} coordenada{invalidCoords.length > 1 ? 's' : ''} no {invalidCoords.length > 1 ? 'pasaron' : 'pasó'} la validación y será{invalidCoords.length > 1 ? 'n' : ''} excluida{invalidCoords.length > 1 ? 's' : ''} del archivo de salida
+                          </AlertDescription>
+                        </Alert>
+                      </>
+                    )}
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Datos de Coordenadas</CardTitle>
+                    <CardDescription>Vista previa de las coordenadas originales y convertidas</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <Tabs defaultValue="stats" className="w-full">
+                      <TabsList className="grid w-full grid-cols-3">
+                        <TabsTrigger value="stats">Estadísticas</TabsTrigger>
+                        <TabsTrigger value="original">Originales</TabsTrigger>
+                        <TabsTrigger value="converted">UTM30</TabsTrigger>
+                      </TabsList>
+
+                      <TabsContent value="stats" className="space-y-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="space-y-3">
+                            <h4 className="font-medium text-sm">Coordenadas Originales</h4>
+                            <div className="bg-muted/50 rounded-lg p-4 space-y-2 text-sm">
+                              {originalBounds ? (
+                                <>
+                                  <div className="flex justify-between">
+                                    <span className="text-muted-foreground">Min X:</span>
+                                    <span className="font-mono">{formatCoordinate(originalBounds.minX, 6)}</span>
+                                  </div>
+                                  <div className="flex justify-between">
+                                    <span className="text-muted-foreground">Max X:</span>
+                                    <span className="font-mono">{formatCoordinate(originalBounds.maxX, 6)}</span>
+                                  </div>
+                                  <div className="flex justify-between">
+                                    <span className="text-muted-foreground">Min Y:</span>
+                                    <span className="font-mono">{formatCoordinate(originalBounds.minY, 6)}</span>
+                                  </div>
+                                  <div className="flex justify-between">
+                                    <span className="text-muted-foreground">Max Y:</span>
+                                    <span className="font-mono">{formatCoordinate(originalBounds.maxY, 6)}</span>
+                                  </div>
+                                </>
+                              ) : (
+                                <p className="text-muted-foreground">No hay coordenadas válidas</p>
+                              )}
+                            </div>
+                          </div>
+
+                          <div className="space-y-3">
+                            <h4 className="font-medium text-sm">Convertidas a UTM30</h4>
+                            <div className="bg-muted/50 rounded-lg p-4 space-y-2 text-sm">
+                              {convertedBounds ? (
+                                <>
+                                  <div className="flex justify-between">
+                                    <span className="text-muted-foreground">Min X:</span>
+                                    <span className="font-mono">{formatCoordinate(convertedBounds.minX, 2)} m</span>
+                                  </div>
+                                  <div className="flex justify-between">
+                                    <span className="text-muted-foreground">Max X:</span>
+                                    <span className="font-mono">{formatCoordinate(convertedBounds.maxX, 2)} m</span>
+                                  </div>
+                                  <div className="flex justify-between">
+                                    <span className="text-muted-foreground">Min Y:</span>
+                                    <span className="font-mono">{formatCoordinate(convertedBounds.minY, 2)} m</span>
+                                  </div>
+                                  <div className="flex justify-between">
+                                    <span className="text-muted-foreground">Max Y:</span>
+                                    <span className="font-mono">{formatCoordinate(convertedBounds.maxY, 2)} m</span>
+                                  </div>
+                                </>
+                              ) : (
+                                <p className="text-muted-foreground">No hay coordenadas válidas</p>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+
+                        <Separator />
+
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                          <div className="text-center p-4 bg-green-50 border border-green-200 rounded-lg">
+                            <p className="text-2xl font-semibold text-green-600">{validCoords.length}</p>
+                            <p className="text-xs text-muted-foreground mt-1">Coordenadas Válidas</p>
+                          </div>
+                          <div className="text-center p-4 bg-muted rounded-lg">
+                            <p className="text-2xl font-semibold">{invalidCoords.length}</p>
+                            <p className="text-xs text-muted-foreground mt-1">Inválidas</p>
+                          </div>
+                          <div className="text-center p-4 bg-muted rounded-lg">
+                            <p className="text-2xl font-semibold">{selectedFile.parsedFile.columnCount}</p>
+                            <p className="text-xs text-muted-foreground mt-1">Columnas Totales</p>
+                          </div>
+                          <div className="text-center p-4 bg-accent/10 rounded-lg">
+                            <p className="text-2xl font-semibold text-accent-foreground">UTM30N</p>
+                            <p className="text-xs text-muted-foreground mt-1">EPSG:25830</p>
+                          </div>
+                        </div>
+                      </TabsContent>
+
+                      <TabsContent value="original">
+                        <div className="border rounded-lg overflow-hidden">
+                          <div className="overflow-x-auto">
+                            <table className="w-full text-sm">
+                              <thead className="bg-muted">
+                                <tr>
+                                  <th className="px-4 py-2 text-left font-medium">Fila</th>
+                                  <th className="px-4 py-2 text-left font-medium">{selectedFile.detection.xColumn}</th>
+                                  <th className="px-4 py-2 text-left font-medium">{selectedFile.detection.yColumn}</th>
+                                  <th className="px-4 py-2 text-left font-medium">Estado</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {selectedFile.convertedData.slice(0, 10).map((coord, idx) => (
+                                  <tr key={idx} className="border-t hover:bg-muted/30">
+                                    <td className="px-4 py-2">{idx + 1}</td>
+                                    <td className="px-4 py-2 font-mono text-xs">
+                                      {formatCoordinate(coord.original.x, 6)}
+                                      {coord.normalizedFrom && (
+                                        <span className="ml-1 text-accent" title={coord.normalizedFrom}>✓</span>
+                                      )}
+                                    </td>
+                                    <td className="px-4 py-2 font-mono text-xs">
+                                      {formatCoordinate(coord.original.y, 6)}
+                                    </td>
+                                    <td className="px-4 py-2">
+                                      {coord.isValid ? (
+                                        <Badge variant="outline" className="text-xs">Válida</Badge>
+                                      ) : (
+                                        <Badge variant="destructive" className="text-xs" title={coord.error}>
+                                          Inválida
+                                        </Badge>
+                                      )}
+                                    </td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
+                          {selectedFile.convertedData.length > 10 && (
+                            <div className="bg-muted px-4 py-2 text-xs text-muted-foreground text-center">
+                              Mostrando 10 de {selectedFile.convertedData.length} filas. 
+                              {selectedFile.convertedData.filter(c => c.normalizedFrom).length > 0 && (
+                                <span className="ml-2 text-accent">
+                                  ✓ = Coordenada normalizada automáticamente
+                                </span>
+                              )}
+                            </div>
                           )}
                         </div>
-                      )}
-                    </div>
-                  </TabsContent>
+                      </TabsContent>
 
-                  <TabsContent value="converted">
-                    <div className="border rounded-lg overflow-hidden">
-                      <div className="overflow-x-auto">
-                        <table className="w-full text-sm">
-                          <thead className="bg-muted">
-                            <tr>
-                              <th className="px-4 py-2 text-left font-medium">Fila</th>
-                              <th className="px-4 py-2 text-left font-medium">X_UTM30 (m)</th>
-                              <th className="px-4 py-2 text-left font-medium">Y_UTM30 (m)</th>
-                              <th className="px-4 py-2 text-left font-medium">Estado</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {validCoords.slice(0, 10).map((coord, idx) => (
-                              <tr key={idx} className="border-t hover:bg-muted/30">
-                                <td className="px-4 py-2">{coord.rowIndex + 1}</td>
-                                <td className="px-4 py-2 font-mono text-xs">{formatCoordinate(coord.converted.x, 2)}</td>
-                                <td className="px-4 py-2 font-mono text-xs">{formatCoordinate(coord.converted.y, 2)}</td>
-                                <td className="px-4 py-2">
-                                  <Badge variant="outline" className="text-xs">Convertida</Badge>
-                                </td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
-                      {validCoords.length > 10 && (
-                        <div className="bg-muted px-4 py-2 text-xs text-muted-foreground text-center">
-                          Mostrando 10 de {validCoords.length} coordenadas válidas
+                      <TabsContent value="converted">
+                        <div className="border rounded-lg overflow-hidden">
+                          <div className="overflow-x-auto">
+                            <table className="w-full text-sm">
+                              <thead className="bg-muted">
+                                <tr>
+                                  <th className="px-4 py-2 text-left font-medium">Fila</th>
+                                  <th className="px-4 py-2 text-left font-medium">X_UTM30 (m)</th>
+                                  <th className="px-4 py-2 text-left font-medium">Y_UTM30 (m)</th>
+                                  <th className="px-4 py-2 text-left font-medium">Estado</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {validCoords.slice(0, 10).map((coord, idx) => (
+                                  <tr key={idx} className="border-t hover:bg-muted/30">
+                                    <td className="px-4 py-2">{coord.rowIndex + 1}</td>
+                                    <td className="px-4 py-2 font-mono text-xs">{formatCoordinate(coord.converted.x, 2)}</td>
+                                    <td className="px-4 py-2 font-mono text-xs">{formatCoordinate(coord.converted.y, 2)}</td>
+                                    <td className="px-4 py-2">
+                                      <Badge variant="outline" className="text-xs">Convertida</Badge>
+                                    </td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
+                          {validCoords.length > 10 && (
+                            <div className="bg-muted px-4 py-2 text-xs text-muted-foreground text-center">
+                              Mostrando 10 de {validCoords.length} coordenadas válidas
+                            </div>
+                          )}
                         </div>
-                      )}
-                    </div>
-                  </TabsContent>
-                </Tabs>
-              </CardContent>
-            </Card>
+                      </TabsContent>
+                    </Tabs>
+                  </CardContent>
+                </Card>
 
-            <div className="flex flex-col sm:flex-row gap-3">
-              <Button 
-                onClick={handleDownload} 
-                className="flex-1 sm:flex-none"
-                size="lg"
-              >
-                <DownloadSimple size={20} className="mr-2" />
-                Descargar CSV
-              </Button>
-              <Button 
-                onClick={handleReset} 
-                variant="outline"
-                size="lg"
-              >
-                <ArrowsClockwise size={20} className="mr-2" />
-                Nueva Conversión
-              </Button>
-            </div>
-
-            <div className="bg-muted/50 rounded-lg p-4 text-sm text-muted-foreground">
-              <p>
-                <strong>Archivo de salida:</strong> {getOutputFilename(parsedFile.filename)}
-              </p>
-              <p className="mt-1">
-                Formato: CSV con coordenadas UTM30 (EPSG:25830) optimizado para importar en QGIS
-              </p>
-            </div>
+                <div className="bg-muted/50 rounded-lg p-4 text-sm text-muted-foreground">
+                  <p>
+                    <strong>Archivo de salida:</strong> {getOutputFilename(selectedFile.parsedFile.filename)}
+                  </p>
+                  <p className="mt-1">
+                    Formato: CSV con coordenadas UTM30 (EPSG:25830) optimizado para importar en QGIS
+                  </p>
+                </div>
+              </>
+            )}
           </>
         )}
       </div>
