@@ -538,20 +538,20 @@ function App() {
               <>
                 <Card>
                   <CardHeader className="pb-3">
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <MapPin className="text-primary" size={16} />
-                      <span>Información del archivo</span>
+                    <div className="flex items-center gap-2 text-sm">
+                      <MapPin className="text-primary" size={18} />
+                      <span className="font-semibold">Información del archivo</span>
+                      <span className="text-muted-foreground mx-2">›</span>
+                      <File className="text-blue-600" size={16} />
+                      <span className="text-muted-foreground">Archivo Original</span>
+                      <span className="text-muted-foreground mx-2">›</span>
+                      <ArrowsClockwise className="text-green-600" size={16} />
+                      <span className="text-muted-foreground">Archivo Convertido</span>
                     </div>
                   </CardHeader>
                   <CardContent>
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                       <div className="space-y-4">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            <File className="text-blue-600" size={16} />
-                            <h4 className="font-semibold text-sm">Archivo Original</h4>
-                          </div>
-                        </div>
                         
                         <div className="bg-blue-50/40 rounded-lg p-3 space-y-2.5 border border-blue-200/40">
                           <div className="grid grid-cols-[1fr_auto] gap-2 items-baseline">
@@ -627,12 +627,6 @@ function App() {
                       </div>
 
                       <div className="space-y-4">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            <ArrowsClockwise className="text-green-600" size={16} />
-                            <h4 className="font-semibold text-sm">Archivo Convertido</h4>
-                          </div>
-                        </div>
                         
                         <div className="bg-green-50/40 rounded-lg p-3 space-y-2.5 border border-green-200/40">
                           <div className="grid grid-cols-[1fr_auto] gap-2 items-baseline">
