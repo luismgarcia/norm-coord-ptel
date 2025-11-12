@@ -19,7 +19,8 @@ import {
   Globe,
   File,
   Trash,
-  Stack
+  Stack,
+  Package
 } from '@phosphor-icons/react'
 import { parseFile, generateCSV, downloadCSV, getOutputFilename, type ParsedFile } from '@/lib/fileParser'
 import { 
@@ -32,6 +33,7 @@ import {
   type CoordinateData 
 } from '@/lib/coordinateUtils'
 import { toast } from 'sonner'
+import JSZip from 'jszip'
 
 interface ProcessingState {
   stage: 'idle' | 'uploading' | 'detecting' | 'converting' | 'complete' | 'error'
@@ -189,18 +191,44 @@ function App() {
   }
 
   const handleDownloadAll = async () => {
-    for (let i = 0; i < processedFiles.length; i++) {
-      const file = processedFiles[i]
-      handleDownload(file.id)
+    try {
+      const zip = new JSZip()
       
-      if (i < processedFiles.length - 1) {
-        await new Promise(resolve => setTimeout(resolve, 300))
-      }
+      processedFiles.forEach((file) => {
+        const csvContent = generateCSV(
+          file.parsedFile.data,
+          file.detection.xColumn,
+          file.detection.yColumn,
+          file.convertedData.map(c => ({ x: c.converted.x, y: c.converted.y, isValid: c.isValid }))
+        )
+        
+        const filename = getOutputFilename(file.parsedFile.filename)
+        zip.file(filename, csvContent)
+      })
+      
+      const blob = await zip.generateAsync({ type: 'blob' })
+      
+      const link = document.createElement('a')
+      const url = URL.createObjectURL(blob)
+      
+      link.setAttribute('href', url)
+      link.setAttribute('download', 'coordenadas_UTM30.zip')
+      link.style.visibility = 'hidden'
+      
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      
+      URL.revokeObjectURL(url)
+      
+      toast.success('Archivos descargados', {
+        description: `${processedFiles.length} archivos en formato ZIP`
+      })
+    } catch (error) {
+      toast.error('Error al crear ZIP', {
+        description: error instanceof Error ? error.message : 'Error desconocido'
+      })
     }
-    
-    toast.success('Archivos descargados', {
-      description: `${processedFiles.length} archivos procesados`
-    })
   }
 
   const handleRemoveFile = (fileId: string) => {
@@ -472,8 +500,8 @@ function App() {
                   </Button>
                   {processedFiles.length > 1 && (
                     <Button onClick={handleDownloadAll} variant="outline" className="border-green-600/30 bg-green-200 hover:bg-green-300">
-                      <DownloadSimple size={20} className="mr-2" />
-                      Descargar Todos
+                      <Package size={20} className="mr-2" />
+                      Descargar Todos (ZIP)
                     </Button>
                   )}
                 </div>
