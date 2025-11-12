@@ -237,10 +237,13 @@ function App() {
   }
 
   const handleRemoveFile = (fileId: string) => {
-    setProcessedFiles(prev => prev.filter(f => f.id !== fileId))
-    if (selectedFileId === fileId) {
-      setSelectedFileId(processedFiles[0]?.id || null)
-    }
+    setProcessedFiles(prev => {
+      const remaining = prev.filter(f => f.id !== fileId)
+      if (selectedFileId === fileId) {
+        setSelectedFileId(remaining[0]?.id || null)
+      }
+      return remaining
+    })
   }
 
   const handleReset = () => {
