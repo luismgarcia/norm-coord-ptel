@@ -24,6 +24,7 @@ import {
   convertToUTM30,
   calculateBounds,
   formatCoordinate,
+  getCoordinateSystems,
   type DetectionResult,
   type CoordinateData 
 } from '@/lib/coordinateUtils'
@@ -229,13 +230,22 @@ function App() {
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <h4 className="text-sm font-medium">Sistemas de Coordenadas:</h4>
-                  <div className="flex flex-wrap gap-2">
-                    <Badge variant="outline">WGS84</Badge>
-                    <Badge variant="outline">ETRS89</Badge>
-                    <Badge variant="outline">ED50 UTM30</Badge>
-                    <Badge variant="outline">Geográficas (Lat/Lon)</Badge>
+                  <h4 className="text-sm font-medium">Sistemas de Coordenadas Soportados ({getCoordinateSystems().length}):</h4>
+                  <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto">
+                    {getCoordinateSystems().map(sys => (
+                      <Badge key={sys.code} variant="outline" className="text-xs">
+                        {sys.name}
+                      </Badge>
+                    ))}
                   </div>
+                </div>
+                <div className="bg-accent/10 border border-accent/20 rounded-lg p-3 mt-4">
+                  <p className="text-sm text-accent-foreground font-medium mb-1">✨ Normalización Automática</p>
+                  <p className="text-xs text-muted-foreground">
+                    El sistema detecta y corrige automáticamente coordenadas con errores de formato, 
+                    caracteres extraños, comas/puntos decimales incorrectos, y coordenadas en formato 
+                    grados/minutos/segundos (DMS).
+                  </p>
                 </div>
               </div>
             </CardContent>
@@ -321,6 +331,14 @@ function App() {
                       <span className="text-sm text-muted-foreground">Columna Y</span>
                       <span className="font-medium text-sm">{detection.yColumn}</span>
                     </div>
+                    {detection.normalizedCount > 0 && (
+                      <div className="flex items-center justify-between pt-2 border-t border-border">
+                        <span className="text-sm text-muted-foreground">Coordenadas normalizadas</span>
+                        <Badge variant="default" className="bg-accent text-accent-foreground">
+                          {detection.normalizedCount}
+                        </Badge>
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -448,13 +466,22 @@ function App() {
                             {convertedData.slice(0, 10).map((coord, idx) => (
                               <tr key={idx} className="border-t hover:bg-muted/30">
                                 <td className="px-4 py-2">{idx + 1}</td>
-                                <td className="px-4 py-2 font-mono text-xs">{formatCoordinate(coord.original.x, 6)}</td>
-                                <td className="px-4 py-2 font-mono text-xs">{formatCoordinate(coord.original.y, 6)}</td>
+                                <td className="px-4 py-2 font-mono text-xs">
+                                  {formatCoordinate(coord.original.x, 6)}
+                                  {coord.normalizedFrom && (
+                                    <span className="ml-1 text-accent" title={coord.normalizedFrom}>✓</span>
+                                  )}
+                                </td>
+                                <td className="px-4 py-2 font-mono text-xs">
+                                  {formatCoordinate(coord.original.y, 6)}
+                                </td>
                                 <td className="px-4 py-2">
                                   {coord.isValid ? (
                                     <Badge variant="outline" className="text-xs">Válida</Badge>
                                   ) : (
-                                    <Badge variant="destructive" className="text-xs">Inválida</Badge>
+                                    <Badge variant="destructive" className="text-xs" title={coord.error}>
+                                      Inválida
+                                    </Badge>
                                   )}
                                 </td>
                               </tr>
@@ -464,7 +491,12 @@ function App() {
                       </div>
                       {convertedData.length > 10 && (
                         <div className="bg-muted px-4 py-2 text-xs text-muted-foreground text-center">
-                          Mostrando 10 de {convertedData.length} filas
+                          Mostrando 10 de {convertedData.length} filas. 
+                          {convertedData.filter(c => c.normalizedFrom).length > 0 && (
+                            <span className="ml-2 text-accent">
+                              ✓ = Coordenada normalizada automáticamente
+                            </span>
+                          )}
                         </div>
                       )}
                     </div>

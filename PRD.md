@@ -20,11 +20,11 @@ A professional web application that automatically detects, analyzes, normalizes,
 - **Success criteria**: Successfully parses all supported formats and identifies coordinate pairs with 95%+ accuracy
 
 ### Coordinate Analysis & Normalization
-- **Functionality**: Identifies coordinate system (Geographic, UTM, etc.), validates data quality, and normalizes format
-- **Purpose**: Ensures data integrity before transformation and provides transparency
+- **Functionality**: Identifies coordinate system from 15+ supported formats (WGS84, ETRS89, ED50, Web Mercator, Lambert 93, etc.), detects and corrects coordinate formatting errors, normalizes inconsistent decimal separators (commas vs periods), removes invalid characters, converts DMS (degrees/minutes/seconds) format to decimal, and validates data quality
+- **Purpose**: Ensures data integrity before transformation, handles real-world messy data automatically, and provides transparency about corrections made
 - **Trigger**: Automatic after file upload and detection
-- **Progression**: Raw coordinates → System detection → Format normalization → Validation → Display statistics
-- **Success criteria**: Correctly identifies common coordinate systems (WGS84, ETRS89, ED50) and reports validation issues
+- **Progression**: Raw coordinates → Character cleaning → Decimal normalization → DMS conversion → System detection → Format validation → Display statistics with normalization count
+- **Success criteria**: Correctly identifies 15+ coordinate systems across different zones and datums, successfully normalizes coordinates with format errors (incorrect decimals, special characters, DMS notation), reports validation issues with detailed error messages
 
 ### UTM30 Conversion
 - **Functionality**: Transforms detected coordinates to UTM Zone 30N format with QGIS-compatible structure
@@ -34,11 +34,11 @@ A professional web application that automatically detects, analyzes, normalizes,
 - **Success criteria**: Accurate transformations within 1m precision, proper CSV formatting for QGIS import
 
 ### Information Display
-- **Functionality**: Shows original coordinate system, sample data, row counts, detected columns, and conversion summary
-- **Purpose**: Provides transparency and allows user validation before download
+- **Functionality**: Shows detected coordinate system (from 15+ supported systems including multiple UTM zones, datums, and projections), sample data, row counts, detected columns, normalization statistics, and conversion summary
+- **Purpose**: Provides transparency about automatic corrections and allows user validation before download
 - **Trigger**: Updates at each processing stage
-- **Progression**: File info → Detected system → Sample preview → Conversion statistics → Download ready
-- **Success criteria**: Clear presentation of all relevant metadata and transformation details
+- **Progression**: File info → Detected system (with zone info) → Normalization report → Sample preview → Conversion statistics → Download ready
+- **Success criteria**: Clear presentation of all relevant metadata, transformation details, and count of normalized coordinates with visual indicators
 
 ### Download with Smart Naming
 - **Functionality**: Generates CSV file with original filename + "_UTM30" suffix, triggers browser download
@@ -49,13 +49,17 @@ A professional web application that automatically detects, analyzes, normalizes,
 
 ## Edge Case Handling
 - **Mixed coordinate formats**: Detect and warn if multiple coordinate systems exist in single file
-- **Invalid coordinates**: Flag out-of-range values and provide row-level error reporting
+- **Invalid coordinates**: Flag out-of-range values and provide row-level error reporting with specific error descriptions
+- **Malformed coordinates**: Automatically normalize coordinates with incorrect decimal separators, extra spaces, special characters, or non-standard encoding
+- **DMS format coordinates**: Automatically convert degrees/minutes/seconds notation (e.g., "40° 25' 30\" N") to decimal format
 - **Missing data**: Handle null/empty cells gracefully with clear reporting
 - **Large files**: Show progress indicator for files with 10,000+ rows
 - **Unsupported formats**: Clear error message with supported format list (CSV, XLS/XLSX/XLSM/XLSB, ODS/FODS, DOC/DOCX, ODT, RTF, TXT)
 - **Ambiguous column names**: Allow manual column selection if auto-detection uncertain
 - **Document tables**: Extract tabular data from document formats, fallback to text parsing when native table extraction fails
 - **Multiple delimiters**: Auto-detect delimiter type in text files (tabs, commas, semicolons, pipes, spaces)
+- **Zone detection**: Automatically detect correct UTM zone (29, 30, 31) based on coordinate ranges for accurate conversions
+- **Character encoding issues**: Strip non-numeric characters while preserving coordinate format indicators
 
 ## Design Direction
 The design should feel professional, precise, and efficient - like a technical tool built for GIS professionals. Clean and focused interface with emphasis on data clarity and processing transparency. Minimal distractions with purposeful use of space to display technical information clearly.
