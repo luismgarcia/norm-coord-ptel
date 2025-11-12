@@ -15,7 +15,8 @@ import {
   Warning,
   DownloadSimple,
   ArrowsClockwise,
-  Globe
+  Globe,
+  File
 } from '@phosphor-icons/react'
 import { parseFile, generateCSV, downloadCSV, getOutputFilename, type ParsedFile } from '@/lib/fileParser'
 import { 
@@ -46,22 +47,22 @@ function App() {
   const [isDragging, setIsDragging] = useState(false)
 
   const handleFileUpload = async (file: File) => {
-    setProcessing({ stage: 'uploading', progress: 10, message: 'Reading file...' })
+    setProcessing({ stage: 'uploading', progress: 10, message: 'Leyendo archivo...' })
 
     try {
       const parsed = await parseFile(file)
       setParsedFile(parsed)
-      setProcessing({ stage: 'detecting', progress: 40, message: 'Detecting coordinate system...' })
+      setProcessing({ stage: 'detecting', progress: 40, message: 'Detectando sistema de coordenadas...' })
 
       setTimeout(() => {
         const detected = detectCoordinateSystem(parsed.data)
         
         if (!detected) {
-          throw new Error('Could not detect coordinate columns. Please ensure your file contains coordinate data.')
+          throw new Error('No se pudieron detectar columnas de coordenadas. Asegúrese de que su archivo contiene datos de coordenadas.')
         }
 
         setDetection(detected)
-        setProcessing({ stage: 'converting', progress: 70, message: 'Converting to UTM30...' })
+        setProcessing({ stage: 'converting', progress: 70, message: 'Convirtiendo a UTM30...' })
 
         setTimeout(() => {
           const converted = convertToUTM30(
@@ -79,11 +80,11 @@ function App() {
           setProcessing({ 
             stage: 'complete', 
             progress: 100, 
-            message: `Conversion complete! ${validCount} coordinates converted${invalidCount > 0 ? `, ${invalidCount} failed` : ''}` 
+            message: `¡Conversión completada! ${validCount} coordenadas convertidas${invalidCount > 0 ? `, ${invalidCount} fallidas` : ''}` 
           })
 
-          toast.success('Conversion complete', {
-            description: `Successfully converted ${validCount} coordinates to UTM30`
+          toast.success('Conversión completada', {
+            description: `Se convirtieron exitosamente ${validCount} coordenadas a UTM30`
           })
         }, 500)
       }, 500)
@@ -92,10 +93,10 @@ function App() {
       setProcessing({ 
         stage: 'error', 
         progress: 0, 
-        message: error instanceof Error ? error.message : 'An error occurred' 
+        message: error instanceof Error ? error.message : 'Ocurrió un error' 
       })
-      toast.error('Processing failed', {
-        description: error instanceof Error ? error.message : 'Unknown error'
+      toast.error('Procesamiento fallido', {
+        description: error instanceof Error ? error.message : 'Error desconocido'
       })
     }
   }
@@ -130,8 +131,8 @@ function App() {
     const filename = getOutputFilename(parsedFile.filename)
     downloadCSV(csvContent, filename)
 
-    toast.success('File downloaded', {
-      description: `Saved as ${filename}`
+    toast.success('Archivo descargado', {
+      description: `Guardado como ${filename}`
     })
   }
 
@@ -166,10 +167,10 @@ function App() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <UploadSimple className="text-primary" size={24} />
-                Upload File
+                Subir Archivo
               </CardTitle>
               <CardDescription>
-                Supports CSV, Excel (.xlsx, .xls) formats with coordinate data
+                Soporta CSV, Excel (XLS/XLSX/XLSM/XLSB), OpenDocument (ODS), documentos de Word (DOC/DOCX), OpenDocument Text (ODT), RTF y TXT con datos tabulares
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -189,37 +190,52 @@ function App() {
                   <div className="flex justify-center gap-3">
                     <FileCsv size={32} className="text-muted-foreground" />
                     <FileXls size={32} className="text-muted-foreground" />
+                    <File size={32} className="text-muted-foreground" />
                   </div>
                   <div>
                     <p className="text-lg font-medium mb-1">
-                      Drop your file here or click to browse
+                      Arrastra tu archivo aquí o haz clic para seleccionar
                     </p>
                     <p className="text-sm text-muted-foreground">
-                      CSV, XLSX, or XLS files up to 50MB
+                      Múltiples formatos soportados, hasta 50MB
                     </p>
                   </div>
                   <input
                     type="file"
                     id="file-upload"
-                    accept=".csv,.xlsx,.xls"
+                    accept=".csv,.xlsx,.xls,.xlsb,.xlsm,.ods,.fods,.doc,.docx,.odt,.rtf,.txt"
                     onChange={handleFileInput}
                     className="hidden"
                   />
                   <Button asChild className="mt-4">
                     <label htmlFor="file-upload" className="cursor-pointer">
-                      Select File
+                      Seleccionar Archivo
                     </label>
                   </Button>
                 </div>
               </div>
 
-              <div className="mt-6 space-y-2">
-                <h4 className="text-sm font-medium">Supported Coordinate Systems:</h4>
-                <div className="flex flex-wrap gap-2">
-                  <Badge variant="outline">WGS84</Badge>
-                  <Badge variant="outline">ETRS89</Badge>
-                  <Badge variant="outline">ED50 UTM30</Badge>
-                  <Badge variant="outline">Geographic (Lat/Lon)</Badge>
+              <div className="mt-6 space-y-3">
+                <div className="space-y-2">
+                  <h4 className="text-sm font-medium">Formatos Soportados:</h4>
+                  <div className="flex flex-wrap gap-2">
+                    <Badge variant="secondary">CSV</Badge>
+                    <Badge variant="secondary">Excel (XLS, XLSX, XLSM, XLSB)</Badge>
+                    <Badge variant="secondary">OpenDocument (ODS, FODS)</Badge>
+                    <Badge variant="secondary">Word (DOC, DOCX)</Badge>
+                    <Badge variant="secondary">OpenDocument Text (ODT)</Badge>
+                    <Badge variant="secondary">RTF</Badge>
+                    <Badge variant="secondary">TXT</Badge>
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <h4 className="text-sm font-medium">Sistemas de Coordenadas:</h4>
+                  <div className="flex flex-wrap gap-2">
+                    <Badge variant="outline">WGS84</Badge>
+                    <Badge variant="outline">ETRS89</Badge>
+                    <Badge variant="outline">ED50 UTM30</Badge>
+                    <Badge variant="outline">Geográficas (Lat/Lon)</Badge>
+                  </div>
                 </div>
               </div>
             </CardContent>
@@ -229,7 +245,7 @@ function App() {
         {['uploading', 'detecting', 'converting'].includes(processing.stage) && (
           <Card>
             <CardHeader>
-              <CardTitle>Processing File</CardTitle>
+              <CardTitle>Procesando Archivo</CardTitle>
               <CardDescription>{processing.message}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -258,25 +274,25 @@ function App() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <MapPin className="text-primary" size={24} />
-                  File Information
+                  Información del Archivo
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                   <div className="space-y-1">
-                    <p className="text-sm text-muted-foreground">Filename</p>
+                    <p className="text-sm text-muted-foreground">Nombre del archivo</p>
                     <p className="font-medium truncate">{parsedFile.filename}</p>
                   </div>
                   <div className="space-y-1">
-                    <p className="text-sm text-muted-foreground">File Type</p>
+                    <p className="text-sm text-muted-foreground">Tipo de archivo</p>
                     <Badge>{parsedFile.fileType}</Badge>
                   </div>
                   <div className="space-y-1">
-                    <p className="text-sm text-muted-foreground">Total Rows</p>
+                    <p className="text-sm text-muted-foreground">Filas totales</p>
                     <p className="font-medium">{parsedFile.rowCount.toLocaleString()}</p>
                   </div>
                   <div className="space-y-1">
-                    <p className="text-sm text-muted-foreground">Columns</p>
+                    <p className="text-sm text-muted-foreground">Columnas</p>
                     <p className="font-medium">{parsedFile.columnCount}</p>
                   </div>
                 </div>
@@ -286,23 +302,23 @@ function App() {
                 <div className="space-y-3">
                   <div className="flex items-center gap-2">
                     <Globe className="text-primary" size={20} />
-                    <h4 className="font-medium">Detected Coordinate System</h4>
+                    <h4 className="font-medium">Sistema de Coordenadas Detectado</h4>
                   </div>
                   <div className="bg-muted/50 rounded-lg p-4 space-y-2">
                     <div className="flex items-center justify-between">
-                      <span className="text-sm text-muted-foreground">System</span>
+                      <span className="text-sm text-muted-foreground">Sistema</span>
                       <Badge variant="secondary">{detection.system.name}</Badge>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className="text-sm text-muted-foreground">Code</span>
+                      <span className="text-sm text-muted-foreground">Código</span>
                       <span className="font-mono text-sm">{detection.system.code}</span>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className="text-sm text-muted-foreground">X Column</span>
+                      <span className="text-sm text-muted-foreground">Columna X</span>
                       <span className="font-medium text-sm">{detection.xColumn}</span>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className="text-sm text-muted-foreground">Y Column</span>
+                      <span className="text-sm text-muted-foreground">Columna Y</span>
                       <span className="font-medium text-sm">{detection.yColumn}</span>
                     </div>
                   </div>
@@ -314,7 +330,7 @@ function App() {
                     <Alert variant="destructive">
                       <Warning size={20} />
                       <AlertDescription>
-                        {invalidCoords.length} coordinate{invalidCoords.length > 1 ? 's' : ''} failed validation and will be excluded from the output
+                        {invalidCoords.length} coordenada{invalidCoords.length > 1 ? 's' : ''} no {invalidCoords.length > 1 ? 'pasaron' : 'pasó'} la validación y será{invalidCoords.length > 1 ? 'n' : ''} excluida{invalidCoords.length > 1 ? 's' : ''} del archivo de salida
                       </AlertDescription>
                     </Alert>
                   </>
@@ -324,21 +340,21 @@ function App() {
 
             <Card>
               <CardHeader>
-                <CardTitle>Coordinate Data</CardTitle>
-                <CardDescription>Preview of original and converted coordinates</CardDescription>
+                <CardTitle>Datos de Coordenadas</CardTitle>
+                <CardDescription>Vista previa de las coordenadas originales y convertidas</CardDescription>
               </CardHeader>
               <CardContent>
                 <Tabs defaultValue="stats" className="w-full">
                   <TabsList className="grid w-full grid-cols-3">
-                    <TabsTrigger value="stats">Statistics</TabsTrigger>
-                    <TabsTrigger value="original">Original</TabsTrigger>
+                    <TabsTrigger value="stats">Estadísticas</TabsTrigger>
+                    <TabsTrigger value="original">Originales</TabsTrigger>
                     <TabsTrigger value="converted">UTM30</TabsTrigger>
                   </TabsList>
 
                   <TabsContent value="stats" className="space-y-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-3">
-                        <h4 className="font-medium text-sm">Original Coordinates</h4>
+                        <h4 className="font-medium text-sm">Coordenadas Originales</h4>
                         <div className="bg-muted/50 rounded-lg p-4 space-y-2 text-sm">
                           {originalBounds ? (
                             <>
@@ -360,13 +376,13 @@ function App() {
                               </div>
                             </>
                           ) : (
-                            <p className="text-muted-foreground">No valid coordinates</p>
+                            <p className="text-muted-foreground">No hay coordenadas válidas</p>
                           )}
                         </div>
                       </div>
 
                       <div className="space-y-3">
-                        <h4 className="font-medium text-sm">Converted to UTM30</h4>
+                        <h4 className="font-medium text-sm">Convertidas a UTM30</h4>
                         <div className="bg-muted/50 rounded-lg p-4 space-y-2 text-sm">
                           {convertedBounds ? (
                             <>
@@ -388,7 +404,7 @@ function App() {
                               </div>
                             </>
                           ) : (
-                            <p className="text-muted-foreground">No valid coordinates</p>
+                            <p className="text-muted-foreground">No hay coordenadas válidas</p>
                           )}
                         </div>
                       </div>
@@ -399,15 +415,15 @@ function App() {
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                       <div className="text-center p-4 bg-primary/5 rounded-lg">
                         <p className="text-2xl font-semibold text-primary">{validCoords.length}</p>
-                        <p className="text-xs text-muted-foreground mt-1">Valid Coordinates</p>
+                        <p className="text-xs text-muted-foreground mt-1">Coordenadas Válidas</p>
                       </div>
                       <div className="text-center p-4 bg-muted rounded-lg">
                         <p className="text-2xl font-semibold">{invalidCoords.length}</p>
-                        <p className="text-xs text-muted-foreground mt-1">Invalid</p>
+                        <p className="text-xs text-muted-foreground mt-1">Inválidas</p>
                       </div>
                       <div className="text-center p-4 bg-muted rounded-lg">
                         <p className="text-2xl font-semibold">{parsedFile.columnCount}</p>
-                        <p className="text-xs text-muted-foreground mt-1">Total Columns</p>
+                        <p className="text-xs text-muted-foreground mt-1">Columnas Totales</p>
                       </div>
                       <div className="text-center p-4 bg-accent/10 rounded-lg">
                         <p className="text-2xl font-semibold text-accent-foreground">UTM30N</p>
@@ -422,10 +438,10 @@ function App() {
                         <table className="w-full text-sm">
                           <thead className="bg-muted">
                             <tr>
-                              <th className="px-4 py-2 text-left font-medium">Row</th>
+                              <th className="px-4 py-2 text-left font-medium">Fila</th>
                               <th className="px-4 py-2 text-left font-medium">{detection.xColumn}</th>
                               <th className="px-4 py-2 text-left font-medium">{detection.yColumn}</th>
-                              <th className="px-4 py-2 text-left font-medium">Status</th>
+                              <th className="px-4 py-2 text-left font-medium">Estado</th>
                             </tr>
                           </thead>
                           <tbody>
@@ -436,9 +452,9 @@ function App() {
                                 <td className="px-4 py-2 font-mono text-xs">{formatCoordinate(coord.original.y, 6)}</td>
                                 <td className="px-4 py-2">
                                   {coord.isValid ? (
-                                    <Badge variant="outline" className="text-xs">Valid</Badge>
+                                    <Badge variant="outline" className="text-xs">Válida</Badge>
                                   ) : (
-                                    <Badge variant="destructive" className="text-xs">Invalid</Badge>
+                                    <Badge variant="destructive" className="text-xs">Inválida</Badge>
                                   )}
                                 </td>
                               </tr>
@@ -448,7 +464,7 @@ function App() {
                       </div>
                       {convertedData.length > 10 && (
                         <div className="bg-muted px-4 py-2 text-xs text-muted-foreground text-center">
-                          Showing 10 of {convertedData.length} rows
+                          Mostrando 10 de {convertedData.length} filas
                         </div>
                       )}
                     </div>
@@ -460,10 +476,10 @@ function App() {
                         <table className="w-full text-sm">
                           <thead className="bg-muted">
                             <tr>
-                              <th className="px-4 py-2 text-left font-medium">Row</th>
+                              <th className="px-4 py-2 text-left font-medium">Fila</th>
                               <th className="px-4 py-2 text-left font-medium">X_UTM30 (m)</th>
                               <th className="px-4 py-2 text-left font-medium">Y_UTM30 (m)</th>
-                              <th className="px-4 py-2 text-left font-medium">Status</th>
+                              <th className="px-4 py-2 text-left font-medium">Estado</th>
                             </tr>
                           </thead>
                           <tbody>
@@ -473,7 +489,7 @@ function App() {
                                 <td className="px-4 py-2 font-mono text-xs">{formatCoordinate(coord.converted.x, 2)}</td>
                                 <td className="px-4 py-2 font-mono text-xs">{formatCoordinate(coord.converted.y, 2)}</td>
                                 <td className="px-4 py-2">
-                                  <Badge variant="outline" className="text-xs">Converted</Badge>
+                                  <Badge variant="outline" className="text-xs">Convertida</Badge>
                                 </td>
                               </tr>
                             ))}
@@ -482,7 +498,7 @@ function App() {
                       </div>
                       {validCoords.length > 10 && (
                         <div className="bg-muted px-4 py-2 text-xs text-muted-foreground text-center">
-                          Showing 10 of {validCoords.length} valid coordinates
+                          Mostrando 10 de {validCoords.length} coordenadas válidas
                         </div>
                       )}
                     </div>
@@ -498,7 +514,7 @@ function App() {
                 size="lg"
               >
                 <DownloadSimple size={20} className="mr-2" />
-                Download CSV
+                Descargar CSV
               </Button>
               <Button 
                 onClick={handleReset} 
@@ -506,16 +522,16 @@ function App() {
                 size="lg"
               >
                 <ArrowsClockwise size={20} className="mr-2" />
-                New Conversion
+                Nueva Conversión
               </Button>
             </div>
 
             <div className="bg-muted/50 rounded-lg p-4 text-sm text-muted-foreground">
               <p>
-                <strong>Output file:</strong> {getOutputFilename(parsedFile.filename)}
+                <strong>Archivo de salida:</strong> {getOutputFilename(parsedFile.filename)}
               </p>
               <p className="mt-1">
-                Format: CSV with UTM30 coordinates (EPSG:25830) optimized for QGIS import
+                Formato: CSV con coordenadas UTM30 (EPSG:25830) optimizado para importar en QGIS
               </p>
             </div>
           </>

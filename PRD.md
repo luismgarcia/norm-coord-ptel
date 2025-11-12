@@ -13,11 +13,11 @@ A professional web application that automatically detects, analyzes, normalizes,
 ## Essential Features
 
 ### File Upload & Detection
-- **Functionality**: Accepts multiple file formats (CSV, Excel, DOC, ODT) and automatically detects coordinate columns
-- **Purpose**: Eliminates manual configuration and supports diverse professional workflows
+- **Functionality**: Accepts multiple file formats (CSV, Excel XLS/XLSX/XLSM/XLSB, OpenDocument ODS/FODS, Word DOC/DOCX, OpenDocument Text ODT, RTF, TXT) and automatically detects coordinate columns
+- **Purpose**: Eliminates manual configuration and supports diverse professional workflows across all major document formats
 - **Trigger**: User drags file or clicks upload button
 - **Progression**: File selection → Upload → Automatic parsing → Coordinate column detection → Display results
-- **Success criteria**: Successfully parses CSV, Excel files and identifies coordinate pairs with 95%+ accuracy
+- **Success criteria**: Successfully parses all supported formats and identifies coordinate pairs with 95%+ accuracy
 
 ### Coordinate Analysis & Normalization
 - **Functionality**: Identifies coordinate system (Geographic, UTM, etc.), validates data quality, and normalizes format
@@ -52,8 +52,10 @@ A professional web application that automatically detects, analyzes, normalizes,
 - **Invalid coordinates**: Flag out-of-range values and provide row-level error reporting
 - **Missing data**: Handle null/empty cells gracefully with clear reporting
 - **Large files**: Show progress indicator for files with 10,000+ rows
-- **Unsupported formats**: Clear error message with supported format list
+- **Unsupported formats**: Clear error message with supported format list (CSV, XLS/XLSX/XLSM/XLSB, ODS/FODS, DOC/DOCX, ODT, RTF, TXT)
 - **Ambiguous column names**: Allow manual column selection if auto-detection uncertain
+- **Document tables**: Extract tabular data from document formats, fallback to text parsing when native table extraction fails
+- **Multiple delimiters**: Auto-detect delimiter type in text files (tabs, commas, semicolons, pipes, spaces)
 
 ## Design Direction
 The design should feel professional, precise, and efficient - like a technical tool built for GIS professionals. Clean and focused interface with emphasis on data clarity and processing transparency. Minimal distractions with purposeful use of space to display technical information clearly.
@@ -117,7 +119,7 @@ Subtle and functional - animations should reinforce the sense of professional to
   
 - **Icon Selection**: 
   - UploadSimple: Main upload action
-  - FileCsv, FileXls, FileDoc: File type indicators
+  - FileCsv, FileXls, File: File type indicators for CSV, Excel, and documents
   - MapPin, Globe: Coordinate system indicators
   - CheckCircle: Successful conversion
   - Warning: Validation issues
