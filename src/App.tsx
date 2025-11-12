@@ -357,9 +357,9 @@ function App() {
                     ))}
                   </div>
                 </div>
-                <div className="bg-accent/10 border border-accent/20 rounded-lg p-3 mt-4">
-                  <p className="text-sm text-accent-foreground font-medium mb-1">✨ Normalización automática</p>
-                  <p className="text-xs text-muted-foreground">
+                <div className="bg-blue-50/80 border border-blue-200 rounded-lg p-3 mt-4">
+                  <p className="text-sm text-blue-900 font-medium mb-1">✨ Normalización automática</p>
+                  <p className="text-xs text-blue-700">
                     El sistema detecta y corrige automáticamente coordenadas con errores de formato, 
                     caracteres extraños, comas o puntos decimales incorrectos, y coordenadas en formato 
                     grados/minutos/segundos (DMS).
@@ -537,72 +537,72 @@ function App() {
             {selectedFile && (
               <>
                 <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <MapPin className="text-primary" size={24} />
+                  <CardHeader className="pb-3">
+                    <CardTitle className="flex items-center gap-2 text-lg">
+                      <MapPin className="text-primary" size={20} />
                       Información del archivo
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                      <div className="space-y-4">
-                        <div className="flex items-center gap-2 pb-2">
-                          <File className="text-primary" size={20} />
-                          <h4 className="font-semibold">Archivo Original</h4>
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                      <div className="space-y-3">
+                        <div className="flex items-center gap-2">
+                          <File className="text-primary" size={18} />
+                          <h4 className="font-semibold text-sm">Archivo Original</h4>
                         </div>
                         
-                        <div className="bg-muted/30 rounded-lg p-4 space-y-3">
-                          <div className="space-y-1">
-                            <p className="text-sm text-muted-foreground">Nombre del archivo</p>
-                            <p className="font-medium truncate">{selectedFile.parsedFile.filename}</p>
+                        <div className="bg-muted/30 rounded-lg p-3 space-y-2">
+                          <div>
+                            <p className="text-xs text-muted-foreground">Nombre del archivo</p>
+                            <p className="font-medium text-sm truncate">{selectedFile.parsedFile.filename}</p>
                           </div>
                           
-                          <div className="grid grid-cols-2 gap-4">
-                            <div className="space-y-1">
-                              <p className="text-sm text-muted-foreground">Tipo</p>
-                              <Badge>{selectedFile.parsedFile.fileType}</Badge>
+                          <div className="grid grid-cols-2 gap-3">
+                            <div>
+                              <p className="text-xs text-muted-foreground">Tipo</p>
+                              <Badge className="text-xs">{selectedFile.parsedFile.fileType}</Badge>
                             </div>
-                            <div className="space-y-1">
-                              <p className="text-sm text-muted-foreground">Columnas</p>
-                              <p className="font-medium">{selectedFile.parsedFile.columnCount}</p>
+                            <div>
+                              <p className="text-xs text-muted-foreground">Columnas</p>
+                              <p className="font-medium text-sm">{selectedFile.parsedFile.columnCount}</p>
                             </div>
                           </div>
                           
-                          <div className="space-y-1">
-                            <p className="text-sm text-muted-foreground">Filas totales</p>
-                            <p className="font-medium text-lg">{selectedFile.parsedFile.rowCount.toLocaleString()}</p>
+                          <div>
+                            <p className="text-xs text-muted-foreground">Filas totales</p>
+                            <p className="font-medium text-base">{selectedFile.parsedFile.rowCount.toLocaleString()}</p>
                           </div>
                         </div>
 
-                        <div className="space-y-3">
+                        <div className="space-y-2">
                           <div className="flex items-center gap-2">
-                            <Globe className="text-primary" size={20} />
-                            <h4 className="font-medium">Sistema detectado</h4>
+                            <Globe className="text-primary" size={18} />
+                            <h4 className="font-medium text-sm">Sistema detectado</h4>
                           </div>
-                          <div className="bg-muted/30 rounded-lg p-4 space-y-2">
+                          <div className="bg-muted/30 rounded-lg p-3 space-y-1.5 text-xs">
                             <div className="flex items-center justify-between">
-                              <span className="text-sm text-muted-foreground">Sistema</span>
-                              <Badge variant="secondary">{selectedFile.detection.system.name}</Badge>
+                              <span className="text-muted-foreground">Sistema</span>
+                              <Badge variant="secondary" className="text-xs">{selectedFile.detection.system.name}</Badge>
                             </div>
                             <div className="flex items-center justify-between">
-                              <span className="text-sm text-muted-foreground">Código</span>
-                              <span className="font-mono text-sm">{selectedFile.detection.system.code}</span>
+                              <span className="text-muted-foreground">Código</span>
+                              <span className="font-mono">{selectedFile.detection.system.code}</span>
                             </div>
                             <div className="flex items-center justify-between">
-                              <span className="text-sm text-muted-foreground">Columna X</span>
-                              <span className="font-medium text-sm">{selectedFile.detection.xColumn}</span>
+                              <span className="text-muted-foreground">Columna X</span>
+                              <span className="font-medium">{selectedFile.detection.xColumn}</span>
                             </div>
                             <div className="flex items-center justify-between">
-                              <span className="text-sm text-muted-foreground">Columna Y</span>
-                              <span className="font-medium text-sm">{selectedFile.detection.yColumn}</span>
+                              <span className="text-muted-foreground">Columna Y</span>
+                              <span className="font-medium">{selectedFile.detection.yColumn}</span>
                             </div>
                           </div>
                         </div>
 
                         {originalBounds && (
-                          <div className="space-y-2">
-                            <h4 className="font-medium text-sm">Límites de coordenadas</h4>
-                            <div className="bg-muted/30 rounded-lg p-4 space-y-2 text-sm">
+                          <div className="space-y-1.5">
+                            <h4 className="font-medium text-xs">Límites de coordenadas</h4>
+                            <div className="bg-muted/30 rounded-lg p-3 space-y-1 text-xs">
                               <div className="flex justify-between">
                                 <span className="text-muted-foreground">Mín. X:</span>
                                 <span className="font-mono">{formatCoordinate(originalBounds.minX, 6)}</span>
@@ -624,68 +624,68 @@ function App() {
                         )}
                       </div>
 
-                      <div className="space-y-4">
-                        <div className="flex items-center gap-2 pb-2">
-                          <ArrowsClockwise className="text-primary" size={20} />
-                          <h4 className="font-semibold">Archivo Convertido</h4>
+                      <div className="space-y-3">
+                        <div className="flex items-center gap-2">
+                          <ArrowsClockwise className="text-primary" size={18} />
+                          <h4 className="font-semibold text-sm">Archivo Convertido</h4>
                         </div>
                         
-                        <div className="bg-accent/10 rounded-lg p-4 space-y-3 border border-accent/20">
-                          <div className="space-y-1">
-                            <p className="text-sm text-muted-foreground">Nombre de salida</p>
-                            <p className="font-medium truncate">{getOutputFilename(selectedFile.parsedFile.filename)}</p>
+                        <div className="bg-green-50/50 rounded-lg p-3 space-y-2 border border-green-200/50">
+                          <div>
+                            <p className="text-xs text-muted-foreground">Nombre de salida</p>
+                            <p className="font-medium text-sm truncate">{getOutputFilename(selectedFile.parsedFile.filename)}</p>
                           </div>
                           
-                          <div className="grid grid-cols-2 gap-4">
-                            <div className="space-y-1">
-                              <p className="text-sm text-muted-foreground">Formato</p>
-                              <Badge variant="outline">CSV</Badge>
+                          <div className="grid grid-cols-2 gap-3">
+                            <div>
+                              <p className="text-xs text-muted-foreground">Formato</p>
+                              <Badge variant="outline" className="text-xs">CSV</Badge>
                             </div>
-                            <div className="space-y-1">
-                              <p className="text-sm text-muted-foreground">Sistema</p>
-                              <Badge className="bg-accent text-accent-foreground">UTM30N</Badge>
+                            <div>
+                              <p className="text-xs text-muted-foreground">Sistema</p>
+                              <Badge className="bg-green-600 text-white hover:bg-green-700 text-xs">UTM30N</Badge>
                             </div>
                           </div>
                           
-                          <div className="space-y-1">
-                            <p className="text-sm text-muted-foreground">Código EPSG</p>
-                            <p className="font-mono font-medium">EPSG:25830</p>
+                          <div>
+                            <p className="text-xs text-muted-foreground">Código EPSG</p>
+                            <p className="font-mono font-medium text-sm">EPSG:25830</p>
                           </div>
                         </div>
 
-                        <div className="space-y-3">
-                          <h4 className="font-medium">Estadísticas de conversión</h4>
-                          <div className="space-y-2">
-                            <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+                        <div className="space-y-2">
+                          <h4 className="font-medium text-sm">Estadísticas de conversión</h4>
+                          <div className="space-y-1.5">
+                            <div className="bg-green-50 border border-green-200 rounded-lg p-2">
                               <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-2">
-                                  <CheckCircle size={20} className="text-green-600" />
-                                  <span className="text-sm font-medium">Coordenadas válidas</span>
+                                  <CheckCircle size={18} className="text-green-600" />
+                                  <span className="text-xs font-medium">Coordenadas válidas</span>
                                 </div>
-                                <span className="text-xl font-semibold text-green-600">{validCoords.length}</span>
+                                <span className="text-lg font-semibold text-green-600">{validCoords.length}</span>
                               </div>
                             </div>
                             
                             {invalidCoords.length > 0 && (
-                              <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-3">
+                              <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-2">
                                 <div className="flex items-center justify-between">
                                   <div className="flex items-center gap-2">
-                                    <Warning size={20} className="text-destructive" />
-                                    <span className="text-sm font-medium">Coordenadas inválidas</span>
+                                    <Warning size={18} className="text-destructive" />
+                                    <span className="text-xs font-medium">Coordenadas inválidas</span>
                                   </div>
-                                  <span className="text-xl font-semibold text-destructive">{invalidCoords.length}</span>
+                                  <span className="text-lg font-semibold text-destructive">{invalidCoords.length}</span>
                                 </div>
                               </div>
                             )}
 
                             {selectedFile.detection.normalizedCount > 0 && (
-                              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                              <div className="bg-blue-50 border border-blue-200 rounded-lg p-2">
                                 <div className="flex items-center justify-between">
                                   <div className="flex items-center gap-2">
-                                    <ArrowsClockwise size={20} className="text-blue-600" />
-                                    <span className="text-sm font-medium">Normalizadas</span>
+                                    <ArrowsClockwise size={18} className="text-blue-600" />
+                                    <span className="text-xs font-medium">Normalizadas</span>
                                   </div>
-                                  <span className="text-xl font-semibold text-blue-600">{selectedFile.detection.normalizedCount}</span>
+                                  <span className="text-lg font-semibold text-blue-600">{selectedFile.detection.normalizedCount}</span>
                                 </div>
                               </div>
                             )}
@@ -693,9 +693,9 @@ function App() {
                         </div>
 
                         {convertedBounds && (
-                          <div className="space-y-2">
-                            <h4 className="font-medium text-sm">Límites UTM30 (metros)</h4>
-                            <div className="bg-accent/10 rounded-lg p-4 space-y-2 text-sm border border-accent/20">
+                          <div className="space-y-1.5">
+                            <h4 className="font-medium text-xs">Límites UTM30 (metros)</h4>
+                            <div className="bg-green-50/50 rounded-lg p-3 space-y-1 text-xs border border-green-200/50">
                               <div className="flex justify-between">
                                 <span className="text-muted-foreground">Mín. X:</span>
                                 <span className="font-mono">{formatCoordinate(convertedBounds.minX, 2)} m</span>
@@ -717,9 +717,9 @@ function App() {
                         )}
 
                         {invalidCoords.length > 0 && (
-                          <Alert variant="destructive">
-                            <Warning size={20} />
-                            <AlertDescription>
+                          <Alert variant="destructive" className="py-2">
+                            <Warning size={16} />
+                            <AlertDescription className="text-xs">
                               {invalidCoords.length} coordenada{invalidCoords.length > 1 ? 's' : ''} excluida{invalidCoords.length > 1 ? 's' : ''} del archivo de salida
                             </AlertDescription>
                           </Alert>
