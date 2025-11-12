@@ -262,10 +262,10 @@ function App() {
       <div className="max-w-6xl mx-auto space-y-6">
         <div className="text-center space-y-2">
           <h1 className="text-3xl md:text-4xl font-semibold tracking-tight">
-            UTM30 Coordinate Converter
+            Conversor de Coordenadas UTM30
           </h1>
           <p className="text-muted-foreground text-sm md:text-base">
-            Professional coordinate transformation for QGIS and GIS applications
+            Transformación profesional de coordenadas para QGIS y aplicaciones SIG
           </p>
         </div>
 
@@ -274,10 +274,10 @@ function App() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <UploadSimple className="text-primary" size={24} />
-                Subir Archivo(s)
+                Cargar archivo(s)
               </CardTitle>
               <CardDescription>
-                Soporta múltiples archivos simultáneos: CSV, Excel (XLS/XLSX/XLSM/XLSB), OpenDocument (ODS), documentos de Word (DOC/DOCX), OpenDocument Text (ODT), RTF y TXT con datos tabulares
+                Compatible con múltiples archivos simultáneos: CSV, Excel (XLS/XLSX/XLSM/XLSB), OpenDocument (ODS), documentos de Word (DOC/DOCX), OpenDocument Text (ODT), RTF y TXT con datos tabulares
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -301,10 +301,10 @@ function App() {
                   </div>
                   <div>
                     <p className="text-lg font-medium mb-1">
-                      Arrastra tus archivos aquí o haz clic para seleccionar
+                      Arrastra tus archivos aquí o haz clic para seleccionarlos
                     </p>
                     <p className="text-sm text-muted-foreground">
-                      Múltiples formatos y archivos soportados, hasta 50MB por archivo
+                      Múltiples formatos y archivos compatibles, hasta 50 MB por archivo
                     </p>
                   </div>
                   <input
@@ -317,7 +317,7 @@ function App() {
                   />
                   <Button asChild className="mt-4">
                     <label htmlFor="file-upload" className="cursor-pointer">
-                      Seleccionar Archivo(s)
+                      Seleccionar archivo(s)
                     </label>
                   </Button>
                 </div>
@@ -325,7 +325,7 @@ function App() {
 
               <div className="mt-6 space-y-3">
                 <div className="space-y-2">
-                  <h4 className="text-sm font-medium">Formatos Soportados:</h4>
+                  <h4 className="text-sm font-medium">Formatos compatibles:</h4>
                   <div className="flex flex-wrap gap-2">
                     <Badge variant="secondary">CSV</Badge>
                     <Badge variant="secondary">Excel (XLS, XLSX, XLSM, XLSB)</Badge>
@@ -337,7 +337,7 @@ function App() {
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <h4 className="text-sm font-medium">Sistemas de Coordenadas Soportados ({getCoordinateSystems().length}):</h4>
+                  <h4 className="text-sm font-medium">Sistemas de coordenadas compatibles ({getCoordinateSystems().length}):</h4>
                   <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto">
                     {getCoordinateSystems().map(sys => (
                       <Badge key={sys.code} variant="outline" className="text-xs">
@@ -347,10 +347,10 @@ function App() {
                   </div>
                 </div>
                 <div className="bg-accent/10 border border-accent/20 rounded-lg p-3 mt-4">
-                  <p className="text-sm text-accent-foreground font-medium mb-1">✨ Normalización Automática</p>
+                  <p className="text-sm text-accent-foreground font-medium mb-1">✨ Normalización automática</p>
                   <p className="text-xs text-muted-foreground">
                     El sistema detecta y corrige automáticamente coordenadas con errores de formato, 
-                    caracteres extraños, comas/puntos decimales incorrectos, y coordenadas en formato 
+                    caracteres extraños, comas o puntos decimales incorrectos, y coordenadas en formato 
                     grados/minutos/segundos (DMS).
                   </p>
                 </div>
@@ -362,7 +362,7 @@ function App() {
         {['uploading', 'detecting', 'converting'].includes(processing.stage) && (
           <Card>
             <CardHeader>
-              <CardTitle>Procesando Archivo</CardTitle>
+              <CardTitle>Procesando archivo</CardTitle>
               <CardDescription>{processing.message}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -403,7 +403,7 @@ function App() {
                 <CardTitle className="flex items-center gap-2 justify-between">
                   <div className="flex items-center gap-2">
                     <Stack className="text-primary" size={24} />
-                    Archivos Procesados ({processedFiles.length})
+                    Archivos procesados ({processedFiles.length})
                   </div>
                   <Button onClick={handleReset} variant="outline" size="sm">
                     <ArrowsClockwise size={16} className="mr-2" />
@@ -500,13 +500,13 @@ function App() {
                   <Button asChild variant="outline">
                     <label htmlFor="file-upload-more" className="cursor-pointer">
                       <UploadSimple size={20} className="mr-2" />
-                      Añadir Más Archivos
+                      Añadir más archivos
                     </label>
                   </Button>
                   {processedFiles.length > 1 && (
                     <Button onClick={handleDownloadAll} variant="outline" className="border-green-600/30 bg-green-200 hover:bg-green-300">
                       <Package size={20} className="mr-2" />
-                      Descargar Todos (ZIP)
+                      Descargar todos (ZIP)
                     </Button>
                   )}
                 </div>
@@ -519,7 +519,7 @@ function App() {
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                       <MapPin className="text-primary" size={24} />
-                      Información del Archivo
+                      Información del archivo
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
@@ -547,7 +547,7 @@ function App() {
                     <div className="space-y-3">
                       <div className="flex items-center gap-2">
                         <Globe className="text-primary" size={20} />
-                        <h4 className="font-medium">Sistema de Coordenadas Detectado</h4>
+                        <h4 className="font-medium">Sistema de coordenadas detectado</h4>
                       </div>
                       <div className="bg-muted/50 rounded-lg p-4 space-y-2">
                         <div className="flex items-center justify-between">
@@ -593,7 +593,7 @@ function App() {
 
                 <Card>
                   <CardHeader>
-                    <CardTitle>Datos de Coordenadas</CardTitle>
+                    <CardTitle>Datos de coordenadas</CardTitle>
                     <CardDescription>Vista previa de las coordenadas originales y convertidas</CardDescription>
                   </CardHeader>
                   <CardContent>
@@ -607,24 +607,24 @@ function App() {
                       <TabsContent value="stats" className="space-y-4">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           <div className="space-y-3">
-                            <h4 className="font-medium text-sm">Coordenadas Originales</h4>
+                            <h4 className="font-medium text-sm">Coordenadas originales</h4>
                             <div className="bg-muted/50 rounded-lg p-4 space-y-2 text-sm">
                               {originalBounds ? (
                                 <>
                                   <div className="flex justify-between">
-                                    <span className="text-muted-foreground">Min X:</span>
+                                    <span className="text-muted-foreground">Mín. X:</span>
                                     <span className="font-mono">{formatCoordinate(originalBounds.minX, 6)}</span>
                                   </div>
                                   <div className="flex justify-between">
-                                    <span className="text-muted-foreground">Max X:</span>
+                                    <span className="text-muted-foreground">Máx. X:</span>
                                     <span className="font-mono">{formatCoordinate(originalBounds.maxX, 6)}</span>
                                   </div>
                                   <div className="flex justify-between">
-                                    <span className="text-muted-foreground">Min Y:</span>
+                                    <span className="text-muted-foreground">Mín. Y:</span>
                                     <span className="font-mono">{formatCoordinate(originalBounds.minY, 6)}</span>
                                   </div>
                                   <div className="flex justify-between">
-                                    <span className="text-muted-foreground">Max Y:</span>
+                                    <span className="text-muted-foreground">Máx. Y:</span>
                                     <span className="font-mono">{formatCoordinate(originalBounds.maxY, 6)}</span>
                                   </div>
                                 </>
@@ -640,19 +640,19 @@ function App() {
                               {convertedBounds ? (
                                 <>
                                   <div className="flex justify-between">
-                                    <span className="text-muted-foreground">Min X:</span>
+                                    <span className="text-muted-foreground">Mín. X:</span>
                                     <span className="font-mono">{formatCoordinate(convertedBounds.minX, 2)} m</span>
                                   </div>
                                   <div className="flex justify-between">
-                                    <span className="text-muted-foreground">Max X:</span>
+                                    <span className="text-muted-foreground">Máx. X:</span>
                                     <span className="font-mono">{formatCoordinate(convertedBounds.maxX, 2)} m</span>
                                   </div>
                                   <div className="flex justify-between">
-                                    <span className="text-muted-foreground">Min Y:</span>
+                                    <span className="text-muted-foreground">Mín. Y:</span>
                                     <span className="font-mono">{formatCoordinate(convertedBounds.minY, 2)} m</span>
                                   </div>
                                   <div className="flex justify-between">
-                                    <span className="text-muted-foreground">Max Y:</span>
+                                    <span className="text-muted-foreground">Máx. Y:</span>
                                     <span className="font-mono">{formatCoordinate(convertedBounds.maxY, 2)} m</span>
                                   </div>
                                 </>
@@ -668,7 +668,7 @@ function App() {
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                           <div className="text-center p-4 bg-green-50 border border-green-200 rounded-lg">
                             <p className="text-2xl font-semibold text-green-600">{validCoords.length}</p>
-                            <p className="text-xs text-muted-foreground mt-1">Coordenadas Válidas</p>
+                            <p className="text-xs text-muted-foreground mt-1">Coordenadas válidas</p>
                           </div>
                           <div className="text-center p-4 bg-muted rounded-lg">
                             <p className="text-2xl font-semibold">{invalidCoords.length}</p>
@@ -676,7 +676,7 @@ function App() {
                           </div>
                           <div className="text-center p-4 bg-muted rounded-lg">
                             <p className="text-2xl font-semibold">{selectedFile.parsedFile.columnCount}</p>
-                            <p className="text-xs text-muted-foreground mt-1">Columnas Totales</p>
+                            <p className="text-xs text-muted-foreground mt-1">Columnas totales</p>
                           </div>
                           <div className="text-center p-4 bg-accent/10 rounded-lg">
                             <p className="text-2xl font-semibold text-accent-foreground">UTM30N</p>
@@ -726,7 +726,7 @@ function App() {
                           </div>
                           {selectedFile.convertedData.length > 10 && (
                             <div className="bg-muted px-4 py-2 text-xs text-muted-foreground text-center">
-                              Mostrando 10 de {selectedFile.convertedData.length} filas. 
+                              Mostrando 10 de {selectedFile.convertedData.length} filas.
                               {selectedFile.convertedData.filter(c => c.normalizedFrom).length > 0 && (
                                 <span className="ml-2 text-accent">
                                   ✓ = Coordenada normalizada automáticamente
@@ -779,7 +779,7 @@ function App() {
                     <strong>Archivo de salida:</strong> {getOutputFilename(selectedFile.parsedFile.filename)}
                   </p>
                   <p className="mt-1">
-                    Formato: CSV con coordenadas UTM30 (EPSG:25830) optimizado para importar en QGIS
+                    Formato: CSV con coordenadas UTM30 (EPSG:25830), optimizado para importar en QGIS
                   </p>
                 </div>
               </>

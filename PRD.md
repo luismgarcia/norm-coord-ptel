@@ -1,155 +1,155 @@
-# Planning Guide
+# Guía de planificación
 
-A professional web application that automatically detects, analyzes, normalizes, and converts geographic coordinates from various file formats to UTM Zone 30 format, optimized for QGIS and similar GIS applications.
+Una aplicación web profesional que detecta, analiza, normaliza y convierte automáticamente coordenadas geográficas desde varios formatos de archivo al formato UTM Zona 30, optimizada para QGIS y aplicaciones SIG similares.
 
-**Experience Qualities**: 
-1. **Precise** - The application must handle coordinate transformations with professional-grade accuracy for GIS workflows
-2. **Efficient** - Fast file processing with clear progress indicators and immediate feedback on coordinate detection
-3. **Trustworthy** - Transparent information about detected coordinate systems and validation before conversion
+**Cualidades de la experiencia**: 
+1. **Precisa** - La aplicación debe manejar transformaciones de coordenadas con precisión de grado profesional para flujos de trabajo SIG
+2. **Eficiente** - Procesamiento rápido de archivos con indicadores de progreso claros y retroalimentación inmediata sobre la detección de coordenadas
+3. **Confiable** - Información transparente sobre los sistemas de coordenadas detectados y validación antes de la conversión
 
-**Complexity Level**: Light Application (multiple features with basic state)
-  - Handles file upload, coordinate detection, transformation, and download - but focused on a single primary workflow without complex user accounts or advanced state management
+**Nivel de complejidad**: Aplicación ligera (múltiples funciones con estado básico)
+  - Maneja carga de archivos, detección de coordenadas, transformación y descarga, pero enfocado en un único flujo de trabajo principal sin cuentas de usuario complejas o gestión de estado avanzada
 
-## Essential Features
+## Funciones esenciales
 
-### File Upload & Detection (Multi-File Support)
-- **Functionality**: Accepts multiple files simultaneously in various formats (CSV, Excel XLS/XLSX/XLSM/XLSB, OpenDocument ODS/FODS, Word DOC/DOCX, OpenDocument Text ODT, RTF, TXT) and automatically detects coordinate columns in each file
-- **Purpose**: Eliminates manual configuration and supports batch processing of diverse professional workflows across all major document formats, enabling efficient mass coordinate conversion
-- **Trigger**: User drags one or multiple files or clicks upload button to select multiple files
-- **Progression**: Multiple file selection → Sequential upload & processing → Automatic parsing for each → Coordinate column detection per file → Display all processed files with individual management
-- **Success criteria**: Successfully parses all supported formats, identifies coordinate pairs with 95%+ accuracy, processes multiple files sequentially without data loss, and maintains individual file state for review and download
+### Carga y detección de archivos (compatibilidad con múltiples archivos)
+- **Funcionalidad**: Acepta múltiples archivos simultáneamente en varios formatos (CSV, Excel XLS/XLSX/XLSM/XLSB, OpenDocument ODS/FODS, Word DOC/DOCX, OpenDocument Text ODT, RTF, TXT) y detecta automáticamente las columnas de coordenadas en cada archivo
+- **Propósito**: Elimina la configuración manual y admite el procesamiento por lotes de diversos flujos de trabajo profesionales en todos los formatos de documentos principales, lo que permite una conversión masiva eficiente de coordenadas
+- **Activador**: El usuario arrastra uno o varios archivos o hace clic en el botón de carga para seleccionar múltiples archivos
+- **Progresión**: Selección de múltiples archivos → Carga y procesamiento secuencial → Análisis automático de cada uno → Detección de columnas de coordenadas por archivo → Visualización de todos los archivos procesados con gestión individual
+- **Criterios de éxito**: Analiza exitosamente todos los formatos admitidos, identifica pares de coordenadas con una precisión del 95 % o más, procesa múltiples archivos secuencialmente sin pérdida de datos y mantiene el estado individual de cada archivo para revisión y descarga
 
-### Coordinate Analysis & Normalization
-- **Functionality**: Identifies coordinate system from 15+ supported formats (WGS84, ETRS89, ED50, Web Mercator, Lambert 93, etc.), detects and corrects coordinate formatting errors, normalizes inconsistent decimal separators (commas vs periods), removes invalid characters, converts DMS (degrees/minutes/seconds) format to decimal, and validates data quality
-- **Purpose**: Ensures data integrity before transformation, handles real-world messy data automatically, and provides transparency about corrections made
-- **Trigger**: Automatic after file upload and detection
-- **Progression**: Raw coordinates → Character cleaning → Decimal normalization → DMS conversion → System detection → Format validation → Display statistics with normalization count
-- **Success criteria**: Correctly identifies 15+ coordinate systems across different zones and datums, successfully normalizes coordinates with format errors (incorrect decimals, special characters, DMS notation), reports validation issues with detailed error messages
+### Análisis y normalización de coordenadas
+- **Funcionalidad**: Identifica el sistema de coordenadas de más de 15 formatos admitidos (WGS84, ETRS89, ED50, Web Mercator, Lambert 93, etc.), detecta y corrige errores de formato de coordenadas, normaliza separadores decimales inconsistentes (comas frente a puntos), elimina caracteres no válidos, convierte el formato DMS (grados/minutos/segundos) a decimal y valida la calidad de los datos
+- **Propósito**: Garantiza la integridad de los datos antes de la transformación, maneja automáticamente datos del mundo real desordenados y proporciona transparencia sobre las correcciones realizadas
+- **Activador**: Automático después de la carga y detección del archivo
+- **Progresión**: Coordenadas sin procesar → Limpieza de caracteres → Normalización decimal → Conversión DMS → Detección del sistema → Validación de formato → Visualización de estadísticas con recuento de normalización
+- **Criterios de éxito**: Identifica correctamente más de 15 sistemas de coordenadas en diferentes zonas y datums, normaliza exitosamente coordenadas con errores de formato (decimales incorrectos, caracteres especiales, notación DMS), informa problemas de validación con mensajes de error detallados
 
-### UTM30 Conversion
-- **Functionality**: Transforms detected coordinates to UTM Zone 30N format with QGIS-compatible structure
-- **Purpose**: Standardizes coordinates for professional GIS applications
-- **Trigger**: Automatic after analysis, with user confirmation
-- **Progression**: Normalized coordinates → UTM30 transformation → Quality check → CSV generation
-- **Success criteria**: Accurate transformations within 1m precision, proper CSV formatting for QGIS import
+### Conversión a UTM30
+- **Funcionalidad**: Transforma las coordenadas detectadas al formato UTM Zona 30N con estructura compatible con QGIS
+- **Propósito**: Estandariza las coordenadas para aplicaciones SIG profesionales
+- **Activador**: Automático después del análisis, con confirmación del usuario
+- **Progresión**: Coordenadas normalizadas → Transformación UTM30 → Control de calidad → Generación de CSV
+- **Criterios de éxito**: Transformaciones precisas con una precisión de 1 m, formato CSV adecuado para importación en QGIS
 
-### Information Display
-- **Functionality**: Shows detected coordinate system (from 15+ supported systems including multiple UTM zones, datums, and projections), sample data, row counts, detected columns, normalization statistics, and conversion summary
-- **Purpose**: Provides transparency about automatic corrections and allows user validation before download
-- **Trigger**: Updates at each processing stage
-- **Progression**: File info → Detected system (with zone info) → Normalization report → Sample preview → Conversion statistics → Download ready
-- **Success criteria**: Clear presentation of all relevant metadata, transformation details, and count of normalized coordinates with visual indicators
+### Visualización de información
+- **Funcionalidad**: Muestra el sistema de coordenadas detectado (de más de 15 sistemas admitidos, incluidas múltiples zonas UTM, datums y proyecciones), datos de muestra, recuentos de filas, columnas detectadas, estadísticas de normalización y resumen de conversión
+- **Propósito**: Proporciona transparencia sobre las correcciones automáticas y permite la validación del usuario antes de la descarga
+- **Activador**: Se actualiza en cada etapa de procesamiento
+- **Progresión**: Información del archivo → Sistema detectado (con información de zona) → Informe de normalización → Vista previa de muestra → Estadísticas de conversión → Listo para descargar
+- **Criterios de éxito**: Presentación clara de todos los metadatos relevantes, detalles de transformación y recuento de coordenadas normalizadas con indicadores visuales
 
-### Download with Smart Naming & Batch Export
-- **Functionality**: Generates CSV file with original filename + "_UTM30" suffix, triggers browser download. Supports downloading individual files or batch downloading all processed files at once
-- **Purpose**: Maintains file organization and indicates transformation status. Enables efficient bulk export of multiple converted coordinate files
-- **Trigger**: User clicks download button for individual file or "Download All" button for batch export after successful conversion
-- **Progression**: Click download → Browser save dialog → User selects location → File(s) saved
-- **Success criteria**: Correct filename format, valid CSV structure, browser download initiated for single or multiple files
+### Descarga con nomenclatura inteligente y exportación por lotes
+- **Funcionalidad**: Genera un archivo CSV con el nombre de archivo original + sufijo "_UTM30", activa la descarga del navegador. Admite la descarga de archivos individuales o la descarga por lotes de todos los archivos procesados a la vez
+- **Propósito**: Mantiene la organización de archivos e indica el estado de transformación. Permite la exportación masiva eficiente de múltiples archivos de coordenadas convertidas
+- **Activador**: El usuario hace clic en el botón de descarga para un archivo individual o en el botón "Descargar todos" para exportación por lotes después de una conversión exitosa
+- **Progresión**: Clic en descargar → Diálogo de guardar del navegador → El usuario selecciona la ubicación → Archivo(s) guardado(s)
+- **Criterios de éxito**: Formato de nombre de archivo correcto, estructura CSV válida, descarga del navegador iniciada para uno o varios archivos
 
-## Edge Case Handling
-- **Mixed coordinate formats**: Detect and warn if multiple coordinate systems exist in single file
-- **Invalid coordinates**: Flag out-of-range values and provide row-level error reporting with specific error descriptions
-- **Malformed coordinates**: Automatically normalize coordinates with incorrect decimal separators, extra spaces, special characters, or non-standard encoding
-- **DMS format coordinates**: Automatically convert degrees/minutes/seconds notation (e.g., "40° 25' 30\" N") to decimal format
-- **Missing data**: Handle null/empty cells gracefully with clear reporting
-- **Large files**: Show progress indicator for files with 10,000+ rows
-- **Unsupported formats**: Clear error message with supported format list (CSV, XLS/XLSX/XLSM/XLSB, ODS/FODS, DOC/DOCX, ODT, RTF, TXT)
-- **Ambiguous column names**: Allow manual column selection if auto-detection uncertain
-- **Document tables**: Extract tabular data from document formats, fallback to text parsing when native table extraction fails
-- **Multiple delimiters**: Auto-detect delimiter type in text files (tabs, commas, semicolons, pipes, spaces)
-- **Zone detection**: Automatically detect correct UTM zone (29, 30, 31) based on coordinate ranges for accurate conversions
-- **Character encoding issues**: Strip non-numeric characters while preserving coordinate format indicators
-- **Multiple file processing**: Handle sequential processing of multiple files without state conflicts or data loss
-- **File management**: Allow individual file removal from batch without affecting other processed files
-- **Memory management**: Process files sequentially to avoid browser memory issues with large batch uploads
-- **Duplicate files**: Accept and process files with identical names by assigning unique identifiers
+## Manejo de casos extremos
+- **Formatos de coordenadas mixtos**: Detecta y advierte si existen múltiples sistemas de coordenadas en un solo archivo
+- **Coordenadas no válidas**: Marca valores fuera de rango y proporciona informes de errores a nivel de fila con descripciones de errores específicas
+- **Coordenadas mal formadas**: Normaliza automáticamente coordenadas con separadores decimales incorrectos, espacios adicionales, caracteres especiales o codificación no estándar
+- **Coordenadas en formato DMS**: Convierte automáticamente la notación de grados/minutos/segundos (por ejemplo, «40° 25' 30" N») a formato decimal
+- **Datos faltantes**: Maneja celdas nulas o vacías de manera elegante con informes claros
+- **Archivos grandes**: Muestra un indicador de progreso para archivos con más de 10 000 filas
+- **Formatos no admitidos**: Mensaje de error claro con lista de formatos admitidos (CSV, XLS/XLSX/XLSM/XLSB, ODS/FODS, DOC/DOCX, ODT, RTF, TXT)
+- **Nombres de columnas ambiguos**: Permite la selección manual de columnas si la detección automática es incierta
+- **Tablas de documentos**: Extrae datos tabulares de formatos de documentos, recurre al análisis de texto cuando falla la extracción de tablas nativa
+- **Múltiples delimitadores**: Detecta automáticamente el tipo de delimitador en archivos de texto (tabuladores, comas, puntos y comas, barras verticales, espacios)
+- **Detección de zona**: Detecta automáticamente la zona UTM correcta (29, 30, 31) según los rangos de coordenadas para conversiones precisas
+- **Problemas de codificación de caracteres**: Elimina caracteres no numéricos mientras conserva indicadores de formato de coordenadas
+- **Procesamiento de múltiples archivos**: Maneja el procesamiento secuencial de múltiples archivos sin conflictos de estado ni pérdida de datos
+- **Gestión de archivos**: Permite la eliminación individual de archivos del lote sin afectar otros archivos procesados
+- **Gestión de memoria**: Procesa archivos secuencialmente para evitar problemas de memoria del navegador con cargas masivas grandes
+- **Archivos duplicados**: Acepta y procesa archivos con nombres idénticos asignando identificadores únicos
 
-## Design Direction
-The design should feel professional, precise, and efficient - like a technical tool built for GIS professionals. Clean and focused interface with emphasis on data clarity and processing transparency. Minimal distractions with purposeful use of space to display technical information clearly.
+## Dirección de diseño
+El diseño debe sentirse profesional, preciso y eficiente, como una herramienta técnica construida para profesionales de SIG. Interfaz limpia y enfocada con énfasis en la claridad de datos y transparencia del procesamiento. Distracciones mínimas con uso intencional del espacio para mostrar información técnica de manera clara.
 
-## Color Selection
-Complementary (opposite colors) - Professional blue paired with warm orange for actions, creating technical sophistication with approachable interactivity.
+## Selección de color
+Complementarios (colores opuestos) - Azul profesional combinado con naranja cálido para acciones, creando sofisticación técnica con interactividad accesible.
 
-- **Primary Color**: Deep Professional Blue (oklch(0.45 0.15 250)) - Communicates precision, technical competence, and geographic/mapping associations
-- **Secondary Colors**: Cool Gray (oklch(0.65 0.02 250)) for secondary actions and backgrounds, maintaining professional aesthetic
-- **Accent Color**: Warm Orange (oklch(0.68 0.18 45)) - Highlights conversion actions and important status information
-- **Foreground/Background Pairings**:
-  - Background (Cool White oklch(0.98 0.01 250)): Dark Text (oklch(0.25 0.02 250)) - Ratio 12.1:1 ✓
-  - Card (White oklch(1 0 0)): Dark Text (oklch(0.25 0.02 250)) - Ratio 13.5:1 ✓
-  - Primary (Deep Blue oklch(0.45 0.15 250)): White Text (oklch(1 0 0)) - Ratio 7.8:1 ✓
-  - Secondary (Cool Gray oklch(0.65 0.02 250)): Dark Text (oklch(0.25 0.02 250)) - Ratio 4.6:1 ✓
-  - Accent (Warm Orange oklch(0.68 0.18 45)): Dark Text (oklch(0.25 0.02 250)) - Ratio 5.2:1 ✓
-  - Muted (Light Gray oklch(0.95 0.01 250)): Medium Text (oklch(0.50 0.02 250)) - Ratio 6.2:1 ✓
+- **Color primario**: Azul profesional profundo (oklch(0.45 0.15 250)) - Comunica precisión, competencia técnica y asociaciones geográficas/de mapeo
+- **Colores secundarios**: Gris frío (oklch(0.65 0.02 250)) para acciones secundarias y fondos, manteniendo la estética profesional
+- **Color de acento**: Naranja cálido (oklch(0.68 0.18 45)) - Resalta las acciones de conversión e información de estado importante
+- **Emparejamientos de primer plano/fondo**:
+  - Fondo (Blanco frío oklch(0.98 0.01 250)): Texto oscuro (oklch(0.25 0.02 250)) - Relación 12.1:1 ✓
+  - Tarjeta (Blanco oklch(1 0 0)): Texto oscuro (oklch(0.25 0.02 250)) - Relación 13.5:1 ✓
+  - Primario (Azul profundo oklch(0.45 0.15 250)): Texto blanco (oklch(1 0 0)) - Relación 7.8:1 ✓
+  - Secundario (Gris frío oklch(0.65 0.02 250)): Texto oscuro (oklch(0.25 0.02 250)) - Relación 4.6:1 ✓
+  - Acento (Naranja cálido oklch(0.68 0.18 45)): Texto oscuro (oklch(0.25 0.02 250)) - Relación 5.2:1 ✓
+  - Apagado (Gris claro oklch(0.95 0.01 250)): Texto medio (oklch(0.50 0.02 250)) - Relación 6.2:1 ✓
 
-## Font Selection
-Technical clarity with professional polish - using Inter for its excellent readability at all sizes and technical/modern character, perfect for displaying coordinate data and technical information.
+## Selección de fuente
+Claridad técnica con pulido profesional: uso de Inter por su excelente legibilidad en todos los tamaños y carácter técnico/moderno, perfecto para mostrar datos de coordenadas e información técnica.
 
-- **Typographic Hierarchy**: 
-  - H1 (App Title): Inter SemiBold/32px/tight letter spacing/-0.02em
-  - H2 (Section Headers): Inter SemiBold/24px/normal/-0.01em
-  - H3 (Subsections): Inter Medium/18px/normal/0em
-  - Body (General Text): Inter Regular/15px/relaxed/0em
-  - Caption (Metadata): Inter Regular/13px/normal/0em
-  - Code (Coordinates): JetBrains Mono Regular/14px/normal/0em - for displaying coordinate values with monospace clarity
+- **Jerarquía tipográfica**: 
+  - H1 (Título de la aplicación): Inter SemiBold/32 px/espaciado ajustado/-0.02 em
+  - H2 (Encabezados de sección): Inter SemiBold/24 px/normal/-0.01 em
+  - H3 (Subsecciones): Inter Medium/18 px/normal/0 em
+  - Cuerpo (Texto general): Inter Regular/15 px/relajado/0 em
+  - Pie de ilustración (Metadatos): Inter Regular/13 px/normal/0 em
+  - Código (Coordenadas): JetBrains Mono Regular/14 px/normal/0 em - para mostrar valores de coordenadas con claridad de monoespaciado
 
-## Animations
-Subtle and functional - animations should reinforce the sense of professional tool efficiency, not entertainment. Processing states and data flow transitions are animated to communicate system status and maintain user confidence during coordinate transformations.
+## Animaciones
+Sutiles y funcionales: las animaciones deben reforzar la sensación de eficiencia de herramientas profesionales, no de entretenimiento. Los estados de procesamiento y las transiciones de flujo de datos se animan para comunicar el estado del sistema y mantener la confianza del usuario durante las transformaciones de coordenadas.
 
-- **Purposeful Meaning**: Upload → Process → Convert flow animations reinforce the data transformation pipeline
-- **Hierarchy of Movement**: 
-  1. File upload drop zone pulse on drag-over (immediate feedback)
-  2. Processing spinner during detection/conversion (status communication)
-  3. Smooth transitions between stages (workflow clarity)
-  4. Success checkmark animation on completion (confirmation)
+- **Significado intencional**: Las animaciones del flujo Cargar → Procesar → Convertir refuerzan la canalización de transformación de datos
+- **Jerarquía del movimiento**: 
+  1. Pulso de zona de colocación de carga de archivos al arrastrar sobre ella (retroalimentación inmediata)
+  2. Indicador giratorio de procesamiento durante la detección/conversión (comunicación del estado)
+  3. Transiciones suaves entre etapas (claridad del flujo de trabajo)
+  4. Animación de marca de verificación de éxito al completarse (confirmación)
 
-## Component Selection
-- **Components**: 
-  - Card: Main container for upload area, file list, and results display
-  - Button: Primary for "Download CSV" and "Download All", secondary for "New Conversion", tertiary for individual file actions (download/remove)
-  - Table: Display coordinate samples and statistics with proper alignment
-  - Badge: Show detected coordinate system type and file format
-  - Progress: Visual indicator for large file processing
-  - Alert: Display warnings for validation issues or errors
-  - Separator: Divide sections (upload, file list, analysis, results)
-  - Tabs: Switch between "File Info", "Original Data", "Converted Data" views
+## Selección de componentes
+- **Componentes**: 
+  - Card: Contenedor principal para área de carga, lista de archivos y visualización de resultados
+  - Button: Primario para «Descargar CSV» y «Descargar todos», secundario para «Nueva conversión», terciario para acciones de archivo individuales (descargar/eliminar)
+  - Table: Muestra muestras de coordenadas y estadísticas con alineación adecuada
+  - Badge: Muestra el tipo de sistema de coordenadas detectado y el formato de archivo
+  - Progress: Indicador visual para el procesamiento de archivos grandes
+  - Alert: Muestra advertencias de problemas de validación o errores
+  - Separator: Divide secciones (cargar, lista de archivos, análisis, resultados)
+  - Tabs: Cambia entre las vistas «Información del archivo», «Datos originales» y «Datos convertidos»
   
-- **Customizations**: 
-  - Custom drag-and-drop upload zone with file type icons supporting multiple file drops
-  - Coordinate display component with monospace font for precise alignment
-  - Custom statistics cards showing row counts, coordinate bounds, etc.
-  - File list component with selectable items, individual download/remove actions
+- **Personalizaciones**: 
+  - Zona de carga personalizada de arrastrar y soltar con iconos de tipo de archivo que admiten múltiples colocaciones de archivos
+  - Componente de visualización de coordenadas con fuente monoespaciada para alineación precisa
+  - Tarjetas de estadísticas personalizadas que muestran recuentos de filas, límites de coordenadas, etc.
+  - Componente de lista de archivos con elementos seleccionables, acciones individuales de descarga/eliminación
   
-- **States**: 
-  - Upload Button: Hover shows file type hints, active state during file selection, supports multiple file selection
-  - Download Button: Individual file download, batch download all, success state with checkmark
-  - Drop Zone: Neutral → Drag-over highlight → Processing → Success/Error
-  - Table Rows: Hover highlight for data inspection
-  - File List Items: Default → Selected (highlighted) → Hover states
+- **Estados**: 
+  - Botón de carga: El desplazamiento del ratón muestra sugerencias de tipo de archivo, estado activo durante la selección de archivos, admite selección de varios archivos
+  - Botón de descarga: Descarga de archivo individual, descarga por lotes de todos, estado de éxito con marca de verificación
+  - Zona de colocación: Neutral → Resaltado al arrastrar sobre ella → Procesando → Éxito/Error
+  - Filas de tabla: Resaltado al pasar el ratón para inspección de datos
+  - Elementos de lista de archivos: Predeterminado → Seleccionado (resaltado) → Estados al pasar el ratón
   
-- **Icon Selection**: 
-  - UploadSimple: Main upload action
-  - FileCsv, FileXls, File: File type indicators for CSV, Excel, and documents
-  - MapPin, Globe: Coordinate system indicators
-  - CheckCircle: Successful conversion
-  - Warning: Validation issues
-  - DownloadSimple: Download action (individual and batch)
-  - ArrowsClockwise: New conversion/reset
-  - Stack: Multiple files indicator
-  - Trash: Remove individual file from batch
+- **Selección de iconos**: 
+  - UploadSimple: Acción principal de carga
+  - FileCsv, FileXls, File: Indicadores de tipo de archivo para CSV, Excel y documentos
+  - MapPin, Globe: Indicadores de sistema de coordenadas
+  - CheckCircle: Conversión exitosa
+  - Warning: Problemas de validación
+  - DownloadSimple: Acción de descarga (individual y por lotes)
+  - ArrowsClockwise: Nueva conversión/reinicio
+  - Stack: Indicador de múltiples archivos
+  - Trash: Eliminar archivo individual del lote
   
-- **Spacing**: 
-  - Card padding: p-6
-  - Section gaps: gap-6
-  - Element spacing: gap-4
-  - Tight groups: gap-2
-  - Table cells: px-4 py-2
-  - File list items: gap-3
+- **Espaciado**: 
+  - Relleno de tarjeta: p-6
+  - Espacios de sección: gap-6
+  - Espaciado de elementos: gap-4
+  - Grupos ajustados: gap-2
+  - Celdas de tabla: px-4 py-2
+  - Elementos de lista de archivos: gap-3
   
-- **Mobile**: 
-  - Single column layout on mobile (<768px)
-  - Reduced table columns showing only essential data
-  - Stacked info cards instead of grid
-  - Full-width upload zone with touch-friendly size
-  - Simplified file list with vertical stacking
-  - Individual action buttons stack vertically on mobile
+- **Móvil**: 
+  - Diseño de una sola columna en móvil (<768 px)
+  - Columnas de tabla reducidas que muestran solo datos esenciales
+  - Tarjetas de información apiladas en lugar de cuadrícula
+  - Zona de carga de ancho completo con tamaño compatible con el tacto
+  - Lista de archivos simplificada con apilamiento vertical
+  - Los botones de acción individuales se apilan verticalmente en dispositivos móviles
