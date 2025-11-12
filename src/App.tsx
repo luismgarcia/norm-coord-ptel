@@ -359,7 +359,7 @@ function App() {
                     {detection.normalizedCount > 0 && (
                       <div className="flex items-center justify-between pt-2 border-t border-border">
                         <span className="text-sm text-muted-foreground">Coordenadas normalizadas</span>
-                        <Badge variant="default" className="bg-accent text-accent-foreground">
+                        <Badge variant="default" className="bg-green-600 text-white">
                           {detection.normalizedCount}
                         </Badge>
                       </div>
