@@ -192,6 +192,10 @@ function App() {
 
   const handleDownloadAll = async () => {
     try {
+      toast.info('Generando ZIP...', {
+        description: 'Preparando archivos para descarga'
+      })
+
       const zip = new JSZip()
       
       processedFiles.forEach((file) => {
@@ -211,15 +215,16 @@ function App() {
       const link = document.createElement('a')
       const url = URL.createObjectURL(blob)
       
-      link.setAttribute('href', url)
-      link.setAttribute('download', 'coordenadas_UTM30.zip')
-      link.style.visibility = 'hidden'
+      link.href = url
+      link.download = 'coordenadas_UTM30.zip'
       
       document.body.appendChild(link)
       link.click()
-      document.body.removeChild(link)
       
-      URL.revokeObjectURL(url)
+      setTimeout(() => {
+        document.body.removeChild(link)
+        URL.revokeObjectURL(url)
+      }, 100)
       
       toast.success('Archivos descargados', {
         description: `${processedFiles.length} archivos en formato ZIP`
