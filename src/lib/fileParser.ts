@@ -282,8 +282,171 @@ export function generateCSV(
   return '\ufeff' + rows.join('\n')
 }
 
-export function downloadCSV(csvContent: string, filename: string) {
-  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+export function generateExcel(
+  data: any[],
+  xColumn: string,
+  yColumn: string,
+  convertedCoords: Array<{ x: number; y: number; isValid: boolean }>
+): ArrayBuffer {
+  if (data.length === 0) {
+    throw new Error('No hay datos para exportar')
+  }
+
+  const allColumns = Object.keys(data[0])
+  const otherColumns = allColumns.filter(col => col !== xColumn && col !== yColumn)
+  
+  const exportData: any[] = []
+  
+  data.forEach((row, index) => {
+    const converted = convertedCoords[index]
+    if (converted && converted.isValid) {
+      const exportRow: any = {
+        'X_UTM30': converted.x,
+        'Y_UTM30': converted.y
+      }
+      
+      otherColumns.forEach(col => {
+        exportRow[normalizeTextForGIS(col)] = normalizeTextForGIS(row[col])
+      })
+      
+      exportData.push(exportRow)
+    }
+  })
+
+  const worksheet = XLSX.utils.json_to_sheet(exportData)
+  const workbook = XLSX.utils.book_new()
+  XLSX.utils.book_append_sheet(workbook, worksheet, 'UTM30')
+  
+  return XLSX.write(workbook, { type: 'array', bookType: 'xlsx' })
+}
+
+export function generateGeoJSON(
+  data: any[],
+  xColumn: string,
+  yColumn: string,
+  convertedCoords: Array<{ x: number; y: number; isValid: boolean }>
+): string {
+  if (data.length === 0) {
+    return JSON.stringify({ type: 'FeatureCollection', features: [] })
+  }
+
+  const allColumns = Object.keys(data[0])
+  const otherColumns = allColumns.filter(col => col !== xColumn && col !== yColumn)
+  
+  const features: any[] = []
+  
+  data.forEach((row, index) => {
+    const converted = convertedCoords[index]
+    if (converted && converted.isValid) {
+      const properties: any = {}
+      
+      otherColumns.forEach(col => {
+        properties[normalizeTextForGIS(col)] = normalizeTextForGIS(row[col])
+      })
+      
+      features.push({
+        type: 'Feature',
+        geometry: {
+          type: 'Point',
+          coordinates: [converted.x, converted.y]
+        },
+        properties
+      })
+    }
+  })
+
+  const geojson = {
+    type: 'FeatureCollection',
+    crs: {
+      type: 'name',
+      properties: {
+        name: 'urn:ogc:def:crs:EPSG::25830'
+      }
+    },
+    features
+  }
+
+  return JSON.stringify(geojson, null, 2)
+}
+
+export function generateKML(
+  data: any[],
+  xColumn: string,
+  yColumn: string,
+  convertedCoords: Array<{ x: number; y: number; isValid: boolean }>
+): string {
+  if (data.length === 0) {
+    return '<?xml version="1.0" encoding="UTF-8"?><kml xmlns="http://www.opengis.net/kml/2.2"><Document></Document></kml>'
+  }
+
+  const allColumns = Object.keys(data[0])
+  const otherColumns = allColumns.filter(col => col !== xColumn && col !== yColumn)
+  
+  let kml = '<?xml version="1.0" encoding="UTF-8"?>\n'
+  kml += '<kml xmlns="http://www.opengis.net/kml/2.2">\n'
+  kml += '  <Document>\n'
+  kml += '    <name>UTM30 Coordinates</name>\n'
+  
+  data.forEach((row, index) => {
+    const converted = convertedCoords[index]
+    if (converted && converted.isValid) {
+      kml += '    <Placemark>\n'
+      
+      const nameCol = otherColumns[0]
+      if (nameCol) {
+        kml += `      <name>${escapeXML(normalizeTextForGIS(row[nameCol]))}</name>\n`
+      }
+      
+      kml += '      <ExtendedData>\n'
+      otherColumns.forEach(col => {
+        kml += `        <Data name="${escapeXML(normalizeTextForGIS(col))}">\n`
+        kml += `          <value>${escapeXML(normalizeTextForGIS(row[col]))}</value>\n`
+        kml += '        </Data>\n'
+      })
+      kml += '      </ExtendedData>\n'
+      
+      kml += '      <Point>\n'
+      kml += `        <coordinates>${converted.x},${converted.y},0</coordinates>\n`
+      kml += '      </Point>\n'
+      kml += '    </Placemark>\n'
+    }
+  })
+  
+  kml += '  </Document>\n'
+  kml += '</kml>'
+  
+  return kml
+}
+
+function escapeXML(str: string): string {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&apos;')
+}
+
+export function downloadFile(content: string | ArrayBuffer, filename: string, format: 'csv' | 'xlsx' | 'geojson' | 'kml') {
+  let blob: Blob
+  
+  switch (format) {
+    case 'csv':
+      blob = new Blob([content as string], { type: 'text/csv;charset=utf-8;' })
+      break
+    case 'xlsx':
+      blob = new Blob([content as ArrayBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' })
+      break
+    case 'geojson':
+      blob = new Blob([content as string], { type: 'application/geo+json;charset=utf-8;' })
+      break
+    case 'kml':
+      blob = new Blob([content as string], { type: 'application/vnd.google-earth.kml+xml;charset=utf-8;' })
+      break
+    default:
+      throw new Error(`Formato no soportado: ${format}`)
+  }
+  
   const link = document.createElement('a')
   const url = URL.createObjectURL(blob)
   
@@ -298,10 +461,10 @@ export function downloadCSV(csvContent: string, filename: string) {
   URL.revokeObjectURL(url)
 }
 
-export function getOutputFilename(originalFilename: string): string {
+export function getOutputFilename(originalFilename: string, format: 'csv' | 'xlsx' | 'geojson' | 'kml'): string {
   const parts = originalFilename.split('.')
-  const extension = parts.pop()
+  parts.pop()
   const nameWithoutExt = parts.join('.')
   
-  return `${nameWithoutExt}_UTM30.csv`
+  return `${nameWithoutExt}_UTM30.${format}`
 }

@@ -23,7 +23,7 @@ import {
   Stack,
   Package
 } from '@phosphor-icons/react'
-import { parseFile, generateCSV, downloadCSV, getOutputFilename, type ParsedFile } from '@/lib/fileParser'
+import { parseFile, generateCSV, generateExcel, generateGeoJSON, generateKML, downloadFile, getOutputFilename, type ParsedFile } from '@/lib/fileParser'
 import { 
   detectCoordinateSystem, 
   convertToUTM30,
@@ -177,15 +177,53 @@ function App() {
 
     if (!file) return
 
-    const csvContent = generateCSV(
-      file.parsedFile.data,
-      file.detection.xColumn,
-      file.detection.yColumn,
-      file.convertedData.map(c => ({ x: c.converted.x, y: c.converted.y, isValid: c.isValid }))
-    )
+    const convertedCoords = file.convertedData.map(c => ({ 
+      x: c.converted.x, 
+      y: c.converted.y, 
+      isValid: c.isValid 
+    }))
 
-    const filename = getOutputFilename(file.parsedFile.filename)
-    downloadCSV(csvContent, filename)
+    let content: string | ArrayBuffer
+    
+    switch (outputFormat) {
+      case 'csv':
+        content = generateCSV(
+          file.parsedFile.data,
+          file.detection.xColumn,
+          file.detection.yColumn,
+          convertedCoords
+        )
+        break
+      case 'xlsx':
+        content = generateExcel(
+          file.parsedFile.data,
+          file.detection.xColumn,
+          file.detection.yColumn,
+          convertedCoords
+        )
+        break
+      case 'geojson':
+        content = generateGeoJSON(
+          file.parsedFile.data,
+          file.detection.xColumn,
+          file.detection.yColumn,
+          convertedCoords
+        )
+        break
+      case 'kml':
+        content = generateKML(
+          file.parsedFile.data,
+          file.detection.xColumn,
+          file.detection.yColumn,
+          convertedCoords
+        )
+        break
+      default:
+        throw new Error(`Formato no soportado: ${outputFormat}`)
+    }
+
+    const filename = getOutputFilename(file.parsedFile.filename, outputFormat)
+    downloadFile(content, filename, outputFormat)
 
     toast.success('Archivo descargado', {
       description: `Guardado como ${filename}`
@@ -201,15 +239,53 @@ function App() {
       const zip = new JSZip()
       
       processedFiles.forEach((file) => {
-        const csvContent = generateCSV(
-          file.parsedFile.data,
-          file.detection.xColumn,
-          file.detection.yColumn,
-          file.convertedData.map(c => ({ x: c.converted.x, y: c.converted.y, isValid: c.isValid }))
-        )
+        const convertedCoords = file.convertedData.map(c => ({ 
+          x: c.converted.x, 
+          y: c.converted.y, 
+          isValid: c.isValid 
+        }))
         
-        const filename = getOutputFilename(file.parsedFile.filename)
-        zip.file(filename, csvContent)
+        let content: string | ArrayBuffer
+        
+        switch (outputFormat) {
+          case 'csv':
+            content = generateCSV(
+              file.parsedFile.data,
+              file.detection.xColumn,
+              file.detection.yColumn,
+              convertedCoords
+            )
+            break
+          case 'xlsx':
+            content = generateExcel(
+              file.parsedFile.data,
+              file.detection.xColumn,
+              file.detection.yColumn,
+              convertedCoords
+            )
+            break
+          case 'geojson':
+            content = generateGeoJSON(
+              file.parsedFile.data,
+              file.detection.xColumn,
+              file.detection.yColumn,
+              convertedCoords
+            )
+            break
+          case 'kml':
+            content = generateKML(
+              file.parsedFile.data,
+              file.detection.xColumn,
+              file.detection.yColumn,
+              convertedCoords
+            )
+            break
+          default:
+            throw new Error(`Formato no soportado: ${outputFormat}`)
+        }
+        
+        const filename = getOutputFilename(file.parsedFile.filename, outputFormat)
+        zip.file(filename, content)
       })
       
       const blob = await zip.generateAsync({ type: 'blob' })
@@ -217,7 +293,7 @@ function App() {
       
       const link = document.createElement('a')
       link.href = url
-      link.download = 'coordenadas_UTM30.zip'
+      link.download = `coordenadas_UTM30_${outputFormat}.zip`
       link.style.display = 'none'
       
       document.body.appendChild(link)
@@ -668,13 +744,13 @@ function App() {
                         <div className="bg-green-50/40 rounded-lg p-2.5 space-y-2 border border-green-200/40">
                           <div className="grid grid-cols-[1fr_auto] gap-2 items-baseline">
                             <p className="text-xs text-muted-foreground">Nombre de salida</p>
-                            <p className="font-medium text-xs text-right truncate max-w-[200px]">{getOutputFilename(selectedFile.parsedFile.filename)}</p>
+                            <p className="font-medium text-xs text-right truncate max-w-[200px]">{getOutputFilename(selectedFile.parsedFile.filename, outputFormat)}</p>
                           </div>
                           
                           <div className="grid grid-cols-2 gap-3">
                             <div className="grid grid-cols-[1fr_auto] gap-2 items-center">
                               <p className="text-xs text-muted-foreground">Formato</p>
-                              <Badge variant="outline" className="text-xs justify-self-end">CSV</Badge>
+                              <Badge variant="outline" className="text-xs justify-self-end">{outputFormat.toUpperCase()}</Badge>
                             </div>
                             <div className="grid grid-cols-[1fr_auto] gap-2 items-center">
                               <p className="text-xs text-muted-foreground">Sistema</p>
