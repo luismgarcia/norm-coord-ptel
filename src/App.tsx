@@ -497,14 +497,24 @@ function App() {
                     multiple
                     className="hidden"
                   />
-                  <Button asChild variant="outline">
+                  <Button asChild variant="outline" className="border-blue-300/50 bg-blue-100 hover:bg-blue-150">
                     <label htmlFor="file-upload-more" className="cursor-pointer">
                       <UploadSimple size={20} className="mr-2" />
                       Añadir más archivos
                     </label>
                   </Button>
+                  {selectedFile && (
+                    <Button 
+                      onClick={() => handleDownload()} 
+                      variant="outline" 
+                      className="border-purple-300/50 bg-purple-100 hover:bg-purple-150"
+                    >
+                      <DownloadSimple size={20} className="mr-2" />
+                      Descargar
+                    </Button>
+                  )}
                   {processedFiles.length > 1 && (
-                    <Button onClick={handleDownloadAll} variant="outline" className="border-green-600/30 bg-green-200 hover:bg-green-300">
+                    <Button onClick={handleDownloadAll} variant="outline" className="border-green-300/50 bg-green-100 hover:bg-green-150">
                       <Package size={20} className="mr-2" />
                       Descargar todos (ZIP)
                     </Button>
