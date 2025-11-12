@@ -599,7 +599,7 @@ function App() {
 
                 <Separator className="my-3" />
 
-                <div className="flex justify-center items-center gap-6">
+                <div className="flex justify-center items-center gap-4">
                   <input
                     type="file"
                     id="file-upload-more"
@@ -608,7 +608,7 @@ function App() {
                     multiple
                     className="hidden"
                   />
-                  <Button asChild variant="outline" className="h-11 border-2 min-w-[180px]">
+                  <Button asChild variant="outline" className="h-11 border-2 w-[200px]">
                     <label htmlFor="file-upload-more" className="cursor-pointer">
                       <UploadSimple size={20} className="mr-2" />
                       Añadir más archivos
@@ -616,7 +616,7 @@ function App() {
                   </Button>
                   
                   <Select value={outputFormat} onValueChange={(value: 'csv' | 'xlsx' | 'geojson' | 'kml') => setOutputFormat(value)}>
-                    <SelectTrigger className="h-11 border-2 min-w-[180px]">
+                    <SelectTrigger className="h-11 border-2 w-[200px]">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -631,14 +631,14 @@ function App() {
                     <Button 
                       onClick={() => handleDownload()} 
                       variant="outline" 
-                      className="h-11 border-2 min-w-[180px]"
+                      className="h-11 border-2 w-[200px]"
                     >
                       <DownloadSimple size={20} className="mr-2" />
                       Descargar
                     </Button>
                   )}
                   {processedFiles.length > 1 && (
-                    <Button onClick={handleDownloadAll} variant="outline" className="h-11 border-2 min-w-[180px]">
+                    <Button onClick={handleDownloadAll} variant="outline" className="h-11 border-2 w-[200px]">
                       <Package size={20} className="mr-2" />
                       Descargar todos (ZIP)
                     </Button>
