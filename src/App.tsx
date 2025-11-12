@@ -188,10 +188,16 @@ function App() {
     })
   }
 
-  const handleDownloadAll = () => {
-    processedFiles.forEach(file => {
+  const handleDownloadAll = async () => {
+    for (let i = 0; i < processedFiles.length; i++) {
+      const file = processedFiles[i]
       handleDownload(file.id)
-    })
+      
+      if (i < processedFiles.length - 1) {
+        await new Promise(resolve => setTimeout(resolve, 300))
+      }
+    }
+    
     toast.success('Archivos descargados', {
       description: `${processedFiles.length} archivos procesados`
     })
