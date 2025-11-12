@@ -359,34 +359,32 @@ function App() {
                     ))}
                   </div>
                 </div>
-                <div className="bg-purple-50/80 border border-purple-200 rounded-lg p-2.5">
-                  <div className="flex items-start justify-between gap-3">
+                <div className="bg-blue-50/80 border border-blue-200 rounded-lg p-3">
+                  <p className="text-sm text-blue-900 font-semibold mb-1">✨ Normalización automática de coordenadas</p>
+                  <p className="text-xs text-blue-700 leading-relaxed">
+                    El sistema detecta automáticamente las columnas de coordenadas y corrige errores de formato 
+                    solo en esos campos: caracteres extraños, comas o puntos decimales incorrectos, y coordenadas 
+                    en formato grados/minutos/segundos (DMS). Los demás campos de texto del documento permanecen intactos.
+                  </p>
+                </div>
+                <div className="bg-purple-50/80 border border-purple-200 rounded-lg p-4">
                     <div className="flex-1">
-                      <p className="text-sm text-purple-900 font-medium mb-0.5">📄 Formato de salida</p>
-                      <p className="text-xs text-purple-700">
+                      <p className="text-lg text-purple-900 font-bold mb-1.5">📄 Formato de salida</p>
+                      <p className="text-sm text-purple-700">
                         Selecciona el formato en el que deseas exportar las coordenadas convertidas
                       </p>
                     </div>
                     <Select value={outputFormat} onValueChange={(value: 'csv' | 'xlsx' | 'geojson' | 'kml') => setOutputFormat(value)}>
-                      <SelectTrigger className="w-[140px] bg-white">
+                      <SelectTrigger className="w-[180px] h-12 bg-white text-base font-semibold border-2 border-purple-300">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="csv">CSV</SelectItem>
-                        <SelectItem value="xlsx">Excel (XLSX)</SelectItem>
-                        <SelectItem value="geojson">GeoJSON</SelectItem>
-                        <SelectItem value="kml">KML</SelectItem>
+                        <SelectItem value="csv" className="text-base">CSV</SelectItem>
+                        <SelectItem value="xlsx" className="text-base">Excel (XLSX)</SelectItem>
+                        <SelectItem value="geojson" className="text-base">GeoJSON</SelectItem>
+                        <SelectItem value="kml" className="text-base">KML</SelectItem>
                       </SelectContent>
                     </Select>
-                  </div>
-                </div>
-                <div className="bg-blue-50/80 border border-blue-200 rounded-lg p-2.5">
-                  <p className="text-sm text-blue-900 font-medium mb-0.5">✨ Normalización automática</p>
-                  <p className="text-xs text-blue-700">
-                    El sistema detecta y corrige automáticamente coordenadas con errores de formato, 
-                    caracteres extraños, comas o puntos decimales incorrectos, y coordenadas en formato 
-                    grados/minutos/segundos (DMS).
-                  </p>
                 </div>
               </div>
             </CardContent>
