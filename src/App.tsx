@@ -21,7 +21,11 @@ import {
   File,
   Trash,
   Stack,
-  Package
+  Package,
+  MagnifyingGlass,
+  NumberCircleOne,
+  NumberCircleTwo,
+  NumberCircleThree
 } from '@phosphor-icons/react'
 import { parseFile, generateCSV, generateExcel, generateGeoJSON, generateKML, downloadFile, getOutputFilename, type ParsedFile } from '@/lib/fileParser'
 import { 
@@ -35,6 +39,8 @@ import {
 } from '@/lib/coordinateUtils'
 import { toast } from 'sonner'
 import JSZip from 'jszip'
+
+type Step = 1 | 2 | 3
 
 interface ProcessingState {
   stage: 'idle' | 'uploading' | 'detecting' | 'converting' | 'complete' | 'error'
@@ -51,6 +57,7 @@ interface ProcessedFile {
 }
 
 function App() {
+  const [currentStep, setCurrentStep] = useState<Step>(1)
   const [processedFiles, setProcessedFiles] = useState<ProcessedFile[]>([])
   const [selectedFileId, setSelectedFileId] = useState<string | null>(null)
   const [processing, setProcessing] = useState<ProcessingState>({
@@ -59,19 +66,9 @@ function App() {
     message: ''
   })
   const [isDragging, setIsDragging] = useState(false)
-  const [showSuccessAlert, setShowSuccessAlert] = useState(false)
   const [outputFormat, setOutputFormat] = useState<'csv' | 'xlsx' | 'geojson' | 'kml'>('csv')
   
   const selectedFile = processedFiles.find(f => f.id === selectedFileId)
-
-  useEffect(() => {
-    if (showSuccessAlert) {
-      const timer = setTimeout(() => {
-        setShowSuccessAlert(false)
-      }, 3500)
-      return () => clearTimeout(timer)
-    }
-  }, [showSuccessAlert])
 
   const handleFileUpload = async (file: File) => {
     setProcessing({ stage: 'uploading', progress: 10, message: 'Leyendo archivo...' })
@@ -110,14 +107,13 @@ function App() {
 
           setProcessedFiles(prev => [...prev, newFile])
           setSelectedFileId(newFile.id)
+          setCurrentStep(2)
           
           setProcessing({ 
             stage: 'complete', 
             progress: 100, 
             message: `¡Conversión completada! ${validCount} coordenadas convertidas${invalidCount > 0 ? `, ${invalidCount} fallidas` : ''}` 
           })
-
-          setShowSuccessAlert(true)
 
           toast.success('Conversión completada', {
             description: `${parsed.filename}: ${validCount} coordenadas a UTM30`
@@ -322,7 +318,7 @@ function App() {
       }
       if (remaining.length === 0) {
         setProcessing({ stage: 'idle', progress: 0, message: '' })
-        setShowSuccessAlert(false)
+        setCurrentStep(1)
       }
       return remaining
     })
@@ -336,7 +332,7 @@ function App() {
     setProcessedFiles([])
     setSelectedFileId(null)
     setProcessing({ stage: 'idle', progress: 0, message: '' })
-    setShowSuccessAlert(false)
+    setCurrentStep(1)
   }
 
   const validCoords = selectedFile ? selectedFile.convertedData.filter(c => c.isValid) : []
@@ -348,126 +344,70 @@ function App() {
 
   return (
     <div className="min-h-screen bg-background p-3 md:p-6">
-      <div className="max-w-6xl mx-auto space-y-4">
-        <div className="text-center space-y-1">
+      <div className="max-w-6xl mx-auto space-y-6">
+        <div className="text-center space-y-2">
           <h1 className="text-3xl md:text-4xl font-semibold tracking-tight">
             Conversor de coordenadas UTM30
           </h1>
           <p className="text-muted-foreground text-sm md:text-base">
-            Conversor automático de coordenadas para QGIS y aplicaciones SIG
+            Conversor automático en 3 pasos sencillos
           </p>
         </div>
 
-        {processing.stage === 'idle' && processedFiles.length === 0 && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <UploadSimple className="text-primary" size={24} />
-                Cargar archivo(s)
-              </CardTitle>
-              <CardDescription>
-                Compatible con múltiples archivos simultáneos: CSV, Excel (XLS/XLSX/XLSM/XLSB), OpenDocument (ODS), documentos de Word (DOC/DOCX), OpenDocument Text (ODT), RTF y TXT con datos tabulares
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div
-                onDrop={handleDrop}
-                onDragOver={(e) => { e.preventDefault(); setIsDragging(true) }}
-                onDragLeave={() => setIsDragging(false)}
-                className={`
-                  border-2 border-dashed rounded-lg p-8 text-center transition-all
-                  ${isDragging 
-                    ? 'border-primary bg-primary/5 scale-[1.02]' 
-                    : 'border-border hover:border-primary/50 hover:bg-muted/30'
-                  }
-                `}
-              >
-                <div className="space-y-3">
-                  <div className="flex justify-center gap-3">
-                    <FileCsv size={28} className="text-muted-foreground" />
-                    <FileXls size={28} className="text-muted-foreground" />
-                    <File size={28} className="text-muted-foreground" />
-                  </div>
-                  <div>
-                    <p className="text-lg font-medium mb-1">
-                      Arrastra tus archivos aquí o haz clic para seleccionarlos
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      Múltiples formatos y archivos compatibles, hasta 50 MB por archivo
-                    </p>
-                  </div>
-                  <input
-                    type="file"
-                    id="file-upload"
-                    accept=".csv,.xlsx,.xls,.xlsb,.xlsm,.ods,.fods,.doc,.docx,.odt,.rtf,.txt"
-                    onChange={handleFileInput}
-                    multiple
-                    className="hidden"
-                  />
-                  <Button asChild className="mt-2">
-                    <label htmlFor="file-upload" className="cursor-pointer">
-                      Seleccionar archivo(s)
-                    </label>
-                  </Button>
-                </div>
-              </div>
+        <div className="flex items-center justify-center gap-3 md:gap-6 flex-wrap">
+          <div 
+            className={`flex items-center gap-2 transition-all ${currentStep >= 1 ? 'opacity-100' : 'opacity-40'}`}
+            onClick={() => currentStep > 1 && handleReset()}
+          >
+            <div className={`flex items-center gap-2 ${currentStep > 1 ? 'cursor-pointer hover:scale-105' : ''} transition-transform`}>
+              <NumberCircleOne 
+                size={36} 
+                weight={currentStep === 1 ? 'fill' : 'regular'}
+                className={currentStep === 1 ? 'text-primary' : 'text-muted-foreground'}
+              />
+              <span className={`text-sm md:text-base font-medium ${currentStep === 1 ? 'text-foreground' : 'text-muted-foreground'}`}>
+                Subir
+              </span>
+            </div>
+          </div>
 
-              <div className="mt-4 space-y-2.5">
-                <div className="space-y-1.5">
-                  <h4 className="text-sm font-medium">Formatos compatibles:</h4>
-                  <div className="flex flex-wrap gap-2">
-                    <Badge variant="secondary">CSV</Badge>
-                    <Badge variant="secondary">Excel (XLS, XLSX, XLSM, XLSB)</Badge>
-                    <Badge variant="secondary">OpenDocument (ODS, FODS)</Badge>
-                    <Badge variant="secondary">Word (DOC, DOCX)</Badge>
-                    <Badge variant="secondary">OpenDocument Text (ODT)</Badge>
-                    <Badge variant="secondary">RTF</Badge>
-                    <Badge variant="secondary">TXT</Badge>
-                  </div>
-                </div>
-                <div className="space-y-1.5">
-                  <h4 className="text-sm font-medium">Sistemas de coordenadas compatibles ({getCoordinateSystems().length}):</h4>
-                  <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto">
-                    {getCoordinateSystems().map(sys => (
-                      <Badge key={sys.code} variant="outline" className="text-xs">
-                        {sys.name}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-                <div className="bg-blue-50/80 border border-blue-200 rounded-lg p-3">
-                  <p className="text-sm text-blue-900 font-semibold mb-1">✨ Normalización automática completa</p>
-                  <p className="text-xs text-blue-700 leading-relaxed mb-2">
-                    <strong>Coordenadas:</strong> se detecta y corrige automáticamente errores de formato, caracteres extraños, comas o puntos decimales incorrectos así como coordenadas en formato grados/minutos/segundos (DMS).
-                  </p>
-                  <p className="text-xs text-blue-700 leading-relaxed">
-                    La conversión se hace a texto UTF-8 (ES). Todas las columnas de texto se normalizan para compatibilidad con GIS/QGIS: conversión a ASCII (elimina tildes y diacríticos), unificación de comillas y guiones, eliminación de caracteres de control y codificación UTF-8 con BOM para correcta visualización en QGIS.
-                  </p>
-                </div>
-                <div className="bg-purple-50/80 border border-purple-200 rounded-lg p-4">
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex-1">
-                      <p className="text-lg text-purple-900 font-bold mb-1.5">📄 Formato de salida</p>
-                      <p className="text-sm text-purple-700">
-                        Selecciona el formato en el que deseas exportar las coordenadas convertidas
-                      </p>
-                    </div>
-                    <Select value={outputFormat} onValueChange={(value: 'csv' | 'xlsx' | 'geojson' | 'kml') => setOutputFormat(value)}>
-                      <SelectTrigger className="w-[180px] h-12 bg-white text-base font-semibold border-2 border-purple-300">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="csv" className="text-base">CSV</SelectItem>
-                        <SelectItem value="xlsx" className="text-base">Excel (XLSX)</SelectItem>
-                        <SelectItem value="geojson" className="text-base">GeoJSON</SelectItem>
-                        <SelectItem value="kml" className="text-base">KML</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          <Separator className="w-8 md:w-12" />
+
+          <div className={`flex items-center gap-2 transition-all ${currentStep >= 2 ? 'opacity-100' : 'opacity-40'}`}>
+            <NumberCircleTwo 
+              size={36} 
+              weight={currentStep === 2 ? 'fill' : 'regular'}
+              className={currentStep === 2 ? 'text-primary' : 'text-muted-foreground'}
+            />
+            <span className={`text-sm md:text-base font-medium ${currentStep === 2 ? 'text-foreground' : 'text-muted-foreground'}`}>
+              Analizar
+            </span>
+          </div>
+
+          <Separator className="w-8 md:w-12" />
+
+          <div 
+            className={`flex items-center gap-2 transition-all ${currentStep >= 3 ? 'opacity-100' : 'opacity-40'}`}
+            onClick={() => currentStep === 2 && selectedFile && setCurrentStep(3)}
+          >
+            <div className={`flex items-center gap-2 ${currentStep === 2 && selectedFile ? 'cursor-pointer hover:scale-105' : ''} transition-transform`}>
+              <NumberCircleThree 
+                size={36} 
+                weight={currentStep === 3 ? 'fill' : 'regular'}
+                className={currentStep === 3 ? 'text-primary' : 'text-muted-foreground'}
+              />
+              <span className={`text-sm md:text-base font-medium ${currentStep === 3 ? 'text-foreground' : 'text-muted-foreground'}`}>
+                Descargar
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {processing.stage === 'error' && (
+          <Alert variant="destructive">
+            <Warning size={20} />
+            <AlertDescription>{processing.message}</AlertDescription>
+          </Alert>
         )}
 
         {['uploading', 'detecting', 'converting'].includes(processing.stage) && (
@@ -482,124 +422,420 @@ function App() {
           </Card>
         )}
 
-        {processing.stage === 'error' && (
-          <Alert variant="destructive">
-            <Warning size={20} />
-            <AlertDescription>{processing.message}</AlertDescription>
-          </Alert>
-        )}
-
-        {processedFiles.length > 0 && (
-          <>
-            <AnimatePresence>
-              {showSuccessAlert && (
-                <motion.div
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  transition={{ duration: 0.3 }}
-                >
-                  <Alert className="bg-green-50 border-green-300">
-                    <CheckCircle size={20} className="text-green-600" />
-                    <AlertDescription className="text-green-800">
-                      {processing.message}
-                    </AlertDescription>
-                  </Alert>
-                </motion.div>
-              )}
-            </AnimatePresence>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 justify-between">
-                  <div className="flex items-center gap-2">
-                    <Stack className="text-primary" size={24} />
-                    Archivos procesados ({processedFiles.length})
+        <AnimatePresence mode="wait">
+          {currentStep === 1 && (
+            <motion.div
+              key="step1"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.3 }}
+            >
+              <Card className="border-2 border-primary/20">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-2xl">
+                    <UploadSimple className="text-primary" size={28} />
+                    Paso 1: Subir archivos
+                  </CardTitle>
+                  <CardDescription className="text-base">
+                    Arrastra o selecciona los archivos con coordenadas para convertir a UTM30
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div
+                    onDrop={handleDrop}
+                    onDragOver={(e) => { e.preventDefault(); setIsDragging(true) }}
+                    onDragLeave={() => setIsDragging(false)}
+                    className={`
+                      border-2 border-dashed rounded-lg p-12 text-center transition-all
+                      ${isDragging 
+                        ? 'border-primary bg-primary/10 scale-[1.02]' 
+                        : 'border-border hover:border-primary/50 hover:bg-muted/50'
+                      }
+                    `}
+                  >
+                    <div className="space-y-4">
+                      <div className="flex justify-center gap-4">
+                        <FileCsv size={40} className="text-primary" weight="duotone" />
+                        <FileXls size={40} className="text-primary" weight="duotone" />
+                        <File size={40} className="text-primary" weight="duotone" />
+                      </div>
+                      <div>
+                        <p className="text-xl font-semibold mb-2">
+                          Arrastra archivos aquí
+                        </p>
+                        <p className="text-muted-foreground mb-4">
+                          o haz clic en el botón para seleccionar
+                        </p>
+                      </div>
+                      <input
+                        type="file"
+                        id="file-upload"
+                        accept=".csv,.xlsx,.xls,.xlsb,.xlsm,.ods,.fods,.doc,.docx,.odt,.rtf,.txt"
+                        onChange={handleFileInput}
+                        multiple
+                        className="hidden"
+                      />
+                      <Button asChild size="lg" className="text-lg px-8">
+                        <label htmlFor="file-upload" className="cursor-pointer">
+                          <UploadSimple size={20} className="mr-2" />
+                          Seleccionar archivos
+                        </label>
+                      </Button>
+                    </div>
                   </div>
-                  <Button onClick={handleReset} variant="outline" size="sm">
-                    <ArrowsClockwise size={16} className="mr-2" />
-                    Reiniciar
-                  </Button>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2.5">
-                  {processedFiles.map((file) => {
-                    const fileValidCoords = file.convertedData.filter(c => c.isValid).length
-                    const fileInvalidCoords = file.convertedData.length - fileValidCoords
-                    const isSelected = selectedFileId === file.id
-                    
-                    return (
-                      <div
-                        key={file.id}
-                        onClick={() => setSelectedFileId(file.id)}
-                        className={`
-                          border rounded-lg p-3 cursor-pointer transition-all
-                          ${isSelected 
-                            ? 'border-primary bg-primary/5 shadow-sm' 
-                            : 'border-border hover:border-primary/50 hover:bg-muted/30'
-                          }
-                        `}
-                      >
-                        <div className="flex items-start justify-between gap-4">
-                          <div className="flex-1 space-y-1.5">
-                            <div className="flex items-center gap-2">
-                              <File size={20} className="text-primary" />
-                              <h4 className="font-medium truncate">{file.parsedFile.filename}</h4>
-                              <Badge variant="secondary" className="text-xs">{file.parsedFile.fileType}</Badge>
-                            </div>
-                            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
-                              <div>
-                                <span className="text-muted-foreground">Sistema: </span>
-                                <span className="font-medium">{file.detection.system.code}</span>
-                              </div>
-                              <div>
-                                <span className="text-muted-foreground">Filas: </span>
-                                <span className="font-medium">{file.parsedFile.rowCount.toLocaleString()}</span>
-                              </div>
-                              <div>
-                                <span className="text-muted-foreground">Válidas: </span>
-                                <span className="font-medium text-green-600">{fileValidCoords}</span>
-                              </div>
-                              {fileInvalidCoords > 0 && (
-                                <div>
-                                  <span className="text-muted-foreground">Inválidas: </span>
-                                  <span className="font-medium text-destructive">{fileInvalidCoords}</span>
+
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <h4 className="text-sm font-semibold flex items-center gap-2">
+                        <FileCsv size={18} className="text-primary" />
+                        Formatos compatibles
+                      </h4>
+                      <div className="flex flex-wrap gap-2">
+                        <Badge variant="secondary">CSV</Badge>
+                        <Badge variant="secondary">Excel</Badge>
+                        <Badge variant="secondary">Word</Badge>
+                        <Badge variant="secondary">ODT</Badge>
+                        <Badge variant="secondary">TXT</Badge>
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <h4 className="text-sm font-semibold flex items-center gap-2">
+                        <Globe size={18} className="text-primary" />
+                        {getCoordinateSystems().length} sistemas detectados automáticamente
+                      </h4>
+                      <p className="text-xs text-muted-foreground">
+                        WGS84, ETRS89, ED50, UTM zones, Lambert 93, Web Mercator y más
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+                    <p className="text-sm font-semibold text-blue-900 dark:text-blue-100 mb-2">
+                      ✨ Normalización automática
+                    </p>
+                    <p className="text-xs text-blue-700 dark:text-blue-300 leading-relaxed">
+                      Detecta y corrige automáticamente errores de formato, decimales, caracteres especiales, 
+                      y convierte coordenadas DMS a decimal. Normaliza texto para compatibilidad con QGIS.
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+          )}
+
+          {currentStep === 2 && selectedFile && (
+            <motion.div
+              key="step2"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.3 }}
+              className="space-y-4"
+            >
+              <Card className="border-2 border-primary/20">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 justify-between">
+                    <div className="flex items-center gap-2 text-2xl">
+                      <MagnifyingGlass className="text-primary" size={28} />
+                      Paso 2: Análisis de datos
+                    </div>
+                    <Button onClick={handleReset} variant="outline" size="sm">
+                      <ArrowsClockwise size={16} className="mr-2" />
+                      Nuevo
+                    </Button>
+                  </CardTitle>
+                  <CardDescription className="text-base">
+                    Revisa los resultados de la conversión antes de descargar
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  {processedFiles.length > 1 && (
+                    <div className="space-y-2">
+                      <h4 className="text-sm font-semibold flex items-center gap-2">
+                        <Stack size={18} className="text-primary" />
+                        Archivos procesados ({processedFiles.length})
+                      </h4>
+                      <div className="grid gap-2">
+                        {processedFiles.map((file) => {
+                          const fileValidCoords = file.convertedData.filter(c => c.isValid).length
+                          const isSelected = selectedFileId === file.id
+                          
+                          return (
+                            <div
+                              key={file.id}
+                              onClick={() => setSelectedFileId(file.id)}
+                              className={`
+                                border rounded-lg p-3 cursor-pointer transition-all
+                                ${isSelected 
+                                  ? 'border-primary bg-primary/5 shadow-sm' 
+                                  : 'border-border hover:border-primary/50 hover:bg-muted/30'
+                                }
+                              `}
+                            >
+                              <div className="flex items-center justify-between gap-4">
+                                <div className="flex items-center gap-3 flex-1 min-w-0">
+                                  <File size={20} className="text-primary flex-shrink-0" />
+                                  <div className="min-w-0 flex-1">
+                                    <h4 className="font-medium truncate text-sm">{file.parsedFile.filename}</h4>
+                                    <p className="text-xs text-muted-foreground">
+                                      {file.detection.system.code} → UTM30 · {fileValidCoords} coordenadas
+                                    </p>
+                                  </div>
                                 </div>
-                              )}
+                                <Button
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    handleRemoveFile(file.id)
+                                  }}
+                                  size="sm"
+                                  variant="ghost"
+                                >
+                                  <Trash size={16} />
+                                </Button>
+                              </div>
                             </div>
+                          )
+                        })}
+                      </div>
+                      <Separator className="my-4" />
+                    </div>
+                  )}
+
+                  <div className="grid md:grid-cols-2 gap-6">
+                    <div className="space-y-4">
+                      <div className="bg-blue-50 dark:bg-blue-950/20 rounded-lg p-4 space-y-3 border border-blue-200 dark:border-blue-800">
+                        <h4 className="font-semibold text-blue-900 dark:text-blue-100 flex items-center gap-2">
+                          <File size={18} />
+                          Archivo Original
+                        </h4>
+                        <div className="space-y-2 text-sm">
+                          <div className="flex justify-between">
+                            <span className="text-blue-700 dark:text-blue-300">Nombre:</span>
+                            <span className="font-medium text-blue-900 dark:text-blue-100 truncate max-w-[200px]">
+                              {selectedFile.parsedFile.filename}
+                            </span>
                           </div>
-                          <div className="flex gap-2">
-                            <Button
-                              onClick={(e) => {
-                                e.stopPropagation()
-                                handleDownload(file.id)
-                              }}
-                              size="sm"
-                              variant="outline"
-                            >
-                              <DownloadSimple size={16} />
-                            </Button>
-                            <Button
-                              onClick={(e) => {
-                                e.stopPropagation()
-                                handleRemoveFile(file.id)
-                              }}
-                              size="sm"
-                              variant="outline"
-                            >
-                              <Trash size={16} />
-                            </Button>
+                          <div className="flex justify-between">
+                            <span className="text-blue-700 dark:text-blue-300">Tipo:</span>
+                            <Badge variant="secondary" className="text-xs">{selectedFile.parsedFile.fileType}</Badge>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-blue-700 dark:text-blue-300">Filas:</span>
+                            <span className="font-medium text-blue-900 dark:text-blue-100">
+                              {selectedFile.parsedFile.rowCount.toLocaleString()}
+                            </span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-blue-700 dark:text-blue-300">Sistema:</span>
+                            <Badge className="text-xs bg-blue-600 hover:bg-blue-700">{selectedFile.detection.system.code}</Badge>
                           </div>
                         </div>
                       </div>
-                    )
-                  })}
-                </div>
 
-                <Separator className="my-3" />
+                      {originalBounds && (
+                        <div className="bg-muted/50 rounded-lg p-4 space-y-2">
+                          <h4 className="font-semibold text-sm">Límites de coordenadas</h4>
+                          <div className="grid grid-cols-2 gap-2 text-xs font-mono">
+                            <div>
+                              <span className="text-muted-foreground">Min X:</span>
+                              <p className="font-semibold">{formatCoordinate(originalBounds.minX, 6)}</p>
+                            </div>
+                            <div>
+                              <span className="text-muted-foreground">Max X:</span>
+                              <p className="font-semibold">{formatCoordinate(originalBounds.maxX, 6)}</p>
+                            </div>
+                            <div>
+                              <span className="text-muted-foreground">Min Y:</span>
+                              <p className="font-semibold">{formatCoordinate(originalBounds.minY, 6)}</p>
+                            </div>
+                            <div>
+                              <span className="text-muted-foreground">Max Y:</span>
+                              <p className="font-semibold">{formatCoordinate(originalBounds.maxY, 6)}</p>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
 
-                <div className="flex justify-center items-center gap-4">
+                    <div className="space-y-4">
+                      <div className="bg-green-50 dark:bg-green-950/20 rounded-lg p-4 space-y-3 border border-green-200 dark:border-green-800">
+                        <h4 className="font-semibold text-green-900 dark:text-green-100 flex items-center gap-2">
+                          <CheckCircle size={18} />
+                          Archivo Convertido
+                        </h4>
+                        <div className="space-y-2 text-sm">
+                          <div className="flex justify-between">
+                            <span className="text-green-700 dark:text-green-300">Salida:</span>
+                            <span className="font-medium text-green-900 dark:text-green-100 text-xs truncate max-w-[200px]">
+                              {getOutputFilename(selectedFile.parsedFile.filename, outputFormat)}
+                            </span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-green-700 dark:text-green-300">Sistema:</span>
+                            <Badge className="text-xs bg-green-600 hover:bg-green-700">UTM30N (EPSG:25830)</Badge>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-green-700 dark:text-green-300">Válidas:</span>
+                            <span className="font-semibold text-green-600 dark:text-green-400">{validCoords.length}</span>
+                          </div>
+                          {invalidCoords.length > 0 && (
+                            <div className="flex justify-between">
+                              <span className="text-green-700 dark:text-green-300">Inválidas:</span>
+                              <span className="font-semibold text-destructive">{invalidCoords.length}</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      {convertedBounds && (
+                        <div className="bg-muted/50 rounded-lg p-4 space-y-2">
+                          <h4 className="font-semibold text-sm">Límites UTM30 (metros)</h4>
+                          <div className="grid grid-cols-2 gap-2 text-xs font-mono">
+                            <div>
+                              <span className="text-muted-foreground">Min X:</span>
+                              <p className="font-semibold">{formatCoordinate(convertedBounds.minX, 2)} m</p>
+                            </div>
+                            <div>
+                              <span className="text-muted-foreground">Max X:</span>
+                              <p className="font-semibold">{formatCoordinate(convertedBounds.maxX, 2)} m</p>
+                            </div>
+                            <div>
+                              <span className="text-muted-foreground">Min Y:</span>
+                              <p className="font-semibold">{formatCoordinate(convertedBounds.minY, 2)} m</p>
+                            </div>
+                            <div>
+                              <span className="text-muted-foreground">Max Y:</span>
+                              <p className="font-semibold">{formatCoordinate(convertedBounds.maxY, 2)} m</p>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  <Separator />
+
+                  <Tabs defaultValue="stats" className="w-full">
+                    <TabsList className="grid w-full grid-cols-3">
+                      <TabsTrigger value="stats">Resumen</TabsTrigger>
+                      <TabsTrigger value="original">Originales</TabsTrigger>
+                      <TabsTrigger value="converted">Convertidas</TabsTrigger>
+                    </TabsList>
+
+                    <TabsContent value="stats" className="space-y-4">
+                      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                        <div className="text-center p-6 bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800 rounded-lg">
+                          <CheckCircle size={32} className="text-green-600 mx-auto mb-2" weight="duotone" />
+                          <p className="text-3xl font-bold text-green-600">{validCoords.length}</p>
+                          <p className="text-sm text-muted-foreground mt-1">Válidas</p>
+                        </div>
+                        <div className="text-center p-6 bg-destructive/10 border border-destructive/20 rounded-lg">
+                          <Warning size={32} className="text-destructive mx-auto mb-2" weight="duotone" />
+                          <p className="text-3xl font-bold text-destructive">{invalidCoords.length}</p>
+                          <p className="text-sm text-muted-foreground mt-1">Inválidas</p>
+                        </div>
+                        <div className="text-center p-6 bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+                          <ArrowsClockwise size={32} className="text-blue-600 mx-auto mb-2" weight="duotone" />
+                          <p className="text-3xl font-bold text-blue-600">{selectedFile.detection.normalizedCount}</p>
+                          <p className="text-sm text-muted-foreground mt-1">Normalizadas</p>
+                        </div>
+                      </div>
+                    </TabsContent>
+
+                    <TabsContent value="original">
+                      <div className="border rounded-lg overflow-hidden">
+                        <div className="overflow-x-auto">
+                          <table className="w-full text-sm">
+                            <thead className="bg-muted">
+                              <tr>
+                                <th className="px-4 py-2 text-left font-medium">Fila</th>
+                                <th className="px-4 py-2 text-left font-medium">{selectedFile.detection.xColumn}</th>
+                                <th className="px-4 py-2 text-left font-medium">{selectedFile.detection.yColumn}</th>
+                                <th className="px-4 py-2 text-left font-medium">Estado</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {selectedFile.convertedData.slice(0, 10).map((coord, idx) => (
+                                <tr key={idx} className="border-t hover:bg-muted/30">
+                                  <td className="px-4 py-2">{idx + 1}</td>
+                                  <td className="px-4 py-2 font-mono text-xs">
+                                    {formatCoordinate(coord.original.x, 6)}
+                                  </td>
+                                  <td className="px-4 py-2 font-mono text-xs">
+                                    {formatCoordinate(coord.original.y, 6)}
+                                  </td>
+                                  <td className="px-4 py-2">
+                                    {coord.isValid ? (
+                                      <Badge variant="outline" className="text-xs">Válida</Badge>
+                                    ) : (
+                                      <Badge variant="destructive" className="text-xs">Inválida</Badge>
+                                    )}
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                        {selectedFile.convertedData.length > 10 && (
+                          <div className="bg-muted px-4 py-2 text-xs text-muted-foreground text-center">
+                            Mostrando 10 de {selectedFile.convertedData.length} filas
+                          </div>
+                        )}
+                      </div>
+                    </TabsContent>
+
+                    <TabsContent value="converted">
+                      <div className="border rounded-lg overflow-hidden">
+                        <div className="overflow-x-auto">
+                          <table className="w-full text-sm">
+                            <thead className="bg-muted">
+                              <tr>
+                                <th className="px-4 py-2 text-left font-medium">Fila</th>
+                                <th className="px-4 py-2 text-left font-medium">X_UTM30 (m)</th>
+                                <th className="px-4 py-2 text-left font-medium">Y_UTM30 (m)</th>
+                                <th className="px-4 py-2 text-left font-medium">Estado</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {validCoords.slice(0, 10).map((coord, idx) => (
+                                <tr key={idx} className="border-t hover:bg-muted/30">
+                                  <td className="px-4 py-2">{coord.rowIndex + 1}</td>
+                                  <td className="px-4 py-2 font-mono text-xs">{formatCoordinate(coord.converted.x, 2)}</td>
+                                  <td className="px-4 py-2 font-mono text-xs">{formatCoordinate(coord.converted.y, 2)}</td>
+                                  <td className="px-4 py-2">
+                                    <Badge variant="outline" className="text-xs">Convertida</Badge>
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                        {validCoords.length > 10 && (
+                          <div className="bg-muted px-4 py-2 text-xs text-muted-foreground text-center">
+                            Mostrando 10 de {validCoords.length} coordenadas válidas
+                          </div>
+                        )}
+                      </div>
+                    </TabsContent>
+                  </Tabs>
+
+                  <div className="flex justify-center pt-4">
+                    <Button 
+                      onClick={() => setCurrentStep(3)} 
+                      size="lg"
+                      className="text-lg px-8"
+                    >
+                      Continuar a descarga
+                      <DownloadSimple size={20} className="ml-2" />
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {processedFiles.length === 0 && (
+                <div className="text-center">
                   <input
                     type="file"
                     id="file-upload-more"
@@ -608,377 +844,164 @@ function App() {
                     multiple
                     className="hidden"
                   />
-                  <Button asChild variant="outline" className="h-11 border-2 w-[200px]">
+                  <Button asChild variant="outline">
                     <label htmlFor="file-upload-more" className="cursor-pointer">
-                      <UploadSimple size={20} className="mr-2" />
+                      <UploadSimple size={18} className="mr-2" />
                       Añadir más archivos
                     </label>
                   </Button>
-                  
-                  <Select value={outputFormat} onValueChange={(value: 'csv' | 'xlsx' | 'geojson' | 'kml') => setOutputFormat(value)}>
-                    <SelectTrigger className="h-11 border-2 w-[200px]">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="csv" className="text-base">CSV</SelectItem>
-                      <SelectItem value="xlsx" className="text-base">Excel (XLSX)</SelectItem>
-                      <SelectItem value="geojson" className="text-base">GeoJSON</SelectItem>
-                      <SelectItem value="kml" className="text-base">KML</SelectItem>
-                    </SelectContent>
-                  </Select>
+                </div>
+              )}
+            </motion.div>
+          )}
 
-                  {selectedFile && (
+          {currentStep === 3 && selectedFile && (
+            <motion.div
+              key="step3"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.3 }}
+            >
+              <Card className="border-2 border-primary/20">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 justify-between">
+                    <div className="flex items-center gap-2 text-2xl">
+                      <DownloadSimple className="text-primary" size={28} />
+                      Paso 3: Descargar resultados
+                    </div>
+                    <Button onClick={() => setCurrentStep(2)} variant="outline" size="sm">
+                      Volver al análisis
+                    </Button>
+                  </CardTitle>
+                  <CardDescription className="text-base">
+                    Elige el formato y descarga tus coordenadas convertidas a UTM30
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="bg-accent/10 border border-accent/30 rounded-lg p-6">
+                    <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+                      <div className="flex-1 text-center md:text-left">
+                        <h3 className="text-xl font-bold mb-2">Selecciona el formato de salida</h3>
+                        <p className="text-muted-foreground">
+                          {validCoords.length} coordenadas listas para descargar
+                        </p>
+                      </div>
+                      <Select value={outputFormat} onValueChange={(value: 'csv' | 'xlsx' | 'geojson' | 'kml') => setOutputFormat(value)}>
+                        <SelectTrigger className="w-full md:w-[240px] h-14 text-lg font-semibold border-2">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="csv" className="text-lg">
+                            <div className="flex items-center gap-2">
+                              <FileCsv size={20} />
+                              CSV
+                            </div>
+                          </SelectItem>
+                          <SelectItem value="xlsx" className="text-lg">
+                            <div className="flex items-center gap-2">
+                              <FileXls size={20} />
+                              Excel (XLSX)
+                            </div>
+                          </SelectItem>
+                          <SelectItem value="geojson" className="text-lg">
+                            <div className="flex items-center gap-2">
+                              <MapPin size={20} />
+                              GeoJSON
+                            </div>
+                          </SelectItem>
+                          <SelectItem value="kml" className="text-lg">
+                            <div className="flex items-center gap-2">
+                              <Globe size={20} />
+                              KML
+                            </div>
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div className="bg-muted/50 rounded-lg p-6 space-y-2">
+                      <h4 className="font-semibold flex items-center gap-2">
+                        <File size={18} className="text-primary" />
+                        Archivo seleccionado
+                      </h4>
+                      <p className="text-sm font-medium truncate">{selectedFile.parsedFile.filename}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {selectedFile.detection.system.code} → UTM30N
+                      </p>
+                    </div>
+
+                    <div className="bg-muted/50 rounded-lg p-6 space-y-2">
+                      <h4 className="font-semibold flex items-center gap-2">
+                        <CheckCircle size={18} className="text-green-600" />
+                        Resumen
+                      </h4>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">Válidas:</span>
+                        <span className="font-semibold text-green-600">{validCoords.length}</span>
+                      </div>
+                      {invalidCoords.length > 0 && (
+                        <div className="flex justify-between text-sm">
+                          <span className="text-muted-foreground">Inválidas:</span>
+                          <span className="font-semibold text-destructive">{invalidCoords.length}</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
                     <Button 
                       onClick={() => handleDownload()} 
-                      variant="outline" 
-                      className="h-11 border-2 w-[200px]"
+                      size="lg"
+                      className="text-lg px-10 w-full sm:w-auto"
                     >
-                      <DownloadSimple size={20} className="mr-2" />
-                      Descargar
+                      <DownloadSimple size={22} className="mr-2" weight="bold" />
+                      Descargar archivo
                     </Button>
-                  )}
-                  {processedFiles.length > 1 && (
-                    <Button onClick={handleDownloadAll} variant="outline" className="h-11 border-2 w-[200px]">
-                      <Package size={20} className="mr-2" />
-                      Descargar todos (ZIP)
+
+                    {processedFiles.length > 1 && (
+                      <Button 
+                        onClick={handleDownloadAll} 
+                        variant="outline"
+                        size="lg"
+                        className="text-lg px-10 w-full sm:w-auto"
+                      >
+                        <Package size={22} className="mr-2" />
+                        Descargar todos ({processedFiles.length})
+                      </Button>
+                    )}
+                  </div>
+
+                  <Separator />
+
+                  <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+                    <input
+                      type="file"
+                      id="file-upload-another"
+                      accept=".csv,.xlsx,.xls,.xlsb,.xlsm,.ods,.fods,.doc,.docx,.odt,.rtf,.txt"
+                      onChange={handleFileInput}
+                      multiple
+                      className="hidden"
+                    />
+                    <Button asChild variant="outline" size="lg">
+                      <label htmlFor="file-upload-another" className="cursor-pointer">
+                        <UploadSimple size={18} className="mr-2" />
+                        Convertir más archivos
+                      </label>
                     </Button>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
 
-            {selectedFile && (
-              <>
-                <Card>
-                  <CardHeader className="pb-3">
-                    <div className="flex items-center gap-2 text-sm">
-                      <MapPin className="text-primary" size={18} />
-                      <span className="font-semibold">Información del archivo</span>
-                      <span className="text-muted-foreground mx-2">›</span>
-                      <File className="text-blue-600" size={16} />
-                      <span className="text-muted-foreground">Archivo Original</span>
-                      <span className="text-muted-foreground mx-2">›</span>
-                      <ArrowsClockwise className="text-green-600" size={16} />
-                      <span className="text-muted-foreground">Archivo Convertido</span>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-                      <div className="space-y-3">
-                        
-                        <div className="bg-blue-50/40 rounded-lg p-2.5 space-y-2 border border-blue-200/40">
-                          <div className="grid grid-cols-[1fr_auto] gap-2 items-baseline">
-                            <p className="text-xs text-muted-foreground">Nombre</p>
-                            <p className="font-medium text-xs text-right truncate max-w-[200px]">{selectedFile.parsedFile.filename}</p>
-                          </div>
-                          
-                          <div className="grid grid-cols-2 gap-3">
-                            <div className="grid grid-cols-[1fr_auto] gap-2 items-center">
-                              <p className="text-xs text-muted-foreground">Tipo</p>
-                              <Badge variant="secondary" className="text-xs justify-self-end">{selectedFile.parsedFile.fileType}</Badge>
-                            </div>
-                            <div className="grid grid-cols-[1fr_auto] gap-2 items-baseline">
-                              <p className="text-xs text-muted-foreground">Columnas</p>
-                              <p className="font-medium text-xs text-right">{selectedFile.parsedFile.columnCount}</p>
-                            </div>
-                          </div>
-                          
-                          <div className="grid grid-cols-[1fr_auto] gap-2 items-baseline">
-                            <p className="text-xs text-muted-foreground">Filas totales</p>
-                            <p className="font-semibold text-sm text-right">{selectedFile.parsedFile.rowCount.toLocaleString()}</p>
-                          </div>
-                        </div>
-
-                        <div className="space-y-1.5">
-                          <div className="flex items-center gap-2">
-                            <Globe className="text-blue-600" size={16} />
-                            <h4 className="font-medium text-xs">Sistema detectado</h4>
-                          </div>
-                          <div className="bg-blue-50/40 rounded-lg p-2 space-y-1 text-xs border border-blue-200/40">
-                            <div className="grid grid-cols-[1fr_auto] gap-2 items-center">
-                              <span className="text-muted-foreground">Sistema</span>
-                              <Badge variant="secondary" className="text-xs justify-self-end">{selectedFile.detection.system.name}</Badge>
-                            </div>
-                            <div className="grid grid-cols-[1fr_auto] gap-2 items-baseline">
-                              <span className="text-muted-foreground">Código</span>
-                              <span className="font-mono text-right">{selectedFile.detection.system.code}</span>
-                            </div>
-                            <div className="grid grid-cols-[1fr_auto] gap-2 items-baseline">
-                              <span className="text-muted-foreground">Columna X</span>
-                              <span className="font-medium text-right">{selectedFile.detection.xColumn}</span>
-                            </div>
-                            <div className="grid grid-cols-[1fr_auto] gap-2 items-baseline">
-                              <span className="text-muted-foreground">Columna Y</span>
-                              <span className="font-medium text-right">{selectedFile.detection.yColumn}</span>
-                            </div>
-                          </div>
-                        </div>
-
-                        {originalBounds && (
-                          <div className="space-y-1">
-                            <h4 className="font-medium text-xs">Límites de coordenadas</h4>
-                            <div className="bg-blue-50/40 rounded-lg p-2 space-y-0.5 text-xs border border-blue-200/40">
-                              <div className="grid grid-cols-[1fr_auto] gap-2">
-                                <span className="text-muted-foreground">Mín. X:</span>
-                                <span className="font-mono text-right">{formatCoordinate(originalBounds.minX, 6)}</span>
-                              </div>
-                              <div className="grid grid-cols-[1fr_auto] gap-2">
-                                <span className="text-muted-foreground">Máx. X:</span>
-                                <span className="font-mono text-right">{formatCoordinate(originalBounds.maxX, 6)}</span>
-                              </div>
-                              <div className="grid grid-cols-[1fr_auto] gap-2">
-                                <span className="text-muted-foreground">Mín. Y:</span>
-                                <span className="font-mono text-right">{formatCoordinate(originalBounds.minY, 6)}</span>
-                              </div>
-                              <div className="grid grid-cols-[1fr_auto] gap-2">
-                                <span className="text-muted-foreground">Máx. Y:</span>
-                                <span className="font-mono text-right">{formatCoordinate(originalBounds.maxY, 6)}</span>
-                              </div>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-
-                      <div className="space-y-3">
-                        
-                        <div className="bg-green-50/40 rounded-lg p-2.5 space-y-2 border border-green-200/40">
-                          <div className="grid grid-cols-[1fr_auto] gap-2 items-baseline">
-                            <p className="text-xs text-muted-foreground">Nombre de salida</p>
-                            <p className="font-medium text-xs text-right truncate max-w-[200px]">{getOutputFilename(selectedFile.parsedFile.filename, outputFormat)}</p>
-                          </div>
-                          
-                          <div className="grid grid-cols-2 gap-3">
-                            <div className="grid grid-cols-[1fr_auto] gap-2 items-center">
-                              <p className="text-xs text-muted-foreground">Formato</p>
-                              <Badge variant="outline" className="text-xs justify-self-end">{outputFormat.toUpperCase()}</Badge>
-                            </div>
-                            <div className="grid grid-cols-[1fr_auto] gap-2 items-center">
-                              <p className="text-xs text-muted-foreground">Sistema</p>
-                              <Badge className="bg-green-600 text-white hover:bg-green-700 text-xs justify-self-end">UTM30N</Badge>
-                            </div>
-                          </div>
-                          
-                          <div className="grid grid-cols-[1fr_auto] gap-2 items-baseline">
-                            <p className="text-xs text-muted-foreground">Código EPSG</p>
-                            <p className="font-mono font-medium text-xs text-right">EPSG:25830</p>
-                          </div>
-                        </div>
-
-                        <div className="space-y-1.5">
-                          <h4 className="font-medium text-xs">Estadísticas de conversión</h4>
-                          <div className="space-y-1">
-                            <div className="bg-green-50/40 border border-green-200/40 rounded-lg p-2">
-                              <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-2">
-                                  <CheckCircle size={16} className="text-green-600" />
-                                  <span className="text-xs font-medium">Válidas</span>
-                                </div>
-                                <span className="text-base font-semibold text-green-600">{validCoords.length}</span>
-                              </div>
-                            </div>
-                            
-                            {invalidCoords.length > 0 && (
-                              <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-2">
-                                <div className="flex items-center justify-between">
-                                  <div className="flex items-center gap-2">
-                                    <Warning size={16} className="text-destructive" />
-                                    <span className="text-xs font-medium">Inválidas</span>
-                                  </div>
-                                  <span className="text-base font-semibold text-destructive">{invalidCoords.length}</span>
-                                </div>
-                              </div>
-                            )}
-
-                            {selectedFile.detection.normalizedCount > 0 && (
-                              <div className="bg-blue-50/40 border border-blue-200/40 rounded-lg p-2">
-                                <div className="flex items-center justify-between">
-                                  <div className="flex items-center gap-2">
-                                    <ArrowsClockwise size={16} className="text-blue-600" />
-                                    <span className="text-xs font-medium">Normalizadas</span>
-                                  </div>
-                                  <span className="text-base font-semibold text-blue-600">{selectedFile.detection.normalizedCount}</span>
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-
-                        {convertedBounds && (
-                          <div className="space-y-1">
-                            <h4 className="font-medium text-xs">Límites UTM30 (metros)</h4>
-                            <div className="bg-green-50/40 rounded-lg p-2 space-y-0.5 text-xs border border-green-200/40">
-                              <div className="grid grid-cols-[1fr_auto] gap-2">
-                                <span className="text-muted-foreground">Mín. X:</span>
-                                <span className="font-mono text-right">{formatCoordinate(convertedBounds.minX, 2)} m</span>
-                              </div>
-                              <div className="grid grid-cols-[1fr_auto] gap-2">
-                                <span className="text-muted-foreground">Máx. X:</span>
-                                <span className="font-mono text-right">{formatCoordinate(convertedBounds.maxX, 2)} m</span>
-                              </div>
-                              <div className="grid grid-cols-[1fr_auto] gap-2">
-                                <span className="text-muted-foreground">Mín. Y:</span>
-                                <span className="font-mono text-right">{formatCoordinate(convertedBounds.minY, 2)} m</span>
-                              </div>
-                              <div className="grid grid-cols-[1fr_auto] gap-2">
-                                <span className="text-muted-foreground">Máx. Y:</span>
-                                <span className="font-mono text-right">{formatCoordinate(convertedBounds.maxY, 2)} m</span>
-                              </div>
-                            </div>
-                          </div>
-                        )}
-
-                        {invalidCoords.length > 0 && (
-                          <Alert variant="destructive" className="py-2">
-                            <Warning size={16} />
-                            <AlertDescription className="text-xs">
-                              {invalidCoords.length} coordenada{invalidCoords.length > 1 ? 's' : ''} excluida{invalidCoords.length > 1 ? 's' : ''} del archivo de salida
-                            </AlertDescription>
-                          </Alert>
-                        )}
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Datos de coordenadas</CardTitle>
-                    <CardDescription>Vista previa de las coordenadas originales y convertidas</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <Tabs defaultValue="stats" className="w-full">
-                      <TabsList className="grid w-full grid-cols-3">
-                        <TabsTrigger value="stats">Estadísticas</TabsTrigger>
-                        <TabsTrigger value="original">Originales</TabsTrigger>
-                        <TabsTrigger value="converted">UTM30</TabsTrigger>
-                      </TabsList>
-
-                      <TabsContent value="stats" className="space-y-3">
-                        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                          <div className="text-center p-4 bg-green-50 border border-green-200 rounded-lg">
-                            <p className="text-3xl font-semibold text-green-600">{validCoords.length}</p>
-                            <p className="text-sm text-muted-foreground mt-1.5">Coordenadas válidas</p>
-                          </div>
-                          <div className="text-center p-4 bg-destructive/10 border border-destructive/20 rounded-lg">
-                            <p className="text-3xl font-semibold text-destructive">{invalidCoords.length}</p>
-                            <p className="text-sm text-muted-foreground mt-1.5">Inválidas</p>
-                          </div>
-                          <div className="text-center p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                            <p className="text-3xl font-semibold text-blue-600">{selectedFile.detection.normalizedCount}</p>
-                            <p className="text-sm text-muted-foreground mt-1.5">Normalizadas</p>
-                          </div>
-                        </div>
-
-                        <Separator />
-
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                          <div className="text-center p-3 bg-muted/50 rounded-lg">
-                            <p className="text-2xl font-semibold">{selectedFile.parsedFile.rowCount.toLocaleString()}</p>
-                            <p className="text-xs text-muted-foreground mt-0.5">Filas procesadas</p>
-                          </div>
-                          <div className="text-center p-3 bg-muted/50 rounded-lg">
-                            <p className="text-2xl font-semibold">{selectedFile.parsedFile.columnCount}</p>
-                            <p className="text-xs text-muted-foreground mt-0.5">Columnas totales</p>
-                          </div>
-                          <div className="text-center p-3 bg-accent/10 rounded-lg border border-accent/20">
-                            <p className="text-2xl font-semibold text-accent-foreground">UTM30N</p>
-                            <p className="text-xs text-muted-foreground mt-0.5">EPSG:25830</p>
-                          </div>
-                        </div>
-                      </TabsContent>
-
-                      <TabsContent value="original">
-                        <div className="border rounded-lg overflow-hidden">
-                          <div className="overflow-x-auto">
-                            <table className="w-full text-sm">
-                              <thead className="bg-muted">
-                                <tr>
-                                  <th className="px-3 py-1.5 text-left font-medium">Fila</th>
-                                  <th className="px-3 py-1.5 text-left font-medium">{selectedFile.detection.xColumn}</th>
-                                  <th className="px-3 py-1.5 text-left font-medium">{selectedFile.detection.yColumn}</th>
-                                  <th className="px-3 py-1.5 text-left font-medium">Estado</th>
-                                </tr>
-                              </thead>
-                              <tbody>
-                                {selectedFile.convertedData.slice(0, 10).map((coord, idx) => (
-                                  <tr key={idx} className="border-t hover:bg-muted/30">
-                                    <td className="px-3 py-1.5">{idx + 1}</td>
-                                    <td className="px-3 py-1.5 font-mono text-xs">
-                                      {formatCoordinate(coord.original.x, 6)}
-                                      {coord.normalizedFrom && (
-                                        <span className="ml-1 text-accent" title={coord.normalizedFrom}>✓</span>
-                                      )}
-                                    </td>
-                                    <td className="px-3 py-1.5 font-mono text-xs">
-                                      {formatCoordinate(coord.original.y, 6)}
-                                    </td>
-                                    <td className="px-3 py-1.5">
-                                      {coord.isValid ? (
-                                        <Badge variant="outline" className="text-xs">Válida</Badge>
-                                      ) : (
-                                        <Badge variant="destructive" className="text-xs" title={coord.error}>
-                                          Inválida
-                                        </Badge>
-                                      )}
-                                    </td>
-                                  </tr>
-                                ))}
-                              </tbody>
-                            </table>
-                          </div>
-                          {selectedFile.convertedData.length > 10 && (
-                            <div className="bg-muted px-3 py-1.5 text-xs text-muted-foreground text-center">
-                              Mostrando 10 de {selectedFile.convertedData.length} filas.
-                              {selectedFile.convertedData.filter(c => c.normalizedFrom).length > 0 && (
-                                <span className="ml-2 text-accent">
-                                  ✓ = Coordenada normalizada automáticamente
-                                </span>
-                              )}
-                            </div>
-                          )}
-                        </div>
-                      </TabsContent>
-
-                      <TabsContent value="converted">
-                        <div className="border rounded-lg overflow-hidden">
-                          <div className="overflow-x-auto">
-                            <table className="w-full text-sm">
-                              <thead className="bg-muted">
-                                <tr>
-                                  <th className="px-3 py-1.5 text-left font-medium">Fila</th>
-                                  <th className="px-3 py-1.5 text-left font-medium">X_UTM30 (m)</th>
-                                  <th className="px-3 py-1.5 text-left font-medium">Y_UTM30 (m)</th>
-                                  <th className="px-3 py-1.5 text-left font-medium">Estado</th>
-                                </tr>
-                              </thead>
-                              <tbody>
-                                {validCoords.slice(0, 10).map((coord, idx) => (
-                                  <tr key={idx} className="border-t hover:bg-muted/30">
-                                    <td className="px-3 py-1.5">{coord.rowIndex + 1}</td>
-                                    <td className="px-3 py-1.5 font-mono text-xs">{formatCoordinate(coord.converted.x, 2)}</td>
-                                    <td className="px-3 py-1.5 font-mono text-xs">{formatCoordinate(coord.converted.y, 2)}</td>
-                                    <td className="px-3 py-1.5">
-                                      <Badge variant="outline" className="text-xs">Convertida</Badge>
-                                    </td>
-                                  </tr>
-                                ))}
-                              </tbody>
-                            </table>
-                          </div>
-                          {validCoords.length > 10 && (
-                            <div className="bg-muted px-3 py-1.5 text-xs text-muted-foreground text-center">
-                              Mostrando 10 de {validCoords.length} coordenadas válidas
-                            </div>
-                          )}
-                        </div>
-                      </TabsContent>
-                    </Tabs>
-                  </CardContent>
-                </Card>
-              </>
-            )}
-          </>
-        )}
+                    <Button onClick={handleReset} variant="outline" size="lg">
+                      <ArrowsClockwise size={18} className="mr-2" />
+                      Comenzar de nuevo
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </div>
   )
