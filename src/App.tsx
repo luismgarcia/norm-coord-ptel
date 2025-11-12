@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Progress } from '@/components/ui/progress'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { motion, AnimatePresence } from 'framer-motion'
 import { 
   UploadSimple, 
@@ -59,6 +60,7 @@ function App() {
   })
   const [isDragging, setIsDragging] = useState(false)
   const [showSuccessAlert, setShowSuccessAlert] = useState(false)
+  const [outputFormat, setOutputFormat] = useState<'csv' | 'xlsx' | 'geojson' | 'kml'>('csv')
   
   const selectedFile = processedFiles.find(f => f.id === selectedFileId)
 
@@ -357,7 +359,28 @@ function App() {
                     ))}
                   </div>
                 </div>
-                <div className="bg-blue-50/80 border border-blue-200 rounded-lg p-2.5 mt-3">
+                <div className="bg-purple-50/80 border border-purple-200 rounded-lg p-2.5">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex-1">
+                      <p className="text-sm text-purple-900 font-medium mb-0.5">📄 Formato de salida</p>
+                      <p className="text-xs text-purple-700">
+                        Selecciona el formato en el que deseas exportar las coordenadas convertidas
+                      </p>
+                    </div>
+                    <Select value={outputFormat} onValueChange={(value: 'csv' | 'xlsx' | 'geojson' | 'kml') => setOutputFormat(value)}>
+                      <SelectTrigger className="w-[140px] bg-white">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="csv">CSV</SelectItem>
+                        <SelectItem value="xlsx">Excel (XLSX)</SelectItem>
+                        <SelectItem value="geojson">GeoJSON</SelectItem>
+                        <SelectItem value="kml">KML</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                <div className="bg-blue-50/80 border border-blue-200 rounded-lg p-2.5">
                   <p className="text-sm text-blue-900 font-medium mb-0.5">✨ Normalización automática</p>
                   <p className="text-xs text-blue-700">
                     El sistema detecta y corrige automáticamente coordenadas con errores de formato, 
