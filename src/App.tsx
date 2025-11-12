@@ -369,6 +369,7 @@ function App() {
                   </p>
                 </div>
                 <div className="bg-purple-50/80 border border-purple-200 rounded-lg p-4">
+                  <div className="flex items-start justify-between gap-4">
                     <div className="flex-1">
                       <p className="text-lg text-purple-900 font-bold mb-1.5">📄 Formato de salida</p>
                       <p className="text-sm text-purple-700">
@@ -386,6 +387,7 @@ function App() {
                         <SelectItem value="kml" className="text-base">KML</SelectItem>
                       </SelectContent>
                     </Select>
+                  </div>
                 </div>
               </div>
             </CardContent>
