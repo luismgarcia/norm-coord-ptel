@@ -269,9 +269,9 @@ function App() {
     : null
 
   return (
-    <div className="min-h-screen bg-background p-4 md:p-8">
-      <div className="max-w-6xl mx-auto space-y-6">
-        <div className="text-center space-y-2">
+    <div className="min-h-screen bg-background p-3 md:p-6">
+      <div className="max-w-6xl mx-auto space-y-4">
+        <div className="text-center space-y-1">
           <h1 className="text-3xl md:text-4xl font-semibold tracking-tight">
             Conversor de coordenadas UTM30
           </h1>
@@ -297,18 +297,18 @@ function App() {
                 onDragOver={(e) => { e.preventDefault(); setIsDragging(true) }}
                 onDragLeave={() => setIsDragging(false)}
                 className={`
-                  border-2 border-dashed rounded-lg p-12 text-center transition-all
+                  border-2 border-dashed rounded-lg p-8 text-center transition-all
                   ${isDragging 
                     ? 'border-primary bg-primary/5 scale-[1.02]' 
                     : 'border-border hover:border-primary/50 hover:bg-muted/30'
                   }
                 `}
               >
-                <div className="space-y-4">
+                <div className="space-y-3">
                   <div className="flex justify-center gap-3">
-                    <FileCsv size={32} className="text-muted-foreground" />
-                    <FileXls size={32} className="text-muted-foreground" />
-                    <File size={32} className="text-muted-foreground" />
+                    <FileCsv size={28} className="text-muted-foreground" />
+                    <FileXls size={28} className="text-muted-foreground" />
+                    <File size={28} className="text-muted-foreground" />
                   </div>
                   <div>
                     <p className="text-lg font-medium mb-1">
@@ -326,7 +326,7 @@ function App() {
                     multiple
                     className="hidden"
                   />
-                  <Button asChild className="mt-4">
+                  <Button asChild className="mt-2">
                     <label htmlFor="file-upload" className="cursor-pointer">
                       Seleccionar archivo(s)
                     </label>
@@ -334,8 +334,8 @@ function App() {
                 </div>
               </div>
 
-              <div className="mt-6 space-y-3">
-                <div className="space-y-2">
+              <div className="mt-4 space-y-2.5">
+                <div className="space-y-1.5">
                   <h4 className="text-sm font-medium">Formatos compatibles:</h4>
                   <div className="flex flex-wrap gap-2">
                     <Badge variant="secondary">CSV</Badge>
@@ -347,7 +347,7 @@ function App() {
                     <Badge variant="secondary">TXT</Badge>
                   </div>
                 </div>
-                <div className="space-y-2">
+                <div className="space-y-1.5">
                   <h4 className="text-sm font-medium">Sistemas de coordenadas compatibles ({getCoordinateSystems().length}):</h4>
                   <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto">
                     {getCoordinateSystems().map(sys => (
@@ -357,8 +357,8 @@ function App() {
                     ))}
                   </div>
                 </div>
-                <div className="bg-blue-50/80 border border-blue-200 rounded-lg p-3 mt-4">
-                  <p className="text-sm text-blue-900 font-medium mb-1">✨ Normalización automática</p>
+                <div className="bg-blue-50/80 border border-blue-200 rounded-lg p-2.5 mt-3">
+                  <p className="text-sm text-blue-900 font-medium mb-0.5">✨ Normalización automática</p>
                   <p className="text-xs text-blue-700">
                     El sistema detecta y corrige automáticamente coordenadas con errores de formato, 
                     caracteres extraños, comas o puntos decimales incorrectos, y coordenadas en formato 
@@ -376,7 +376,7 @@ function App() {
               <CardTitle>Procesando archivo</CardTitle>
               <CardDescription>{processing.message}</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-3">
               <Progress value={processing.progress} />
             </CardContent>
           </Card>
@@ -423,7 +423,7 @@ function App() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-3">
+                <div className="space-y-2.5">
                   {processedFiles.map((file) => {
                     const fileValidCoords = file.convertedData.filter(c => c.isValid).length
                     const fileInvalidCoords = file.convertedData.length - fileValidCoords
@@ -434,7 +434,7 @@ function App() {
                         key={file.id}
                         onClick={() => setSelectedFileId(file.id)}
                         className={`
-                          border rounded-lg p-4 cursor-pointer transition-all
+                          border rounded-lg p-3 cursor-pointer transition-all
                           ${isSelected 
                             ? 'border-primary bg-primary/5 shadow-sm' 
                             : 'border-border hover:border-primary/50 hover:bg-muted/30'
@@ -442,7 +442,7 @@ function App() {
                         `}
                       >
                         <div className="flex items-start justify-between gap-4">
-                          <div className="flex-1 space-y-2">
+                          <div className="flex-1 space-y-1.5">
                             <div className="flex items-center gap-2">
                               <File size={20} className="text-primary" />
                               <h4 className="font-medium truncate">{file.parsedFile.filename}</h4>
@@ -497,7 +497,7 @@ function App() {
                   })}
                 </div>
 
-                <Separator className="my-4" />
+                <Separator className="my-3" />
 
                 <div className="flex justify-center gap-3">
                   <input
@@ -550,10 +550,10 @@ function App() {
                     </div>
                   </CardHeader>
                   <CardContent>
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                      <div className="space-y-4">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+                      <div className="space-y-3">
                         
-                        <div className="bg-blue-50/40 rounded-lg p-3 space-y-2.5 border border-blue-200/40">
+                        <div className="bg-blue-50/40 rounded-lg p-2.5 space-y-2 border border-blue-200/40">
                           <div className="grid grid-cols-[1fr_auto] gap-2 items-baseline">
                             <p className="text-xs text-muted-foreground">Nombre</p>
                             <p className="font-medium text-xs text-right truncate max-w-[200px]">{selectedFile.parsedFile.filename}</p>
@@ -576,12 +576,12 @@ function App() {
                           </div>
                         </div>
 
-                        <div className="space-y-2">
+                        <div className="space-y-1.5">
                           <div className="flex items-center gap-2">
                             <Globe className="text-blue-600" size={16} />
                             <h4 className="font-medium text-xs">Sistema detectado</h4>
                           </div>
-                          <div className="bg-blue-50/40 rounded-lg p-2.5 space-y-1.5 text-xs border border-blue-200/40">
+                          <div className="bg-blue-50/40 rounded-lg p-2 space-y-1 text-xs border border-blue-200/40">
                             <div className="grid grid-cols-[1fr_auto] gap-2 items-center">
                               <span className="text-muted-foreground">Sistema</span>
                               <Badge variant="secondary" className="text-xs justify-self-end">{selectedFile.detection.system.name}</Badge>
@@ -602,9 +602,9 @@ function App() {
                         </div>
 
                         {originalBounds && (
-                          <div className="space-y-1.5">
+                          <div className="space-y-1">
                             <h4 className="font-medium text-xs">Límites de coordenadas</h4>
-                            <div className="bg-blue-50/40 rounded-lg p-2.5 space-y-1 text-xs border border-blue-200/40">
+                            <div className="bg-blue-50/40 rounded-lg p-2 space-y-0.5 text-xs border border-blue-200/40">
                               <div className="grid grid-cols-[1fr_auto] gap-2">
                                 <span className="text-muted-foreground">Mín. X:</span>
                                 <span className="font-mono text-right">{formatCoordinate(originalBounds.minX, 6)}</span>
@@ -626,9 +626,9 @@ function App() {
                         )}
                       </div>
 
-                      <div className="space-y-4">
+                      <div className="space-y-3">
                         
-                        <div className="bg-green-50/40 rounded-lg p-3 space-y-2.5 border border-green-200/40">
+                        <div className="bg-green-50/40 rounded-lg p-2.5 space-y-2 border border-green-200/40">
                           <div className="grid grid-cols-[1fr_auto] gap-2 items-baseline">
                             <p className="text-xs text-muted-foreground">Nombre de salida</p>
                             <p className="font-medium text-xs text-right truncate max-w-[200px]">{getOutputFilename(selectedFile.parsedFile.filename)}</p>
@@ -651,9 +651,9 @@ function App() {
                           </div>
                         </div>
 
-                        <div className="space-y-2">
+                        <div className="space-y-1.5">
                           <h4 className="font-medium text-xs">Estadísticas de conversión</h4>
-                          <div className="space-y-1.5">
+                          <div className="space-y-1">
                             <div className="bg-green-50/40 border border-green-200/40 rounded-lg p-2">
                               <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-2">
@@ -691,9 +691,9 @@ function App() {
                         </div>
 
                         {convertedBounds && (
-                          <div className="space-y-1.5">
+                          <div className="space-y-1">
                             <h4 className="font-medium text-xs">Límites UTM30 (metros)</h4>
-                            <div className="bg-green-50/40 rounded-lg p-2.5 space-y-1 text-xs border border-green-200/40">
+                            <div className="bg-green-50/40 rounded-lg p-2 space-y-0.5 text-xs border border-green-200/40">
                               <div className="grid grid-cols-[1fr_auto] gap-2">
                                 <span className="text-muted-foreground">Mín. X:</span>
                                 <span className="font-mono text-right">{formatCoordinate(convertedBounds.minX, 2)} m</span>
@@ -740,36 +740,36 @@ function App() {
                         <TabsTrigger value="converted">UTM30</TabsTrigger>
                       </TabsList>
 
-                      <TabsContent value="stats" className="space-y-4">
-                        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                          <div className="text-center p-6 bg-green-50 border border-green-200 rounded-lg">
+                      <TabsContent value="stats" className="space-y-3">
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                          <div className="text-center p-4 bg-green-50 border border-green-200 rounded-lg">
                             <p className="text-3xl font-semibold text-green-600">{validCoords.length}</p>
-                            <p className="text-sm text-muted-foreground mt-2">Coordenadas válidas</p>
+                            <p className="text-sm text-muted-foreground mt-1.5">Coordenadas válidas</p>
                           </div>
-                          <div className="text-center p-6 bg-destructive/10 border border-destructive/20 rounded-lg">
+                          <div className="text-center p-4 bg-destructive/10 border border-destructive/20 rounded-lg">
                             <p className="text-3xl font-semibold text-destructive">{invalidCoords.length}</p>
-                            <p className="text-sm text-muted-foreground mt-2">Inválidas</p>
+                            <p className="text-sm text-muted-foreground mt-1.5">Inválidas</p>
                           </div>
-                          <div className="text-center p-6 bg-blue-50 border border-blue-200 rounded-lg">
+                          <div className="text-center p-4 bg-blue-50 border border-blue-200 rounded-lg">
                             <p className="text-3xl font-semibold text-blue-600">{selectedFile.detection.normalizedCount}</p>
-                            <p className="text-sm text-muted-foreground mt-2">Normalizadas</p>
+                            <p className="text-sm text-muted-foreground mt-1.5">Normalizadas</p>
                           </div>
                         </div>
 
                         <Separator />
 
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                          <div className="text-center p-4 bg-muted/50 rounded-lg">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                          <div className="text-center p-3 bg-muted/50 rounded-lg">
                             <p className="text-2xl font-semibold">{selectedFile.parsedFile.rowCount.toLocaleString()}</p>
-                            <p className="text-xs text-muted-foreground mt-1">Filas procesadas</p>
+                            <p className="text-xs text-muted-foreground mt-0.5">Filas procesadas</p>
                           </div>
-                          <div className="text-center p-4 bg-muted/50 rounded-lg">
+                          <div className="text-center p-3 bg-muted/50 rounded-lg">
                             <p className="text-2xl font-semibold">{selectedFile.parsedFile.columnCount}</p>
-                            <p className="text-xs text-muted-foreground mt-1">Columnas totales</p>
+                            <p className="text-xs text-muted-foreground mt-0.5">Columnas totales</p>
                           </div>
-                          <div className="text-center p-4 bg-accent/10 rounded-lg border border-accent/20">
+                          <div className="text-center p-3 bg-accent/10 rounded-lg border border-accent/20">
                             <p className="text-2xl font-semibold text-accent-foreground">UTM30N</p>
-                            <p className="text-xs text-muted-foreground mt-1">EPSG:25830</p>
+                            <p className="text-xs text-muted-foreground mt-0.5">EPSG:25830</p>
                           </div>
                         </div>
                       </TabsContent>
@@ -780,26 +780,26 @@ function App() {
                             <table className="w-full text-sm">
                               <thead className="bg-muted">
                                 <tr>
-                                  <th className="px-4 py-2 text-left font-medium">Fila</th>
-                                  <th className="px-4 py-2 text-left font-medium">{selectedFile.detection.xColumn}</th>
-                                  <th className="px-4 py-2 text-left font-medium">{selectedFile.detection.yColumn}</th>
-                                  <th className="px-4 py-2 text-left font-medium">Estado</th>
+                                  <th className="px-3 py-1.5 text-left font-medium">Fila</th>
+                                  <th className="px-3 py-1.5 text-left font-medium">{selectedFile.detection.xColumn}</th>
+                                  <th className="px-3 py-1.5 text-left font-medium">{selectedFile.detection.yColumn}</th>
+                                  <th className="px-3 py-1.5 text-left font-medium">Estado</th>
                                 </tr>
                               </thead>
                               <tbody>
                                 {selectedFile.convertedData.slice(0, 10).map((coord, idx) => (
                                   <tr key={idx} className="border-t hover:bg-muted/30">
-                                    <td className="px-4 py-2">{idx + 1}</td>
-                                    <td className="px-4 py-2 font-mono text-xs">
+                                    <td className="px-3 py-1.5">{idx + 1}</td>
+                                    <td className="px-3 py-1.5 font-mono text-xs">
                                       {formatCoordinate(coord.original.x, 6)}
                                       {coord.normalizedFrom && (
                                         <span className="ml-1 text-accent" title={coord.normalizedFrom}>✓</span>
                                       )}
                                     </td>
-                                    <td className="px-4 py-2 font-mono text-xs">
+                                    <td className="px-3 py-1.5 font-mono text-xs">
                                       {formatCoordinate(coord.original.y, 6)}
                                     </td>
-                                    <td className="px-4 py-2">
+                                    <td className="px-3 py-1.5">
                                       {coord.isValid ? (
                                         <Badge variant="outline" className="text-xs">Válida</Badge>
                                       ) : (
@@ -814,7 +814,7 @@ function App() {
                             </table>
                           </div>
                           {selectedFile.convertedData.length > 10 && (
-                            <div className="bg-muted px-4 py-2 text-xs text-muted-foreground text-center">
+                            <div className="bg-muted px-3 py-1.5 text-xs text-muted-foreground text-center">
                               Mostrando 10 de {selectedFile.convertedData.length} filas.
                               {selectedFile.convertedData.filter(c => c.normalizedFrom).length > 0 && (
                                 <span className="ml-2 text-accent">
@@ -832,19 +832,19 @@ function App() {
                             <table className="w-full text-sm">
                               <thead className="bg-muted">
                                 <tr>
-                                  <th className="px-4 py-2 text-left font-medium">Fila</th>
-                                  <th className="px-4 py-2 text-left font-medium">X_UTM30 (m)</th>
-                                  <th className="px-4 py-2 text-left font-medium">Y_UTM30 (m)</th>
-                                  <th className="px-4 py-2 text-left font-medium">Estado</th>
+                                  <th className="px-3 py-1.5 text-left font-medium">Fila</th>
+                                  <th className="px-3 py-1.5 text-left font-medium">X_UTM30 (m)</th>
+                                  <th className="px-3 py-1.5 text-left font-medium">Y_UTM30 (m)</th>
+                                  <th className="px-3 py-1.5 text-left font-medium">Estado</th>
                                 </tr>
                               </thead>
                               <tbody>
                                 {validCoords.slice(0, 10).map((coord, idx) => (
                                   <tr key={idx} className="border-t hover:bg-muted/30">
-                                    <td className="px-4 py-2">{coord.rowIndex + 1}</td>
-                                    <td className="px-4 py-2 font-mono text-xs">{formatCoordinate(coord.converted.x, 2)}</td>
-                                    <td className="px-4 py-2 font-mono text-xs">{formatCoordinate(coord.converted.y, 2)}</td>
-                                    <td className="px-4 py-2">
+                                    <td className="px-3 py-1.5">{coord.rowIndex + 1}</td>
+                                    <td className="px-3 py-1.5 font-mono text-xs">{formatCoordinate(coord.converted.x, 2)}</td>
+                                    <td className="px-3 py-1.5 font-mono text-xs">{formatCoordinate(coord.converted.y, 2)}</td>
+                                    <td className="px-3 py-1.5">
                                       <Badge variant="outline" className="text-xs">Convertida</Badge>
                                     </td>
                                   </tr>
@@ -853,7 +853,7 @@ function App() {
                             </table>
                           </div>
                           {validCoords.length > 10 && (
-                            <div className="bg-muted px-4 py-2 text-xs text-muted-foreground text-center">
+                            <div className="bg-muted px-3 py-1.5 text-xs text-muted-foreground text-center">
                               Mostrando 10 de {validCoords.length} coordenadas válidas
                             </div>
                           )}
