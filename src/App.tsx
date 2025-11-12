@@ -538,63 +538,65 @@ function App() {
               <>
                 <Card>
                   <CardHeader className="pb-3">
-                    <CardTitle className="flex items-center gap-2 text-lg">
-                      <MapPin className="text-primary" size={20} />
-                      Información del archivo
-                    </CardTitle>
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <MapPin className="text-primary" size={16} />
+                      <span>Información del archivo</span>
+                    </div>
                   </CardHeader>
                   <CardContent>
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                      <div className="space-y-3">
-                        <div className="flex items-center gap-2">
-                          <File className="text-primary" size={18} />
-                          <h4 className="font-semibold text-sm">Archivo Original</h4>
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                      <div className="space-y-4">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <File className="text-blue-600" size={16} />
+                            <h4 className="font-semibold text-sm">Archivo Original</h4>
+                          </div>
                         </div>
                         
-                        <div className="bg-muted/30 rounded-lg p-3 space-y-2">
-                          <div>
-                            <p className="text-xs text-muted-foreground">Nombre del archivo</p>
-                            <p className="font-medium text-sm truncate">{selectedFile.parsedFile.filename}</p>
+                        <div className="bg-blue-50/40 rounded-lg p-3 space-y-2.5 border border-blue-200/40">
+                          <div className="grid grid-cols-[1fr_auto] gap-2 items-baseline">
+                            <p className="text-xs text-muted-foreground">Nombre</p>
+                            <p className="font-medium text-xs text-right truncate max-w-[200px]">{selectedFile.parsedFile.filename}</p>
                           </div>
                           
                           <div className="grid grid-cols-2 gap-3">
-                            <div>
+                            <div className="grid grid-cols-[1fr_auto] gap-2 items-center">
                               <p className="text-xs text-muted-foreground">Tipo</p>
-                              <Badge className="text-xs">{selectedFile.parsedFile.fileType}</Badge>
+                              <Badge variant="secondary" className="text-xs justify-self-end">{selectedFile.parsedFile.fileType}</Badge>
                             </div>
-                            <div>
+                            <div className="grid grid-cols-[1fr_auto] gap-2 items-baseline">
                               <p className="text-xs text-muted-foreground">Columnas</p>
-                              <p className="font-medium text-sm">{selectedFile.parsedFile.columnCount}</p>
+                              <p className="font-medium text-xs text-right">{selectedFile.parsedFile.columnCount}</p>
                             </div>
                           </div>
                           
-                          <div>
+                          <div className="grid grid-cols-[1fr_auto] gap-2 items-baseline">
                             <p className="text-xs text-muted-foreground">Filas totales</p>
-                            <p className="font-medium text-base">{selectedFile.parsedFile.rowCount.toLocaleString()}</p>
+                            <p className="font-semibold text-sm text-right">{selectedFile.parsedFile.rowCount.toLocaleString()}</p>
                           </div>
                         </div>
 
                         <div className="space-y-2">
                           <div className="flex items-center gap-2">
-                            <Globe className="text-primary" size={18} />
-                            <h4 className="font-medium text-sm">Sistema detectado</h4>
+                            <Globe className="text-blue-600" size={16} />
+                            <h4 className="font-medium text-xs">Sistema detectado</h4>
                           </div>
-                          <div className="bg-muted/30 rounded-lg p-3 space-y-1.5 text-xs">
-                            <div className="flex items-center justify-between">
+                          <div className="bg-blue-50/40 rounded-lg p-2.5 space-y-1.5 text-xs border border-blue-200/40">
+                            <div className="grid grid-cols-[1fr_auto] gap-2 items-center">
                               <span className="text-muted-foreground">Sistema</span>
-                              <Badge variant="secondary" className="text-xs">{selectedFile.detection.system.name}</Badge>
+                              <Badge variant="secondary" className="text-xs justify-self-end">{selectedFile.detection.system.name}</Badge>
                             </div>
-                            <div className="flex items-center justify-between">
+                            <div className="grid grid-cols-[1fr_auto] gap-2 items-baseline">
                               <span className="text-muted-foreground">Código</span>
-                              <span className="font-mono">{selectedFile.detection.system.code}</span>
+                              <span className="font-mono text-right">{selectedFile.detection.system.code}</span>
                             </div>
-                            <div className="flex items-center justify-between">
+                            <div className="grid grid-cols-[1fr_auto] gap-2 items-baseline">
                               <span className="text-muted-foreground">Columna X</span>
-                              <span className="font-medium">{selectedFile.detection.xColumn}</span>
+                              <span className="font-medium text-right">{selectedFile.detection.xColumn}</span>
                             </div>
-                            <div className="flex items-center justify-between">
+                            <div className="grid grid-cols-[1fr_auto] gap-2 items-baseline">
                               <span className="text-muted-foreground">Columna Y</span>
-                              <span className="font-medium">{selectedFile.detection.yColumn}</span>
+                              <span className="font-medium text-right">{selectedFile.detection.yColumn}</span>
                             </div>
                           </div>
                         </div>
@@ -602,67 +604,69 @@ function App() {
                         {originalBounds && (
                           <div className="space-y-1.5">
                             <h4 className="font-medium text-xs">Límites de coordenadas</h4>
-                            <div className="bg-muted/30 rounded-lg p-3 space-y-1 text-xs">
-                              <div className="flex justify-between">
+                            <div className="bg-blue-50/40 rounded-lg p-2.5 space-y-1 text-xs border border-blue-200/40">
+                              <div className="grid grid-cols-[1fr_auto] gap-2">
                                 <span className="text-muted-foreground">Mín. X:</span>
-                                <span className="font-mono">{formatCoordinate(originalBounds.minX, 6)}</span>
+                                <span className="font-mono text-right">{formatCoordinate(originalBounds.minX, 6)}</span>
                               </div>
-                              <div className="flex justify-between">
+                              <div className="grid grid-cols-[1fr_auto] gap-2">
                                 <span className="text-muted-foreground">Máx. X:</span>
-                                <span className="font-mono">{formatCoordinate(originalBounds.maxX, 6)}</span>
+                                <span className="font-mono text-right">{formatCoordinate(originalBounds.maxX, 6)}</span>
                               </div>
-                              <div className="flex justify-between">
+                              <div className="grid grid-cols-[1fr_auto] gap-2">
                                 <span className="text-muted-foreground">Mín. Y:</span>
-                                <span className="font-mono">{formatCoordinate(originalBounds.minY, 6)}</span>
+                                <span className="font-mono text-right">{formatCoordinate(originalBounds.minY, 6)}</span>
                               </div>
-                              <div className="flex justify-between">
+                              <div className="grid grid-cols-[1fr_auto] gap-2">
                                 <span className="text-muted-foreground">Máx. Y:</span>
-                                <span className="font-mono">{formatCoordinate(originalBounds.maxY, 6)}</span>
+                                <span className="font-mono text-right">{formatCoordinate(originalBounds.maxY, 6)}</span>
                               </div>
                             </div>
                           </div>
                         )}
                       </div>
 
-                      <div className="space-y-3">
-                        <div className="flex items-center gap-2">
-                          <ArrowsClockwise className="text-primary" size={18} />
-                          <h4 className="font-semibold text-sm">Archivo Convertido</h4>
+                      <div className="space-y-4">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <ArrowsClockwise className="text-green-600" size={16} />
+                            <h4 className="font-semibold text-sm">Archivo Convertido</h4>
+                          </div>
                         </div>
                         
-                        <div className="bg-green-50/50 rounded-lg p-3 space-y-2 border border-green-200/50">
-                          <div>
+                        <div className="bg-green-50/40 rounded-lg p-3 space-y-2.5 border border-green-200/40">
+                          <div className="grid grid-cols-[1fr_auto] gap-2 items-baseline">
                             <p className="text-xs text-muted-foreground">Nombre de salida</p>
-                            <p className="font-medium text-sm truncate">{getOutputFilename(selectedFile.parsedFile.filename)}</p>
+                            <p className="font-medium text-xs text-right truncate max-w-[200px]">{getOutputFilename(selectedFile.parsedFile.filename)}</p>
                           </div>
                           
                           <div className="grid grid-cols-2 gap-3">
-                            <div>
+                            <div className="grid grid-cols-[1fr_auto] gap-2 items-center">
                               <p className="text-xs text-muted-foreground">Formato</p>
-                              <Badge variant="outline" className="text-xs">CSV</Badge>
+                              <Badge variant="outline" className="text-xs justify-self-end">CSV</Badge>
                             </div>
-                            <div>
+                            <div className="grid grid-cols-[1fr_auto] gap-2 items-center">
                               <p className="text-xs text-muted-foreground">Sistema</p>
-                              <Badge className="bg-green-600 text-white hover:bg-green-700 text-xs">UTM30N</Badge>
+                              <Badge className="bg-green-600 text-white hover:bg-green-700 text-xs justify-self-end">UTM30N</Badge>
                             </div>
                           </div>
                           
-                          <div>
+                          <div className="grid grid-cols-[1fr_auto] gap-2 items-baseline">
                             <p className="text-xs text-muted-foreground">Código EPSG</p>
-                            <p className="font-mono font-medium text-sm">EPSG:25830</p>
+                            <p className="font-mono font-medium text-xs text-right">EPSG:25830</p>
                           </div>
                         </div>
 
                         <div className="space-y-2">
-                          <h4 className="font-medium text-sm">Estadísticas de conversión</h4>
+                          <h4 className="font-medium text-xs">Estadísticas de conversión</h4>
                           <div className="space-y-1.5">
-                            <div className="bg-green-50 border border-green-200 rounded-lg p-2">
+                            <div className="bg-green-50/40 border border-green-200/40 rounded-lg p-2">
                               <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-2">
-                                  <CheckCircle size={18} className="text-green-600" />
-                                  <span className="text-xs font-medium">Coordenadas válidas</span>
+                                  <CheckCircle size={16} className="text-green-600" />
+                                  <span className="text-xs font-medium">Válidas</span>
                                 </div>
-                                <span className="text-lg font-semibold text-green-600">{validCoords.length}</span>
+                                <span className="text-base font-semibold text-green-600">{validCoords.length}</span>
                               </div>
                             </div>
                             
@@ -670,22 +674,22 @@ function App() {
                               <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-2">
                                 <div className="flex items-center justify-between">
                                   <div className="flex items-center gap-2">
-                                    <Warning size={18} className="text-destructive" />
-                                    <span className="text-xs font-medium">Coordenadas inválidas</span>
+                                    <Warning size={16} className="text-destructive" />
+                                    <span className="text-xs font-medium">Inválidas</span>
                                   </div>
-                                  <span className="text-lg font-semibold text-destructive">{invalidCoords.length}</span>
+                                  <span className="text-base font-semibold text-destructive">{invalidCoords.length}</span>
                                 </div>
                               </div>
                             )}
 
                             {selectedFile.detection.normalizedCount > 0 && (
-                              <div className="bg-blue-50 border border-blue-200 rounded-lg p-2">
+                              <div className="bg-blue-50/40 border border-blue-200/40 rounded-lg p-2">
                                 <div className="flex items-center justify-between">
                                   <div className="flex items-center gap-2">
-                                    <ArrowsClockwise size={18} className="text-blue-600" />
+                                    <ArrowsClockwise size={16} className="text-blue-600" />
                                     <span className="text-xs font-medium">Normalizadas</span>
                                   </div>
-                                  <span className="text-lg font-semibold text-blue-600">{selectedFile.detection.normalizedCount}</span>
+                                  <span className="text-base font-semibold text-blue-600">{selectedFile.detection.normalizedCount}</span>
                                 </div>
                               </div>
                             )}
@@ -695,22 +699,22 @@ function App() {
                         {convertedBounds && (
                           <div className="space-y-1.5">
                             <h4 className="font-medium text-xs">Límites UTM30 (metros)</h4>
-                            <div className="bg-green-50/50 rounded-lg p-3 space-y-1 text-xs border border-green-200/50">
-                              <div className="flex justify-between">
+                            <div className="bg-green-50/40 rounded-lg p-2.5 space-y-1 text-xs border border-green-200/40">
+                              <div className="grid grid-cols-[1fr_auto] gap-2">
                                 <span className="text-muted-foreground">Mín. X:</span>
-                                <span className="font-mono">{formatCoordinate(convertedBounds.minX, 2)} m</span>
+                                <span className="font-mono text-right">{formatCoordinate(convertedBounds.minX, 2)} m</span>
                               </div>
-                              <div className="flex justify-between">
+                              <div className="grid grid-cols-[1fr_auto] gap-2">
                                 <span className="text-muted-foreground">Máx. X:</span>
-                                <span className="font-mono">{formatCoordinate(convertedBounds.maxX, 2)} m</span>
+                                <span className="font-mono text-right">{formatCoordinate(convertedBounds.maxX, 2)} m</span>
                               </div>
-                              <div className="flex justify-between">
+                              <div className="grid grid-cols-[1fr_auto] gap-2">
                                 <span className="text-muted-foreground">Mín. Y:</span>
-                                <span className="font-mono">{formatCoordinate(convertedBounds.minY, 2)} m</span>
+                                <span className="font-mono text-right">{formatCoordinate(convertedBounds.minY, 2)} m</span>
                               </div>
-                              <div className="flex justify-between">
+                              <div className="grid grid-cols-[1fr_auto] gap-2">
                                 <span className="text-muted-foreground">Máx. Y:</span>
-                                <span className="font-mono">{formatCoordinate(convertedBounds.maxY, 2)} m</span>
+                                <span className="font-mono text-right">{formatCoordinate(convertedBounds.maxY, 2)} m</span>
                               </div>
                             </div>
                           </div>
