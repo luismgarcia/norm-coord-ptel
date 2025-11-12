@@ -265,7 +265,7 @@ function App() {
             Conversor de Coordenadas UTM30
           </h1>
           <p className="text-muted-foreground text-sm md:text-base">
-            Transformación profesional de coordenadas para QGIS y aplicaciones SIG
+            Conversor automático de coordenadas para QGIS y aplicaciones SIG
           </p>
         </div>
 
