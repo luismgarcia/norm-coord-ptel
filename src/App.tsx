@@ -465,7 +465,7 @@ function App() {
                     </label>
                   </Button>
                   {processedFiles.length > 1 && (
-                    <Button onClick={handleDownloadAll} variant="outline">
+                    <Button onClick={handleDownloadAll} variant="outline" className="border-green-600/30 bg-green-50 hover:bg-green-100 text-green-700 hover:text-green-800">
                       <DownloadSimple size={20} className="mr-2" />
                       Descargar Todos
                     </Button>
