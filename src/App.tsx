@@ -599,7 +599,7 @@ function App() {
 
                 <Separator className="my-3" />
 
-                <div className="flex justify-center items-center gap-6">
+                <div className="flex justify-between items-center gap-3">
                   <input
                     type="file"
                     id="file-upload-more"
@@ -608,7 +608,7 @@ function App() {
                     multiple
                     className="hidden"
                   />
-                  <Button asChild variant="outline" className="border-blue-300/50 bg-blue-100 hover:bg-blue-150">
+                  <Button asChild variant="outline" className="flex-1 h-11 border-2">
                     <label htmlFor="file-upload-more" className="cursor-pointer">
                       <UploadSimple size={20} className="mr-2" />
                       Añadir más archivos
@@ -616,7 +616,7 @@ function App() {
                   </Button>
                   
                   <Select value={outputFormat} onValueChange={(value: 'csv' | 'xlsx' | 'geojson' | 'kml') => setOutputFormat(value)}>
-                    <SelectTrigger className="w-[180px] h-11 bg-white text-base font-semibold border-2 border-purple-300">
+                    <SelectTrigger className="flex-1 h-11 border-2">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -631,14 +631,14 @@ function App() {
                     <Button 
                       onClick={() => handleDownload()} 
                       variant="outline" 
-                      className="border-purple-300/50 bg-purple-100 hover:bg-purple-150"
+                      className="flex-1 h-11 border-2"
                     >
                       <DownloadSimple size={20} className="mr-2" />
                       Descargar
                     </Button>
                   )}
                   {processedFiles.length > 1 && (
-                    <Button onClick={handleDownloadAll} variant="outline" className="border-green-300/50 bg-green-100 hover:bg-green-150">
+                    <Button onClick={handleDownloadAll} variant="outline" className="flex-1 h-11 border-2">
                       <Package size={20} className="mr-2" />
                       Descargar todos (ZIP)
                     </Button>
