@@ -366,18 +366,10 @@ function App() {
                     <Stack className="text-primary" size={24} />
                     Archivos Procesados ({processedFiles.length})
                   </div>
-                  <div className="flex gap-2">
-                    {processedFiles.length > 1 && (
-                      <Button onClick={handleDownloadAll} variant="outline" size="sm">
-                        <DownloadSimple size={16} className="mr-2" />
-                        Descargar Todos
-                      </Button>
-                    )}
-                    <Button onClick={handleReset} variant="outline" size="sm">
-                      <ArrowsClockwise size={16} className="mr-2" />
-                      Reiniciar
-                    </Button>
-                  </div>
+                  <Button onClick={handleReset} variant="outline" size="sm">
+                    <ArrowsClockwise size={16} className="mr-2" />
+                    Reiniciar
+                  </Button>
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -457,7 +449,7 @@ function App() {
 
                 <Separator className="my-4" />
 
-                <div className="text-center">
+                <div className="flex justify-center gap-3">
                   <input
                     type="file"
                     id="file-upload-more"
@@ -472,6 +464,12 @@ function App() {
                       Añadir Más Archivos
                     </label>
                   </Button>
+                  {processedFiles.length > 1 && (
+                    <Button onClick={handleDownloadAll} variant="outline">
+                      <DownloadSimple size={20} className="mr-2" />
+                      Descargar Todos
+                    </Button>
+                  )}
                 </div>
               </CardContent>
             </Card>
