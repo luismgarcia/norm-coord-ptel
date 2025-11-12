@@ -523,7 +523,7 @@ function App() {
 
                 <Separator className="my-3" />
 
-                <div className="flex justify-center gap-3">
+                <div className="flex justify-center items-center gap-6">
                   <input
                     type="file"
                     id="file-upload-more"
@@ -538,6 +538,19 @@ function App() {
                       Añadir más archivos
                     </label>
                   </Button>
+                  
+                  <Select value={outputFormat} onValueChange={(value: 'csv' | 'xlsx' | 'geojson' | 'kml') => setOutputFormat(value)}>
+                    <SelectTrigger className="w-[180px] h-11 bg-white text-base font-semibold border-2 border-purple-300">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="csv" className="text-base">CSV</SelectItem>
+                      <SelectItem value="xlsx" className="text-base">Excel (XLSX)</SelectItem>
+                      <SelectItem value="geojson" className="text-base">GeoJSON</SelectItem>
+                      <SelectItem value="kml" className="text-base">KML</SelectItem>
+                    </SelectContent>
+                  </Select>
+
                   {selectedFile && (
                     <Button 
                       onClick={() => handleDownload()} 
