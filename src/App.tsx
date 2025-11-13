@@ -520,7 +520,7 @@ function App() {
                       Normalización automática
                     </p>
                     <p className="text-xs text-blue-950 dark:text-blue-300 leading-relaxed">
-                      Detecta, normaliza y corrige automáticamente errores de formato, decimales, caracteres especiales. Convierte coordenadas para su compatibilidad con aplicaciones GIS.
+                      Convierte coordenadas y las normaliza: detecta y corrige automáticamente errores de formato, decimales y caracteres especiales para su importación a QGIS.
                     </p>
                   </div>
                 </CardContent>
