@@ -39,6 +39,7 @@ import {
 } from '@/lib/coordinateUtils'
 import { toast } from 'sonner'
 import JSZip from 'jszip'
+import { ThemeSwitch } from '@/components/ThemeSwitch'
 
 type Step = 1 | 2 | 3
 
@@ -344,6 +345,10 @@ function App() {
 
   return (
     <div className="min-h-screen bg-background p-3 md:p-6">
+      <div className="fixed top-4 right-4 md:top-6 md:right-6 z-50">
+        <ThemeSwitch />
+      </div>
+      
       <div className="max-w-6xl mx-auto space-y-6">
         <div className="text-center space-y-2">
           <h1 className="text-3xl md:text-4xl font-semibold tracking-tight">

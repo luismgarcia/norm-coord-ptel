@@ -79,6 +79,8 @@ Una aplicación web profesional que detecta, analiza, normaliza y convierte auto
 ## Dirección de diseño
 El diseño debe sentirse profesional, preciso y eficiente, como una herramienta técnica construida para profesionales de SIG. Interfaz limpia y enfocada con énfasis en la claridad de datos y transparencia del procesamiento. Distracciones mínimas con uso intencional del espacio para mostrar información técnica de manera clara.
 
+**Modo claro/oscuro**: La aplicación incluye un switch animado en la esquina superior derecha que permite alternar entre modo claro y oscuro. El modo se guarda en localStorage para persistir entre sesiones. El switch tiene una animación suave tipo spring con iconos de Sol/Luna que se deslizan horizontalmente.
+
 **Flujo de 3 pasos visuales**: La aplicación guía al usuario a través de un proceso claro y lineal:
 1. **Paso 1 - Subir**: Zona de carga de archivos prominente con información sobre formatos compatibles
 2. **Paso 2 - Analizar**: Vista detallada de los resultados de conversión con comparación lado a lado del archivo original y convertido
@@ -87,8 +89,9 @@ El diseño debe sentirse profesional, preciso y eficiente, como una herramienta 
 Cada paso se muestra con indicadores numéricos visuales grandes en la parte superior, con el paso actual destacado en color primario y los pasos completados/futuros en gris. La navegación entre pasos es intuitiva con botones de acción claros.
 
 ## Selección de color
-Complementarios (colores opuestos) - Azul profesional combinado con naranja cálido para acciones, creando sofisticación técnica con interactividad accesible.
+Complementarios (colores opuestos) - Azul profesional combinado con naranja cálido para acciones, creando sofisticación técnica con interactividad accesible. La aplicación soporta modo claro y oscuro con paletas adaptadas.
 
+**Modo claro:**
 - **Color primario**: Azul profesional profundo (oklch(0.45 0.15 250)) - Comunica precisión, competencia técnica y asociaciones geográficas/de mapeo
 - **Colores secundarios**: Gris neutro claro (oklch(0.92 0.02 250)) para acciones secundarias y fondos sutiles, manteniendo la estética profesional y limpia
 - **Color de acento**: Naranja cálido (oklch(0.68 0.18 45)) - Resalta las acciones de conversión e información de estado importante con energía y claridad
@@ -99,6 +102,13 @@ Complementarios (colores opuestos) - Azul profesional combinado con naranja cál
   - Secundario (Gris claro oklch(0.92 0.02 250)): Texto oscuro (oklch(0.15 0.02 250)) - Relación 13.2:1 ✓
   - Acento (Naranja cálido oklch(0.68 0.18 45)): Texto oscuro (oklch(0.15 0.02 250)) - Relación 6.8:1 ✓
   - Apagado (Gris muy claro oklch(0.95 0.01 250)): Texto medio mejorado (oklch(0.45 0.02 250)) - Relación 7.1:1 ✓
+
+**Modo oscuro:**
+- **Fondo**: Gris azulado oscuro (oklch(0.15 0.01 286)) - Reduce la fatiga ocular manteniendo profesionalismo
+- **Tarjetas**: Gris azulado medio (oklch(0.18 0.012 286)) - Separación sutil del fondo
+- **Primario**: Azul brillante (oklch(0.55 0.15 250)) - Más luminoso para visibilidad en fondo oscuro
+- **Texto**: Blanco cálido (oklch(0.98 0.002 286)) - Alto contraste con legibilidad óptima
+- **Bordes**: Gris medio (oklch(0.30 0.015 286)) - Definición sutil sin dureza
 
 ## Selección de fuente
 Claridad técnica con pulido profesional: uso de Inter por su excelente legibilidad en todos los tamaños y carácter técnico/moderno, perfecto para mostrar datos de coordenadas e información técnica.
@@ -122,6 +132,7 @@ Sutiles y funcionales: las animaciones deben reforzar la sensación de eficienci
   4. Indicador de progreso durante la detección/conversión (comunicación del estado)
   5. Estados hover en elementos interactivos con escala sutil (hover:scale-105)
   6. Animaciones de marca de verificación de éxito en estadísticas (confirmación visual)
+  7. Switch de tema animado con spring physics (stiffness: 500, damping: 30) y transición de iconos Sol/Luna
 
 ## Componentes Selection
 - **Componentes**: 
@@ -164,6 +175,8 @@ Sutiles y funcionales: las animaciones deben reforzar la sensación de eficienci
   - ArrowsClockwise: Reinicio y normalizadas (duotone en stats)
   - Stack: Múltiples archivos
   - Trash: Eliminar archivo individual
+  - Sun: Modo claro en switch de tema (weight fill, size 16)
+  - Moon: Modo oscuro en switch de tema (weight fill, size 16)
   
 - **Espaciado**: 
   - Espaciado global entre secciones: space-y-6
