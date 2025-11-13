@@ -516,11 +516,11 @@ function App() {
                     </div>
                   </div>
 
-                  <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
-                    <p className="text-sm font-semibold text-blue-900 dark:text-blue-100 mb-2">
+                  <div className="bg-blue-100 dark:bg-blue-950/20 border border-blue-300 dark:border-blue-800 rounded-lg p-4">
+                    <p className="text-sm font-semibold text-blue-950 dark:text-blue-100 mb-2">
                       ✨ Normalización automática
                     </p>
-                    <p className="text-xs text-blue-700 dark:text-blue-300 leading-relaxed">
+                    <p className="text-xs text-blue-900 dark:text-blue-300 leading-relaxed">
                       Detecta y corrige automáticamente errores de formato, decimales, caracteres especiales, 
                       y convierte coordenadas DMS a decimal. Normaliza texto para compatibilidad con QGIS.
                     </p>
