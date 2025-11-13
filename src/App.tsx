@@ -520,8 +520,7 @@ function App() {
                       ✨ Normalización automática
                     </p>
                     <p className="text-xs text-blue-950 dark:text-blue-300 leading-relaxed">
-                      Detecta y corrige automáticamente errores de formato, decimales, caracteres especiales, 
-                      y convierte coordenadas DMS a decimal. Normaliza texto para compatibilidad con QGIS.
+                      Detecta, normaliza y corrige automáticamente errores de formato, decimales, caracteres especiales. Convierte coordenadas para su compatibilidad con aplicaciones GIS.
                     </p>
                   </div>
                 </CardContent>
