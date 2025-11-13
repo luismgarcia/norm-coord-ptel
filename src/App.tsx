@@ -354,9 +354,9 @@ function App() {
           </p>
         </div>
 
-        <div className="flex items-center justify-center gap-2 md:gap-4 flex-wrap">
+        <div className="flex items-center justify-center gap-0 w-full max-w-3xl mx-auto">
           <div 
-            className={`flex flex-col items-center gap-2 transition-all ${currentStep >= 1 ? 'opacity-100' : 'opacity-40'}`}
+            className={`flex flex-col items-center gap-2 transition-all flex-1 ${currentStep >= 1 ? 'opacity-100' : 'opacity-40'}`}
             onClick={() => currentStep > 1 && handleReset()}
           >
             <div className={`flex flex-col items-center gap-2 ${currentStep > 1 ? 'cursor-pointer hover:scale-105' : ''} transition-transform`}>
@@ -371,9 +371,9 @@ function App() {
             </div>
           </div>
 
-          <Separator className="w-12 md:w-20 mb-6" />
+          <Separator className="flex-1 max-w-[80px] md:max-w-[120px] mb-6" />
 
-          <div className={`flex flex-col items-center gap-2 transition-all ${currentStep >= 2 ? 'opacity-100' : 'opacity-40'}`}>
+          <div className={`flex flex-col items-center gap-2 transition-all flex-1 ${currentStep >= 2 ? 'opacity-100' : 'opacity-40'}`}>
             <NumberCircleTwo 
               size={48} 
               weight={currentStep === 2 ? 'fill' : 'regular'}
@@ -384,10 +384,10 @@ function App() {
             </span>
           </div>
 
-          <Separator className="w-12 md:w-20 mb-6" />
+          <Separator className="flex-1 max-w-[80px] md:max-w-[120px] mb-6" />
 
           <div 
-            className={`flex flex-col items-center gap-2 transition-all ${currentStep >= 3 ? 'opacity-100' : 'opacity-40'}`}
+            className={`flex flex-col items-center gap-2 transition-all flex-1 ${currentStep >= 3 ? 'opacity-100' : 'opacity-40'}`}
             onClick={() => currentStep === 2 && selectedFile && setCurrentStep(3)}
           >
             <div className={`flex flex-col items-center gap-2 ${currentStep === 2 && selectedFile ? 'cursor-pointer hover:scale-105' : ''} transition-transform`}>
