@@ -1,5 +1,3 @@
-import { motion } from 'framer-motion'
-import { Sun, Moon } from '@phosphor-icons/react'
 import { useTheme } from '@/hooks/use-theme'
 
 export function ThemeSwitch() {
@@ -9,43 +7,47 @@ export function ThemeSwitch() {
   return (
     <button
       onClick={toggleTheme}
-      className="relative w-16 h-8 rounded-full bg-gradient-to-r from-blue-400 to-blue-600 dark:from-indigo-600 dark:to-purple-800 shadow-lg transition-all duration-300 hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+      className="relative w-12 h-12 rounded-full flex items-center justify-center hover:bg-muted/50 transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
       aria-label="Toggle theme"
     >
-      <motion.div
-        className="absolute top-1 left-1 w-6 h-6 bg-white dark:bg-slate-800 rounded-full shadow-md flex items-center justify-center"
-        animate={{
-          x: isDark ? 32 : 0,
-        }}
-        transition={{
-          type: 'spring',
-          stiffness: 500,
-          damping: 30,
-        }}
+      <svg
+        width="32"
+        height="32"
+        viewBox="0 0 32 32"
+        className={`transition-transform duration-500 ${isDark ? 'rotate-180' : 'rotate-0'}`}
       >
-        {isDark ? (
-          <Moon size={16} weight="fill" className="text-indigo-400" />
-        ) : (
-          <Sun size={16} weight="fill" className="text-amber-500" />
-        )}
-      </motion.div>
-
-      <div className="absolute inset-0 flex items-center justify-between px-2 pointer-events-none">
-        <Sun
-          size={14}
-          weight="fill"
-          className={`transition-opacity duration-300 ${
-            isDark ? 'opacity-50' : 'opacity-0'
-          } text-white`}
-        />
-        <Moon
-          size={14}
-          weight="fill"
-          className={`transition-opacity duration-300 ${
-            isDark ? 'opacity-0' : 'opacity-50'
-          } text-white`}
-        />
-      </div>
+        <clipPath id="theme-switch-cutout">
+          <path d="M0-5h30a1 1 0 0 0 9 13v24H0z" />
+        </clipPath>
+        
+        <g clipPath="url(#theme-switch-cutout)">
+          <circle
+            cx="16"
+            cy="16"
+            r="9"
+            className={`transition-all duration-500 ${
+              isDark 
+                ? 'fill-slate-700 dark:fill-slate-200' 
+                : 'fill-amber-400'
+            }`}
+          />
+          
+          <g
+            className={`transition-opacity duration-500 ${
+              isDark ? 'opacity-0' : 'opacity-100'
+            }`}
+          >
+            <line x1="16" y1="3" x2="16" y2="0" className="stroke-amber-400 stroke-[3] stroke-linecap-round" />
+            <line x1="16" y1="32" x2="16" y2="29" className="stroke-amber-400 stroke-[3] stroke-linecap-round" />
+            <line x1="29" y1="16" x2="32" y2="16" className="stroke-amber-400 stroke-[3] stroke-linecap-round" />
+            <line x1="3" y1="16" x2="0" y2="16" className="stroke-amber-400 stroke-[3] stroke-linecap-round" />
+            <line x1="25.364" y1="6.636" x2="27.486" y2="4.514" className="stroke-amber-400 stroke-[3] stroke-linecap-round" />
+            <line x1="6.636" y1="25.364" x2="4.514" y2="27.486" className="stroke-amber-400 stroke-[3] stroke-linecap-round" />
+            <line x1="25.364" y1="25.364" x2="27.486" y2="27.486" className="stroke-amber-400 stroke-[3] stroke-linecap-round" />
+            <line x1="6.636" y1="6.636" x2="4.514" y2="4.514" className="stroke-amber-400 stroke-[3] stroke-linecap-round" />
+          </g>
+        </g>
+      </svg>
     </button>
   )
 }
