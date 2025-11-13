@@ -5,24 +5,85 @@ export function ThemeSwitch() {
   const isDark = theme === 'dark'
 
   return (
-    <label className="relative inline-block w-[90px] h-[50px] cursor-pointer">
+    <label className="relative flex items-center justify-center w-20 h-20 cursor-pointer">
       <input
         type="checkbox"
         checked={isDark}
         onChange={toggleTheme}
-        className="opacity-0 w-0 h-0 peer"
+        className="sr-only peer"
         aria-label="Toggle theme"
       />
-      <span className="absolute inset-0 bg-[#ebebeb] dark:bg-[#242424] rounded-[25px] transition-all duration-[450ms]">
-        <span className="absolute top-[5px] left-[5px] w-10 h-10 bg-[#ffce44] dark:bg-[#7983ea] rounded-full transition-all duration-[450ms] dark:translate-x-10 shadow-[0_0_2px_0_rgba(0,0,0,0.25)]">
-          <span className="absolute top-[8px] left-[9px] w-[11px] h-[11px] bg-white rounded-full transition-all duration-[450ms] opacity-0 dark:opacity-100" />
-          <span className="absolute top-[17px] left-[16px] w-1.5 h-1.5 bg-white rounded-full transition-all duration-[450ms] opacity-0 dark:opacity-100" />
-          <span className="absolute top-[20px] left-[8px] w-1 h-1 bg-white rounded-full transition-all duration-[450ms] opacity-0 dark:opacity-100" />
-        </span>
-        <span className="absolute top-[18px] left-[58px] w-2 h-2 bg-[#ebebeb] dark:bg-[#242424] rounded-full transition-all duration-[450ms]" />
-        <span className="absolute top-[8px] left-[70px] w-1.5 h-1.5 bg-[#ebebeb] dark:bg-[#242424] rounded-full transition-all duration-[450ms]" />
-        <span className="absolute top-[27px] left-[66px] w-1 h-1 bg-[#ebebeb] dark:bg-[#242424] rounded-full transition-all duration-[450ms]" />
-      </span>
+      <svg 
+        viewBox="0 0 24 24" 
+        fill="none" 
+        xmlns="http://www.w3.org/2000/svg"
+        className="w-full h-full"
+      >
+        <circle 
+          cx="12" 
+          cy="12" 
+          r="5" 
+          stroke="currentColor" 
+          strokeWidth="1.5" 
+          className="text-foreground transition-all duration-500 peer-checked:stroke-dasharray-[1,3] peer-checked:stroke-dashoffset-[8] peer-checked:r-[9]"
+        />
+        <path 
+          d="M12 2V4" 
+          stroke="currentColor" 
+          strokeWidth="1.5" 
+          strokeLinecap="round" 
+          className="text-foreground transition-all duration-500 origin-center peer-checked:rotate-90 peer-checked:opacity-0"
+        />
+        <path 
+          d="M12 20V22" 
+          stroke="currentColor" 
+          strokeWidth="1.5" 
+          strokeLinecap="round" 
+          className="text-foreground transition-all duration-500 origin-center peer-checked:rotate-90 peer-checked:opacity-0"
+        />
+        <path 
+          d="M4 12H2" 
+          stroke="currentColor" 
+          strokeWidth="1.5" 
+          strokeLinecap="round" 
+          className="text-foreground transition-all duration-500 origin-center peer-checked:-rotate-90 peer-checked:opacity-0"
+        />
+        <path 
+          d="M22 12H20" 
+          stroke="currentColor" 
+          strokeWidth="1.5" 
+          strokeLinecap="round" 
+          className="text-foreground transition-all duration-500 origin-center peer-checked:-rotate-90 peer-checked:opacity-0"
+        />
+        <path 
+          d="M19.7778 4.22217L17.5558 6.25424" 
+          stroke="currentColor" 
+          strokeWidth="1.5" 
+          strokeLinecap="round" 
+          className="text-foreground transition-all duration-500 origin-center peer-checked:rotate-45 peer-checked:opacity-0"
+        />
+        <path 
+          d="M4.22217 4.22217L6.44418 6.44418" 
+          stroke="currentColor" 
+          strokeWidth="1.5" 
+          strokeLinecap="round" 
+          className="text-foreground transition-all duration-500 origin-center peer-checked:-rotate-45 peer-checked:opacity-0"
+        />
+        <path 
+          d="M6.44434 17.5557L4.22211 19.7779" 
+          stroke="currentColor" 
+          strokeWidth="1.5" 
+          strokeLinecap="round" 
+          className="text-foreground transition-all duration-500 origin-center peer-checked:rotate-45 peer-checked:opacity-0"
+        />
+        <path 
+          d="M19.7778 19.7778L17.5558 17.5558" 
+          stroke="currentColor" 
+          strokeWidth="1.5" 
+          strokeLinecap="round" 
+          className="text-foreground transition-all duration-500 origin-center peer-checked:-rotate-45 peer-checked:opacity-0"
+        />
+      </svg>
     </label>
   )
 }
