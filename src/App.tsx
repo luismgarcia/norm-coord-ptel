@@ -354,14 +354,14 @@ function App() {
           </p>
         </div>
 
-        <div className="flex items-center justify-center gap-3 md:gap-6 flex-wrap">
+        <div className="flex items-center justify-center gap-2 md:gap-4 flex-wrap">
           <div 
-            className={`flex items-center gap-2 transition-all ${currentStep >= 1 ? 'opacity-100' : 'opacity-40'}`}
+            className={`flex flex-col items-center gap-2 transition-all ${currentStep >= 1 ? 'opacity-100' : 'opacity-40'}`}
             onClick={() => currentStep > 1 && handleReset()}
           >
-            <div className={`flex items-center gap-2 ${currentStep > 1 ? 'cursor-pointer hover:scale-105' : ''} transition-transform`}>
+            <div className={`flex flex-col items-center gap-2 ${currentStep > 1 ? 'cursor-pointer hover:scale-105' : ''} transition-transform`}>
               <NumberCircleOne 
-                size={36} 
+                size={48} 
                 weight={currentStep === 1 ? 'fill' : 'regular'}
                 className={currentStep === 1 ? 'text-primary' : 'text-muted-foreground'}
               />
@@ -371,11 +371,11 @@ function App() {
             </div>
           </div>
 
-          <Separator className="w-8 md:w-12" />
+          <Separator className="w-12 md:w-20 mb-6" />
 
-          <div className={`flex items-center gap-2 transition-all ${currentStep >= 2 ? 'opacity-100' : 'opacity-40'}`}>
+          <div className={`flex flex-col items-center gap-2 transition-all ${currentStep >= 2 ? 'opacity-100' : 'opacity-40'}`}>
             <NumberCircleTwo 
-              size={36} 
+              size={48} 
               weight={currentStep === 2 ? 'fill' : 'regular'}
               className={currentStep === 2 ? 'text-primary' : 'text-muted-foreground'}
             />
@@ -384,15 +384,15 @@ function App() {
             </span>
           </div>
 
-          <Separator className="w-8 md:w-12" />
+          <Separator className="w-12 md:w-20 mb-6" />
 
           <div 
-            className={`flex items-center gap-2 transition-all ${currentStep >= 3 ? 'opacity-100' : 'opacity-40'}`}
+            className={`flex flex-col items-center gap-2 transition-all ${currentStep >= 3 ? 'opacity-100' : 'opacity-40'}`}
             onClick={() => currentStep === 2 && selectedFile && setCurrentStep(3)}
           >
-            <div className={`flex items-center gap-2 ${currentStep === 2 && selectedFile ? 'cursor-pointer hover:scale-105' : ''} transition-transform`}>
+            <div className={`flex flex-col items-center gap-2 ${currentStep === 2 && selectedFile ? 'cursor-pointer hover:scale-105' : ''} transition-transform`}>
               <NumberCircleThree 
-                size={36} 
+                size={48} 
                 weight={currentStep === 3 ? 'fill' : 'regular'}
                 className={currentStep === 3 ? 'text-primary' : 'text-muted-foreground'}
               />
