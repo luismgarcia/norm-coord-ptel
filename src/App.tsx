@@ -354,7 +354,7 @@ function App() {
             Conversor de coordenadas UTM30
           </h1>
           <p className="text-muted-foreground text-sm md:text-base">
-            Conversor automático en 3 pasos sencillos
+            Conversor / Normalizador automático en 3 pasos
           </p>
         </div>
 
