@@ -7,5 +7,8 @@ export function useTheme() {
     root.classList.add('dark')
   }, [])
 
-  return { theme: 'dark' as const }
+  return { 
+    theme: 'dark' as const,
+    toggleTheme: () => {}
+  }
 }

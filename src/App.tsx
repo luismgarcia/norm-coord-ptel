@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Alert, AlertDescription } from '@/components/ui/alert'
@@ -67,10 +67,6 @@ function App() {
   })
   const [isDragging, setIsDragging] = useState(false)
   const [outputFormat, setOutputFormat] = useState<'csv' | 'xlsx' | 'geojson' | 'kml'>('csv')
-  
-  useEffect(() => {
-    document.documentElement.classList.add('dark')
-  }, [])
   
   const selectedFile = processedFiles.find(f => f.id === selectedFileId)
 
