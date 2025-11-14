@@ -37,6 +37,10 @@ import {
   type DetectionResult,
   type CoordinateData 
 } from '@/lib/coordinateUtils'
+import { procesarArchivoConValidacion, type FilaProcesada } from '@/lib/coordinateProcessing'
+import { sistemaAvisos, type Aviso } from '@/lib/coordinateWarnings'
+import { PanelAvisos } from '@/components/PanelAvisos'
+import { TablaResultados } from '@/components/TablaResultados'
 import { toast } from 'sonner'
 import JSZip from 'jszip'
 
@@ -54,6 +58,9 @@ interface ProcessedFile {
   detection: DetectionResult
   convertedData: CoordinateData[]
   timestamp: number
+  // New fields for validation system
+  processedData?: FilaProcesada[]
+  avisos?: Aviso[]
 }
 
 function App() {
@@ -88,9 +95,21 @@ function App() {
           throw new Error('No se pudieron detectar columnas de coordenadas. Asegúrese de que su archivo contiene datos de coordenadas.')
         }
 
-        setProcessing({ stage: 'converting', progress: 70, message: 'Convirtiendo a UTM30...' })
+        setProcessing({ stage: 'converting', progress: 70, message: 'Validando y convirtiendo a UTM30...' })
 
         setTimeout(() => {
+          // Use new validation system
+          const processedData = procesarArchivoConValidacion(
+            parsed.data,
+            parsed.filename,
+            detected.xColumn,
+            detected.yColumn
+          )
+          
+          // Get warnings
+          const avisos = sistemaAvisos.obtenerAvisos()
+          
+          // Convert to old format for compatibility
           const converted = convertToUTM30(
             parsed.data,
             detected.system.code,
@@ -98,15 +117,17 @@ function App() {
             detected.yColumn
           )
 
-          const validCount = converted.filter(c => c.isValid).length
-          const invalidCount = converted.length - validCount
+          const validCount = processedData.filter(p => p.VALIDA === 'SI').length
+          const invalidCount = processedData.length - validCount
 
           const newFile: ProcessedFile = {
             id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
             parsedFile: parsed,
             detection: detected,
             convertedData: converted,
-            timestamp: Date.now()
+            timestamp: Date.now(),
+            processedData: processedData,
+            avisos: avisos
           }
 
           setProcessedFiles(prev => [...prev, newFile])
@@ -116,11 +137,11 @@ function App() {
           setProcessing({ 
             stage: 'complete', 
             progress: 100, 
-            message: `¡Conversión completada! ${validCount} coordenadas convertidas${invalidCount > 0 ? `, ${invalidCount} fallidas` : ''}` 
+            message: `¡Conversión completada! ${validCount} coordenadas válidas${invalidCount > 0 ? `, ${invalidCount} con problemas` : ''}${avisos.length > 0 ? ` - ${avisos.length} avisos` : ''}` 
           })
 
           toast.success('Conversión completada', {
-            description: `${parsed.filename}: ${validCount} coordenadas a UTM30`
+            description: `${parsed.filename}: ${validCount} coordenadas válidas`
           })
         }, 500)
       }, 500)
@@ -337,6 +358,72 @@ function App() {
     setSelectedFileId(null)
     setProcessing({ stage: 'idle', progress: 0, message: '' })
     setCurrentStep(1)
+  }
+
+  const handleDownloadWarnings = () => {
+    if (!selectedFile || !selectedFile.avisos || selectedFile.avisos.length === 0) {
+      toast.error('No hay avisos para descargar')
+      return
+    }
+
+    // Recreate the avisos in the system to use the report functions
+    const tempAvisos = [...selectedFile.avisos]
+    let reportContent = `REPORTE DE AVISOS - ${selectedFile.parsedFile.filename}\n`
+    reportContent += `Generado: ${new Date().toLocaleString()}\n`
+    reportContent += `${'='.repeat(60)}\n\n`
+    reportContent += `RESUMEN:\n`
+    reportContent += `- Total de avisos: ${tempAvisos.length}\n`
+    reportContent += `- Errores: ${tempAvisos.filter(a => a.tipo === 'ERROR').length}\n`
+    reportContent += `- Advertencias: ${tempAvisos.filter(a => a.tipo === 'ADVERTENCIA').length}\n`
+    reportContent += `- Información: ${tempAvisos.filter(a => a.tipo === 'INFO').length}\n\n`
+    
+    reportContent += `DETALLES:\n`
+    reportContent += `${'='.repeat(60)}\n\n`
+    
+    tempAvisos.forEach((aviso, i) => {
+      reportContent += `[${i + 1}] ${aviso.tipo} - Fila ${aviso.fila} - Campo ${aviso.campo}\n`
+      reportContent += `    ${aviso.mensaje}\n`
+      reportContent += `    Original: ${aviso.detalles.valorOriginal}\n`
+      if (aviso.detalles.valorProcesado) {
+        reportContent += `    Procesado: ${aviso.detalles.valorProcesado}\n`
+      }
+      reportContent += `    Causa: ${aviso.detalles.causa}\n`
+      if (aviso.detalles.errorEstimado) {
+        reportContent += `    Error estimado: ${aviso.detalles.errorEstimado}\n`
+      }
+      if (aviso.detalles.scoreTotal !== undefined) {
+        reportContent += `    Score: ${aviso.detalles.scoreTotal}/100\n`
+      }
+      if (aviso.detalles.problemas && aviso.detalles.problemas.length > 0) {
+        reportContent += `    Problemas:\n`
+        aviso.detalles.problemas.forEach(p => {
+          reportContent += `      - ${p}\n`
+        })
+      }
+      reportContent += `\n`
+    })
+
+    const blob = new Blob([reportContent], { type: 'text/plain;charset=utf-8;' })
+    const link = document.createElement('a')
+    const url = URL.createObjectURL(blob)
+    
+    const parts = selectedFile.parsedFile.filename.split('.')
+    parts.pop()
+    const nameWithoutExt = parts.join('.')
+    
+    link.setAttribute('href', url)
+    link.setAttribute('download', `${nameWithoutExt}_avisos.txt`)
+    link.style.visibility = 'hidden'
+    
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    
+    URL.revokeObjectURL(url)
+
+    toast.success('Reporte de avisos descargado', {
+      description: `${selectedFile.avisos.length} avisos guardados`
+    })
   }
 
   const validCoords = selectedFile ? selectedFile.convertedData.filter(c => c.isValid) : []
@@ -720,12 +807,32 @@ function App() {
 
                   <Separator />
 
-                  <Tabs defaultValue="stats" className="w-full">
-                    <TabsList className="grid w-full grid-cols-3">
+                  {/* Panel de Avisos */}
+                  {selectedFile.avisos && selectedFile.avisos.length > 0 && (
+                    <>
+                      <PanelAvisos avisos={selectedFile.avisos} />
+                      <Separator />
+                    </>
+                  )}
+
+                  <Tabs defaultValue="validation" className="w-full">
+                    <TabsList className="grid w-full grid-cols-4">
+                      <TabsTrigger value="validation">Validación</TabsTrigger>
                       <TabsTrigger value="stats">Resumen</TabsTrigger>
                       <TabsTrigger value="original">Originales</TabsTrigger>
                       <TabsTrigger value="converted">Convertidas</TabsTrigger>
                     </TabsList>
+
+                    <TabsContent value="validation" className="space-y-4">
+                      {selectedFile.processedData && selectedFile.processedData.length > 0 ? (
+                        <TablaResultados resultados={selectedFile.processedData} maxFilas={15} />
+                      ) : (
+                        <div className="text-center py-8 text-muted-foreground">
+                          <p>No hay datos de validación disponibles</p>
+                          <p className="text-sm mt-2">El archivo fue procesado con el sistema antiguo</p>
+                        </div>
+                      )}
+                    </TabsContent>
 
                     <TabsContent value="stats" className="space-y-4">
                       <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
@@ -973,6 +1080,18 @@ function App() {
                       >
                         <Package size={22} className="mr-2" />
                         Descargar todos ({processedFiles.length})
+                      </Button>
+                    )}
+                    
+                    {selectedFile.avisos && selectedFile.avisos.length > 0 && (
+                      <Button 
+                        onClick={handleDownloadWarnings} 
+                        variant="outline"
+                        size="lg"
+                        className="text-lg px-10 w-full sm:w-auto"
+                      >
+                        <Warning size={22} className="mr-2" />
+                        Reporte de avisos
                       </Button>
                     )}
                   </div>
