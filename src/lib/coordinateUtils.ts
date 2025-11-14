@@ -1,4 +1,5 @@
 import proj4 from 'proj4'
+import { limpiarCoordenada } from './coordinateCleaning'
 
 proj4.defs('EPSG:25830', '+proj=utm +zone=30 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs +type=crs')
 proj4.defs('EPSG:4326', '+proj=longlat +datum=WGS84 +no_defs +type=crs')
@@ -68,6 +69,16 @@ export function normalizeCoordinateValue(value: any): number | null {
     return null
   }
 
+  // Try advanced cleaning first (handles 9 special formats)
+  const resultadoLimpieza = limpiarCoordenada(value)
+  if (resultadoLimpieza !== null) {
+    if (typeof resultadoLimpieza === 'object' && 'valor' in resultadoLimpieza) {
+      return resultadoLimpieza.valor
+    }
+    return resultadoLimpieza
+  }
+
+  // Fallback to original normalization for DMS/DM formats
   let strValue = String(value).trim()
 
   strValue = strValue.replace(/[^\d.,\-+eE°′″'"\s]/g, '')
