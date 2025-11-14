@@ -892,28 +892,16 @@ function App() {
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="csv" className="text-lg">
-                            <div className="flex items-center gap-2">
-                              <FileCsv size={20} />
-                              CSV
-                            </div>
+                            CSV
                           </SelectItem>
                           <SelectItem value="xlsx" className="text-lg">
-                            <div className="flex items-center gap-2">
-                              <FileXls size={20} />
-                              Excel (XLSX)
-                            </div>
+                            Excel (XLSX)
                           </SelectItem>
                           <SelectItem value="geojson" className="text-lg">
-                            <div className="flex items-center gap-2">
-                              <MapPin size={20} />
-                              GeoJSON
-                            </div>
+                            GeoJSON
                           </SelectItem>
                           <SelectItem value="kml" className="text-lg">
-                            <div className="flex items-center gap-2">
-                              <Globe size={20} />
-                              KML
-                            </div>
+                            KML
                           </SelectItem>
                         </SelectContent>
                       </Select>
