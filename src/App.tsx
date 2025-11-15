@@ -471,7 +471,7 @@ function App() {
                       <input
                         type="file"
                         id="file-upload"
-                        accept=".csv,.xlsx,.xls,.xlsb,.xlsm,.ods,.fods,.doc,.docx,.odt,.rtf,.txt"
+                        accept=".csv,.xlsx,.xls,.xlsb,.xlsm,.ods,.fods,.txt"
                         onChange={handleFileInput}
                         multiple
                         className="hidden"
@@ -491,13 +491,9 @@ function App() {
                         <FileCsv size={18} className="text-primary" />
                         Formatos compatibles
                       </h4>
-                      <div className="flex flex-wrap gap-2">
-                        <Badge variant="secondary">CSV</Badge>
-                        <Badge variant="secondary">Excel</Badge>
-                        <Badge variant="secondary">Word</Badge>
-                        <Badge variant="secondary">ODT</Badge>
-                        <Badge variant="secondary">TXT</Badge>
-                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        CSV, Excel (XLSX/XLS), OpenDocument (ODS), TXT
+                      </p>
                     </div>
 
                     <div className="space-y-2">
@@ -838,7 +834,7 @@ function App() {
                   <input
                     type="file"
                     id="file-upload-more"
-                    accept=".csv,.xlsx,.xls,.xlsb,.xlsm,.ods,.fods,.doc,.docx,.odt,.rtf,.txt"
+                    accept=".csv,.xlsx,.xls,.xlsb,.xlsm,.ods,.fods,.txt"
                     onChange={handleFileInput}
                     multiple
                     className="hidden"
@@ -967,7 +963,7 @@ function App() {
                     <input
                       type="file"
                       id="file-upload-another"
-                      accept=".csv,.xlsx,.xls,.xlsb,.xlsm,.ods,.fods,.doc,.docx,.odt,.rtf,.txt"
+                      accept=".csv,.xlsx,.xls,.xlsb,.xlsm,.ods,.fods,.txt"
                       onChange={handleFileInput}
                       multiple
                       className="hidden"
