@@ -34,9 +34,11 @@ import {
   calculateBounds,
   formatCoordinate,
   getCoordinateSystems,
+  NIVELES_CONFIANZA,
   type DetectionResult,
   type CoordinateData 
 } from '@/lib/coordinateUtils'
+import { PanelAvisos } from '@/components/PanelAvisos'
 import { toast } from 'sonner'
 import JSZip from 'jszip'
 
@@ -345,6 +347,14 @@ function App() {
   const convertedBounds = validCoords.length > 0 
     ? calculateBounds(validCoords.map(c => c.converted)) 
     : null
+
+  // Contadores por nivel de confianza
+  const coordsByLevel = selectedFile ? {
+    alta: selectedFile.convertedData.filter(c => c.quality?.level === 'ALTA').length,
+    media: selectedFile.convertedData.filter(c => c.quality?.level === 'MEDIA').length,
+    baja: selectedFile.convertedData.filter(c => c.quality?.level === 'BAJA').length,
+    muyBaja: selectedFile.convertedData.filter(c => c.quality?.level === 'MUY_BAJA').length
+  } : { alta: 0, media: 0, baja: 0, muyBaja: 0 }
 
   return (
     <div className="min-h-screen bg-background p-3 md:p-6">
@@ -720,6 +730,14 @@ function App() {
 
                   <Separator />
 
+                  {/* Panel de avisos */}
+                  <PanelAvisos 
+                    coordenadas={selectedFile.convertedData}
+                    nombreArchivo={selectedFile.parsedFile.filename}
+                  />
+
+                  <Separator />
+
                   <Tabs defaultValue="stats" className="w-full">
                     <TabsList className="grid w-full grid-cols-3">
                       <TabsTrigger value="stats">Resumen</TabsTrigger>
@@ -743,6 +761,29 @@ function App() {
                           <ArrowsClockwise size={32} className="text-blue-600 mx-auto mb-2" weight="duotone" />
                           <p className="text-3xl font-bold text-blue-600">{selectedFile.detection.normalizedCount}</p>
                           <p className="text-sm text-muted-foreground mt-1">Normalizadas</p>
+                        </div>
+                      </div>
+
+                      {/* Niveles de confianza */}
+                      <div className="space-y-2">
+                        <h4 className="font-semibold text-sm">Niveles de confianza</h4>
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                          <div className="text-center p-4 bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800 rounded-lg">
+                            <p className="text-2xl font-bold text-green-600">{coordsByLevel.alta}</p>
+                            <p className="text-xs text-muted-foreground mt-1">Alta (95-100)</p>
+                          </div>
+                          <div className="text-center p-4 bg-yellow-50 dark:bg-yellow-950/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
+                            <p className="text-2xl font-bold text-yellow-600">{coordsByLevel.media}</p>
+                            <p className="text-xs text-muted-foreground mt-1">Media (70-94)</p>
+                          </div>
+                          <div className="text-center p-4 bg-orange-50 dark:bg-orange-950/20 border border-orange-200 dark:border-orange-800 rounded-lg">
+                            <p className="text-2xl font-bold text-orange-600">{coordsByLevel.baja}</p>
+                            <p className="text-xs text-muted-foreground mt-1">Baja (50-69)</p>
+                          </div>
+                          <div className="text-center p-4 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800 rounded-lg">
+                            <p className="text-2xl font-bold text-red-600">{coordsByLevel.muyBaja}</p>
+                            <p className="text-xs text-muted-foreground mt-1">Muy baja (0-49)</p>
+                          </div>
                         </div>
                       </div>
                     </TabsContent>
@@ -798,20 +839,69 @@ function App() {
                                 <th className="px-4 py-2 text-left font-medium">Fila</th>
                                 <th className="px-4 py-2 text-left font-medium">X_UTM30 (m)</th>
                                 <th className="px-4 py-2 text-left font-medium">Y_UTM30 (m)</th>
-                                <th className="px-4 py-2 text-left font-medium">Estado</th>
+                                <th className="px-4 py-2 text-left font-medium">Score</th>
+                                <th className="px-4 py-2 text-left font-medium">Confianza</th>
                               </tr>
                             </thead>
                             <tbody>
-                              {validCoords.slice(0, 10).map((coord, idx) => (
-                                <tr key={idx} className="border-t hover:bg-muted/30">
-                                  <td className="px-4 py-2">{coord.rowIndex + 1}</td>
-                                  <td className="px-4 py-2 font-mono text-xs">{formatCoordinate(coord.converted.x, 2)}</td>
-                                  <td className="px-4 py-2 font-mono text-xs">{formatCoordinate(coord.converted.y, 2)}</td>
-                                  <td className="px-4 py-2">
-                                    <Badge variant="outline" className="text-xs">Convertida</Badge>
-                                  </td>
-                                </tr>
-                              ))}
+                              {validCoords.slice(0, 10).map((coord, idx) => {
+                                const scoreColor = coord.quality 
+                                  ? NIVELES_CONFIANZA[coord.quality.level].color 
+                                  : '#6B7280'
+                                const levelBg = coord.quality?.level === 'ALTA' 
+                                  ? 'bg-green-50 dark:bg-green-950/20'
+                                  : coord.quality?.level === 'MEDIA'
+                                  ? 'bg-yellow-50 dark:bg-yellow-950/20'
+                                  : coord.quality?.level === 'BAJA'
+                                  ? 'bg-orange-50 dark:bg-orange-950/20'
+                                  : coord.quality?.level === 'MUY_BAJA'
+                                  ? 'bg-red-50 dark:bg-red-950/20'
+                                  : ''
+                                
+                                return (
+                                  <tr key={idx} className={`border-t hover:bg-muted/30 ${levelBg}`}>
+                                    <td className="px-4 py-2">{coord.rowIndex + 1}</td>
+                                    <td className="px-4 py-2 font-mono text-xs">{formatCoordinate(coord.converted.x, 2)}</td>
+                                    <td className="px-4 py-2 font-mono text-xs">{formatCoordinate(coord.converted.y, 2)}</td>
+                                    <td className="px-4 py-2">
+                                      {coord.quality ? (
+                                        <div className="flex items-center gap-2">
+                                          <span className="font-semibold" style={{ color: scoreColor }}>
+                                            {coord.quality.totalScore}
+                                          </span>
+                                          <div className="w-16 h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                                            <div 
+                                              className="h-full transition-all" 
+                                              style={{ 
+                                                width: `${coord.quality.totalScore}%`, 
+                                                backgroundColor: scoreColor 
+                                              }}
+                                            />
+                                          </div>
+                                        </div>
+                                      ) : (
+                                        <span className="text-muted-foreground text-xs">N/A</span>
+                                      )}
+                                    </td>
+                                    <td className="px-4 py-2">
+                                      {coord.quality ? (
+                                        <Badge 
+                                          variant="outline" 
+                                          className="text-xs"
+                                          style={{ 
+                                            borderColor: scoreColor,
+                                            color: scoreColor
+                                          }}
+                                        >
+                                          {coord.quality.level}
+                                        </Badge>
+                                      ) : (
+                                        <Badge variant="outline" className="text-xs">Convertida</Badge>
+                                      )}
+                                    </td>
+                                  </tr>
+                                )
+                              })}
                             </tbody>
                           </table>
                         </div>
