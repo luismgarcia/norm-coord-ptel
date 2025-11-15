@@ -16,11 +16,35 @@ proj4.defs('EPSG:2154', '+proj=lcc +lat_0=46.5 +lon_0=3 +lat_1=49 +lat_2=44 +x_0
 proj4.defs('EPSG:27700', '+proj=tmerc +lat_0=49 +lon_0=-2 +k=0.9996012717 +x_0=400000 +y_0=-100000 +ellps=airy +towgs84=446.448,-125.157,542.06,0.15,0.247,0.842,-20.489 +units=m +no_defs +type=crs')
 proj4.defs('EPSG:2062', '+proj=tmerc +lat_0=0 +lon_0=-73.5 +k=0.9999 +x_0=0 +y_0=0 +ellps=aust_SA +units=m +no_defs +type=crs')
 
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// TIPOS E INTERFACES
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
 export interface CoordinateSystem {
   name: string
   code: string
   description: string
   zone?: string
+}
+
+export interface NormalizationResult {
+  value: number
+  warning?: string
+  original: any
+}
+
+export interface ValidationScore {
+  score: number
+  problems: string[]
+}
+
+export interface CoordinateQuality {
+  formatScore: number
+  rangeScore: number
+  coherenceScore: number
+  totalScore: number
+  level: 'ALTA' | 'MEDIA' | 'BAJA' | 'MUY_BAJA'
+  warnings: string[]
 }
 
 export interface CoordinateData {
@@ -30,6 +54,7 @@ export interface CoordinateData {
   isValid: boolean
   error?: string
   normalizedFrom?: string
+  quality?: CoordinateQuality
 }
 
 export interface DetectionResult {
@@ -39,6 +64,24 @@ export interface DetectionResult {
   yColumn: string
   sampleCoords: Array<{ x: number; y: number }>
   normalizedCount: number
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// CONSTANTES DE VALIDACIÓN
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+export const RANGOS_UTM30 = {
+  X_MIN: 166000,
+  X_MAX: 833000,
+  Y_MIN: 4000000,
+  Y_MAX: 4900000
+}
+
+export const NIVELES_CONFIANZA = {
+  ALTA: { min: 95, color: '#10B981', nombre: 'Alta confianza' },
+  MEDIA: { min: 70, color: '#F59E0B', nombre: 'Media confianza' },
+  BAJA: { min: 50, color: '#EF4444', nombre: 'Baja confianza' },
+  MUY_BAJA: { min: 0, color: '#991B1B', nombre: 'Muy baja confianza' }
 }
 
 const COORDINATE_SYSTEMS: CoordinateSystem[] = [
@@ -59,68 +102,140 @@ const COORDINATE_SYSTEMS: CoordinateSystem[] = [
   { name: 'Colombia Bogota', code: 'EPSG:2062', description: 'Transversal Mercator Colombia' }
 ]
 
-export function normalizeCoordinateValue(value: any): number | null {
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// NORMALIZACIÓN AVANZADA DE COORDENADAS
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+export function normalizeCoordinateValue(value: any): number | NormalizationResult | null {
   if (typeof value === 'number' && isFinite(value)) {
     return value
   }
 
-  if (value === null || value === undefined || value === '') {
+  if (value === null || value === undefined || value === '' || value === 'nan') {
     return null
   }
 
   let strValue = String(value).trim()
-
-  strValue = strValue.replace(/[^\d.,\-+eE°′″'"\s]/g, '')
+  const originalValue = strValue
   
+  // PASO 0: Normalizar espacios múltiples
   strValue = strValue.replace(/\s+/g, ' ')
 
-  const dmsPattern = /^([+-]?\d+)[°\s]+(\d+)[′'\s]+(\d+(?:\.\d+)?)[″"]?\s*([NSEW]?)$/i
-  const dmsMatch = strValue.match(dmsPattern)
-  if (dmsMatch) {
-    const degrees = parseFloat(dmsMatch[1])
-    const minutes = parseFloat(dmsMatch[2])
-    const seconds = parseFloat(dmsMatch[3])
-    const direction = dmsMatch[4].toUpperCase()
+  // CASO 1: Comillas invertidas dobles ´´
+  if (strValue.includes('´´')) {
+    const digitos = strValue.match(/\d+/g) || []
     
-    let decimal = degrees + minutes / 60 + seconds / 3600
-    
-    if (direction === 'S' || direction === 'W') {
-      decimal = -decimal
-    }
-    
-    return decimal
-  }
-
-  const dmPattern = /^([+-]?\d+)[°\s]+(\d+(?:\.\d+)?)[′']?\s*([NSEW]?)$/i
-  const dmMatch = strValue.match(dmPattern)
-  if (dmMatch) {
-    const degrees = parseFloat(dmMatch[1])
-    const minutes = parseFloat(dmMatch[2])
-    const direction = dmMatch[3].toUpperCase()
-    
-    let decimal = degrees + minutes / 60
-    
-    if (direction === 'S' || direction === 'W') {
-      decimal = -decimal
-    }
-    
-    return decimal
-  }
-
-  if (strValue.includes(',') && !strValue.includes('.')) {
-    strValue = strValue.replace(',', '.')
-  } else if (strValue.includes(',') && strValue.includes('.')) {
-    const lastComma = strValue.lastIndexOf(',')
-    const lastDot = strValue.lastIndexOf('.')
-    
-    if (lastComma > lastDot) {
-      strValue = strValue.replace(/\./g, '').replace(',', '.')
+    if (digitos.length >= 2) {
+      const decimales = digitos[digitos.length - 1]
+      const parteEntera = digitos.slice(0, -1).join('')
+      
+      // Detectar decimales mal posicionados
+      if (parteEntera.length < decimales.length && decimales.length > 2) {
+        const decsReales = decimales.slice(0, 2)
+        const restoEntero = decimales.slice(2)
+        const coordStr = `${parteEntera}${restoEntero}.${decsReales}`
+        
+        return {
+          value: parseFloat(coordStr),
+          warning: 'DECIMALES_MAL_POSICIONADOS',
+          original: originalValue
+        }
+      } else {
+        strValue = `${parteEntera}.${decimales}`
+      }
+    } else if (digitos.length === 1) {
+      strValue = digitos[0]
     } else {
-      strValue = strValue.replace(/,/g, '')
+      return null
     }
   }
+  // CASO 2: Acento agudo U+0301 ́ o grave ̀
+  else if (strValue.includes('\u0301') || strValue.includes('\u0300')) {
+    strValue = strValue.replace(/\s/g, '')
+    const digitos = strValue.match(/\d+/g) || []
+    
+    if (digitos.length >= 2) {
+      const decimales = digitos[digitos.length - 1]
+      const parteEntera = digitos.slice(0, -1).join('')
+      
+      if (decimales.length <= 2) {
+        strValue = `${parteEntera}.${decimales}`
+      } else {
+        const resto = decimales.slice(0, -2)
+        const decs = decimales.slice(-2)
+        strValue = `${parteEntera}${resto}.${decs}`
+      }
+    } else {
+      strValue = digitos.join('')
+    }
+  }
+  // CASO 3: Formato DMS (grados, minutos, segundos)
+  else {
+    const dmsPattern = /^([+-]?\d+)[°\s]+(\d+)[′'\s]+(\d+(?:\.\d+)?)[″"]?\s*([NSEW]?)$/i
+    const dmsMatch = strValue.match(dmsPattern)
+    if (dmsMatch) {
+      const degrees = parseFloat(dmsMatch[1])
+      const minutes = parseFloat(dmsMatch[2])
+      const seconds = parseFloat(dmsMatch[3])
+      const direction = dmsMatch[4].toUpperCase()
+      
+      let decimal = degrees + minutes / 60 + seconds / 3600
+      
+      if (direction === 'S' || direction === 'W') {
+        decimal = -decimal
+      }
+      
+      return decimal
+    }
 
-  strValue = strValue.replace(/\s/g, '')
+    // CASO 4: Formato DM (grados, minutos decimales)
+    const dmPattern = /^([+-]?\d+)[°\s]+(\d+(?:\.\d+)?)[′']?\s*([NSEW]?)$/i
+    const dmMatch = strValue.match(dmPattern)
+    if (dmMatch) {
+      const degrees = parseFloat(dmMatch[1])
+      const minutes = parseFloat(dmMatch[2])
+      const direction = dmMatch[3].toUpperCase()
+      
+      let decimal = degrees + minutes / 60
+      
+      if (direction === 'S' || direction === 'W') {
+        decimal = -decimal
+      }
+      
+      return decimal
+    }
+
+    // CASO 5: Eliminar caracteres no numéricos (excepto separadores)
+    strValue = strValue.replace(/[^\d.,\-+eE\s]/g, '')
+    
+    // CASO 6: Procesar espacios como separadores de miles
+    // Ejemplo: "506 527" → "506527" o "4 076 367" → "4076367"
+    const espaciosPattern = /^[\d\s]+$/
+    if (espaciosPattern.test(strValue) && !strValue.includes('.') && !strValue.includes(',')) {
+      strValue = strValue.replace(/\s/g, '')
+    }
+    
+    // CASO 7: Separadores decimales mixtos
+    const numPuntos = (strValue.match(/\./g) || []).length
+    const numComas = (strValue.match(/,/g) || []).length
+    
+    if (numComas > 0 && numPuntos > 0) {
+      // Formato europeo: puntos como miles, coma como decimal
+      // Ejemplo: "4.076.556,75" → "4076556.75"
+      strValue = strValue.replace(/\./g, '').replace(',', '.')
+    } else if (numComas === 1 && numPuntos === 0) {
+      // Solo coma: es decimal
+      // Ejemplo: "506527,45" → "506527.45"
+      strValue = strValue.replace(',', '.')
+    } else if (numPuntos > 1) {
+      // Múltiples puntos: son separadores de miles
+      // Ejemplo: "4.076.556" → "4076556"
+      strValue = strValue.replace(/\./g, '')
+    }
+    
+    // Eliminar espacios restantes
+    strValue = strValue.replace(/\s/g, '')
+  }
 
   const parsed = parseFloat(strValue)
   
@@ -130,6 +245,178 @@ export function normalizeCoordinateValue(value: any): number | null {
 
   return parsed
 }
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// SISTEMA DE VALIDACIÓN MULTI-NIVEL
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+// Nivel 1: Validación de Formato
+export function validarFormato(coordOriginal: any): ValidationScore {
+  if (!coordOriginal) return { score: 0, problems: ['Sin valor'] }
+  
+  const coordStr = String(coordOriginal)
+  let score = 100
+  const problems: string[] = []
+  
+  // Verificar presencia de dígitos
+  const digitos = (coordStr.match(/\d/g) || []).length
+  if (digitos === 0) {
+    return { score: 0, problems: ['No contiene dígitos'] }
+  }
+  
+  // Validar longitud razonable
+  if (coordStr.length < 3 || coordStr.length > 30) {
+    score -= 40
+    problems.push(`Longitud inusual: ${coordStr.length} caracteres`)
+  }
+  
+  // Validar proporción de dígitos
+  const proporcion = digitos / coordStr.length
+  if (proporcion < 0.5) {
+    score -= 30
+    problems.push(`Pocos dígitos: ${(proporcion * 100).toFixed(0)}%`)
+  }
+  
+  // Detectar caracteres raros
+  const caracteresPermitidos = /[\d\s.,´́̀°′″'"]/g
+  const raros = coordStr.split('').filter(c => !caracteresPermitidos.test(c))
+  if (raros.length > 5) {
+    score -= 20
+    problems.push(`Muchos caracteres raros: ${raros.length}`)
+  }
+  
+  return { score: Math.max(0, score), problems }
+}
+
+// Nivel 2: Validación de Rango
+export function validarRango(coord: number, tipo: 'X' | 'Y'): ValidationScore {
+  if (!coord || isNaN(coord)) {
+    return { score: 0, problems: ['Valor no numérico'] }
+  }
+  
+  let score = 100
+  const problems: string[] = []
+  
+  const min = tipo === 'X' ? RANGOS_UTM30.X_MIN : RANGOS_UTM30.Y_MIN
+  const max = tipo === 'X' ? RANGOS_UTM30.X_MAX : RANGOS_UTM30.Y_MAX
+  
+  // Validar rango UTM30
+  if (coord < min || coord > max) {
+    score = 0
+    problems.push(`Fuera de rango UTM30: ${coord.toLocaleString()} (esperado ${min.toLocaleString()}-${max.toLocaleString()})`)
+  }
+  
+  // Validar longitud de dígitos
+  const digitosStr = String(Math.floor(coord)).length
+  const esperado = tipo === 'X' ? [6, 7] : [7]
+  
+  if (!esperado.includes(digitosStr)) {
+    score -= 30
+    problems.push(`Longitud inusual: ${digitosStr} dígitos (esperado ${esperado.join(' o ')})`)
+  }
+  
+  return { score: Math.max(0, score), problems }
+}
+
+// Nivel 3: Validación de Coherencia
+export function validarCoherencia(x: number, y: number, vecinos: Array<{ x: number; y: number }> = []): ValidationScore {
+  let score = 100
+  const problems: string[] = []
+  
+  // Validar proporción Y/X (para UTM30 en España, Y/X suele estar entre 7.5-9.0)
+  if (x && y && x > 0 && y > 0) {
+    const proporcion = y / x
+    if (proporcion < 7.0 || proporcion > 10.0) {
+      score -= 20
+      problems.push(`Proporción Y/X inusual: ${proporcion.toFixed(2)} (esperado 7.5-9.0)`)
+    }
+  }
+  
+  // Validar contra vecinos (si hay suficientes)
+  if (vecinos.length >= 3) {
+    const vecinosValidos = vecinos.filter(v => v.x && v.y && isFinite(v.x) && isFinite(v.y))
+    
+    if (vecinosValidos.length >= 3) {
+      const mediaX = vecinosValidos.reduce((sum, v) => sum + v.x, 0) / vecinosValidos.length
+      const mediaY = vecinosValidos.reduce((sum, v) => sum + v.y, 0) / vecinosValidos.length
+      
+      const distX = Math.abs(x - mediaX)
+      const distY = Math.abs(y - mediaY)
+      
+      // Si está muy lejos de vecinos (>20km)
+      const distancia = Math.sqrt(distX * distX + distY * distY)
+      if (distancia > 20000) {
+        score -= 40
+        problems.push(`Muy alejada de vecinos: ${(distancia / 1000).toFixed(1)}km`)
+      }
+    }
+  }
+  
+  return { score: Math.max(0, score), problems }
+}
+
+// Scoring Combinado
+export function calcularScoreTotal(scoreFormato: number, scoreRango: number, scoreCoherencia: number): number {
+  // Pesos: Rango es más importante (40%), Formato 30%, Coherencia 30%
+  const total = (
+    scoreFormato * 0.3 +
+    scoreRango * 0.4 +
+    scoreCoherencia * 0.3
+  )
+  
+  return Math.round(total)
+}
+
+export function scoreANivel(score: number): 'ALTA' | 'MEDIA' | 'BAJA' | 'MUY_BAJA' {
+  if (score >= 95) return 'ALTA'
+  if (score >= 70) return 'MEDIA'
+  if (score >= 50) return 'BAJA'
+  return 'MUY_BAJA'
+}
+
+// Función para calcular calidad de coordenada completa
+export function calcularCalidadCoordenada(
+  valorOriginalX: any,
+  valorOriginalY: any,
+  xNormalizado: number,
+  yNormalizado: number,
+  vecinos: Array<{ x: number; y: number }> = []
+): CoordinateQuality {
+  const formatoX = validarFormato(valorOriginalX)
+  const formatoY = validarFormato(valorOriginalY)
+  const rangoX = validarRango(xNormalizado, 'X')
+  const rangoY = validarRango(yNormalizado, 'Y')
+  const coherencia = validarCoherencia(xNormalizado, yNormalizado, vecinos)
+  
+  // Usar el score mínimo entre X e Y para cada categoría
+  const formatoScore = Math.min(formatoX.score, formatoY.score)
+  const rangoScore = Math.min(rangoX.score, rangoY.score)
+  const coherenciaScore = coherencia.score
+  
+  const totalScore = calcularScoreTotal(formatoScore, rangoScore, coherenciaScore)
+  const level = scoreANivel(totalScore)
+  
+  const warnings = [
+    ...formatoX.problems,
+    ...formatoY.problems,
+    ...rangoX.problems,
+    ...rangoY.problems,
+    ...coherencia.problems
+  ]
+  
+  return {
+    formatScore: formatoScore,
+    rangeScore: rangoScore,
+    coherenceScore: coherenciaScore,
+    totalScore,
+    level,
+    warnings
+  }
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// FUNCIONES PRINCIPALES
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 export function detectCoordinateSystem(data: any[]): DetectionResult | null {
   if (!data || data.length === 0) return null
@@ -147,8 +434,11 @@ export function detectCoordinateSystem(data: any[]): DetectionResult | null {
       const rawX = row[bestPair.xCol]
       const rawY = row[bestPair.yCol]
       
-      const x = normalizeCoordinateValue(rawX)
-      const y = normalizeCoordinateValue(rawY)
+      const resultX = normalizeCoordinateValue(rawX)
+      const resultY = normalizeCoordinateValue(rawY)
+      
+      const x = typeof resultX === 'object' && resultX !== null ? resultX.value : resultX
+      const y = typeof resultY === 'object' && resultY !== null ? resultY.value : resultY
       
       if (x !== null && y !== null) {
         if (rawX !== x || rawY !== y) {
@@ -211,8 +501,11 @@ function calculatePairScore(xCol: string, yCol: string, data: any[]): number {
   let validCount = 0
 
   for (const row of samples) {
-    const x = normalizeCoordinateValue(row[xCol])
-    const y = normalizeCoordinateValue(row[yCol])
+    const resultX = normalizeCoordinateValue(row[xCol])
+    const resultY = normalizeCoordinateValue(row[yCol])
+    
+    const x = typeof resultX === 'object' && resultX !== null ? resultX.value : resultX
+    const y = typeof resultY === 'object' && resultY !== null ? resultY.value : resultY
     
     if (x !== null && y !== null) {
       validCount++
@@ -259,16 +552,48 @@ export function convertToUTM30(
   data: any[],
   sourceSystem: string,
   xColumn: string,
-  yColumn: string
+  yColumn: string,
+  enableQualityScoring: boolean = true
 ): CoordinateData[] {
   const results: CoordinateData[] = []
+  
+  // Primera pasada: normalizar y convertir todas las coordenadas
+  const normalizedCoords: Array<{ x: number; y: number; rawX: any; rawY: any }> = []
+  
+  data.forEach((row) => {
+    const rawX = row[xColumn]
+    const rawY = row[yColumn]
+    
+    const resultX = normalizeCoordinateValue(rawX)
+    const resultY = normalizeCoordinateValue(rawY)
+    
+    const x = typeof resultX === 'object' && resultX !== null ? resultX.value : resultX
+    const y = typeof resultY === 'object' && resultY !== null ? resultY.value : resultY
+    
+    if (x !== null && y !== null) {
+      normalizedCoords.push({ x, y, rawX, rawY })
+    }
+  })
 
+  // Segunda pasada: procesar con scoring de calidad
   data.forEach((row, index) => {
     const rawX = row[xColumn]
     const rawY = row[yColumn]
     
-    const x = normalizeCoordinateValue(rawX)
-    const y = normalizeCoordinateValue(rawY)
+    const resultX = normalizeCoordinateValue(rawX)
+    const resultY = normalizeCoordinateValue(rawY)
+    
+    let normalizationWarnings: string[] = []
+    
+    const x = typeof resultX === 'object' && resultX !== null ? resultX.value : resultX
+    const y = typeof resultY === 'object' && resultY !== null ? resultY.value : resultY
+    
+    if (typeof resultX === 'object' && resultX !== null && resultX.warning) {
+      normalizationWarnings.push(`X: ${resultX.warning}`)
+    }
+    if (typeof resultY === 'object' && resultY !== null && resultY.warning) {
+      normalizationWarnings.push(`Y: ${resultY.warning}`)
+    }
 
     if (x === null || y === null) {
       results.push({
@@ -296,6 +621,21 @@ export function convertToUTM30(
       }
 
       const isValidResult = validateUTM30Coordinate(converted[0], converted[1])
+      
+      // Calcular calidad si está habilitado
+      let quality: CoordinateQuality | undefined
+      if (enableQualityScoring) {
+        const vecinos = normalizedCoords
+          .filter((_, i) => i !== index)
+          .map(c => ({ x: c.x, y: c.y }))
+        
+        quality = calcularCalidadCoordenada(rawX, rawY, converted[0], converted[1], vecinos)
+        
+        // Añadir advertencias de normalización a la calidad
+        if (normalizationWarnings.length > 0) {
+          quality.warnings = [...quality.warnings, ...normalizationWarnings]
+        }
+      }
 
       results.push({
         original: { x, y },
@@ -303,7 +643,8 @@ export function convertToUTM30(
         rowIndex: index,
         isValid: isValidResult,
         error: isValidResult ? undefined : 'Coordenada fuera de rango válido UTM30',
-        normalizedFrom: (rawX !== x || rawY !== y) ? `X: "${rawX}" → ${x}, Y: "${rawY}" → ${y}` : undefined
+        normalizedFrom: (rawX !== x || rawY !== y) ? `X: "${rawX}" → ${x}, Y: "${rawY}" → ${y}` : undefined,
+        quality
       })
     } catch (error) {
       results.push({
@@ -321,7 +662,10 @@ export function convertToUTM30(
 }
 
 function validateUTM30Coordinate(x: number, y: number): boolean {
-  return x >= 150000 && x <= 900000 && y >= 3000000 && y <= 6000000
+  return x >= RANGOS_UTM30.X_MIN && 
+         x <= RANGOS_UTM30.X_MAX && 
+         y >= RANGOS_UTM30.Y_MIN && 
+         y <= RANGOS_UTM30.Y_MAX
 }
 
 export function validateCoordinate(x: number, y: number, system: string): boolean {
