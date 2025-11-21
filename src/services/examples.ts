@@ -1,260 +1,495 @@
 /**
- * Ejemplos de uso del sistema de geocodificación tipológica - Fase 1
+ * Ejemplos completos de uso del sistema de geocodificación tipológica PTEL
  * 
- * Este archivo demuestra el flujo completo:
- * 1. Clasificación tipológica de infraestructuras
- * 2. Geocodificación especializada por tipología
- * 3. Validación de resultados
+ * Demuestra:
+ * 1. Clasificación tipológica automática (12 categorías)
+ * 2. Geocodificación especializada por tipo (DERA, IAPH, ISE)
+ * 3. Pipeline completo: clasificar → geocodificar → validar
+ * 4. Batch processing para datasets completos
+ * 5. Validación de coordenadas existentes
  * 
  * @module services/examples
  */
 
-import { InfrastructureClassifier } from '../classification/InfrastructureClassifier';
-import { WFSHealthGeocoder } from '../geocoding/specialized/WFSHealthGeocoder';
-import { InfrastructureType } from '../../types/infrastructure';
+import { InfrastructureClassifier } from './classification/InfrastructureClassifier';
+import { WFSHealthGeocoder } from './geocoding/specialized/WFSHealthGeocoder';
+import { WFSEducationGeocoder } from './geocoding/specialized/WFSEducationGeocoder';
+import { WFSCulturalGeocoder } from './geocoding/specialized/WFSCulturalGeocoder';
+import { WFSPoliceGeocoder } from './geocoding/specialized/WFSPoliceGeocoder';
+import { InfrastructureType } from '../types/infrastructure';
+
+// ============================================================================
+// EJEMPLO 1: Clasificación Tipológica Básica
+// ============================================================================
 
 /**
- * Ejemplo 1: Clasificación tipológica básica
+ * Demuestra clasificación automática de infraestructuras PTEL
  */
 export async function exampleClassification() {
-  console.log('=== EJEMPLO 1: CLASIFICACIÓN TIPOLÓGICA ===\n');
+  console.log('═══════════════════════════════════════════════════════════');
+  console.log('EJEMPLO 1: Clasificación Tipológica');
+  console.log('═══════════════════════════════════════════════════════════\n');
 
   const classifier = new InfrastructureClassifier();
 
-  // Casos reales de documentos PTEL Granada/Almería
-  const testCases = [
+  // Infraestructuras de ejemplo de municipios andaluces reales
+  const testNames = [
     'Centro de Salud San Antón',
     'CEIP Miguel Hernández',
-    'Comisaría de Policía Nacional',
-    'Parque de Bomberos',
-    'Iglesia Parroquial de San Pedro',
+    'IES Padre Suárez',
+    'Comisaría Provincial de Granada',
+    'Parque de Bomberos Norte',
+    'Museo de la Alhambra',
+    'Biblioteca Municipal Francisco Ayala',
+    'Polideportivo Municipal Juan de la Cruz',
     'Ayuntamiento de Colomera',
-    'Polideportivo Municipal',
-    'Hospital Virgen de las Nieves',
-    'Consultorio Médico Local',
-    'Guardia Civil - Puesto de Dúrcal'
+    'Iglesia de Santa María la Mayor',
+    'Gasolinera BP - Camino de Ronda',
+    'Centro de Protección Civil'
   ];
 
-  testCases.forEach(name => {
+  console.log('Clasificando 12 infraestructuras de ejemplo:\n');
+
+  for (const name of testNames) {
     const result = classifier.classify(name);
     console.log(`📍 "${name}"`);
     console.log(`   → Tipo: ${result.type}`);
     console.log(`   → Confianza: ${result.confidence}`);
     console.log(`   → Keywords: ${result.keywords.join(', ')}\n`);
-  });
+  }
+
+  console.log('✅ Clasificación completada\n');
 }
 
+// ============================================================================
+// EJEMPLO 2: Geocodificación Sanitaria Especializada
+// ============================================================================
+
 /**
- * Ejemplo 2: Geocodificación especializada de centros sanitarios
+ * Demuestra geocodificación de centros sanitarios vía WFS DERA G12
  */
 export async function exampleHealthGeocoding() {
-  console.log('=== EJEMPLO 2: GEOCODIFICACIÓN SANITARIA ===\n');
+  console.log('═══════════════════════════════════════════════════════════');
+  console.log('EJEMPLO 2: Geocodificación Sanitaria (DERA G12)');
+  console.log('═══════════════════════════════════════════════════════════\n');
 
   const geocoder = new WFSHealthGeocoder();
 
-  // Casos reales de PTEL Granada
-  const healthFacilities = [
-    {
-      name: 'Centro de Salud San Antón',
-      municipality: 'Granada',
-      province: 'Granada'
-    },
-    {
-      name: 'Hospital Virgen de las Nieves',
-      municipality: 'Granada',
-      province: 'Granada'
-    },
-    {
-      name: 'Consultorio de Colomera',
-      municipality: 'Colomera',
-      province: 'Granada'
-    }
+  // Centros sanitarios reales de Granada
+  const healthCenters = [
+    { name: 'Centro de Salud Zaidín', municipality: 'Granada', province: 'Granada' },
+    { name: 'Hospital Virgen de las Nieves', municipality: 'Granada', province: 'Granada' },
+    { name: 'Consultorio La Zubia', municipality: 'La Zubia', province: 'Granada' }
   ];
 
-  for (const facility of healthFacilities) {
+  console.log('Geocodificando 3 centros sanitarios de Granada:\n');
+
+  for (const center of healthCenters) {
+    console.log(`🏥 Buscando: "${center.name}"...`);
+    
     try {
-      console.log(`🏥 Geocodificando: ${facility.name}`);
-      console.log(`   Municipio: ${facility.municipality}\n`);
-
-      const result = await geocoder.geocodeWithAutoLayer(facility);
-
+      const result = await geocoder.geocodeWithAutoLayer(center);
+      
       if (result) {
-        console.log(`   ✅ ÉXITO`);
-        console.log(`   📊 Confianza: ${result.confidence}%`);
-        console.log(`   📍 Coordenadas UTM30:`);
-        console.log(`      X: ${result.x.toFixed(2)}`);
-        console.log(`      Y: ${result.y.toFixed(2)}`);
-        console.log(`   🎯 Match: ${result.matchedName}`);
-        console.log(`   🔍 Fuzzy Score: ${(result.fuzzyScore * 100).toFixed(1)}%`);
-        console.log(`   📦 Fuente: ${result.source}`);
-        if (result.address) {
-          console.log(`   📮 Dirección: ${result.address}`);
-        }
+        console.log(`   ✅ ENCONTRADO`);
+        console.log(`   → Match: "${result.matchedName}"`);
+        console.log(`   → X: ${result.x.toFixed(2)} m`);
+        console.log(`   → Y: ${result.y.toFixed(2)} m`);
+        console.log(`   → Confianza: ${result.confidence}%`);
+        console.log(`   → Fuente: ${result.source}`);
+        console.log(`   → Fuzzy Score: ${(result.fuzzyScore * 100).toFixed(1)}%`);
       } else {
-        console.log(`   ❌ NO ENCONTRADO`);
-        console.log(`   → Intentar con geocodificación genérica`);
+        console.log(`   ❌ No encontrado en DERA G12`);
       }
-
-      console.log('\n' + '─'.repeat(60) + '\n');
-
     } catch (error) {
-      console.error(`   ❌ ERROR: ${error}`);
+      console.error(`   ⚠️ Error: ${error}`);
     }
+    
+    console.log('');
   }
+
+  console.log('✅ Geocodificación sanitaria completada\n');
 }
 
+// ============================================================================
+// EJEMPLO 3: Geocodificación Educativa Especializada
+// ============================================================================
+
 /**
- * Ejemplo 3: Pipeline completo (Clasificación → Geocodificación)
+ * Demuestra geocodificación de centros educativos vía WFS DERA G13
+ */
+export async function exampleEducationGeocoding() {
+  console.log('═══════════════════════════════════════════════════════════');
+  console.log('EJEMPLO 3: Geocodificación Educativa (DERA G13)');
+  console.log('═══════════════════════════════════════════════════════════\n');
+
+  const geocoder = new WFSEducationGeocoder();
+
+  // Centros educativos reales de Granada
+  const educationCenters = [
+    { name: 'CEIP Miguel Hernández', municipality: 'Granada', province: 'Granada' },
+    { name: 'IES Padre Suárez', municipality: 'Granada', province: 'Granada' },
+    { name: 'Escuela Infantil Los Cármenes', municipality: 'Granada', province: 'Granada' }
+  ];
+
+  console.log('Geocodificando 3 centros educativos de Granada:\n');
+
+  for (const center of educationCenters) {
+    console.log(`🏫 Buscando: "${center.name}"...`);
+    
+    try {
+      const result = await geocoder.geocodeWithAutoLayer(center);
+      
+      if (result) {
+        console.log(`   ✅ ENCONTRADO`);
+        console.log(`   → Match: "${result.matchedName}"`);
+        console.log(`   → X: ${result.x.toFixed(2)} m`);
+        console.log(`   → Y: ${result.y.toFixed(2)} m`);
+        console.log(`   → Confianza: ${result.confidence}%`);
+      } else {
+        console.log(`   ❌ No encontrado en DERA G13`);
+      }
+    } catch (error) {
+      console.error(`   ⚠️ Error: ${error}`);
+    }
+    
+    console.log('');
+  }
+
+  console.log('✅ Geocodificación educativa completada\n');
+}
+
+// ============================================================================
+// EJEMPLO 4: Geocodificación Cultural Especializada
+// ============================================================================
+
+/**
+ * Demuestra geocodificación de infraestructuras culturales vía WFS IAPH
+ */
+export async function exampleCulturalGeocoding() {
+  console.log('═══════════════════════════════════════════════════════════');
+  console.log('EJEMPLO 4: Geocodificación Cultural (IAPH)');
+  console.log('═══════════════════════════════════════════════════════════\n');
+
+  const geocoder = new WFSCulturalGeocoder();
+
+  // Infraestructuras culturales reales de Granada
+  const culturalSites = [
+    { name: 'Museo de la Alhambra', municipality: 'Granada', province: 'Granada' },
+    { name: 'Biblioteca Provincial', municipality: 'Granada', province: 'Granada' },
+    { name: 'Teatro Isabel la Católica', municipality: 'Granada', province: 'Granada' }
+  ];
+
+  console.log('Geocodificando 3 infraestructuras culturales de Granada:\n');
+
+  for (const site of culturalSites) {
+    console.log(`🏛️ Buscando: "${site.name}"...`);
+    
+    try {
+      const result = await geocoder.geocodeWithAutoLayer(site);
+      
+      if (result) {
+        console.log(`   ✅ ENCONTRADO`);
+        console.log(`   → Match: "${result.matchedName}"`);
+        console.log(`   → X: ${result.x.toFixed(2)} m`);
+        console.log(`   → Y: ${result.y.toFixed(2)} m`);
+        console.log(`   → Confianza: ${result.confidence}%`);
+      } else {
+        console.log(`   ❌ No encontrado en IAPH`);
+      }
+    } catch (error) {
+      console.error(`   ⚠️ Error: ${error}`);
+    }
+    
+    console.log('');
+  }
+
+  console.log('✅ Geocodificación cultural completada\n');
+}
+
+// ============================================================================
+// EJEMPLO 5: Geocodificación Policial Especializada
+// ============================================================================
+
+/**
+ * Demuestra geocodificación de infraestructuras policiales vía WFS DERA G16
+ */
+export async function examplePoliceGeocoding() {
+  console.log('═══════════════════════════════════════════════════════════');
+  console.log('EJEMPLO 5: Geocodificación Policial (DERA G16)');
+  console.log('═══════════════════════════════════════════════════════════\n');
+
+  const geocoder = new WFSPoliceGeocoder();
+
+  // Infraestructuras policiales reales
+  const policeFacilities = [
+    { name: 'Comisaría Provincial de Granada', municipality: 'Granada', province: 'Granada' },
+    { name: 'Cuartel Guardia Civil Colomera', municipality: 'Colomera', province: 'Granada' },
+    { name: 'Policía Local Granada', municipality: 'Granada', province: 'Granada' }
+  ];
+
+  console.log('Geocodificando 3 infraestructuras policiales:\n');
+
+  for (const facility of policeFacilities) {
+    console.log(`🚔 Buscando: "${facility.name}"...`);
+    
+    try {
+      const result = await geocoder.geocodeWithAutoLayer(facility);
+      
+      if (result) {
+        console.log(`   ✅ ENCONTRADO`);
+        console.log(`   → Match: "${result.matchedName}"`);
+        console.log(`   → X: ${result.x.toFixed(2)} m`);
+        console.log(`   → Y: ${result.y.toFixed(2)} m`);
+        console.log(`   → Confianza: ${result.confidence}%`);
+      } else {
+        console.log(`   ❌ No encontrado en DERA G16`);
+      }
+    } catch (error) {
+      console.error(`   ⚠️ Error: ${error}`);
+    }
+    
+    console.log('');
+  }
+
+  console.log('✅ Geocodificación policial completada\n');
+}
+
+// ============================================================================
+// EJEMPLO 6: Pipeline Completo (Clasificar → Geocodificar)
+// ============================================================================
+
+/**
+ * Pipeline completo: clasificación tipológica + geocodificación especializada
  */
 export async function exampleCompletePipeline() {
-  console.log('=== EJEMPLO 3: PIPELINE COMPLETO ===\n');
+  console.log('═══════════════════════════════════════════════════════════');
+  console.log('EJEMPLO 6: Pipeline Completo (Clasificar → Geocodificar)');
+  console.log('═══════════════════════════════════════════════════════════\n');
 
   const classifier = new InfrastructureClassifier();
   const healthGeocoder = new WFSHealthGeocoder();
+  const educationGeocoder = new WFSEducationGeocoder();
+  const culturalGeocoder = new WFSCulturalGeocoder();
+  const policeGeocoder = new WFSPoliceGeocoder();
 
-  // Infraestructura de entrada (como vendría del CSV PTEL)
-  const infrastructure = {
-    nombre: 'Centro Salud La Esperanza',
-    municipio: 'Granada',
-    provincia: 'Granada',
-    coordenadas_originales: '' // Vacías o corruptas
-  };
+  // Dataset mixto de infraestructuras PTEL
+  const infrastructure = [
+    { name: 'Centro de Salud Zaidín', municipality: 'Granada', province: 'Granada' },
+    { name: 'CEIP Federico García Lorca', municipality: 'Granada', province: 'Granada' },
+    { name: 'Museo Casa de los Tiros', municipality: 'Granada', province: 'Granada' },
+    { name: 'Comisaría Provincial', municipality: 'Granada', province: 'Granada' }
+  ];
 
-  console.log(`📋 Procesando: ${infrastructure.nombre}\n`);
+  console.log('Procesando 4 infraestructuras con pipeline completo:\n');
 
-  // Paso 1: Clasificar tipología
-  const classification = classifier.classify(infrastructure.nombre);
-  console.log(`1️⃣ CLASIFICACIÓN`);
-  console.log(`   Tipo detectado: ${classification.type}`);
-  console.log(`   Confianza: ${classification.confidence}\n`);
-
-  // Paso 2: Seleccionar geocodificador apropiado
-  if (classification.type === InfrastructureType.HEALTH) {
-    console.log(`2️⃣ GEOCODIFICACIÓN ESPECIALIZADA (Sanitarios)`);
+  for (const infra of infrastructure) {
+    console.log(`📍 "${infra.name}"`);
     
-    const result = await healthGeocoder.geocodeWithAutoLayer({
-      name: infrastructure.nombre,
-      municipality: infrastructure.municipio,
-      province: infrastructure.provincia
-    });
-
-    if (result) {
-      console.log(`   ✅ Geocodificación exitosa`);
-      console.log(`   📍 Coordenadas mejoradas:`);
-      console.log(`      X: ${result.x.toFixed(2)} (EPSG:25830)`);
-      console.log(`      Y: ${result.y.toFixed(2)} (EPSG:25830)`);
-      console.log(`   📊 Calidad: ${result.confidence}/100`);
-      console.log(`   🎯 Match oficial SAS: ${result.matchedName}`);
+    // PASO 1: Clasificar
+    const classification = classifier.classify(infra.name);
+    console.log(`   1️⃣ Clasificación: ${classification.type} (${classification.confidence})`);
+    
+    // PASO 2: Geocodificar según tipo
+    try {
+      let result = null;
       
-      // Comparar con coordenadas originales si existieran
-      console.log(`\n   💡 MEJORA:`);
-      console.log(`      Antes: Sin coordenadas / coordenadas corruptas`);
-      console.log(`      Ahora: Coordenadas oficiales SAS ±2-10m`);
-    } else {
-      console.log(`   ⚠️ No encontrado en base de datos oficial`);
-      console.log(`   → Escalando a geocodificación genérica...`);
+      switch (classification.type) {
+        case InfrastructureType.HEALTH:
+          result = await healthGeocoder.geocodeWithAutoLayer(infra);
+          break;
+        case InfrastructureType.EDUCATION:
+          result = await educationGeocoder.geocodeWithAutoLayer(infra);
+          break;
+        case InfrastructureType.CULTURAL:
+          result = await culturalGeocoder.geocodeWithAutoLayer(infra);
+          break;
+        case InfrastructureType.POLICE:
+          result = await policeGeocoder.geocodeWithAutoLayer(infra);
+          break;
+        default:
+          console.log(`   2️⃣ Geocodificación: GENÉRICA (sin geocoder especializado)`);
+          console.log('');
+          continue;
+      }
+      
+      if (result) {
+        console.log(`   2️⃣ Geocodificación: ✅ ÉXITO`);
+        console.log(`      → X: ${result.x.toFixed(2)} | Y: ${result.y.toFixed(2)}`);
+        console.log(`      → Confianza: ${result.confidence}%`);
+        console.log(`      → Fuente: ${result.source}`);
+        console.log(`   3️⃣ Mejora: ±100-500m (genérico) → ±2-15m (especializado) 🎯`);
+      } else {
+        console.log(`   2️⃣ Geocodificación: ❌ FALLBACK a genérico necesario`);
+      }
+    } catch (error) {
+      console.error(`   ⚠️ Error en geocodificación: ${error}`);
     }
+    
+    console.log('');
   }
 
-  console.log('\n' + '='.repeat(60) + '\n');
+  console.log('✅ Pipeline completo finalizado\n');
 }
 
+// ============================================================================
+// EJEMPLO 7: Estadísticas de Clasificación por Dataset
+// ============================================================================
+
 /**
- * Ejemplo 4: Estadísticas de clasificación para un dataset
+ * Analiza distribución tipológica de un dataset PTEL completo
  */
-export function exampleClassificationStats() {
-  console.log('=== EJEMPLO 4: ESTADÍSTICAS DE DATASET ===\n');
+export async function exampleClassificationStats() {
+  console.log('═══════════════════════════════════════════════════════════');
+  console.log('EJEMPLO 7: Estadísticas de Dataset PTEL');
+  console.log('═══════════════════════════════════════════════════════════\n');
 
   const classifier = new InfrastructureClassifier();
 
-  // Simulación de 50 infraestructuras de un PTEL real
-  const datasetSample = [
-    'Centro de Salud', 'Centro de Salud', 'Centro de Salud',
-    'CEIP', 'CEIP', 'IES', 'IES',
-    'Comisaría', 'Cuartel Guardia Civil',
-    'Parque Bomberos',
-    'Iglesia', 'Iglesia', 'Ermita',
-    'Ayuntamiento',
-    'Polideportivo', 'Polideportivo',
-    'Gasolinera', 'Gasolinera',
-    'Depósito agua', 'Transformador eléctrico' // Genéricos
+  // Dataset simulado (típico de municipio mediano ~20k habitantes)
+  const dataset = [
+    'Centro de Salud Municipal', 'Consultorio Médico Barrio Alto',
+    'CEIP San José', 'CEIP Virgen del Carmen', 'IES Juan Ramón Jiménez',
+    'Guardería Municipal Los Pequeños',
+    'Biblioteca Municipal', 'Casa de la Cultura', 'Teatro Municipal',
+    'Museo Etnológico',
+    'Iglesia Parroquial', 'Ermita San Sebastián',
+    'Polideportivo Municipal', 'Campo de Fútbol',
+    'Ayuntamiento', 'Oficina de Información',
+    'Centro Social de Mayores', 'Residencia de Ancianos',
+    'Cuartel Guardia Civil', 'Policía Local',
+    'Parque de Bomberos Comarcal',
+    'Gasolinera Repsol', 'Estación de Servicio BP'
   ];
 
-  const stats = classifier.getClassificationStats(datasetSample);
+  console.log(`Analizando dataset de ${dataset.length} infraestructuras:\n`);
 
-  console.log('📊 Distribución tipológica:');
-  console.log(JSON.stringify(stats, null, 2));
+  const stats = classifier.getClassificationStats(dataset);
+
+  // Ordenar por frecuencia
+  const sorted = Object.entries(stats)
+    .sort((a, b) => b[1] - a[1]);
+
+  console.log('Distribución por tipo y confianza:\n');
+  for (const [key, count] of sorted) {
+    const percentage = ((count / dataset.length) * 100).toFixed(1);
+    const bar = '█'.repeat(Math.round(count / 2));
+    console.log(`${key.padEnd(25)} ${bar} ${count} (${percentage}%)`);
+  }
 
   // Calcular cobertura de geocodificación especializada
-  const total = datasetSample.length;
-  const specialized = Object.entries(stats)
-    .filter(([key]) => !key.includes('GENERICO'))
-    .reduce((sum, [, count]) => sum + count, 0);
+  const specializedTypes = [
+    InfrastructureType.HEALTH,
+    InfrastructureType.EDUCATION,
+    InfrastructureType.CULTURAL,
+    InfrastructureType.POLICE
+  ];
 
-  const coverage = (specialized / total * 100).toFixed(1);
+  const specializedCount = dataset.filter(name => {
+    const result = classifier.classify(name);
+    return specializedTypes.includes(result.type as InfrastructureType);
+  }).length;
 
-  console.log(`\n📈 COBERTURA GEOCODIFICACIÓN ESPECIALIZADA:`);
-  console.log(`   ${specialized}/${total} infraestructuras (${coverage}%)`);
-  console.log(`   → ${specialized} usarán WFS especializado (precisión ±2-10m)`);
-  console.log(`   → ${total - specialized} usarán geocodificación genérica`);
+  const coverage = ((specializedCount / dataset.length) * 100).toFixed(1);
+
+  console.log('\n───────────────────────────────────────────────────────────');
+  console.log(`Cobertura geocodificación especializada: ${specializedCount}/${dataset.length} (${coverage}%)`);
+  console.log(`Geocodificación genérica necesaria: ${dataset.length - specializedCount}/${dataset.length} (${(100 - parseFloat(coverage)).toFixed(1)}%)`);
+  console.log('───────────────────────────────────────────────────────────\n');
+
+  console.log('✅ Análisis estadístico completado\n');
 }
+
+// ============================================================================
+// EJEMPLO 8: Validación de Coordenadas Existentes
+// ============================================================================
 
 /**
- * Ejemplo 5: Validación de coordenadas existentes
+ * Valida coordenadas existentes en PTEL contra bases de datos oficiales
  */
 export async function exampleCoordinateValidation() {
-  console.log('=== EJEMPLO 5: VALIDACIÓN DE COORDENADAS ===\n');
+  console.log('═══════════════════════════════════════════════════════════');
+  console.log('EJEMPLO 8: Validación de Coordenadas Existentes');
+  console.log('═══════════════════════════════════════════════════════════\n');
 
-  const geocoder = new WFSHealthGeocoder();
+  const healthGeocoder = new WFSHealthGeocoder();
 
-  // Coordenadas de ejemplo (Centro Granada aprox)
-  const testCoordinates = {
-    x: 447180, // UTM30 X
-    y: 4112820, // UTM30 Y
-    description: 'Coordenadas de CSV PTEL (posiblemente imprecisas)'
-  };
+  // Coordenadas existentes en PTEL (simuladas)
+  const existingCoords = [
+    { name: 'Centro de Salud Zaidín', x: 447234.56, y: 4112876.23 },
+    { name: 'Hospital Virgen Nieves', x: 446890.12, y: 4113450.67 },
+    { name: 'Consultorio La Zubia', x: 449123.45, y: 4108234.89 }
+  ];
 
-  console.log(`📍 Validando coordenadas:`);
-  console.log(`   X: ${testCoordinates.x}`);
-  console.log(`   Y: ${testCoordinates.y}\n`);
+  console.log('Validando 3 coordenadas contra DERA G12 sanitarios:\n');
 
-  const nearest = await geocoder.validateCoordinates(
-    testCoordinates.x,
-    testCoordinates.y,
-    500 // Radio 500m
-  );
-
-  if (nearest) {
-    console.log(`✅ Centro sanitario oficial encontrado a <500m:`);
-    console.log(`   🏥 ${nearest.name}`);
-    console.log(`   📍 Coordenadas oficiales:`);
-    console.log(`      X: ${nearest.x.toFixed(2)}`);
-    console.log(`      Y: ${nearest.y.toFixed(2)}`);
+  for (const coord of existingCoords) {
+    console.log(`📍 "${coord.name}"`);
+    console.log(`   Coordenadas actuales: X=${coord.x} | Y=${coord.y}`);
     
-    const distance = Math.sqrt(
-      Math.pow(nearest.x - testCoordinates.x, 2) + 
-      Math.pow(nearest.y - testCoordinates.y, 2)
-    );
-    console.log(`   📏 Distancia: ${distance.toFixed(1)}m`);
-    
-    if (distance > 50) {
-      console.log(`   ⚠️ CORRECCIÓN RECOMENDADA (distancia >${distance.toFixed(0)}m)`);
-    } else {
-      console.log(`   ✅ Coordenadas validadas (distancia <50m)`);
+    try {
+      const nearest = await healthGeocoder.validateCoordinates(coord.x, coord.y, 500);
+      
+      if (nearest) {
+        const distance = Math.sqrt(
+          Math.pow(nearest.x - coord.x, 2) + Math.pow(nearest.y - coord.y, 2)
+        );
+        
+        console.log(`   ✅ Centro oficial encontrado a ${distance.toFixed(1)}m`);
+        console.log(`   → Nombre oficial: "${nearest.name}"`);
+        console.log(`   → Coordenadas oficiales: X=${nearest.x.toFixed(2)} | Y=${nearest.y.toFixed(2)}`);
+        
+        if (distance < 25) {
+          console.log(`   → ✅ VALIDACIÓN: Coordenadas muy precisas (<25m)`);
+        } else if (distance < 100) {
+          console.log(`   → ⚠️ SUGERENCIA: Considerar actualizar (25-100m diferencia)`);
+        } else {
+          console.log(`   → ❌ ALERTA: Gran diferencia (>100m) - verificar datos`);
+        }
+      } else {
+        console.log(`   ❌ No se encontró centro oficial cercano (radio 500m)`);
+      }
+    } catch (error) {
+      console.error(`   ⚠️ Error: ${error}`);
     }
-  } else {
-    console.log(`❌ No hay centros sanitarios oficiales en radio 500m`);
-    console.log(`   → Coordenadas podrían ser incorrectas`);
+    
+    console.log('');
   }
+
+  console.log('✅ Validación completada\n');
 }
 
-// Ejecutar todos los ejemplos si se corre el archivo directamente
-if (import.meta.url === `file://${process.argv[1]}`) {
-  (async () => {
-    await exampleClassification();
-    await exampleHealthGeocoding();
-    await exampleCompletePipeline();
-    exampleClassificationStats();
-    await exampleCoordinateValidation();
-  })();
+// ============================================================================
+// EJECUTOR DE TODOS LOS EJEMPLOS
+// ============================================================================
+
+/**
+ * Ejecuta todos los ejemplos en secuencia
+ */
+export async function runAllExamples() {
+  console.log('\n🚀 INICIANDO SUITE COMPLETA DE EJEMPLOS PTEL\n');
+  console.log('Tiempo estimado: 3-5 minutos (incluye peticiones WFS)\n');
+  
+  const startTime = Date.now();
+
+  // Ejemplos síncronos (rápidos)
+  await exampleClassification();
+  await exampleClassificationStats();
+
+  // Ejemplos con peticiones WFS (más lentos)
+  console.log('⏳ Iniciando ejemplos con peticiones WFS (pueden tardar)...\n');
+  
+  await exampleHealthGeocoding();
+  await exampleEducationGeocoding();
+  await exampleCulturalGeocoding();
+  await examplePoliceGeocoding();
+  await exampleCompletePipeline();
+  await exampleCoordinateValidation();
+
+  const endTime = Date.now();
+  const duration = ((endTime - startTime) / 1000).toFixed(1);
+
+  console.log('═══════════════════════════════════════════════════════════');
+  console.log(`✅ TODOS LOS EJEMPLOS COMPLETADOS EN ${duration}s`);
+  console.log('═══════════════════════════════════════════════════════════\n');
 }
