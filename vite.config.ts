@@ -10,6 +10,9 @@ const projectRoot = process.env.PROJECT_ROOT || import.meta.dirname
 
 // https://vite.dev/config/
 export default defineConfig({
+  // CRÍTICO: Base path para GitHub Pages
+  base: '/norm-coord-ptel/',
+  
   plugins: [
     react(),
     tailwindcss(),
