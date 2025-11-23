@@ -256,15 +256,88 @@ export class GeoCache {
   }
 
   /**
-   * Invalida una entrada del cache
+   * Invalida una entrada del cache por key
    * @param key - Key a invalidar
    */
-  public invalidate(key: string): void {
-    const storageKey = `${STORAGE_PREFIX}${key}`;
-    localStorage.removeItem(storageKey);
-    this.lruManager.removeKey(key);
-    this.metrics.totalEntries = Math.max(0, this.metrics.totalEntries - 1);
-    this.saveMetrics();
+  public invalidate(key: string): void;
+  
+  /**
+   * Invalida entradas del cache por criterios
+   * @param criteria - Criterios de invalidación
+   */
+  public invalidate(criteria: {
+    municipio?: string;
+    tipo?: string;
+    olderThan?: number;
+  }): number;
+  
+  /**
+   * Implementación de invalidate con sobrecarga
+   */
+  public invalidate(
+    keyOrCriteria: string | { municipio?: string; tipo?: string; olderThan?: number }
+  ): void | number {
+    // Si es un string, invalidar por key
+    if (typeof keyOrCriteria === 'string') {
+      const storageKey = `${STORAGE_PREFIX}${keyOrCriteria}`;
+      localStorage.removeItem(storageKey);
+      this.lruManager.removeKey(keyOrCriteria);
+      this.metrics.totalEntries = Math.max(0, this.metrics.totalEntries - 1);
+      this.saveMetrics();
+      return;
+    }
+    
+    // Si es objeto de criterios, invalidar múltiples entradas
+    const criteria = keyOrCriteria;
+    let invalidatedCount = 0;
+    
+    try {
+      const allKeys = this.getAllEntries();
+      
+      for (const key of allKeys) {
+        const storageKey = `${STORAGE_PREFIX}${key}`;
+        const stored = localStorage.getItem(storageKey);
+        
+        if (!stored) continue;
+        
+        try {
+          const entry: CacheEntry = JSON.parse(stored);
+          let shouldInvalidate = false;
+          
+          // Verificar criterios
+          if (criteria.municipio && entry.metadata?.municipio !== criteria.municipio) {
+            continue;
+          }
+          
+          if (criteria.tipo && entry.metadata?.tipo !== criteria.tipo) {
+            continue;
+          }
+          
+          if (criteria.olderThan && entry.timestamp < criteria.olderThan) {
+            shouldInvalidate = true;
+          }
+          
+          // Si no hay criterio de fecha pero hay otros criterios, invalidar
+          if ((criteria.municipio || criteria.tipo) && !criteria.olderThan) {
+            shouldInvalidate = true;
+          }
+          
+          if (shouldInvalidate) {
+            this.invalidate(key); // Llamar versión string
+            invalidatedCount++;
+          }
+        } catch {
+          // Entry corrupta, invalidar
+          this.invalidate(key);
+          invalidatedCount++;
+        }
+      }
+      
+      return invalidatedCount;
+    } catch (error) {
+      console.error('Invalidation by criteria failed:', error);
+      return invalidatedCount;
+    }
   }
 
   /**
