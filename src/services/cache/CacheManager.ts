@@ -18,6 +18,7 @@
 
 import { GeoCache } from './GeoCache';
 import { IndexedDBCache } from './IndexedDBCache';
+import { generateCacheKey } from './utils/hashGenerator';
 import type { 
   CacheEntry, 
   CacheConfig, 
@@ -241,8 +242,18 @@ export class CacheManager {
     }
 
     try {
+      // ✅ GENERAR CLAVE CONSISTENTE con get()
+      const tipo = entry.metadata?.tipo;
+      const correctKey = generateCacheKey(name, municipio, tipo);
+      
+      // ✅ ASEGURAR que entry.key coincide con la clave generada
+      const entryWithCorrectKey: CacheEntry = {
+        ...entry,
+        key: correctKey
+      };
+      
       // Estimar tamaño de la entrada
-      const entrySize = this.estimateEntrySize(entry);
+      const entrySize = this.estimateEntrySize(entryWithCorrectKey);
       this.estimatedSizeMB += entrySize;
       this.entryCount++;
       
@@ -259,9 +270,11 @@ export class CacheManager {
       let success: boolean;
       
       if (this.currentBackend === 'indexedDB' && this.indexedDBCache) {
-        success = await this.indexedDBCache.set(name, municipio, entry, options);
+        // ✅ LLAMADA CORRECTA: solo entry y options
+        success = await this.indexedDBCache.set(entryWithCorrectKey, options);
       } else {
-        success = this.geoCache.set(name, municipio, entry, options);
+        // ✅ LLAMADA CORRECTA: solo entry y options
+        success = this.geoCache.set(entryWithCorrectKey, options);
       }
       
       return success;
