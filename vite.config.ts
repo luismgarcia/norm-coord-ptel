@@ -10,7 +10,7 @@ const projectRoot = process.env.PROJECT_ROOT || import.meta.dirname
 
 // https://vite.dev/config/
 export default defineConfig({
-  base: '/conversor-de-coorden/',
+  base: '/norm-coord-ptel/',
   plugins: [
     react(),
     tailwindcss(),
