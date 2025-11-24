@@ -42,6 +42,20 @@ import JSZip from 'jszip'
 import { GeocodingOrchestrator } from '@/services/geocoding'
 import { InfrastructureClassifier } from '@/services/classification/InfrastructureClassifier'
 import { InfrastructureType, type ClassificationResult, type GeocodingResult } from '@/types/infrastructure'
+import { 
+  normalizeCoordinate, 
+  normalizeCoordinateBatch, 
+  getBatchStats,
+  type NormalizationResult,
+  type ConfidenceLevel 
+} from '@/lib/coordinateNormalizer'
+import { 
+  BatchStatsCard, 
+  ConfidenceBadge, 
+  ScoreDisplay, 
+  CorrectionsPanel,
+  CONFIDENCE_COLORS 
+} from '@/components/NormalizationPanel'
 
 type Step = 1 | 2 | 3
 
@@ -77,7 +91,16 @@ interface ProcessedFile {
   detection: DetectionResult
   convertedData: CoordinateData[]
   timestamp: number
-  // Nuevos campos para geocodificación especializada
+  // Campos para normalización v2.0
+  normalizationResults?: NormalizationResult[]
+  normalizationStats?: {
+    total: number
+    valid: number
+    invalid: number
+    avgScore: number
+    confidenceDistribution: Record<ConfidenceLevel, number>
+  }
+  // Campos para geocodificación especializada
   classifications?: ClassificationResult[]
   geocodingResults?: GeocodingResult[]
   geocodingStats?: {
@@ -246,12 +269,36 @@ function App() {
             byType[c.type] = (byType[c.type] || 0) + 1
           })
 
+          // === NORMALIZACIÓN v2.0 ===
+          // Aplicar normalizador con 52 patrones de corrección
+          const normalizationInputs = converted.map(c => ({
+            x: c.original.x,
+            y: c.original.y,
+            municipality: undefined, // TODO: detectar municipio del archivo
+            province: 'Granada' as const
+          }))
+          
+          const normalizationResults = normalizeCoordinateBatch(normalizationInputs)
+          const normalizationStats = getBatchStats(normalizationResults)
+          
+          // Logging para debugging
+          console.log('[Normalizer v2.0] Resultados:', {
+            total: normalizationStats.total,
+            valid: normalizationStats.valid,
+            avgScore: normalizationStats.avgScore.toFixed(1),
+            distribution: normalizationStats.confidenceDistribution
+          })
+
           const newFile: ProcessedFile = {
             id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
             parsedFile: parsed,
             detection: detected,
             convertedData: converted,
             timestamp: Date.now(),
+            // Normalización v2.0
+            normalizationResults,
+            normalizationStats,
+            // Clasificación y geocodificación
             classifications,
             geocodingStats: {
               total: converted.length,
@@ -273,7 +320,7 @@ function App() {
           })
 
           toast.success('Conversión completada', {
-            description: `${parsed.filename}: ${validCount} coordenadas a UTM30`
+            description: `${parsed.filename}: ${validCount} coordenadas a UTM30 | Score: ${normalizationStats.avgScore.toFixed(0)}`
           })
         }, 500)
       }, 500)
@@ -510,7 +557,7 @@ function App() {
             Planes Territoriales de Emergencias - Municipios Andaluces
           </p>
           <p className="text-xs text-muted-foreground/70">
-            Sistema defensivo de validación con 8 estrategias | Conversión a UTM30 ETRS89
+            Normalizador v2.0 | 52 patrones de corrección | Conversión a UTM30 ETRS89 (EPSG:25830)
           </p>
         </div>
 
@@ -923,15 +970,21 @@ function App() {
 
                   <Separator />
 
+                  {/* === PANEL DE NORMALIZACIÓN v2.0 === */}
+                  {selectedFile?.normalizationStats && (
+                    <BatchStatsCard stats={selectedFile.normalizationStats} />
+                  )}
+
                   <Tabs defaultValue="stats" className="w-full">
-                    <TabsList className="grid w-full grid-cols-3">
+                    <TabsList className="grid w-full grid-cols-4">
                       <TabsTrigger value="stats">Resumen</TabsTrigger>
+                      <TabsTrigger value="scores">Scores</TabsTrigger>
                       <TabsTrigger value="original">Originales</TabsTrigger>
                       <TabsTrigger value="converted">Convertidas</TabsTrigger>
                     </TabsList>
 
                     <TabsContent value="stats" className="space-y-4">
-                      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                         <div className="text-center p-6 bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800 rounded-lg">
                           <CheckCircle size={32} className="text-green-600 mx-auto mb-2" weight="duotone" />
                           <p className="text-3xl font-bold text-green-600">{validCoords.length}</p>
@@ -947,6 +1000,91 @@ function App() {
                           <p className="text-3xl font-bold text-blue-600">{selectedFile.detection.normalizedCount}</p>
                           <p className="text-sm text-muted-foreground mt-1">Normalizadas</p>
                         </div>
+                        {/* Score promedio del normalizador v2.0 */}
+                        <div className="text-center p-6 bg-purple-50 dark:bg-purple-950/20 border border-purple-200 dark:border-purple-800 rounded-lg">
+                          <MagnifyingGlass size={32} className="text-purple-600 mx-auto mb-2" weight="duotone" />
+                          <p className="text-3xl font-bold text-purple-600">
+                            {selectedFile.normalizationStats?.avgScore.toFixed(0) || 0}
+                          </p>
+                          <p className="text-sm text-muted-foreground mt-1">Score Promedio</p>
+                        </div>
+                      </div>
+                    </TabsContent>
+
+                    {/* Nueva pestaña: Scores y Confianza */}
+                    <TabsContent value="scores" className="space-y-4">
+                      <div className="border rounded-lg overflow-hidden">
+                        <div className="overflow-x-auto">
+                          <table className="w-full text-sm">
+                            <thead className="bg-muted">
+                              <tr>
+                                <th className="px-4 py-2 text-left font-medium">Fila</th>
+                                <th className="px-4 py-2 text-left font-medium">Score</th>
+                                <th className="px-4 py-2 text-left font-medium">Confianza</th>
+                                <th className="px-4 py-2 text-left font-medium">X</th>
+                                <th className="px-4 py-2 text-left font-medium">Y</th>
+                                <th className="px-4 py-2 text-left font-medium">Válida</th>
+                                <th className="px-4 py-2 text-left font-medium">Correcciones</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {selectedFile.normalizationResults?.slice(0, 15).map((result, idx) => {
+                                const colors = CONFIDENCE_COLORS[result.confidence]
+                                return (
+                                  <tr key={idx} className={`border-t hover:bg-muted/30 ${!result.isValid ? 'bg-red-50/50 dark:bg-red-950/10' : ''}`}>
+                                    <td className="px-4 py-2 text-center">{idx + 1}</td>
+                                    <td className="px-4 py-2">
+                                      <div className="flex items-center gap-2">
+                                        <div className="w-16 h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                                          <div 
+                                            className={`h-full ${
+                                              result.confidence === 'HIGH' ? 'bg-green-500' :
+                                              result.confidence === 'MEDIUM' ? 'bg-yellow-500' :
+                                              result.confidence === 'LOW' ? 'bg-orange-500' :
+                                              'bg-red-500'
+                                            }`}
+                                            style={{ width: `${result.score}%` }}
+                                          />
+                                        </div>
+                                        <span className="text-xs font-medium">{result.score}</span>
+                                      </div>
+                                    </td>
+                                    <td className="px-4 py-2">
+                                      <ConfidenceBadge confidence={result.confidence} size="sm" />
+                                    </td>
+                                    <td className="px-4 py-2 font-mono text-xs">
+                                      {result.x !== null ? result.x.toFixed(2) : <span className="text-red-500">N/D</span>}
+                                    </td>
+                                    <td className="px-4 py-2 font-mono text-xs">
+                                      {result.y !== null ? result.y.toFixed(2) : <span className="text-red-500">N/D</span>}
+                                    </td>
+                                    <td className="px-4 py-2">
+                                      {result.isValid ? (
+                                        <CheckCircle size={18} className="text-green-500" weight="fill" />
+                                      ) : (
+                                        <Warning size={18} className="text-red-500" weight="fill" />
+                                      )}
+                                    </td>
+                                    <td className="px-4 py-2">
+                                      {result.corrections.length > 0 ? (
+                                        <Badge variant="outline" className="text-xs">
+                                          {result.corrections.length} fix
+                                        </Badge>
+                                      ) : (
+                                        <span className="text-xs text-gray-400">—</span>
+                                      )}
+                                    </td>
+                                  </tr>
+                                )
+                              })}
+                            </tbody>
+                          </table>
+                        </div>
+                        {(selectedFile.normalizationResults?.length || 0) > 15 && (
+                          <div className="bg-muted px-4 py-2 text-xs text-muted-foreground text-center">
+                            Mostrando 15 de {selectedFile.normalizationResults?.length} resultados
+                          </div>
+                        )}
                       </div>
                     </TabsContent>
 
