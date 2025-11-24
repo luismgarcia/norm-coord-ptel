@@ -347,10 +347,13 @@ function App() {
       <div className="max-w-6xl mx-auto space-y-6">
         <div className="text-center space-y-2">
           <h1 className="text-3xl md:text-4xl font-semibold tracking-tight">
-            Conversor de coordenadas UTM30
+            Normalizador de Coordenadas PTEL
           </h1>
           <p className="text-muted-foreground text-sm md:text-base">
-            Conversor / Normalizador automático en 3 pasos
+            Planes Territoriales de Emergencias - Municipios Andaluces
+          </p>
+          <p className="text-xs text-muted-foreground/70">
+            Sistema defensivo de validación con 8 estrategias | Conversión a UTM30 ETRS89
           </p>
         </div>
 
@@ -435,10 +438,10 @@ function App() {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2 text-2xl">
                     <UploadSimple className="text-primary" size={28} />
-                    Paso 1: Subir archivos
+                    Paso 1: Subir archivos PTEL
                   </CardTitle>
                   <CardDescription className="text-base">
-                    Arrastra o selecciona los archivos con coordenadas para convertir a UTM30
+                    Arrastra archivos con coordenadas de infraestructuras críticas municipales
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
@@ -471,7 +474,7 @@ function App() {
                       <input
                         type="file"
                         id="file-upload"
-                        accept=".csv,.xlsx,.xls,.xlsb,.xlsm,.ods,.fods,.txt"
+                        accept=".csv,.xlsx,.xls,.xlsb,.xlsm,.ods,.fods,.odt,.doc,.docx,.rtf,.txt,.dbf,.geojson,.kml,.kmz"
                         onChange={handleFileInput}
                         multiple
                         className="hidden"
@@ -492,7 +495,7 @@ function App() {
                         Formatos compatibles
                       </h4>
                       <p className="text-xs text-muted-foreground">
-                        CSV, Excel (XLSX/XLS), OpenDocument (ODS), TXT
+                        CSV, Excel (XLSX/XLS), OpenDocument (ODS/ODT), Word (DOC/DOCX), TXT, DBF, GeoJSON, KML/KMZ
                       </p>
                     </div>
 
@@ -509,10 +512,10 @@ function App() {
 
                   <div className="bg-blue-100 dark:bg-blue-950/20 border border-blue-300 dark:border-blue-800 rounded-lg p-4">
                     <p className="text-sm font-semibold text-blue-950 dark:text-blue-100 mb-2">
-                      Normalización automática
+                      Sistema Defensivo de Validación (8 Estrategias)
                     </p>
                     <p className="text-xs text-blue-950 dark:text-blue-300 leading-relaxed">
-                      Convierte coordenadas y las normaliza: detecta y corrige automáticamente errores de formato, decimales y caracteres especiales para su importación a QGIS.
+                      Aplica 8 estrategias de validación automática para detectar y corregir errores de formato, caracteres especiales, decimales incorrectos, transposiciones y coordenadas fuera de rango. Incluye validación espacial por proximidad de vecinos (20km) y sistema de scoring de calidad (0-100 puntos).
                     </p>
                   </div>
                 </CardContent>
@@ -834,7 +837,7 @@ function App() {
                   <input
                     type="file"
                     id="file-upload-more"
-                    accept=".csv,.xlsx,.xls,.xlsb,.xlsm,.ods,.fods,.txt"
+                    accept=".csv,.xlsx,.xls,.xlsb,.xlsm,.ods,.fods,.odt,.doc,.docx,.rtf,.txt,.dbf,.geojson,.kml,.kmz"
                     onChange={handleFileInput}
                     multiple
                     className="hidden"
@@ -963,7 +966,7 @@ function App() {
                     <input
                       type="file"
                       id="file-upload-another"
-                      accept=".csv,.xlsx,.xls,.xlsb,.xlsm,.ods,.fods,.txt"
+                      accept=".csv,.xlsx,.xls,.xlsb,.xlsm,.ods,.fods,.odt,.doc,.docx,.rtf,.txt,.dbf,.geojson,.kml,.kmz"
                       onChange={handleFileInput}
                       multiple
                       className="hidden"
