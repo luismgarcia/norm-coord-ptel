@@ -39,8 +39,31 @@ import {
 } from '@/lib/coordinateUtils'
 import { toast } from 'sonner'
 import JSZip from 'jszip'
+import { GeocodingOrchestrator } from '@/services/geocoding'
+import { InfrastructureClassifier } from '@/services/classification/InfrastructureClassifier'
+import { InfrastructureType, type ClassificationResult, type GeocodingResult } from '@/types/infrastructure'
 
 type Step = 1 | 2 | 3
+
+// Iconos y colores por tipología de infraestructura
+const TIPOLOGIA_CONFIG: Record<string, { emoji: string; label: string; color: string }> = {
+  'SANITARIO': { emoji: '🏥', label: 'Sanitario', color: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200' },
+  'EDUCATIVO': { emoji: '🎓', label: 'Educativo', color: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200' },
+  'CULTURAL': { emoji: '🏛️', label: 'Cultural', color: 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200' },
+  'POLICIAL': { emoji: '🚔', label: 'Policía', color: 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200' },
+  'BOMBEROS': { emoji: '🚒', label: 'Bomberos', color: 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200' },
+  'EMERGENCIAS': { emoji: '🚑', label: 'Emergencias', color: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200' },
+  'RELIGIOSO': { emoji: '⛪', label: 'Religioso', color: 'bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200' },
+  'DEPORTIVO': { emoji: '🏟️', label: 'Deportivo', color: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' },
+  'MUNICIPAL': { emoji: '🏛️', label: 'Municipal', color: 'bg-slate-100 text-slate-800 dark:bg-slate-900 dark:text-slate-200' },
+  'SOCIAL': { emoji: '🤝', label: 'Social', color: 'bg-pink-100 text-pink-800 dark:bg-pink-900 dark:text-pink-200' },
+  'COMBUSTIBLE': { emoji: '⛽', label: 'Combustible', color: 'bg-cyan-100 text-cyan-800 dark:bg-cyan-900 dark:text-cyan-200' },
+  'GENERICO': { emoji: '📍', label: 'General', color: 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200' },
+}
+
+// Instancias de servicios (singleton)
+const classifier = new InfrastructureClassifier()
+const orchestrator = new GeocodingOrchestrator()
 
 interface ProcessingState {
   stage: 'idle' | 'uploading' | 'detecting' | 'converting' | 'complete' | 'error'
@@ -54,6 +77,16 @@ interface ProcessedFile {
   detection: DetectionResult
   convertedData: CoordinateData[]
   timestamp: number
+  // Nuevos campos para geocodificación especializada
+  classifications?: ClassificationResult[]
+  geocodingResults?: GeocodingResult[]
+  geocodingStats?: {
+    total: number
+    geocoded: number
+    pending: number
+    byType: Record<string, number>
+    byGeocoder: Record<string, number>
+  }
 }
 
 function App() {
@@ -67,8 +100,115 @@ function App() {
   })
   const [isDragging, setIsDragging] = useState(false)
   const [outputFormat, setOutputFormat] = useState<'csv' | 'xlsx' | 'geojson' | 'kml'>('csv')
+  const [isGeocoding, setIsGeocoding] = useState(false)
+  const [geocodingProgress, setGeocodingProgress] = useState({ current: 0, total: 0 })
   
   const selectedFile = processedFiles.find(f => f.id === selectedFileId)
+
+  // Función para clasificar infraestructuras de un archivo
+  const classifyInfrastructures = (data: any[], nameColumn?: string): ClassificationResult[] => {
+    // Buscar columna de nombre
+    const possibleNameCols = ['nombre', 'name', 'denominacion', 'denominación', 'infraestructura', 'centro', 'instalacion', 'instalación']
+    const nameCols = Object.keys(data[0] || {})
+    const nameCol = nameColumn || nameCols.find(col => 
+      possibleNameCols.some(p => col.toLowerCase().includes(p))
+    ) || nameCols[0]
+    
+    return data.map(row => {
+      const name = row[nameCol] || ''
+      return classifier.classify(name)
+    })
+  }
+
+  // Función para geocodificar infraestructuras pendientes
+  const handleGeocodePending = async (fileId: string, municipio: string, provincia: string = 'Granada') => {
+    const file = processedFiles.find(f => f.id === fileId)
+    if (!file) return
+
+    setIsGeocoding(true)
+    const pendingIndices: number[] = []
+    
+    // Identificar coordenadas que necesitan geocodificación (inválidas o vacías)
+    file.convertedData.forEach((coord, idx) => {
+      if (!coord.isValid || coord.converted.x === 0 || coord.converted.y === 0) {
+        pendingIndices.push(idx)
+      }
+    })
+
+    if (pendingIndices.length === 0) {
+      toast.info('Sin pendientes', { description: 'Todas las coordenadas ya están geocodificadas' })
+      setIsGeocoding(false)
+      return
+    }
+
+    setGeocodingProgress({ current: 0, total: pendingIndices.length })
+    toast.info('Geocodificando...', { description: `${pendingIndices.length} infraestructuras pendientes` })
+
+    const nameCols = Object.keys(file.parsedFile.data[0] || {})
+    const nameCol = nameCols.find(col => 
+      ['nombre', 'name', 'denominacion', 'denominación', 'infraestructura', 'centro'].some(p => col.toLowerCase().includes(p))
+    ) || nameCols[0]
+
+    const geocodingResults: GeocodingResult[] = []
+    const byGeocoder: Record<string, number> = {}
+    let geocodedCount = 0
+
+    for (let i = 0; i < pendingIndices.length; i++) {
+      const idx = pendingIndices[i]
+      const row = file.parsedFile.data[idx]
+      const name = row[nameCol] || ''
+
+      try {
+        const result = await orchestrator.geocode({
+          name,
+          municipality: municipio,
+          province: provincia,
+          useGenericFallback: false,
+          timeout: 10000
+        })
+
+        if (result.geocoding) {
+          geocodingResults.push(result.geocoding)
+          geocodedCount++
+          
+          // Actualizar coordenadas convertidas
+          file.convertedData[idx] = {
+            ...file.convertedData[idx],
+            converted: { x: result.geocoding.x, y: result.geocoding.y },
+            isValid: true
+          }
+
+          const geocoderName = result.geocoderUsed || 'unknown'
+          byGeocoder[geocoderName] = (byGeocoder[geocoderName] || 0) + 1
+        }
+      } catch (error) {
+        console.warn(`Error geocodificando ${name}:`, error)
+      }
+
+      setGeocodingProgress({ current: i + 1, total: pendingIndices.length })
+    }
+
+    // Actualizar archivo con resultados
+    setProcessedFiles(prev => prev.map(f => {
+      if (f.id !== fileId) return f
+      return {
+        ...f,
+        geocodingResults,
+        geocodingStats: {
+          total: f.convertedData.length,
+          geocoded: geocodedCount,
+          pending: pendingIndices.length - geocodedCount,
+          byType: {},
+          byGeocoder
+        }
+      }
+    }))
+
+    setIsGeocoding(false)
+    toast.success('Geocodificación completada', {
+      description: `${geocodedCount} de ${pendingIndices.length} infraestructuras geocodificadas`
+    })
+  }
 
   const handleFileUpload = async (file: File) => {
     setProcessing({ stage: 'uploading', progress: 10, message: 'Leyendo archivo...' })
@@ -97,12 +237,29 @@ function App() {
           const validCount = converted.filter(c => c.isValid).length
           const invalidCount = converted.length - validCount
 
+          // Clasificar infraestructuras automáticamente
+          const classifications = classifyInfrastructures(parsed.data)
+          
+          // Calcular estadísticas por tipología
+          const byType: Record<string, number> = {}
+          classifications.forEach(c => {
+            byType[c.type] = (byType[c.type] || 0) + 1
+          })
+
           const newFile: ProcessedFile = {
             id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
             parsedFile: parsed,
             detection: detected,
             convertedData: converted,
-            timestamp: Date.now()
+            timestamp: Date.now(),
+            classifications,
+            geocodingStats: {
+              total: converted.length,
+              geocoded: validCount,
+              pending: invalidCount,
+              byType,
+              byGeocoder: {}
+            }
           }
 
           setProcessedFiles(prev => [...prev, newFile])
@@ -601,6 +758,57 @@ function App() {
                     </div>
                   )}
 
+                  {/* Panel de Clasificación de Tipologías */}
+                  {selectedFile?.classifications && selectedFile.classifications.length > 0 && (
+                    <div className="bg-gradient-to-r from-purple-50 to-indigo-50 dark:from-purple-950/20 dark:to-indigo-950/20 rounded-lg p-4 border border-purple-200 dark:border-purple-800">
+                      <h4 className="font-semibold text-purple-900 dark:text-purple-100 flex items-center gap-2 mb-3">
+                        <MapPin size={18} />
+                        Clasificación de Infraestructuras
+                      </h4>
+                      <div className="flex flex-wrap gap-2 mb-3">
+                        {Object.entries(selectedFile.geocodingStats?.byType || {}).map(([type, count]) => {
+                          const config = TIPOLOGIA_CONFIG[type] || TIPOLOGIA_CONFIG['GENERICO']
+                          return (
+                            <Badge key={type} className={`${config.color} text-xs`}>
+                              {config.emoji} {config.label}: {count}
+                            </Badge>
+                          )
+                        })}
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <p className="text-xs text-purple-700 dark:text-purple-300">
+                          {selectedFile.geocodingStats?.pending || 0} infraestructuras pendientes de geocodificar
+                        </p>
+                        {(selectedFile.geocodingStats?.pending || 0) > 0 && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="border-purple-300 text-purple-700 hover:bg-purple-100 dark:border-purple-700 dark:text-purple-300"
+                            onClick={() => {
+                              const municipio = prompt('Introduce el municipio para geocodificar:', 'Granada')
+                              if (municipio) {
+                                handleGeocodePending(selectedFile.id, municipio)
+                              }
+                            }}
+                            disabled={isGeocoding}
+                          >
+                            {isGeocoding ? (
+                              <>
+                                <ArrowsClockwise size={14} className="mr-1 animate-spin" />
+                                {geocodingProgress.current}/{geocodingProgress.total}
+                              </>
+                            ) : (
+                              <>
+                                <MapPin size={14} className="mr-1" />
+                                Geocodificar pendientes
+                              </>
+                            )}
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
                   <div className="grid md:grid-cols-2 gap-6">
                     <div className="space-y-4">
                       <div className="bg-blue-50 dark:bg-blue-950/20 rounded-lg p-4 space-y-3 border border-blue-200 dark:border-blue-800">
@@ -749,30 +957,41 @@ function App() {
                             <thead className="bg-muted">
                               <tr>
                                 <th className="px-4 py-2 text-left font-medium">Fila</th>
+                                <th className="px-4 py-2 text-left font-medium">Tipología</th>
                                 <th className="px-4 py-2 text-left font-medium">{selectedFile.detection.xColumn}</th>
                                 <th className="px-4 py-2 text-left font-medium">{selectedFile.detection.yColumn}</th>
                                 <th className="px-4 py-2 text-left font-medium">Estado</th>
                               </tr>
                             </thead>
                             <tbody>
-                              {selectedFile.convertedData.slice(0, 10).map((coord, idx) => (
-                                <tr key={idx} className="border-t hover:bg-muted/30">
-                                  <td className="px-4 py-2">{idx + 1}</td>
-                                  <td className="px-4 py-2 font-mono text-xs">
-                                    {formatCoordinate(coord.original.x, 6)}
-                                  </td>
-                                  <td className="px-4 py-2 font-mono text-xs">
-                                    {formatCoordinate(coord.original.y, 6)}
-                                  </td>
-                                  <td className="px-4 py-2">
-                                    {coord.isValid ? (
-                                      <Badge variant="outline" className="text-xs">Válida</Badge>
-                                    ) : (
-                                      <Badge variant="destructive" className="text-xs">Inválida</Badge>
-                                    )}
-                                  </td>
-                                </tr>
-                              ))}
+                              {selectedFile.convertedData.slice(0, 10).map((coord, idx) => {
+                                const classification = selectedFile.classifications?.[idx]
+                                const typeKey = classification?.type || 'GENERICO'
+                                const config = TIPOLOGIA_CONFIG[typeKey] || TIPOLOGIA_CONFIG['GENERICO']
+                                return (
+                                  <tr key={idx} className="border-t hover:bg-muted/30">
+                                    <td className="px-4 py-2">{idx + 1}</td>
+                                    <td className="px-4 py-2">
+                                      <Badge className={`${config.color} text-xs`}>
+                                        {config.emoji} {config.label}
+                                      </Badge>
+                                    </td>
+                                    <td className="px-4 py-2 font-mono text-xs">
+                                      {formatCoordinate(coord.original.x, 6)}
+                                    </td>
+                                    <td className="px-4 py-2 font-mono text-xs">
+                                      {formatCoordinate(coord.original.y, 6)}
+                                    </td>
+                                    <td className="px-4 py-2">
+                                      {coord.isValid ? (
+                                        <Badge variant="outline" className="text-xs">Válida</Badge>
+                                      ) : (
+                                        <Badge variant="destructive" className="text-xs">Inválida</Badge>
+                                      )}
+                                    </td>
+                                  </tr>
+                                )
+                              })}
                             </tbody>
                           </table>
                         </div>
@@ -791,22 +1010,33 @@ function App() {
                             <thead className="bg-muted">
                               <tr>
                                 <th className="px-4 py-2 text-left font-medium">Fila</th>
+                                <th className="px-4 py-2 text-left font-medium">Tipología</th>
                                 <th className="px-4 py-2 text-left font-medium">X_UTM30 (m)</th>
                                 <th className="px-4 py-2 text-left font-medium">Y_UTM30 (m)</th>
                                 <th className="px-4 py-2 text-left font-medium">Estado</th>
                               </tr>
                             </thead>
                             <tbody>
-                              {validCoords.slice(0, 10).map((coord, idx) => (
-                                <tr key={idx} className="border-t hover:bg-muted/30">
-                                  <td className="px-4 py-2">{coord.rowIndex + 1}</td>
-                                  <td className="px-4 py-2 font-mono text-xs">{formatCoordinate(coord.converted.x, 2)}</td>
-                                  <td className="px-4 py-2 font-mono text-xs">{formatCoordinate(coord.converted.y, 2)}</td>
-                                  <td className="px-4 py-2">
-                                    <Badge variant="outline" className="text-xs">Convertida</Badge>
-                                  </td>
-                                </tr>
-                              ))}
+                              {validCoords.slice(0, 10).map((coord, idx) => {
+                                const classification = selectedFile.classifications?.[coord.rowIndex]
+                                const typeKey = classification?.type || 'GENERICO'
+                                const config = TIPOLOGIA_CONFIG[typeKey] || TIPOLOGIA_CONFIG['GENERICO']
+                                return (
+                                  <tr key={idx} className="border-t hover:bg-muted/30">
+                                    <td className="px-4 py-2">{coord.rowIndex + 1}</td>
+                                    <td className="px-4 py-2">
+                                      <Badge className={`${config.color} text-xs`}>
+                                        {config.emoji} {config.label}
+                                      </Badge>
+                                    </td>
+                                    <td className="px-4 py-2 font-mono text-xs">{formatCoordinate(coord.converted.x, 2)}</td>
+                                    <td className="px-4 py-2 font-mono text-xs">{formatCoordinate(coord.converted.y, 2)}</td>
+                                    <td className="px-4 py-2">
+                                      <Badge variant="outline" className="text-xs">Convertida</Badge>
+                                    </td>
+                                  </tr>
+                                )
+                              })}
                             </tbody>
                           </table>
                         </div>
