@@ -1,108 +1,160 @@
-# 📚 ÍNDICE DE DOCUMENTACIÓN PTEL
-
-Sistema de Normalización y Geocodificación de Coordenadas para Municipios Andaluces
+# 📚 Índice de Documentación PTEL
+## Sistema de Normalización de Coordenadas para Andalucía
 
 **Versión**: 0.4.0  
-**Última actualización**: 24 Noviembre 2025
+**Última actualización**: 24 noviembre 2025
 
 ---
 
-## 📋 Documentación Principal
+## 🎯 Documentos Principales
 
-### Planificación
-| Documento | Descripción | Ubicación |
-|-----------|-------------|-----------|
-| **PLAN_MAESTRO_PTEL_DESARROLLO_2025.md** | Plan de trabajo completo con fases y timeline | `/docs/` |
-| **ROADMAP_EJECUTIVO_PTEL_2025.md** | Visión ejecutiva del roadmap | `/` |
-| **CHANGELOG.md** | Historial de cambios por versión | `/` |
+### Planificación y Estrategia
 
-### Arquitectura
-| Documento | Descripción | Ubicación |
+| Documento | Descripción | Audiencia |
 |-----------|-------------|-----------|
-| **ARQUITECTURA_COMPONENTES.md** | Diagramas y estructura de componentes | `/` |
-| **API_DOCUMENTATION.md** | Documentación de APIs y servicios | `/` |
-| **CASOS_DE_USO_Y_WORKFLOWS.md** | Flujos de trabajo y casos de uso | `/` |
+| [PLAN_MAESTRO_PTEL_DESARROLLO_2025.md](PLAN_MAESTRO_PTEL_DESARROLLO_2025.md) | Plan maestro completo del proyecto | Decisores, Técnicos |
+| [ROADMAP_TECNICO_PTEL_DEFINITIVO.md](ROADMAP_TECNICO_PTEL_DEFINITIVO.md) | Roadmap técnico por fases | Desarrolladores |
 
-### Operaciones
-| Documento | Descripción | Ubicación |
-|-----------|-------------|-----------|
-| **DEPLOYMENT_GUIDE.md** | Guía de despliegue y configuración | `/` |
-| **MONITORING.md** | Monitorización y alertas | `/` |
-| **RUNBOOKS.md** | Procedimientos operativos | `/` |
-| **SECURITY.md** | Políticas de seguridad | `/` |
+### Arquitectura y Desarrollo
 
-### Desarrollo
-| Documento | Descripción | Ubicación |
+| Documento | Descripción | Audiencia |
 |-----------|-------------|-----------|
-| **CONTRIBUTING.md** | Guía de contribución al proyecto | `/` |
-| **FAQ_TECNICO.md** | Preguntas frecuentes técnicas | `/` |
-| **README.md** | Documentación principal del proyecto | `/` |
+| [ARQUITECTURA_COMPONENTES.md](ARQUITECTURA_COMPONENTES.md) | Estructura de componentes React/TS | Desarrolladores |
+| [GUIA_CONFIGURACION_VITE_TYPESCRIPT.md](GUIA_CONFIGURACION_VITE_TYPESCRIPT.md) | Configuración del entorno | Desarrolladores |
+| [DISEÑO_UI_SPARK.md](DISEÑO_UI_SPARK.md) | Especificaciones de interfaz UI | Diseñadores, Desarrolladores |
+
+### APIs y Recursos
+
+| Documento | Descripción | Audiencia |
+|-----------|-------------|-----------|
+| [RECURSOS_API_GEOCODIFICACION.md](RECURSOS_API_GEOCODIFICACION.md) | Catálogo de APIs de geocodificación | Desarrolladores, Integradores |
+
+### Soporte y Operaciones
+
+| Documento | Descripción | Audiencia |
+|-----------|-------------|-----------|
+| [FAQ_TECNICO.md](FAQ_TECNICO.md) | Preguntas frecuentes técnicas | Usuarios, Soporte |
 
 ---
 
-## 🗂️ Estructura del Proyecto
+## 📂 Documentación en Raíz del Proyecto
+
+| Archivo | Descripción |
+|---------|-------------|
+| [README.md](../README.md) | Introducción y quickstart |
+| [CHANGELOG.md](../CHANGELOG.md) | Historial de cambios |
+| [API_DOCUMENTATION.md](../API_DOCUMENTATION.md) | Documentación de APIs internas |
+| [CONTRIBUTING.md](../CONTRIBUTING.md) | Guía de contribución |
+| [DEPLOYMENT_GUIDE.md](../DEPLOYMENT_GUIDE.md) | Guía de despliegue |
+| [MONITORING.md](../MONITORING.md) | Sistema de monitorización |
+| [RUNBOOKS.md](../RUNBOOKS.md) | Procedimientos operacionales |
+| [SECURITY.md](../SECURITY.md) | Políticas de seguridad |
+
+---
+
+## 🔗 Recursos Externos
+
+### APIs Oficiales
+
+| Servicio | URL | Uso |
+|----------|-----|-----|
+| CartoCiudad | https://www.cartociudad.es/geocoder/api/ | Geocodificación |
+| CDAU | https://www.callejerodeandalucia.es/servicios/cdau/wfs | Callejero |
+| IDE Andalucía | https://www.ideandalucia.es/ | Datos espaciales |
+| DERA | https://www.ideandalucia.es/services/DERA_g12_servicios/wfs | Servicios |
+| IAPH | https://www.iaph.es/ide/localizador/wfs | Patrimonio |
+| ISE | https://www.ideandalucia.es/services/ise/wfs | Equipamientos |
+
+### Documentación Técnica
+
+| Recurso | URL |
+|---------|-----|
+| proj4js | http://proj4js.org/ |
+| Leaflet | https://leafletjs.com/reference.html |
+| shadcn/ui | https://ui.shadcn.com/ |
+| Vite | https://vitejs.dev/ |
+
+---
+
+## 📖 Guías de Lectura por Rol
+
+### Para Desarrolladores
+
+1. **Inicio rápido**: README.md → GUIA_CONFIGURACION_VITE_TYPESCRIPT.md
+2. **Arquitectura**: ARQUITECTURA_COMPONENTES.md → DISEÑO_UI_SPARK.md
+3. **APIs**: RECURSOS_API_GEOCODIFICACION.md → API_DOCUMENTATION.md
+4. **Roadmap**: ROADMAP_TECNICO_PTEL_DEFINITIVO.md
+
+### Para Operadores
+
+1. **Despliegue**: DEPLOYMENT_GUIDE.md
+2. **Monitorización**: MONITORING.md
+3. **Procedimientos**: RUNBOOKS.md
+4. **Troubleshooting**: FAQ_TECNICO.md
+
+### Para Decisores
+
+1. **Visión general**: README.md
+2. **Plan estratégico**: PLAN_MAESTRO_PTEL_DESARROLLO_2025.md
+3. **Métricas**: ROADMAP_TECNICO_PTEL_DEFINITIVO.md (sección KPIs)
+
+---
+
+## 🏗️ Estructura del Proyecto
 
 ```
 norm-coord-ptel/
-├── docs/                    # Documentación extendida
-│   └── PLAN_MAESTRO_*.md
-├── scripts/                 # Scripts de utilidad
-│   └── fix-utf8-docs.js    # Normalizador UTF-8
+├── docs/                    # Documentación
+│   ├── PLAN_MAESTRO_PTEL_DESARROLLO_2025.md
+│   ├── ROADMAP_TECNICO_PTEL_DEFINITIVO.md
+│   ├── ARQUITECTURA_COMPONENTES.md
+│   ├── GUIA_CONFIGURACION_VITE_TYPESCRIPT.md
+│   ├── DISEÑO_UI_SPARK.md
+│   ├── RECURSOS_API_GEOCODIFICACION.md
+│   ├── FAQ_TECNICO.md
+│   └── INDICE_DOCUMENTACION.md
 ├── src/
-│   ├── components/         # Componentes React
-│   │   ├── ui/            # shadcn/ui components
-│   │   ├── NormalizationPanel.tsx
-│   │   └── ThemeSwitch.tsx
-│   ├── lib/               # Librerías core
-│   │   ├── coordinateNormalizer.ts  # Normalizador v2.0
-│   │   ├── coordinateUtils.ts       # Utilidades coords
-│   │   └── fileParser.ts            # Parsers archivos
-│   ├── services/          # Servicios externos
-│   │   ├── geocoding/     # Geocodificadores WFS
-│   │   └── classification/ # Clasificador tipologías
-│   └── types/             # Tipos TypeScript
-├── *.md                   # Documentación raíz
-└── package.json
+│   ├── components/          # Componentes React
+│   ├── services/            # Lógica de negocio
+│   ├── hooks/               # Hooks personalizados
+│   ├── utils/               # Utilidades
+│   ├── types/               # Tipos TypeScript
+│   └── App.tsx              # Componente principal
+├── scripts/
+│   └── fix-utf8-docs.js     # Script normalización UTF-8
+└── public/                  # Assets estáticos
 ```
 
 ---
 
-## 📖 Guía de Lectura Recomendada
+## 📊 Estado de la Documentación
 
-### Para Nuevos Desarrolladores
-1. README.md - Visión general y setup
-2. CONTRIBUTING.md - Cómo contribuir
-3. ARQUITECTURA_COMPONENTES.md - Entender la estructura
-4. FAQ_TECNICO.md - Respuestas a dudas comunes
-
-### Para Operadores
-1. DEPLOYMENT_GUIDE.md - Cómo desplegar
-2. MONITORING.md - Qué monitorizar
-3. RUNBOOKS.md - Procedimientos
-4. SECURITY.md - Consideraciones de seguridad
-
-### Para Decisores
-1. README.md - Resumen ejecutivo
-2. ROADMAP_EJECUTIVO_PTEL_2025.md - Timeline y costes
-3. PLAN_MAESTRO_PTEL_DESARROLLO_2025.md - Plan detallado
+| Documento | Estado | Última Revisión |
+|-----------|--------|-----------------|
+| PLAN_MAESTRO | ✅ Actualizado | 24 Nov 2025 |
+| ROADMAP_TECNICO | ✅ Actualizado | 24 Nov 2025 |
+| ARQUITECTURA | ✅ Actualizado | 24 Nov 2025 |
+| GUIA_VITE_TS | ✅ Actualizado | 24 Nov 2025 |
+| DISEÑO_UI | ✅ Actualizado | 24 Nov 2025 |
+| RECURSOS_API | ✅ Actualizado | 24 Nov 2025 |
+| FAQ_TECNICO | ✅ Actualizado | 24 Nov 2025 |
 
 ---
 
-## 🔗 Enlaces Útiles
+## 🔄 Historial de Cambios Documentación
 
-### APIs Oficiales Españolas
-- [CartoCiudad](https://www.cartociudad.es/geocoder/api/geocoder)
-- [CDAU](https://www.callejerodeandalucia.es/)
-- [IECA WFS](https://www.ideandalucia.es/services)
-- [IAPH Patrimonio](https://www.iaph.es/web/)
+### 24 Noviembre 2025
+- Sincronización completa desde Project Knowledge de Claude
+- Normalización UTF-8 de todos los documentos
+- Actualización de versiones y fechas
+- Creación de índice unificado
 
-### Recursos Técnicos
-- [proj4js](https://proj4js.org/)
-- [Leaflet](https://leafletjs.com/)
-- [shadcn/ui](https://ui.shadcn.com/)
-- [Vite](https://vitejs.dev/)
+### 15 Noviembre 2025
+- Creación inicial de documentación técnica
+- Definición de arquitectura browser-first
+- Documentación de APIs de geocodificación
 
 ---
 
-**Mantenedor**: Luis García (Técnico Municipal Granada)  
-**Contacto**: Via GitHub Issues
+**Mantenedor**: Luis - Técnico Municipal Granada  
+**Contacto**: A través de issues en GitHub
