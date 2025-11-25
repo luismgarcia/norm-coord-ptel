@@ -42,6 +42,30 @@ export default function StepIndicator({ currentStep, completedSteps, onStepClick
         const isAccessible = isStepAccessible(step.number)
         const Icon = step.icon
 
+        // Determinar colores según estado
+        const getNumberColor = () => {
+          if (isActive) return 'text-primary'
+          if (isCompleted) return 'text-green-500'
+          return 'text-muted-foreground/40'
+        }
+
+        const getCircleClasses = () => {
+          if (isActive) {
+            return 'bg-primary/15 border-primary shadow-[0_0_24px_rgba(6,182,212,0.4)]'
+          }
+          if (isCompleted) {
+            return 'bg-green-500/15 border-green-500'
+          }
+          // Inactivo - gris
+          return 'bg-muted/30 border-muted-foreground/30'
+        }
+
+        const getIconColor = () => {
+          if (isActive) return 'text-primary'
+          if (isCompleted) return 'text-green-500'
+          return 'text-muted-foreground/50'
+        }
+
         return (
           <div key={step.number} className="flex items-start">
             {/* Step */}
@@ -49,7 +73,7 @@ export default function StepIndicator({ currentStep, completedSteps, onStepClick
               onClick={() => isAccessible && onStepClick(step.number)}
               className={`
                 flex flex-col items-center gap-2 transition-all duration-300
-                ${isAccessible ? 'cursor-pointer' : 'cursor-not-allowed opacity-50'}
+                ${isAccessible ? 'cursor-pointer' : 'cursor-not-allowed'}
               `}
               whileHover={isAccessible ? { scale: 1.02 } : {}}
               whileTap={isAccessible ? { scale: 0.98 } : {}}
@@ -57,15 +81,12 @@ export default function StepIndicator({ currentStep, completedSteps, onStepClick
             >
               {/* Número grande encima */}
               <motion.span
-                className={`
-                  text-3xl font-extrabold transition-all duration-300
-                  ${isActive ? 'text-primary' : isCompleted ? 'text-green-500' : 'text-muted-foreground/30'}
-                `}
+                className={`text-3xl font-extrabold transition-all duration-300 ${getNumberColor()}`}
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.1 }}
                 style={{
-                  textShadow: isActive ? '0 0 20px rgba(45, 212, 191, 0.5)' : 'none'
+                  textShadow: isActive ? '0 0 20px rgba(6, 182, 212, 0.5)' : 'none'
                 }}
               >
                 {step.number}
@@ -76,12 +97,7 @@ export default function StepIndicator({ currentStep, completedSteps, onStepClick
                 className={`
                   relative w-14 h-14 rounded-full flex items-center justify-center
                   border-2 transition-all duration-300
-                  ${isActive 
-                    ? 'bg-primary/15 border-primary shadow-[0_0_24px_rgba(45,212,191,0.4)]' 
-                    : isCompleted 
-                      ? 'bg-green-500/15 border-green-500'
-                      : 'bg-secondary border-border'
-                  }
+                  ${getCircleClasses()}
                 `}
                 initial={{ scale: 0.8, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
@@ -93,7 +109,7 @@ export default function StepIndicator({ currentStep, completedSteps, onStepClick
                   <Icon 
                     size={24} 
                     weight="duotone"
-                    className={isActive ? 'text-primary' : 'text-muted-foreground'}
+                    className={getIconColor()}
                   />
                 )}
               </motion.div>
@@ -102,7 +118,7 @@ export default function StepIndicator({ currentStep, completedSteps, onStepClick
               <motion.span 
                 className={`
                   text-sm font-medium text-center max-w-[100px] transition-all duration-300
-                  ${isActive ? 'text-foreground' : 'text-muted-foreground'}
+                  ${isActive ? 'text-foreground' : 'text-muted-foreground/60'}
                 `}
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
@@ -116,7 +132,7 @@ export default function StepIndicator({ currentStep, completedSteps, onStepClick
             {index < steps.length - 1 && (
               <div className="flex items-center" style={{ marginTop: '56px' }}>
                 <div className="relative w-16 md:w-20 h-0.5 mx-2">
-                  <div className="absolute inset-0 bg-border rounded-full" />
+                  <div className="absolute inset-0 bg-muted-foreground/20 rounded-full" />
                   <motion.div
                     className="absolute inset-y-0 left-0 bg-green-500 rounded-full"
                     initial={{ width: 0 }}

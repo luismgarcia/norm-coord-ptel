@@ -7,13 +7,10 @@ import {
   FileDoc,
   File,
   Globe,
-  CheckCircle,
-  Info,
   SpinnerGap
 } from '@phosphor-icons/react'
 import { Card, CardContent } from './ui/card'
 import { Button } from './ui/button'
-import { Badge } from './ui/badge'
 
 interface Step1Props {
   onComplete: (data: any) => void
@@ -82,10 +79,10 @@ export default function Step1({ onComplete }: Step1Props) {
       className="space-y-6"
     >
       {/* Main Upload Card */}
-      <Card className="bg-card/80 backdrop-blur border-border/50 overflow-hidden">
+      <Card className="bg-card border border-border rounded-2xl overflow-hidden">
         <CardContent className="p-0">
           {/* Card Header */}
-          <div className="p-5 border-b border-border/50 flex items-center gap-3">
+          <div className="p-5 border-b border-border flex items-center gap-3">
             <div className="p-2 bg-primary/10 rounded-lg">
               <UploadSimple size={20} weight="duotone" className="text-primary" />
             </div>
@@ -100,10 +97,10 @@ export default function Step1({ onComplete }: Step1Props) {
               onDragLeave={handleDragLeave}
               className={`
                 relative rounded-xl p-10 text-center cursor-pointer
-                transition-all duration-300 ease-out
+                border-2 border-dashed transition-all duration-300 ease-out
                 ${isDragging 
-                  ? 'dropzone-active scale-[1.01]' 
-                  : 'dropzone hover:scale-[1.005]'
+                  ? 'border-primary bg-primary/5 scale-[1.01]' 
+                  : 'border-border hover:border-primary/50 hover:bg-muted/20'
                 }
                 ${isProcessing ? 'opacity-60 pointer-events-none' : ''}
               `}
@@ -116,8 +113,7 @@ export default function Step1({ onComplete }: Step1Props) {
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: index * 0.1 }}
-                    className={`p-3 bg-card/50 border border-border/50 rounded-lg transition-transform duration-300 ${isDragging ? 'animate-float' : ''}`}
-                    style={{ animationDelay: `${index * 0.1}s` }}
+                    className="p-3 bg-card border border-border rounded-lg"
                   >
                     <format.icon size={28} weight="duotone" className={format.color} />
                   </motion.div>
@@ -151,7 +147,7 @@ export default function Step1({ onComplete }: Step1Props) {
               {/* Button */}
               <Button
                 asChild
-                className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/25"
+                className="bg-primary hover:bg-primary/90 text-primary-foreground"
                 disabled={isProcessing}
               >
                 <label htmlFor="file-upload" className="cursor-pointer">
@@ -168,22 +164,13 @@ export default function Step1({ onComplete }: Step1Props) {
                   )}
                 </label>
               </Button>
-
-              {/* Drag indicator */}
-              {isDragging && (
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  className="absolute inset-0 rounded-xl border-2 border-primary bg-primary/5 pointer-events-none"
-                />
-              )}
             </div>
           </div>
 
           {/* Info cards - MISMA ALTURA */}
           <div className="grid md:grid-cols-2 gap-5 p-6 pt-0">
             {/* Formatos soportados */}
-            <div className="p-5 bg-secondary/30 border border-border/50 rounded-xl min-h-[200px] flex flex-col">
+            <div className="p-5 bg-muted/20 border border-border rounded-xl min-h-[200px] flex flex-col">
               <div className="flex items-center gap-3 mb-5">
                 <div className="p-3 bg-primary/10 rounded-xl">
                   <FileCsv size={26} weight="duotone" className="text-primary" />
@@ -195,19 +182,18 @@ export default function Step1({ onComplete }: Step1Props) {
               </div>
               <div className="flex flex-wrap gap-2 flex-1">
                 {fileFormats.map((format) => (
-                  <Badge 
+                  <span 
                     key={format.ext} 
-                    variant="secondary"
-                    className="badge-teal text-xs font-medium px-3 py-1.5"
+                    className="px-3 py-1.5 text-xs font-medium rounded-md bg-muted/50 border border-border text-muted-foreground hover:border-primary/50 hover:text-foreground transition-colors"
                   >
                     {format.ext}
-                  </Badge>
+                  </span>
                 ))}
               </div>
             </div>
 
             {/* Sistemas de coordenadas */}
-            <div className="p-5 bg-secondary/30 border border-border/50 rounded-xl min-h-[200px] flex flex-col">
+            <div className="p-5 bg-muted/20 border border-border rounded-xl min-h-[200px] flex flex-col">
               <div className="flex items-center gap-3 mb-5">
                 <div className="p-3 bg-primary/10 rounded-xl">
                   <Globe size={26} weight="duotone" className="text-primary" />
@@ -225,14 +211,14 @@ export default function Step1({ onComplete }: Step1Props) {
                       text-xs px-3 py-2 rounded-lg text-center transition-colors
                       ${index === 2 
                         ? 'bg-primary/15 border border-primary/30 text-primary font-semibold' 
-                        : 'bg-card/50 text-muted-foreground hover:text-foreground'
+                        : 'bg-muted/30 border border-border text-muted-foreground hover:text-foreground'
                       }
                     `}
                   >
                     {index === 2 ? 'UTM30N ⭐' : system}
                   </div>
                 ))}
-                <div className="text-xs px-3 py-2 rounded-lg text-center bg-card/50 text-muted-foreground">
+                <div className="text-xs px-3 py-2 rounded-lg text-center bg-muted/30 border border-border text-muted-foreground">
                   +8 más
                 </div>
               </div>
@@ -244,38 +230,7 @@ export default function Step1({ onComplete }: Step1Props) {
         </CardContent>
       </Card>
 
-      {/* Info Panel */}
-      <Card className="bg-card/50 border-border/50">
-        <CardContent className="p-5">
-          <div className="flex gap-4">
-            <div className="flex-shrink-0">
-              <div className="p-2 bg-primary/10 rounded-lg">
-                <Info size={20} weight="duotone" className="text-primary" />
-              </div>
-            </div>
-            <div className="space-y-3 text-sm">
-              <div className="flex items-start gap-2">
-                <CheckCircle size={16} weight="fill" className="text-primary mt-0.5 flex-shrink-0" />
-                <p className="text-muted-foreground">
-                  <strong className="text-foreground">Detección automática</strong> del sistema de coordenadas y municipio
-                </p>
-              </div>
-              <div className="flex items-start gap-2">
-                <CheckCircle size={16} weight="fill" className="text-primary mt-0.5 flex-shrink-0" />
-                <p className="text-muted-foreground">
-                  <strong className="text-foreground">Normalización inteligente</strong> de 52 formatos diferentes
-                </p>
-              </div>
-              <div className="flex items-start gap-2">
-                <CheckCircle size={16} weight="fill" className="text-primary mt-0.5 flex-shrink-0" />
-                <p className="text-muted-foreground">
-                  <strong className="text-foreground">Validación espacial</strong> con límites municipales de Andalucía
-                </p>
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      {/* Panel de información ELIMINADO según diseño acordado */}
     </motion.div>
   )
 }
