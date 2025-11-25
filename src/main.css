@@ -1,186 +1,294 @@
-@import 'tailwindcss';
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-@import './styles/theme.css';
-@import './index.css';
-@import "tw-animate-css";
-/*
-  ---break---
-*/
-@custom-variant dark (&:is(.dark *));
+/* ============================================
+   TEMA OSCURO PROFESIONAL - PTEL
+   Paleta: GitHub Dark + Teal Accent
+   ============================================ */
 
-@config '../tailwind.config.js';
-
-/*
-  The default border color has changed to `currentColor` in Tailwind CSS v4,
-  so we've added these compatibility styles to make sure everything still
-  looks the same as it did with Tailwind CSS v3.
-
-  If we ever want to remove these styles, we need to add an explicit border
-  color utility to any element that depends on these defaults.
-*/
 @layer base {
-  *,
-  ::after,
-  ::before,
-  ::backdrop,
-  ::file-selector-button {
-    border-color: var(--color-gray-200, currentColor);
+  :root {
+    /* Background gradient */
+    --background: 222.2 84% 4.9%;
+    --background-start: #0d1117;
+    --background-end: #1a1a2e;
+    
+    /* Foreground */
+    --foreground: 210 40% 92%;
+    
+    /* Card */
+    --card: 222 47% 9%;
+    --card-foreground: 210 40% 92%;
+    
+    /* Primary - Teal */
+    --primary: 168 76% 60%;
+    --primary-foreground: 222.2 84% 4.9%;
+    
+    /* Secondary */
+    --secondary: 217.2 32.6% 12%;
+    --secondary-foreground: 210 40% 92%;
+    
+    /* Muted */
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 55%;
+    
+    /* Accent */
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 92%;
+    
+    /* Border */
+    --border: 217.2 32.6% 17.5%;
+    
+    /* Input */
+    --input: 217.2 32.6% 17.5%;
+    
+    /* Ring */
+    --ring: 168 76% 60%;
+    
+    /* Radius */
+    --radius: 0.75rem;
+    
+    /* Success */
+    --success: 142 71% 45%;
+    --success-foreground: 0 0% 100%;
+    
+    /* Warning */
+    --warning: 38 92% 50%;
+    --warning-foreground: 0 0% 100%;
+    
+    /* Destructive */
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
   }
 }
 
-/*
-  ---break---
-*/
-:root {
-  --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
-}
-
-/*
-  ---break---
-*/
-.dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
-}
-
-/*
-  ---break---
-*/
-@theme inline {
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-card: var(--card);
-  --color-card-foreground: var(--card-foreground);
-  --color-popover: var(--popover);
-  --color-popover-foreground: var(--popover-foreground);
-  --color-primary: var(--primary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-secondary: var(--secondary);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-muted: var(--muted);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-accent: var(--accent);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-destructive: var(--destructive);
-  --color-border: var(--border);
-  --color-input: var(--input);
-  --color-ring: var(--ring);
-  --color-chart-1: var(--chart-1);
-  --color-chart-2: var(--chart-2);
-  --color-chart-3: var(--chart-3);
-  --color-chart-4: var(--chart-4);
-  --color-chart-5: var(--chart-5);
-  --color-sidebar: var(--sidebar);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-ring: var(--sidebar-ring);
-  --animate-accordion-down: accordion-down 0.2s ease-out;
-  --animate-accordion-up: accordion-up 0.2s ease-out;
-
-  /*
-  ---break---
-*/
-  @keyframes accordion-down {
-    from {
-      height: 0;
-    }
-
-    to {
-      height: var(--radix-accordion-content-height);
-    }
-  }
-
-  /*
-  ---break---
-*/
-  @keyframes accordion-up {
-    from {
-      height: var(--radix-accordion-content-height);
-    }
-
-    to {
-      height: 0;
-    }
-  }
-}
-
-/*
-  ---break---
-*/
 @layer base {
   * {
-    @apply border-border outline-ring/50;
+    @apply border-border;
   }
-
+  
   body {
     @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+    background: linear-gradient(180deg, var(--background-start) 0%, var(--background-end) 100%);
+    min-height: 100vh;
+  }
+}
+
+/* ============================================
+   UTILIDADES PERSONALIZADAS
+   ============================================ */
+
+@layer utilities {
+  /* Glow effect for primary elements */
+  .glow-primary {
+    box-shadow: 
+      0 0 20px rgba(45, 212, 191, 0.15),
+      0 0 40px rgba(45, 212, 191, 0.1);
+  }
+  
+  /* Text gradient */
+  .text-gradient {
+    background: linear-gradient(135deg, #2dd4bf 0%, #5eead4 50%, #99f6e4 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  
+  /* Card hover effect */
+  .card-hover {
+    @apply transition-all duration-300;
+  }
+  
+  .card-hover:hover {
+    @apply border-primary/30;
+    box-shadow: 0 0 30px rgba(45, 212, 191, 0.1);
+    transform: translateY(-2px);
+  }
+  
+  /* Dropzone styles */
+  .dropzone {
+    @apply border-2 border-dashed border-border/50 rounded-xl;
+    background: linear-gradient(135deg, rgba(45, 212, 191, 0.02) 0%, rgba(45, 212, 191, 0.05) 100%);
+    transition: all 0.3s ease;
+  }
+  
+  .dropzone:hover {
+    @apply border-primary;
+    background: linear-gradient(135deg, rgba(45, 212, 191, 0.05) 0%, rgba(45, 212, 191, 0.08) 100%);
+    box-shadow: inset 0 0 30px rgba(45, 212, 191, 0.05);
+  }
+  
+  .dropzone-active {
+    @apply border-2 border-primary bg-primary/5;
+    box-shadow: 
+      inset 0 0 30px rgba(45, 212, 191, 0.1),
+      0 0 20px rgba(45, 212, 191, 0.2);
+  }
+  
+  /* Badge teal variant */
+  .badge-teal {
+    @apply bg-primary/10 text-primary border border-primary/20;
+    transition: all 0.2s ease;
+  }
+  
+  .badge-teal:hover {
+    @apply bg-primary/20 border-primary/40;
+  }
+  
+  /* Animations */
+  @keyframes pulse-glow {
+    0%, 100% {
+      opacity: 0.6;
+      transform: scale(1);
+    }
+    50% {
+      opacity: 1;
+      transform: scale(1.05);
+    }
+  }
+  
+  @keyframes float {
+    0%, 100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-5px);
+    }
+  }
+  
+  .animate-pulse-glow {
+    animation: pulse-glow 3s ease-in-out infinite;
+  }
+  
+  .animate-float {
+    animation: float 2s ease-in-out infinite;
+  }
+  
+  /* Scrollbar styling */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  
+  ::-webkit-scrollbar-track {
+    background: var(--background-start);
+  }
+  
+  ::-webkit-scrollbar-thumb {
+    background: #30363d;
+    border-radius: 4px;
+  }
+  
+  ::-webkit-scrollbar-thumb:hover {
+    background: #484f58;
+  }
+}
+
+/* ============================================
+   COMPONENTES ESPECÍFICOS
+   ============================================ */
+
+/* Step indicator connector animation */
+.step-connector {
+  position: relative;
+  overflow: hidden;
+}
+
+.step-connector::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 0;
+  background: #3fb950;
+  transition: width 0.5s ease-out;
+}
+
+.step-connector.completed::after {
+  width: 100%;
+}
+
+/* Focus visible styles */
+:focus-visible {
+  @apply outline-none ring-2 ring-primary ring-offset-2 ring-offset-background;
+}
+
+/* Button primary glow */
+.btn-primary-glow {
+  @apply bg-primary text-primary-foreground;
+  box-shadow: 0 0 20px rgba(45, 212, 191, 0.3);
+  transition: all 0.2s ease;
+}
+
+.btn-primary-glow:hover {
+  box-shadow: 0 0 30px rgba(45, 212, 191, 0.5);
+  transform: translateY(-2px);
+}
+
+/* Table styles */
+.data-table {
+  @apply w-full text-sm;
+}
+
+.data-table th {
+  @apply px-4 py-3 text-left font-medium text-muted-foreground bg-secondary/50 border-b border-border;
+}
+
+.data-table td {
+  @apply px-4 py-3 border-b border-border/50;
+}
+
+.data-table tr:hover td {
+  @apply bg-secondary/30;
+}
+
+/* Score badges */
+.score-high {
+  @apply bg-green-500/20 text-green-400 border border-green-500/30;
+}
+
+.score-medium {
+  @apply bg-yellow-500/20 text-yellow-400 border border-yellow-500/30;
+}
+
+.score-low {
+  @apply bg-red-500/20 text-red-400 border border-red-500/30;
+}
+
+/* Toast notifications */
+.toast-success {
+  @apply bg-green-500/10 border-green-500/30 text-green-400;
+}
+
+.toast-error {
+  @apply bg-red-500/10 border-red-500/30 text-red-400;
+}
+
+.toast-warning {
+  @apply bg-yellow-500/10 border-yellow-500/30 text-yellow-400;
+}
+
+/* Loading skeleton */
+.skeleton {
+  @apply bg-secondary/50 animate-pulse rounded;
+}
+
+/* Map container */
+.map-container {
+  @apply rounded-xl overflow-hidden border border-border;
+  height: 400px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .badges-row {
+    @apply gap-3;
+  }
+  
+  .step-label {
+    @apply text-xs;
   }
 }
