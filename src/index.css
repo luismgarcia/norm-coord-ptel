@@ -144,22 +144,259 @@ body {
   @apply bg-background text-foreground;
 }
 
-/* Estilos personalizados para badges de formato (verde esmeralda) */
+/* ===== ESTILOS PERSONALIZADOS ESTILO SPARK ===== */
+
+/* Badges de formato con iconos (verde esmeralda) */
 .format-badge {
   @apply inline-flex items-center rounded-md px-2.5 py-0.5 text-xs font-semibold;
   background-color: rgb(var(--secondary));
   color: rgb(var(--secondary-foreground));
+  transition: all 0.2s ease-in-out;
 }
 
-/* Drop zone con borde cyan animado */
+.format-badge:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+/* Drop zone con borde punteado cyan y animación de pulso estilo Spark */
+.drop-zone {
+  border-style: dashed !important;
+  border-width: 2px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  background: linear-gradient(135deg, rgb(var(--muted) / 0.1) 0%, rgb(var(--muted) / 0.05) 100%);
+}
+
+.drop-zone:hover {
+  transform: scale(1.01);
+  border-color: rgb(var(--primary) / 0.7) !important;
+  background: linear-gradient(135deg, rgb(var(--primary) / 0.05) 0%, rgb(var(--primary) / 0.02) 100%);
+  box-shadow: 0 4px 16px rgba(6, 182, 212, 0.1);
+}
+
 .drop-zone-active {
-  border-color: rgb(var(--primary));
-  background-color: rgb(var(--primary) / 0.1);
+  border-color: rgb(var(--primary)) !important;
+  border-style: dashed !important;
+  background: linear-gradient(135deg, rgb(var(--primary) / 0.12) 0%, rgb(var(--primary) / 0.08) 100%);
+  animation: pulse-border-dashed 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  transform: scale(1.02);
+  box-shadow: 0 0 0 4px rgb(var(--primary) / 0.2), 0 8px 24px rgba(6, 182, 212, 0.2);
 }
 
-/* Panel informativo cyan/teal */
+@keyframes pulse-border-dashed {
+  0%, 100% {
+    border-color: rgb(var(--primary));
+    box-shadow: 0 0 0 4px rgb(var(--primary) / 0.2), 0 8px 24px rgba(6, 182, 212, 0.2);
+  }
+  50% {
+    border-color: rgb(var(--primary) / 0.7);
+    box-shadow: 0 0 0 8px rgb(var(--primary) / 0.15), 0 12px 32px rgba(6, 182, 212, 0.25);
+  }
+}
+
+/* Panel informativo cyan/teal con gradiente sutil */
 .info-panel-cyan {
-  background-color: rgb(var(--info) / 0.1);
+  background: linear-gradient(135deg, rgb(var(--info) / 0.12) 0%, rgb(var(--info) / 0.08) 100%);
   border: 1px solid rgb(var(--info) / 0.3);
   border-radius: var(--radius-md);
+  transition: all 0.2s ease-in-out;
+}
+
+.info-panel-cyan:hover {
+  border-color: rgb(var(--info) / 0.5);
+  box-shadow: 0 4px 12px rgb(var(--info) / 0.15);
+}
+
+/* Botones con hover effect mejorado estilo Spark */
+button, .btn {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+button:hover:not(:disabled), .btn:hover:not(:disabled) {
+  transform: scale(1.03) translateY(-1px);
+  box-shadow: 0 6px 20px rgba(6, 182, 212, 0.3);
+}
+
+button:active:not(:disabled), .btn:active:not(:disabled) {
+  transform: scale(0.98) translateY(0);
+}
+
+/* Efecto de brillo en botones al hover */
+button:hover:not(:disabled)::before, .btn:hover:not(:disabled)::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  animation: shine 0.6s ease-in-out;
+}
+
+@keyframes shine {
+  to {
+    left: 100%;
+  }
+}
+
+/* Cards con hover effect sutil */
+.card {
+  transition: all 0.2s ease-in-out;
+}
+
+.card:hover {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+}
+
+/* Círculos de pasos estilo Spark con efectos mejorados */
+.step-circle {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+}
+
+.step-circle:hover {
+  transform: scale(1.08);
+}
+
+.step-circle.active {
+  animation: glow-pulse-spark 2.5s ease-in-out infinite;
+}
+
+@keyframes glow-pulse-spark {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(6, 182, 212, 0.5), 0 0 40px rgba(6, 182, 212, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 30px rgba(6, 182, 212, 0.7), 0 0 60px rgba(6, 182, 212, 0.3);
+  }
+}
+
+/* Efecto de anillo alrededor de círculo activo */
+.step-circle.active::before {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  border: 2px solid rgb(var(--primary) / 0.3);
+  animation: ring-pulse 2s ease-in-out infinite;
+}
+
+@keyframes ring-pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.6;
+  }
+  50% {
+    transform: scale(1.15);
+    opacity: 0;
+  }
+}
+
+/* Líneas conectoras de pasos con gradiente */
+.step-connector {
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.step-connector.active {
+  background: linear-gradient(90deg, rgb(var(--primary)) 0%, rgb(var(--primary) / 0.8) 100%);
+}
+
+/* Iconos con hover effect mejorado estilo Spark */
+.icon-hover {
+  transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+  cursor: pointer;
+}
+
+.icon-hover:hover {
+  transform: scale(1.15) translateY(-4px);
+  filter: drop-shadow(0 8px 16px rgba(6, 182, 212, 0.4));
+}
+
+.icon-hover:active {
+  transform: scale(1.05) translateY(-2px);
+}
+
+/* Tabla con zebra striping mejorado */
+.table-row {
+  transition: background-color 0.15s ease-in-out;
+}
+
+.table-row:hover {
+  background-color: rgb(var(--muted) / 0.5);
+}
+
+/* Badges de confianza con animación */
+.confidence-badge {
+  transition: all 0.2s ease-in-out;
+}
+
+.confidence-badge:hover {
+  transform: scale(1.05);
+}
+
+/* Separadores con gradiente sutil */
+.separator-gradient {
+  background: linear-gradient(90deg, transparent 0%, rgb(var(--border)) 50%, transparent 100%);
+  height: 1px;
+}
+
+/* Animación de entrada para elementos */
+.fade-in {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Scrollbar personalizada estilo Spark */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgb(var(--background));
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgb(var(--muted));
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgb(var(--primary) / 0.8);
+}
+
+/* Animación de carga para procesamiento */
+.processing-spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Efecto de brillo en textos importantes */
+.text-glow {
+  text-shadow: 0 0 10px rgb(var(--primary) / 0.5);
+}
+
+/* Sombra mejorada para cards principales */
+.card-elevated {
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.25);
 }

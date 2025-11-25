@@ -561,49 +561,80 @@ function App() {
           </p>
         </div>
 
-        <div className="flex items-center justify-center gap-0 w-full max-w-3xl mx-auto">
+        {/* Wizard de pasos estilo Spark con círculos conectados */}
+        <div className="flex items-center justify-center w-full max-w-3xl mx-auto relative">
+          {/* Paso 1 */}
           <div 
-            className={`flex flex-col items-center gap-2 transition-all flex-1 ${currentStep >= 1 ? 'opacity-100' : 'opacity-40'}`}
+            className={`flex flex-col items-center gap-3 transition-all flex-1 z-10 ${currentStep >= 1 ? 'opacity-100' : 'opacity-40'}`}
             onClick={() => currentStep > 1 && handleReset()}
           >
-            <div className={`flex flex-col items-center gap-2 ${currentStep > 1 ? 'cursor-pointer hover:scale-105' : ''} transition-transform`}>
-              <NumberCircleOne 
-                size={48} 
-                weight={currentStep === 1 ? 'fill' : 'regular'}
-                className={currentStep === 1 ? 'text-primary' : 'text-muted-foreground'}
-              />
-              <span className={`text-sm md:text-base font-medium ${currentStep === 1 ? 'text-foreground' : 'text-muted-foreground'}`}>
+            <div className={`flex flex-col items-center gap-2 ${currentStep > 1 ? 'cursor-pointer' : ''} transition-transform ${currentStep > 1 ? 'hover:scale-110' : ''}`}>
+              <div className={`
+                w-16 h-16 rounded-full flex items-center justify-center step-circle
+                ${currentStep === 1 ? 'active' : ''}
+                ${currentStep === 1 
+                  ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/30' 
+                  : currentStep > 1
+                  ? 'bg-primary/20 text-primary'
+                  : 'bg-muted text-muted-foreground'
+                }
+              `}>
+                <span className="text-2xl font-bold">1</span>
+              </div>
+              <span className={`text-sm md:text-base font-semibold ${currentStep === 1 ? 'text-foreground' : 'text-muted-foreground'}`}>
                 Subir
               </span>
             </div>
           </div>
 
-          <Separator className="flex-1 max-w-[80px] md:max-w-[120px] mb-6" />
-
-          <div className={`flex flex-col items-center gap-2 transition-all flex-1 ${currentStep >= 2 ? 'opacity-100' : 'opacity-40'}`}>
-            <NumberCircleTwo 
-              size={48} 
-              weight={currentStep === 2 ? 'fill' : 'regular'}
-              className={currentStep === 2 ? 'text-primary' : 'text-muted-foreground'}
-            />
-            <span className={`text-sm md:text-base font-medium ${currentStep === 2 ? 'text-foreground' : 'text-muted-foreground'}`}>
-              Analizar
-            </span>
+          {/* Línea conectora 1-2 */}
+          <div className="flex-1 h-0.5 relative" style={{ marginBottom: '48px' }}>
+            <div className={`absolute inset-0 step-connector ${currentStep >= 2 ? 'active bg-primary' : 'bg-border'}`} />
           </div>
 
-          <Separator className="flex-1 max-w-[80px] md:max-w-[120px] mb-6" />
+          {/* Paso 2 */}
+          <div className={`flex flex-col items-center gap-3 transition-all flex-1 z-10 ${currentStep >= 2 ? 'opacity-100' : 'opacity-40'}`}>
+            <div className="flex flex-col items-center gap-2">
+              <div className={`
+                w-16 h-16 rounded-full flex items-center justify-center step-circle
+                ${currentStep === 2 ? 'active' : ''}
+                ${currentStep === 2 
+                  ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/30' 
+                  : currentStep > 2
+                  ? 'bg-primary/20 text-primary'
+                  : 'bg-muted text-muted-foreground'
+                }
+              `}>
+                <span className="text-2xl font-bold">2</span>
+              </div>
+              <span className={`text-sm md:text-base font-semibold ${currentStep === 2 ? 'text-foreground' : 'text-muted-foreground'}`}>
+                Analizar
+              </span>
+            </div>
+          </div>
 
+          {/* Línea conectora 2-3 */}
+          <div className="flex-1 h-0.5 relative" style={{ marginBottom: '48px' }}>
+            <div className={`absolute inset-0 step-connector ${currentStep >= 3 ? 'active bg-primary' : 'bg-border'}`} />
+          </div>
+
+          {/* Paso 3 */}
           <div 
-            className={`flex flex-col items-center gap-2 transition-all flex-1 ${currentStep >= 3 ? 'opacity-100' : 'opacity-40'}`}
+            className={`flex flex-col items-center gap-3 transition-all flex-1 z-10 ${currentStep >= 3 ? 'opacity-100' : 'opacity-40'}`}
             onClick={() => currentStep === 2 && selectedFile && setCurrentStep(3)}
           >
-            <div className={`flex flex-col items-center gap-2 ${currentStep === 2 && selectedFile ? 'cursor-pointer hover:scale-105' : ''} transition-transform`}>
-              <NumberCircleThree 
-                size={48} 
-                weight={currentStep === 3 ? 'fill' : 'regular'}
-                className={currentStep === 3 ? 'text-primary' : 'text-muted-foreground'}
-              />
-              <span className={`text-sm md:text-base font-medium ${currentStep === 3 ? 'text-foreground' : 'text-muted-foreground'}`}>
+            <div className={`flex flex-col items-center gap-2 ${currentStep === 2 && selectedFile ? 'cursor-pointer' : ''} transition-transform ${currentStep === 2 && selectedFile ? 'hover:scale-110' : ''}`}>
+              <div className={`
+                w-16 h-16 rounded-full flex items-center justify-center step-circle
+                ${currentStep === 3 ? 'active' : ''}
+                ${currentStep === 3 
+                  ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/30' 
+                  : 'bg-muted text-muted-foreground'
+                }
+              `}>
+                <span className="text-2xl font-bold">3</span>
+              </div>
+              <span className={`text-sm md:text-base font-semibold ${currentStep === 3 ? 'text-foreground' : 'text-muted-foreground'}`}>
                 Descargar
               </span>
             </div>
@@ -654,24 +685,27 @@ function App() {
                     onDragOver={(e) => { e.preventDefault(); setIsDragging(true) }}
                     onDragLeave={() => setIsDragging(false)}
                     className={`
-                      border-2 border-dashed rounded-lg p-12 text-center transition-all
-                      ${isDragging 
-                        ? 'border-primary bg-primary/10 scale-[1.02]' 
-                        : 'border-border hover:border-primary/50 hover:bg-muted/50'
-                      }
+                      border-2 border-dashed rounded-xl p-12 text-center drop-zone
+                      ${isDragging ? 'drop-zone-active' : 'border-primary/30'}
                     `}
                   >
-                    <div className="space-y-4">
-                      <div className="flex justify-center gap-4">
-                        <FileCsv size={40} className="text-primary" weight="duotone" />
-                        <FileXls size={40} className="text-primary" weight="duotone" />
-                        <File size={40} className="text-primary" weight="duotone" />
+                    <div className="space-y-6">
+                      <div className="flex justify-center gap-6">
+                        <div className="icon-hover">
+                          <FileCsv size={48} className="text-primary" weight="duotone" />
+                        </div>
+                        <div className="icon-hover">
+                          <FileXls size={48} className="text-primary" weight="duotone" />
+                        </div>
+                        <div className="icon-hover">
+                          <File size={48} className="text-primary" weight="duotone" />
+                        </div>
                       </div>
                       <div>
-                        <p className="text-xl font-semibold mb-2">
+                        <p className="text-2xl font-semibold mb-2 text-foreground">
                           Arrastra archivos aquí
                         </p>
-                        <p className="text-muted-foreground mb-4">
+                        <p className="text-muted-foreground text-base mb-6">
                           o haz clic en el botón para seleccionar
                         </p>
                       </div>
@@ -683,9 +717,9 @@ function App() {
                         multiple
                         className="hidden"
                       />
-                      <Button asChild size="lg" className="text-lg px-8">
+                      <Button asChild size="lg" className="text-base px-10 py-6">
                         <label htmlFor="file-upload" className="cursor-pointer">
-                          <UploadSimple size={20} className="mr-2" />
+                          <UploadSimple size={22} className="mr-2" weight="bold" />
                           Seleccionar archivos
                         </label>
                       </Button>
@@ -699,11 +733,26 @@ function App() {
                         Formatos compatibles
                       </h4>
                       <div className="flex flex-wrap gap-2">
-                        <Badge className="format-badge">CSV</Badge>
-                        <Badge className="format-badge">Excel</Badge>
-                        <Badge className="format-badge">Word</Badge>
-                        <Badge className="format-badge">ODT</Badge>
-                        <Badge className="format-badge">TXT</Badge>
+                        <Badge className="format-badge flex items-center gap-1.5 transition-transform hover:scale-105">
+                          <FileCsv size={14} weight="bold" />
+                          CSV
+                        </Badge>
+                        <Badge className="format-badge flex items-center gap-1.5 transition-transform hover:scale-105">
+                          <FileXls size={14} weight="bold" />
+                          Excel
+                        </Badge>
+                        <Badge className="format-badge flex items-center gap-1.5 transition-transform hover:scale-105">
+                          <File size={14} weight="bold" />
+                          Word
+                        </Badge>
+                        <Badge className="format-badge flex items-center gap-1.5 transition-transform hover:scale-105">
+                          <File size={14} weight="bold" />
+                          ODT
+                        </Badge>
+                        <Badge className="format-badge flex items-center gap-1.5 transition-transform hover:scale-105">
+                          <File size={14} weight="bold" />
+                          TXT
+                        </Badge>
                       </div>
                     </div>
 
