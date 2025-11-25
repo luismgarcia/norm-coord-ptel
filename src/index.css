@@ -15,127 +15,121 @@
   }
 }
 
+/* ===== TEMA OSCURO FORZADO ESTILO SPARK ===== */
 :root {
-  --background: oklch(0.96 0.01 200);
-  --foreground: oklch(0.25 0.02 210);
+  /* Fondo oscuro principal estilo Spark */
+  --background: 15 23 42; /* slate-900 #0f172a */
+  --foreground: 226 232 240; /* slate-200 */
 
-  --card: oklch(0.98 0.008 200);
-  --card-foreground: oklch(0.25 0.02 210);
+  /* Cards con fondo ligeramente más claro */
+  --card: 30 41 59; /* slate-800 #1e293b */
+  --card-foreground: 226 232 240;
   
-  --popover: oklch(0.98 0.008 200);
-  --popover-foreground: oklch(0.25 0.02 210);
+  --popover: 30 41 59;
+  --popover-foreground: 226 232 240;
 
-  --primary: oklch(0.42 0.04 215);
-  --primary-foreground: oklch(0.96 0.01 200);
+  /* Cyan/Teal para acentos principales (estilo Spark) */
+  --primary: 6 182 212; /* cyan-500 */
+  --primary-foreground: 15 23 42;
 
-  --secondary: oklch(0.78 0.03 205);
-  --secondary-foreground: oklch(0.25 0.02 210);
+  /* Verde esmeralda para badges de formatos */
+  --secondary: 16 185 129; /* emerald-500 #10b981 */
+  --secondary-foreground: 15 23 42;
 
-  --muted: oklch(0.78 0.03 205);
-  --muted-foreground: oklch(0.42 0.04 215);
+  /* Elementos apagados */
+  --muted: 51 65 85; /* slate-700 */
+  --muted-foreground: 148 163 184; /* slate-400 */
 
-  --accent: oklch(0.78 0.03 205);
-  --accent-foreground: oklch(0.25 0.02 210);
+  /* Acentos adicionales */
+  --accent: 6 182 212; /* cyan-500 */
+  --accent-foreground: 15 23 42;
 
-  --destructive: oklch(0.628 0.258 29);
-  --destructive-foreground: oklch(0.98 0.013 17);
+  /* Destructive (rojo para errores) */
+  --destructive: 239 68 68; /* red-500 */
+  --destructive-foreground: 248 250 252; /* slate-50 */
 
-  --border: oklch(0.85 0.02 205);
-  --input: oklch(0.85 0.02 205);
-  --ring: oklch(0.42 0.04 215);
+  /* Bordes sutiles */
+  --border: 51 65 85; /* slate-700 */
+  --input: 51 65 85;
+  --ring: 6 182 212; /* cyan-500 */
 
   --radius: 0.5rem;
 
-  --chart-1: oklch(0.42 0.04 215);
-  --chart-2: oklch(0.78 0.03 205);
-  --chart-3: oklch(0.25 0.02 210);
-  --chart-4: oklch(0.96 0.01 200);
-  --chart-5: oklch(0.50 0.05 220);
+  /* Charts */
+  --chart-1: 6 182 212; /* cyan */
+  --chart-2: 16 185 129; /* emerald */
+  --chart-3: 251 191 36; /* amber */
+  --chart-4: 239 68 68; /* red */
+  --chart-5: 168 85 247; /* purple */
 
-  --sidebar: oklch(0.96 0.01 200);
-  --sidebar-foreground: oklch(0.42 0.04 215);
-  --sidebar-primary: oklch(0.42 0.04 215);
-  --sidebar-primary-foreground: oklch(0.96 0.01 200);
-  --sidebar-accent: oklch(0.78 0.03 205);
-  --sidebar-accent-foreground: oklch(0.25 0.02 210);
-  --sidebar-border: oklch(0.85 0.02 205);
-  --sidebar-ring: oklch(0.42 0.04 215);
+  /* Sidebar */
+  --sidebar: 30 41 59;
+  --sidebar-foreground: 226 232 240;
+  --sidebar-primary: 6 182 212;
+  --sidebar-primary-foreground: 15 23 42;
+  --sidebar-accent: 51 65 85;
+  --sidebar-accent-foreground: 226 232 240;
+  --sidebar-border: 51 65 85;
+  --sidebar-ring: 6 182 212;
 
-  --shadow-color: oklch(0.25 0.02 210);
-  --shadow-opacity: 0.04;
+  /* Sombras */
+  --shadow-color: 0 0 0;
+  --shadow-opacity: 0.3;
   --shadow-blur: 20px;
   --shadow-spread: 0px;
   --shadow-offset-x: 0px;
   --shadow-offset-y: 4px;
 
+  /* Fuentes */
   --font-sans: Inter;
   --font-serif: PT Serif;
   --font-mono: Roboto Mono;
 }
 
-.dark {
-  --background: oklch(0.25 0.02 210);
-  --foreground: oklch(0.96 0.01 200);
-
-  --card: oklch(0.30 0.025 215);
-  --card-foreground: oklch(0.96 0.01 200);
+/* Colores adicionales para badges de confianza */
+:root {
+  --success: 16 185 129; /* emerald-500 para alta confianza */
+  --success-foreground: 15 23 42;
   
-  --popover: oklch(0.30 0.025 215);
-  --popover-foreground: oklch(0.96 0.01 200);
-
-  --primary: oklch(0.78 0.03 205);
-  --primary-foreground: oklch(0.25 0.02 210);
-
-  --secondary: oklch(0.42 0.04 215);
-  --secondary-foreground: oklch(0.96 0.01 200);
-
-  --muted: oklch(0.42 0.04 215);
-  --muted-foreground: oklch(0.78 0.03 205);
-
-  --accent: oklch(0.78 0.03 205);
-  --accent-foreground: oklch(0.25 0.02 210);
-
-  --destructive: oklch(0.628 0.258 29);
-  --destructive-foreground: oklch(0.98 0.013 17);
-
-  --border: oklch(0.42 0.04 215);
-  --input: oklch(0.42 0.04 215);
-  --ring: oklch(0.78 0.03 205);
-
-  --sidebar: oklch(0.30 0.025 215);
-  --sidebar-foreground: oklch(0.78 0.03 205);
-  --sidebar-primary: oklch(0.78 0.03 205);
-  --sidebar-primary-foreground: oklch(0.25 0.02 210);
-  --sidebar-accent: oklch(0.42 0.04 215);
-  --sidebar-accent-foreground: oklch(0.96 0.01 200);
-  --sidebar-border: oklch(0.42 0.04 215);
-  --sidebar-ring: oklch(0.78 0.03 205);
-
-  --shadow-color: oklch(0.25 0.02 210);
-  --shadow-opacity: 0.2;
+  --warning: 251 191 36; /* amber-500 para media confianza */
+  --warning-foreground: 15 23 42;
+  
+  --danger: 239 68 68; /* red-500 para baja confianza */
+  --danger-foreground: 248 250 252;
+  
+  --info: 6 182 212; /* cyan-500 para información */
+  --info-foreground: 15 23 42;
 }
 
-
 @theme {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-card: var(--card);
-  --color-card-foreground: var(--card-foreground);
-  --color-popover: var(--popover);
-  --color-popover-foreground: var(--popover-foreground);
-  --color-primary: var(--primary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-secondary: var(--secondary);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-muted: var(--muted);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-accent: var(--accent);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-destructive: var(--destructive);
-  --color-destructive-foreground: var(--destructive-foreground);
-  --color-border: var(--border);
-  --color-input: var(--input);
-  --color-ring: var(--ring);
+  --color-background: rgb(var(--background));
+  --color-foreground: rgb(var(--foreground));
+  --color-card: rgb(var(--card));
+  --color-card-foreground: rgb(var(--card-foreground));
+  --color-popover: rgb(var(--popover));
+  --color-popover-foreground: rgb(var(--popover-foreground));
+  --color-primary: rgb(var(--primary));
+  --color-primary-foreground: rgb(var(--primary-foreground));
+  --color-secondary: rgb(var(--secondary));
+  --color-secondary-foreground: rgb(var(--secondary-foreground));
+  --color-muted: rgb(var(--muted));
+  --color-muted-foreground: rgb(var(--muted-foreground));
+  --color-accent: rgb(var(--accent));
+  --color-accent-foreground: rgb(var(--accent-foreground));
+  --color-destructive: rgb(var(--destructive));
+  --color-destructive-foreground: rgb(var(--destructive-foreground));
+  --color-border: rgb(var(--border));
+  --color-input: rgb(var(--input));
+  --color-ring: rgb(var(--ring));
+  
+  --color-success: rgb(var(--success));
+  --color-success-foreground: rgb(var(--success-foreground));
+  --color-warning: rgb(var(--warning));
+  --color-warning-foreground: rgb(var(--warning-foreground));
+  --color-danger: rgb(var(--danger));
+  --color-danger-foreground: rgb(var(--danger-foreground));
+  --color-info: rgb(var(--info));
+  --color-info-foreground: rgb(var(--info-foreground));
 
   --radius-sm: calc(var(--radius) * 0.5);
   --radius-md: var(--radius);
@@ -143,4 +137,29 @@
   --radius-xl: calc(var(--radius) * 2);
   --radius-2xl: calc(var(--radius) * 3);
   --radius-full: 9999px;
+}
+
+/* Forzar tema oscuro en body */
+body {
+  @apply bg-background text-foreground;
+}
+
+/* Estilos personalizados para badges de formato (verde esmeralda) */
+.format-badge {
+  @apply inline-flex items-center rounded-md px-2.5 py-0.5 text-xs font-semibold;
+  background-color: rgb(var(--secondary));
+  color: rgb(var(--secondary-foreground));
+}
+
+/* Drop zone con borde cyan animado */
+.drop-zone-active {
+  border-color: rgb(var(--primary));
+  background-color: rgb(var(--primary) / 0.1);
+}
+
+/* Panel informativo cyan/teal */
+.info-panel-cyan {
+  background-color: rgb(var(--info) / 0.1);
+  border: 1px solid rgb(var(--info) / 0.3);
+  border-radius: var(--radius-md);
 }

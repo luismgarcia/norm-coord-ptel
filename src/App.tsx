@@ -693,14 +693,18 @@ function App() {
                   </div>
 
                   <div className="grid md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
+                    <div className="space-y-3">
                       <h4 className="text-sm font-semibold flex items-center gap-2">
                         <FileCsv size={18} className="text-primary" />
                         Formatos compatibles
                       </h4>
-                      <p className="text-xs text-muted-foreground">
-                        CSV, Excel (XLSX/XLS), OpenDocument (ODS/ODT), Word (DOC/DOCX), TXT, DBF, GeoJSON, KML/KMZ
-                      </p>
+                      <div className="flex flex-wrap gap-2">
+                        <Badge className="format-badge">CSV</Badge>
+                        <Badge className="format-badge">Excel</Badge>
+                        <Badge className="format-badge">Word</Badge>
+                        <Badge className="format-badge">ODT</Badge>
+                        <Badge className="format-badge">TXT</Badge>
+                      </div>
                     </div>
 
                     <div className="space-y-2">
@@ -714,11 +718,11 @@ function App() {
                     </div>
                   </div>
 
-                  <div className="bg-blue-100 dark:bg-blue-950/20 border border-blue-300 dark:border-blue-800 rounded-lg p-4">
-                    <p className="text-sm font-semibold text-blue-950 dark:text-blue-100 mb-2">
+                  <div className="info-panel-cyan p-4">
+                    <p className="text-sm font-semibold mb-2">
                       Sistema Defensivo de Validación (8 Estrategias)
                     </p>
-                    <p className="text-xs text-blue-950 dark:text-blue-300 leading-relaxed">
+                    <p className="text-xs leading-relaxed">
                       Aplica 8 estrategias de validación automática para detectar y corregir errores de formato, caracteres especiales, decimales incorrectos, transposiciones y coordenadas fuera de rango. Incluye validación espacial por proximidad de vecinos (20km) y sistema de scoring de calidad (0-100 puntos).
                     </p>
                   </div>
