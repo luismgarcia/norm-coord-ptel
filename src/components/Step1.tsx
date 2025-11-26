@@ -43,25 +43,29 @@ const coordSystems = [
   'WGS84', 'ETRS89', 'ED50', 'UTM zones', 'Lambert', 'Web Mercator'
 ]
 
-// Detectar columnas de coordenadas
+// Detectar columnas de coordenadas con patrones PTEL
 function detectCoordinateColumns(headers: string[]): { xCol: string | null, yCol: string | null } {
-  const xPatterns = [/^x$/i, /coord.*x/i, /utm.*x/i, /^este$/i, /^easting$/i, /^lon/i]
-  const yPatterns = [/^y$/i, /coord.*y/i, /utm.*y/i, /^norte$/i, /^northing$/i, /^lat/i]
+  const xPatterns = [/^x$/i, /coord.*x/i, /utm.*x/i, /^este$/i, /^easting$/i, /^lon/i, /x.*long/i, /long/i]
+  const yPatterns = [/^y$/i, /coord.*y/i, /utm.*y/i, /^norte$/i, /^northing$/i, /^lat/i, /y.*lat/i, /latitud/i]
   
   let xCol = null
   let yCol = null
   
   for (const header of headers) {
-    for (const pattern of xPatterns) {
-      if (pattern.test(header)) {
-        xCol = header
-        break
+    if (!xCol) {
+      for (const pattern of xPatterns) {
+        if (pattern.test(header)) {
+          xCol = header
+          break
+        }
       }
     }
-    for (const pattern of yPatterns) {
-      if (pattern.test(header)) {
-        yCol = header
-        break
+    if (!yCol) {
+      for (const pattern of yPatterns) {
+        if (pattern.test(header)) {
+          yCol = header
+          break
+        }
       }
     }
   }
@@ -69,84 +73,157 @@ function detectCoordinateColumns(headers: string[]): { xCol: string | null, yCol
   return { xCol, yCol }
 }
 
-// Parsear ODT (OpenDocument Text) - extrae tablas del documento
+// Parsear ODT (OpenDocument Text) - extrae TODAS las tablas con coordenadas
 async function parseODT(file: File): Promise<{ rows: any[], headers: string[] }> {
   const buffer = await file.arrayBuffer()
   const zip = await JSZip.loadAsync(buffer)
   
-  // Leer content.xml del ODT
   const contentXml = await zip.file('content.xml')?.async('text')
   if (!contentXml) {
     throw new Error('No se pudo leer el contenido del ODT')
   }
   
-  // Parsear XML
   const parser = new DOMParser()
   const doc = parser.parseFromString(contentXml, 'text/xml')
   
-  // Buscar todas las tablas
-  const tables = doc.getElementsByTagNameNS('urn:oasis:names:tc:opendocument:xmlns:table:1.0', 'table')
+  const tableNS = 'urn:oasis:names:tc:opendocument:xmlns:table:1.0'
+  const tables = doc.getElementsByTagNameNS(tableNS, 'table')
   
   if (tables.length === 0) {
     throw new Error('No se encontraron tablas en el documento ODT')
   }
   
-  // Buscar la tabla más grande (probablemente la de infraestructuras)
-  let largestTable = tables[0]
-  let maxRows = 0
+  // Recopilar todas las filas de todas las tablas que contengan coordenadas
+  const allDataRows: any[] = []
+  const finalHeaders = ['Tabla', 'Nombre', 'Dirección', 'Tipo', 'X_UTM', 'Y_UTM']
   
-  for (let i = 0; i < tables.length; i++) {
-    const tableRows = tables[i].getElementsByTagNameNS('urn:oasis:names:tc:opendocument:xmlns:table:1.0', 'table-row')
-    if (tableRows.length > maxRows) {
-      maxRows = tableRows.length
-      largestTable = tables[i]
-    }
-  }
-  
-  // Extraer filas de la tabla
-  const tableRows = largestTable.getElementsByTagNameNS('urn:oasis:names:tc:opendocument:xmlns:table:1.0', 'table-row')
-  
-  const allRows: string[][] = []
-  
-  for (let i = 0; i < tableRows.length; i++) {
-    const row = tableRows[i]
-    const cells = row.getElementsByTagNameNS('urn:oasis:names:tc:opendocument:xmlns:table:1.0', 'table-cell')
-    const rowData: string[] = []
+  for (let t = 0; t < tables.length; t++) {
+    const table = tables[t]
+    const tableName = table.getAttribute('table:name') || `Tabla${t + 1}`
+    const tableRows = table.getElementsByTagNameNS(tableNS, 'table-row')
     
-    for (let j = 0; j < cells.length; j++) {
-      const cell = cells[j]
-      // Manejar celdas repetidas
-      const repeatCount = parseInt(cell.getAttribute('table:number-columns-repeated') || '1', 10)
-      const cellText = cell.textContent?.trim() || ''
-      
-      for (let k = 0; k < Math.min(repeatCount, 50); k++) { // Limitar repeticiones
-        rowData.push(cellText)
+    if (tableRows.length < 3) continue // Necesitamos al menos 3 filas (2 headers + 1 dato)
+    
+    // Extraer texto de las primeras filas para detectar si es tabla de coordenadas
+    const firstRowText = getRowText(tableRows[0], tableNS).join(' ').toLowerCase()
+    
+    // Solo procesar tablas que mencionen coordenadas/UTM
+    if (!firstRowText.includes('coordenada') && !firstRowText.includes('utm') && 
+        !firstRowText.includes('longitud') && !firstRowText.includes('latitud')) {
+      continue
+    }
+    
+    // Extraer headers combinando fila 0 y fila 1 si existe sub-header
+    const headerRow0 = getRowText(tableRows[0], tableNS)
+    const headerRow1 = tableRows.length > 1 ? getRowText(tableRows[1], tableNS) : []
+    
+    // Detectar si fila 1 es sub-header (contiene X/Y, Longitud/Latitud)
+    const row1Text = headerRow1.join(' ').toLowerCase()
+    const hasSubHeader = row1Text.includes('longitud') || row1Text.includes('latitud') || 
+                         row1Text.includes('x') || row1Text.includes('y')
+    
+    const dataStartRow = hasSubHeader ? 2 : 1
+    
+    // Detectar índices de columnas de coordenadas
+    let xColIdx = -1
+    let yColIdx = -1
+    
+    // Buscar en headers combinados
+    const combinedHeaders = headerRow0.map((h, i) => {
+      const sub = headerRow1[i] || ''
+      return `${h} ${sub}`.trim()
+    })
+    
+    // Buscar columnas X/Y por patrones
+    for (let i = 0; i < combinedHeaders.length; i++) {
+      const h = combinedHeaders[i].toLowerCase()
+      if (xColIdx === -1 && (h.includes('longitud') || (h.includes('x') && !h.includes('y')))) {
+        xColIdx = i
+      }
+      if (yColIdx === -1 && (h.includes('latitud') || (h.includes('y') && !h.includes('x')))) {
+        yColIdx = i
       }
     }
     
-    // Solo añadir filas que tengan contenido
-    if (rowData.some(cell => cell.length > 0)) {
-      allRows.push(rowData)
+    // Si no encontramos por nombre, buscar valores numéricos típicos de UTM
+    if (xColIdx === -1 || yColIdx === -1) {
+      for (let r = dataStartRow; r < Math.min(dataStartRow + 3, tableRows.length); r++) {
+        const cells = getRowText(tableRows[r], tableNS)
+        for (let c = 0; c < cells.length; c++) {
+          const val = cells[c].replace(',', '.')
+          const num = parseFloat(val)
+          if (!isNaN(num)) {
+            // X típico en Andalucía: 100000-800000
+            if (xColIdx === -1 && num >= 100000 && num <= 800000) {
+              xColIdx = c
+            }
+            // Y típico en Andalucía: 4000000-4300000
+            if (yColIdx === -1 && num >= 4000000 && num <= 4300000) {
+              yColIdx = c
+            }
+          }
+        }
+        if (xColIdx !== -1 && yColIdx !== -1) break
+      }
+    }
+    
+    // Si encontramos coordenadas, extraer datos
+    if (xColIdx !== -1 || yColIdx !== -1) {
+      for (let r = dataStartRow; r < tableRows.length; r++) {
+        const cells = getRowText(tableRows[r], tableNS)
+        
+        // Saltar filas vacías
+        if (cells.every(c => !c.trim())) continue
+        
+        const x = xColIdx !== -1 ? cells[xColIdx] || '' : ''
+        const y = yColIdx !== -1 ? cells[yColIdx] || '' : ''
+        
+        // Solo añadir si hay al menos un valor de coordenada
+        if (x || y) {
+          allDataRows.push({
+            'Tabla': tableName,
+            'Nombre': cells[0] || cells[1] || '',
+            'Dirección': findCellByPattern(cells, /direcci|ubicaci/i) || '',
+            'Tipo': findCellByPattern(cells, /tipo|categor/i) || '',
+            'X_UTM': x,
+            'Y_UTM': y
+          })
+        }
+      }
     }
   }
   
-  if (allRows.length === 0) {
-    throw new Error('La tabla está vacía')
+  if (allDataRows.length === 0) {
+    throw new Error('No se encontraron coordenadas en las tablas del documento')
   }
   
-  // Primera fila como headers
-  const headers = allRows[0].map((h, i) => h || `Columna_${i + 1}`)
+  return { rows: allDataRows, headers: finalHeaders }
+}
+
+// Extraer texto de todas las celdas de una fila
+function getRowText(row: Element, ns: string): string[] {
+  const cells = row.getElementsByTagNameNS(ns, 'table-cell')
+  const result: string[] = []
   
-  // Resto como datos
-  const rows = allRows.slice(1).map(row => {
-    const obj: any = {}
-    headers.forEach((h, i) => {
-      obj[h] = row[i] || ''
-    })
-    return obj
-  })
+  for (let i = 0; i < cells.length; i++) {
+    const cell = cells[i]
+    const repeatCount = parseInt(cell.getAttribute('table:number-columns-repeated') || '1', 10)
+    const text = cell.textContent?.trim() || ''
+    
+    for (let r = 0; r < Math.min(repeatCount, 20); r++) {
+      result.push(text)
+    }
+  }
   
-  return { rows, headers }
+  return result
+}
+
+// Buscar celda que coincida con patrón
+function findCellByPattern(cells: string[], pattern: RegExp): string {
+  for (const cell of cells) {
+    if (pattern.test(cell)) return cell
+  }
+  return ''
 }
 
 export default function Step1({ onComplete }: Step1Props) {
@@ -223,23 +300,20 @@ export default function Step1({ onComplete }: Step1Props) {
       // Detectar columnas de coordenadas
       const { xCol, yCol } = detectCoordinateColumns(headers)
       
-      const finalXCol = xCol || headers.find(h => /x|este|easting|lon|coord.*x/i.test(h))
-      const finalYCol = yCol || headers.find(h => /y|norte|northing|lat|coord.*y/i.test(h))
-      
-      if (!finalXCol || !finalYCol) {
-        console.warn('Columnas de coordenadas no detectadas automáticamente. Headers:', headers)
-      }
+      // Para ODT usamos X_UTM y Y_UTM directamente
+      const finalXCol = xCol || headers.find(h => /x_utm|x|longitud|este/i.test(h)) || 'X_UTM'
+      const finalYCol = yCol || headers.find(h => /y_utm|y|latitud|norte/i.test(h)) || 'Y_UTM'
       
       setProcessingStatus('Normalizando coordenadas...')
       
       // Normalizar cada fila
       const results: NormalizationResult[] = rows.map((row) => {
-        const x = row[finalXCol || ''] || ''
-        const y = row[finalYCol || ''] || ''
+        const x = row[finalXCol] || ''
+        const y = row[finalYCol] || ''
         
         return normalizeCoordinate({
-          x: String(x),
-          y: String(y)
+          x: String(x).replace(',', '.'),
+          y: String(y).replace(',', '.')
         })
       })
       
@@ -248,7 +322,6 @@ export default function Step1({ onComplete }: Step1Props) {
       
       setProcessingStatus('¡Completado!')
       
-      // Pasar datos al siguiente paso
       onComplete({
         files: newFiles,
         rows,
@@ -299,10 +372,8 @@ export default function Step1({ onComplete }: Step1Props) {
       exit={{ opacity: 0, y: -20 }}
       className="space-y-6"
     >
-      {/* Main Upload Card */}
       <Card className="bg-card border border-border rounded-2xl overflow-hidden">
         <CardContent className="p-0">
-          {/* Card Header */}
           <div className="p-5 border-b border-border flex items-center gap-3">
             <div className="p-2 bg-primary/10 rounded-lg">
               <UploadSimple size={20} weight="duotone" className="text-primary" />
@@ -310,7 +381,6 @@ export default function Step1({ onComplete }: Step1Props) {
             <span className="font-semibold">Subir archivos</span>
           </div>
 
-          {/* Dropzone */}
           <div className="p-6">
             <div
               onDrop={handleDrop}
@@ -319,26 +389,18 @@ export default function Step1({ onComplete }: Step1Props) {
               className={`
                 relative rounded-xl p-10 text-center cursor-pointer
                 border-2 border-dashed transition-colors duration-200
-                ${isDragging 
-                  ? 'border-primary bg-primary/5' 
-                  : 'border-border hover:border-primary/50'
-                }
+                ${isDragging ? 'border-primary bg-primary/5' : 'border-border hover:border-primary/50'}
                 ${isProcessing ? 'opacity-60 pointer-events-none' : ''}
               `}
             >
-              {/* File format icons */}
               <div className="flex justify-center gap-3 mb-6">
                 {fileFormats.slice(0, 4).map((format) => (
-                  <div
-                    key={format.ext}
-                    className="p-3 bg-card border border-border rounded-lg"
-                  >
+                  <div key={format.ext} className="p-3 bg-card border border-border rounded-lg">
                     <format.icon size={28} weight="duotone" className={format.color} />
                   </div>
                 ))}
               </div>
 
-              {/* Main text */}
               <div className="space-y-2 mb-6">
                 {isProcessing ? (
                   <p className="text-xl font-semibold text-primary">{processingStatus}</p>
@@ -353,14 +415,11 @@ export default function Step1({ onComplete }: Step1Props) {
                         'Arrastra archivos aquí'
                       )}
                     </p>
-                    <p className="text-muted-foreground">
-                      o haz clic para seleccionar
-                    </p>
+                    <p className="text-muted-foreground">o haz clic para seleccionar</p>
                   </>
                 )}
               </div>
 
-              {/* Hidden file input */}
               <input
                 type="file"
                 multiple
@@ -370,12 +429,7 @@ export default function Step1({ onComplete }: Step1Props) {
                 id="file-upload"
               />
 
-              {/* Button */}
-              <Button
-                asChild
-                className="bg-primary hover:bg-primary/90 text-primary-foreground"
-                disabled={isProcessing}
-              >
+              <Button asChild className="bg-primary hover:bg-primary/90 text-primary-foreground" disabled={isProcessing}>
                 <label htmlFor="file-upload" className="cursor-pointer">
                   {isProcessing ? (
                     <>
@@ -393,9 +447,7 @@ export default function Step1({ onComplete }: Step1Props) {
             </div>
           </div>
 
-          {/* Info cards */}
           <div className="grid md:grid-cols-2 gap-5 p-6 pt-0">
-            {/* Formatos soportados */}
             <div className="p-5 bg-muted/20 border border-border rounded-xl min-h-[200px] flex flex-col">
               <div className="flex items-center gap-3 mb-5">
                 <div className="p-3 bg-primary/10 rounded-xl">
@@ -408,17 +460,13 @@ export default function Step1({ onComplete }: Step1Props) {
               </div>
               <div className="flex flex-wrap gap-2 flex-1">
                 {fileFormats.map((format) => (
-                  <span 
-                    key={format.ext} 
-                    className="px-3 py-1.5 text-xs font-medium rounded-md bg-muted/50 border border-border text-muted-foreground hover:border-primary/50 transition-colors"
-                  >
+                  <span key={format.ext} className="px-3 py-1.5 text-xs font-medium rounded-md bg-muted/50 border border-border text-muted-foreground hover:border-primary/50 transition-colors">
                     {format.ext}
                   </span>
                 ))}
               </div>
             </div>
 
-            {/* Sistemas de coordenadas */}
             <div className="p-5 bg-muted/20 border border-border rounded-xl min-h-[200px] flex flex-col">
               <div className="flex items-center gap-3 mb-5">
                 <div className="p-3 bg-primary/10 rounded-xl">
@@ -431,26 +479,13 @@ export default function Step1({ onComplete }: Step1Props) {
               </div>
               <div className="grid grid-cols-3 gap-2 flex-1">
                 {coordSystems.slice(0, 5).map((system, index) => (
-                  <div 
-                    key={system} 
-                    className={`
-                      text-xs px-3 py-2 rounded-lg text-center transition-colors
-                      ${index === 2 
-                        ? 'bg-primary/15 border border-primary/30 text-primary font-semibold' 
-                        : 'bg-muted/30 border border-border text-muted-foreground'
-                      }
-                    `}
-                  >
+                  <div key={system} className={`text-xs px-3 py-2 rounded-lg text-center transition-colors ${index === 2 ? 'bg-primary/15 border border-primary/30 text-primary font-semibold' : 'bg-muted/30 border border-border text-muted-foreground'}`}>
                     {index === 2 ? 'UTM30N ⭐' : system}
                   </div>
                 ))}
-                <div className="text-xs px-3 py-2 rounded-lg text-center bg-muted/30 border border-border text-muted-foreground">
-                  +8 más
-                </div>
+                <div className="text-xs px-3 py-2 rounded-lg text-center bg-muted/30 border border-border text-muted-foreground">+8 más</div>
               </div>
-              <div className="mt-3 text-xs text-primary cursor-pointer hover:underline">
-                ▸ Ver todos los sistemas →
-              </div>
+              <div className="mt-3 text-xs text-primary cursor-pointer hover:underline">▸ Ver todos los sistemas →</div>
             </div>
           </div>
         </CardContent>
