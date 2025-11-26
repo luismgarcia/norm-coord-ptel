@@ -53,18 +53,12 @@ function detectCoordinateColumns(headers: string[]): { xCol: string | null, yCol
   for (const header of headers) {
     if (!xCol) {
       for (const pattern of xPatterns) {
-        if (pattern.test(header)) {
-          xCol = header
-          break
-        }
+        if (pattern.test(header)) { xCol = header; break }
       }
     }
     if (!yCol) {
       for (const pattern of yPatterns) {
-        if (pattern.test(header)) {
-          yCol = header
-          break
-        }
+        if (pattern.test(header)) { yCol = header; break }
       }
     }
   }
@@ -72,7 +66,7 @@ function detectCoordinateColumns(headers: string[]): { xCol: string | null, yCol
   return { xCol, yCol }
 }
 
-function getRowText(row: Element, ns: string): string[] {
+function getRowCells(row: Element, ns: string): string[] {
   const cells = row.getElementsByTagNameNS(ns, 'table-cell')
   const result: string[] = []
   
@@ -87,6 +81,41 @@ function getRowText(row: Element, ns: string): string[] {
   }
   
   return result
+}
+
+// Detectar índice de columna de coordenadas basándose en el header "Coordenadas" o "UTM"
+function findCoordColumnIndex(headerCells: string[]): number {
+  for (let i = 0; i < headerCells.length; i++) {
+    const h = headerCells[i].toLowerCase()
+    if (h.includes('coordenada') || h.includes('utm')) {
+      return i
+    }
+  }
+  return -1
+}
+
+// Buscar columnas X/Y por valores numéricos típicos de UTM en Andalucía
+function findCoordsByValues(cells: string[]): { xIdx: number, yIdx: number } {
+  let xIdx = -1
+  let yIdx = -1
+  
+  for (let i = 0; i < cells.length; i++) {
+    const val = cells[i].replace(',', '.').replace(/\s/g, '')
+    const num = parseFloat(val)
+    
+    if (!isNaN(num)) {
+      // X típico Andalucía: 100000-800000 (6 dígitos)
+      if (xIdx === -1 && num >= 100000 && num <= 800000) {
+        xIdx = i
+      }
+      // Y típico Andalucía: 4000000-4300000 (7 dígitos empezando por 4)
+      if (yIdx === -1 && num >= 4000000 && num <= 4300000) {
+        yIdx = i
+      }
+    }
+  }
+  
+  return { xIdx, yIdx }
 }
 
 async function parseODT(file: File): Promise<{ rows: any[], headers: string[] }> {
@@ -109,7 +138,7 @@ async function parseODT(file: File): Promise<{ rows: any[], headers: string[] }>
   }
   
   const allDataRows: any[] = []
-  const finalHeaders = ['Tabla', 'Nombre', 'Dirección', 'Tipo', 'X_UTM', 'Y_UTM']
+  const finalHeaders = ['Tabla', 'Nombre', 'Tipo', 'X_UTM', 'Y_UTM']
   
   for (let t = 0; t < tables.length; t++) {
     const table = tables[t]
@@ -118,74 +147,71 @@ async function parseODT(file: File): Promise<{ rows: any[], headers: string[] }>
     
     if (tableRows.length < 3) continue
     
-    const firstRowText = getRowText(tableRows[0], tableNS).join(' ').toLowerCase()
+    const headerCells = getRowCells(tableRows[0], tableNS)
+    const firstRowText = headerCells.join(' ').toLowerCase()
     
-    if (!firstRowText.includes('coordenada') && !firstRowText.includes('utm') && 
-        !firstRowText.includes('longitud') && !firstRowText.includes('latitud')) {
+    // Solo procesar tablas que mencionen coordenadas/UTM
+    if (!firstRowText.includes('coordenada') && !firstRowText.includes('utm')) {
       continue
     }
     
-    const headerRow0 = getRowText(tableRows[0], tableNS)
-    const headerRow1 = tableRows.length > 1 ? getRowText(tableRows[1], tableNS) : []
-    
-    const row1Text = headerRow1.join(' ').toLowerCase()
+    // Detectar si hay sub-header (fila 1 con X/Y, Longitud/Latitud)
+    const row1Cells = getRowCells(tableRows[1], tableNS)
+    const row1Text = row1Cells.join(' ').toLowerCase()
     const hasSubHeader = row1Text.includes('longitud') || row1Text.includes('latitud') || 
-                         row1Text.includes('x') || row1Text.includes('y')
+                         (row1Text.includes('x') && row1Text.includes('y'))
     
     const dataStartRow = hasSubHeader ? 2 : 1
     
-    let xColIdx = -1
-    let yColIdx = -1
+    // MÉTODO 1: Buscar columna "Coordenadas" o "UTM" en header
+    const coordColIdx = findCoordColumnIndex(headerCells)
     
-    const combinedHeaders = headerRow0.map((h, i) => {
-      const sub = headerRow1[i] || ''
-      return `${h} ${sub}`.trim()
-    })
+    // MÉTODO 2: Si no funciona, buscar por valores numéricos en primera fila de datos
+    let xColIdx = coordColIdx
+    let yColIdx = coordColIdx !== -1 ? coordColIdx + 1 : -1
     
-    for (let i = 0; i < combinedHeaders.length; i++) {
-      const h = combinedHeaders[i].toLowerCase()
-      if (xColIdx === -1 && (h.includes('longitud') || (h.includes('x') && !h.includes('y')))) {
-        xColIdx = i
-      }
-      if (yColIdx === -1 && (h.includes('latitud') || (h.includes('y') && !h.includes('x')))) {
-        yColIdx = i
-      }
-    }
-    
-    if (xColIdx === -1 || yColIdx === -1) {
-      for (let r = dataStartRow; r < Math.min(dataStartRow + 3, tableRows.length); r++) {
-        const cells = getRowText(tableRows[r], tableNS)
-        for (let c = 0; c < cells.length; c++) {
-          const val = cells[c].replace(',', '.')
-          const num = parseFloat(val)
-          if (!isNaN(num)) {
-            if (xColIdx === -1 && num >= 100000 && num <= 800000) {
-              xColIdx = c
-            }
-            if (yColIdx === -1 && num >= 4000000 && num <= 4300000) {
-              yColIdx = c
-            }
-          }
+    // Validar con primera fila de datos
+    if (dataStartRow < tableRows.length) {
+      const firstDataRow = getRowCells(tableRows[dataStartRow], tableNS)
+      
+      // Si el índice de coordenadas parece incorrecto, buscar por valores
+      if (xColIdx === -1 || yColIdx >= firstDataRow.length) {
+        const detected = findCoordsByValues(firstDataRow)
+        if (detected.xIdx !== -1) xColIdx = detected.xIdx
+        if (detected.yIdx !== -1) yColIdx = detected.yIdx
+      } else {
+        // Verificar que los valores en coordColIdx son numéricos
+        const xVal = firstDataRow[xColIdx]?.replace(',', '.') || ''
+        const yVal = firstDataRow[yColIdx]?.replace(',', '.') || ''
+        
+        if (isNaN(parseFloat(xVal)) || isNaN(parseFloat(yVal))) {
+          // No son números, buscar por valores
+          const detected = findCoordsByValues(firstDataRow)
+          if (detected.xIdx !== -1) xColIdx = detected.xIdx
+          if (detected.yIdx !== -1) yColIdx = detected.yIdx
         }
-        if (xColIdx !== -1 && yColIdx !== -1) break
       }
     }
     
+    // Extraer datos
     if (xColIdx !== -1 || yColIdx !== -1) {
       for (let r = dataStartRow; r < tableRows.length; r++) {
-        const cells = getRowText(tableRows[r], tableNS)
+        const cells = getRowCells(tableRows[r], tableNS)
         
         if (cells.every(c => !c.trim())) continue
         
-        const x = xColIdx !== -1 ? cells[xColIdx] || '' : ''
-        const y = yColIdx !== -1 ? cells[yColIdx] || '' : ''
+        const x = xColIdx !== -1 && xColIdx < cells.length ? cells[xColIdx] : ''
+        const y = yColIdx !== -1 && yColIdx < cells.length ? cells[yColIdx] : ''
         
-        if (x || y) {
+        // Solo añadir si hay al menos un valor numérico
+        const xNum = parseFloat(x.replace(',', '.'))
+        const yNum = parseFloat(y.replace(',', '.'))
+        
+        if (!isNaN(xNum) || !isNaN(yNum)) {
           allDataRows.push({
             'Tabla': tableName,
-            'Nombre': cells[0] || cells[1] || '',
-            'Dirección': cells.find(c => /direcci|ubicaci/i.test(c)) || '',
-            'Tipo': cells.find(c => /tipo|categor/i.test(c)) || '',
+            'Nombre': cells[0] || '',
+            'Tipo': cells.find(c => /tipo|categor|cultural|residencia|educati/i.test(c)) || cells[2] || '',
             'X_UTM': x,
             'Y_UTM': y
           })
@@ -195,7 +221,7 @@ async function parseODT(file: File): Promise<{ rows: any[], headers: string[] }>
   }
   
   if (allDataRows.length === 0) {
-    throw new Error('No se encontraron coordenadas en las tablas del documento')
+    throw new Error('No se encontraron coordenadas válidas en las tablas del documento')
   }
   
   return { rows: allDataRows, headers: finalHeaders }
