@@ -7,14 +7,13 @@ import {
   FileDoc,
   File,
   Globe,
-  SpinnerGap,
-  CheckCircle,
-  Warning
+  SpinnerGap
 } from '@phosphor-icons/react'
 import { Card, CardContent } from './ui/card'
 import { Button } from './ui/button'
 import * as XLSX from 'xlsx'
 import Papa from 'papaparse'
+import JSZip from 'jszip'
 import { normalizeCoordinate, getBatchStats, NormalizationResult } from '../lib/coordinateNormalizer'
 
 interface Step1Props {
@@ -70,10 +69,91 @@ function detectCoordinateColumns(headers: string[]): { xCol: string | null, yCol
   return { xCol, yCol }
 }
 
+// Parsear ODT (OpenDocument Text) - extrae tablas del documento
+async function parseODT(file: File): Promise<{ rows: any[], headers: string[] }> {
+  const buffer = await file.arrayBuffer()
+  const zip = await JSZip.loadAsync(buffer)
+  
+  // Leer content.xml del ODT
+  const contentXml = await zip.file('content.xml')?.async('text')
+  if (!contentXml) {
+    throw new Error('No se pudo leer el contenido del ODT')
+  }
+  
+  // Parsear XML
+  const parser = new DOMParser()
+  const doc = parser.parseFromString(contentXml, 'text/xml')
+  
+  // Buscar todas las tablas
+  const tables = doc.getElementsByTagNameNS('urn:oasis:names:tc:opendocument:xmlns:table:1.0', 'table')
+  
+  if (tables.length === 0) {
+    throw new Error('No se encontraron tablas en el documento ODT')
+  }
+  
+  // Buscar la tabla más grande (probablemente la de infraestructuras)
+  let largestTable = tables[0]
+  let maxRows = 0
+  
+  for (let i = 0; i < tables.length; i++) {
+    const tableRows = tables[i].getElementsByTagNameNS('urn:oasis:names:tc:opendocument:xmlns:table:1.0', 'table-row')
+    if (tableRows.length > maxRows) {
+      maxRows = tableRows.length
+      largestTable = tables[i]
+    }
+  }
+  
+  // Extraer filas de la tabla
+  const tableRows = largestTable.getElementsByTagNameNS('urn:oasis:names:tc:opendocument:xmlns:table:1.0', 'table-row')
+  
+  const allRows: string[][] = []
+  
+  for (let i = 0; i < tableRows.length; i++) {
+    const row = tableRows[i]
+    const cells = row.getElementsByTagNameNS('urn:oasis:names:tc:opendocument:xmlns:table:1.0', 'table-cell')
+    const rowData: string[] = []
+    
+    for (let j = 0; j < cells.length; j++) {
+      const cell = cells[j]
+      // Manejar celdas repetidas
+      const repeatCount = parseInt(cell.getAttribute('table:number-columns-repeated') || '1', 10)
+      const cellText = cell.textContent?.trim() || ''
+      
+      for (let k = 0; k < Math.min(repeatCount, 50); k++) { // Limitar repeticiones
+        rowData.push(cellText)
+      }
+    }
+    
+    // Solo añadir filas que tengan contenido
+    if (rowData.some(cell => cell.length > 0)) {
+      allRows.push(rowData)
+    }
+  }
+  
+  if (allRows.length === 0) {
+    throw new Error('La tabla está vacía')
+  }
+  
+  // Primera fila como headers
+  const headers = allRows[0].map((h, i) => h || `Columna_${i + 1}`)
+  
+  // Resto como datos
+  const rows = allRows.slice(1).map(row => {
+    const obj: any = {}
+    headers.forEach((h, i) => {
+      obj[h] = row[i] || ''
+    })
+    return obj
+  })
+  
+  return { rows, headers }
+}
+
 export default function Step1({ onComplete }: Step1Props) {
   const [isDragging, setIsDragging] = useState(false)
   const [isProcessing, setIsProcessing] = useState(false)
   const [processingStatus, setProcessingStatus] = useState('')
+  const [error, setError] = useState<string | null>(null)
 
   const parseFile = async (file: File): Promise<{ rows: any[], headers: string[] }> => {
     const extension = file.name.split('.').pop()?.toLowerCase()
@@ -116,6 +196,10 @@ export default function Step1({ onComplete }: Step1Props) {
       return { rows, headers }
     }
     
+    if (extension === 'odt') {
+      return parseODT(file)
+    }
+    
     throw new Error(`Formato no soportado: ${extension}`)
   }
 
@@ -123,30 +207,35 @@ export default function Step1({ onComplete }: Step1Props) {
     if (newFiles.length === 0) return
     
     setIsProcessing(true)
+    setError(null)
     setProcessingStatus('Leyendo archivo...')
     
     try {
-      const file = newFiles[0] // Procesar primer archivo
+      const file = newFiles[0]
       const { rows, headers } = await parseFile(file)
+      
+      if (rows.length === 0) {
+        throw new Error('El archivo no contiene datos')
+      }
       
       setProcessingStatus(`Detectando coordenadas (${rows.length} filas)...`)
       
       // Detectar columnas de coordenadas
       const { xCol, yCol } = detectCoordinateColumns(headers)
       
-      if (!xCol || !yCol) {
-        // Intentar buscar por posición (columnas típicas)
-        const possibleX = headers.find(h => /x|este|easting|lon/i.test(h)) || headers[0]
-        const possibleY = headers.find(h => /y|norte|northing|lat/i.test(h)) || headers[1]
-        console.warn('Columnas detectadas por heurística:', possibleX, possibleY)
+      const finalXCol = xCol || headers.find(h => /x|este|easting|lon|coord.*x/i.test(h))
+      const finalYCol = yCol || headers.find(h => /y|norte|northing|lat|coord.*y/i.test(h))
+      
+      if (!finalXCol || !finalYCol) {
+        console.warn('Columnas de coordenadas no detectadas automáticamente. Headers:', headers)
       }
       
       setProcessingStatus('Normalizando coordenadas...')
       
       // Normalizar cada fila
-      const results: NormalizationResult[] = rows.map((row, index) => {
-        const x = row[xCol || headers.find(h => /x|este|lon/i.test(h)) || ''] || ''
-        const y = row[yCol || headers.find(h => /y|norte|lat/i.test(h)) || ''] || ''
+      const results: NormalizationResult[] = rows.map((row) => {
+        const x = row[finalXCol || ''] || ''
+        const y = row[finalYCol || ''] || ''
         
         return normalizeCoordinate({
           x: String(x),
@@ -169,9 +258,11 @@ export default function Step1({ onComplete }: Step1Props) {
         fileName: file.name
       })
       
-    } catch (error) {
-      console.error('Error procesando archivo:', error)
-      setProcessingStatus(`Error: ${error instanceof Error ? error.message : 'Error desconocido'}`)
+    } catch (err) {
+      console.error('Error procesando archivo:', err)
+      const errorMsg = err instanceof Error ? err.message : 'Error desconocido'
+      setError(errorMsg)
+      setProcessingStatus('')
     } finally {
       setIsProcessing(false)
     }
@@ -237,7 +328,7 @@ export default function Step1({ onComplete }: Step1Props) {
             >
               {/* File format icons */}
               <div className="flex justify-center gap-3 mb-6">
-                {fileFormats.slice(0, 4).map((format, index) => (
+                {fileFormats.slice(0, 4).map((format) => (
                   <div
                     key={format.ext}
                     className="p-3 bg-card border border-border rounded-lg"
@@ -251,6 +342,8 @@ export default function Step1({ onComplete }: Step1Props) {
               <div className="space-y-2 mb-6">
                 {isProcessing ? (
                   <p className="text-xl font-semibold text-primary">{processingStatus}</p>
+                ) : error ? (
+                  <p className="text-xl font-semibold text-red-500">{error}</p>
                 ) : (
                   <>
                     <p className="text-2xl font-semibold text-foreground">
@@ -300,7 +393,7 @@ export default function Step1({ onComplete }: Step1Props) {
             </div>
           </div>
 
-          {/* Info cards - MISMA ALTURA */}
+          {/* Info cards */}
           <div className="grid md:grid-cols-2 gap-5 p-6 pt-0">
             {/* Formatos soportados */}
             <div className="p-5 bg-muted/20 border border-border rounded-xl min-h-[200px] flex flex-col">
