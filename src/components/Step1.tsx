@@ -7,13 +7,27 @@ import {
   FileDoc,
   File,
   Globe,
-  SpinnerGap
+  SpinnerGap,
+  CheckCircle,
+  Warning
 } from '@phosphor-icons/react'
 import { Card, CardContent } from './ui/card'
 import { Button } from './ui/button'
+import * as XLSX from 'xlsx'
+import Papa from 'papaparse'
+import { normalizeCoordinate, getBatchStats, NormalizationResult } from '../lib/coordinateNormalizer'
 
 interface Step1Props {
-  onComplete: (data: any) => void
+  onComplete: (data: ProcessedData) => void
+}
+
+export interface ProcessedData {
+  files: File[]
+  rows: any[]
+  results: NormalizationResult[]
+  stats: ReturnType<typeof getBatchStats>
+  headers: string[]
+  fileName: string
 }
 
 const fileFormats = [
@@ -30,15 +44,142 @@ const coordSystems = [
   'WGS84', 'ETRS89', 'ED50', 'UTM zones', 'Lambert', 'Web Mercator'
 ]
 
+// Detectar columnas de coordenadas
+function detectCoordinateColumns(headers: string[]): { xCol: string | null, yCol: string | null } {
+  const xPatterns = [/^x$/i, /coord.*x/i, /utm.*x/i, /^este$/i, /^easting$/i, /^lon/i]
+  const yPatterns = [/^y$/i, /coord.*y/i, /utm.*y/i, /^norte$/i, /^northing$/i, /^lat/i]
+  
+  let xCol = null
+  let yCol = null
+  
+  for (const header of headers) {
+    for (const pattern of xPatterns) {
+      if (pattern.test(header)) {
+        xCol = header
+        break
+      }
+    }
+    for (const pattern of yPatterns) {
+      if (pattern.test(header)) {
+        yCol = header
+        break
+      }
+    }
+  }
+  
+  return { xCol, yCol }
+}
+
 export default function Step1({ onComplete }: Step1Props) {
   const [isDragging, setIsDragging] = useState(false)
   const [isProcessing, setIsProcessing] = useState(false)
-  const [files, setFiles] = useState<File[]>([])
+  const [processingStatus, setProcessingStatus] = useState('')
+
+  const parseFile = async (file: File): Promise<{ rows: any[], headers: string[] }> => {
+    const extension = file.name.split('.').pop()?.toLowerCase()
+    
+    if (extension === 'csv') {
+      return new Promise((resolve, reject) => {
+        Papa.parse(file, {
+          header: true,
+          skipEmptyLines: true,
+          complete: (results) => {
+            resolve({
+              rows: results.data as any[],
+              headers: results.meta.fields || []
+            })
+          },
+          error: reject
+        })
+      })
+    }
+    
+    if (['xlsx', 'xls', 'ods'].includes(extension || '')) {
+      const buffer = await file.arrayBuffer()
+      const workbook = XLSX.read(buffer, { type: 'array' })
+      const firstSheet = workbook.Sheets[workbook.SheetNames[0]]
+      const data = XLSX.utils.sheet_to_json(firstSheet, { header: 1 }) as any[][]
+      
+      if (data.length === 0) {
+        return { rows: [], headers: [] }
+      }
+      
+      const headers = data[0].map(String)
+      const rows = data.slice(1).map(row => {
+        const obj: any = {}
+        headers.forEach((h, i) => {
+          obj[h] = row[i]
+        })
+        return obj
+      })
+      
+      return { rows, headers }
+    }
+    
+    throw new Error(`Formato no soportado: ${extension}`)
+  }
+
+  const processFiles = async (newFiles: File[]) => {
+    if (newFiles.length === 0) return
+    
+    setIsProcessing(true)
+    setProcessingStatus('Leyendo archivo...')
+    
+    try {
+      const file = newFiles[0] // Procesar primer archivo
+      const { rows, headers } = await parseFile(file)
+      
+      setProcessingStatus(`Detectando coordenadas (${rows.length} filas)...`)
+      
+      // Detectar columnas de coordenadas
+      const { xCol, yCol } = detectCoordinateColumns(headers)
+      
+      if (!xCol || !yCol) {
+        // Intentar buscar por posición (columnas típicas)
+        const possibleX = headers.find(h => /x|este|easting|lon/i.test(h)) || headers[0]
+        const possibleY = headers.find(h => /y|norte|northing|lat/i.test(h)) || headers[1]
+        console.warn('Columnas detectadas por heurística:', possibleX, possibleY)
+      }
+      
+      setProcessingStatus('Normalizando coordenadas...')
+      
+      // Normalizar cada fila
+      const results: NormalizationResult[] = rows.map((row, index) => {
+        const x = row[xCol || headers.find(h => /x|este|lon/i.test(h)) || ''] || ''
+        const y = row[yCol || headers.find(h => /y|norte|lat/i.test(h)) || ''] || ''
+        
+        return normalizeCoordinate({
+          x: String(x),
+          y: String(y)
+        })
+      })
+      
+      // Generar estadísticas
+      const stats = getBatchStats(results)
+      
+      setProcessingStatus('¡Completado!')
+      
+      // Pasar datos al siguiente paso
+      onComplete({
+        files: newFiles,
+        rows,
+        results,
+        stats,
+        headers,
+        fileName: file.name
+      })
+      
+    } catch (error) {
+      console.error('Error procesando archivo:', error)
+      setProcessingStatus(`Error: ${error instanceof Error ? error.message : 'Error desconocido'}`)
+    } finally {
+      setIsProcessing(false)
+    }
+  }
 
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault()
     setIsDragging(false)
-    
     const droppedFiles = Array.from(e.dataTransfer.files)
     processFiles(droppedFiles)
   }, [])
@@ -59,17 +200,6 @@ export default function Step1({ onComplete }: Step1Props) {
       processFiles(selectedFiles)
     }
   }, [])
-
-  const processFiles = async (newFiles: File[]) => {
-    setFiles(newFiles)
-    setIsProcessing(true)
-    
-    // Simular procesamiento
-    await new Promise(resolve => setTimeout(resolve, 1500))
-    
-    setIsProcessing(false)
-    onComplete({ files: newFiles })
-  }
 
   return (
     <motion.div
@@ -97,10 +227,10 @@ export default function Step1({ onComplete }: Step1Props) {
               onDragLeave={handleDragLeave}
               className={`
                 relative rounded-xl p-10 text-center cursor-pointer
-                border-2 border-dashed transition-all duration-300 ease-out
+                border-2 border-dashed transition-colors duration-200
                 ${isDragging 
-                  ? 'border-primary bg-primary/5 scale-[1.01]' 
-                  : 'border-border hover:border-primary/50 hover:bg-muted/20'
+                  ? 'border-primary bg-primary/5' 
+                  : 'border-border hover:border-primary/50'
                 }
                 ${isProcessing ? 'opacity-60 pointer-events-none' : ''}
               `}
@@ -108,30 +238,33 @@ export default function Step1({ onComplete }: Step1Props) {
               {/* File format icons */}
               <div className="flex justify-center gap-3 mb-6">
                 {fileFormats.slice(0, 4).map((format, index) => (
-                  <motion.div
+                  <div
                     key={format.ext}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.1 }}
                     className="p-3 bg-card border border-border rounded-lg"
                   >
                     <format.icon size={28} weight="duotone" className={format.color} />
-                  </motion.div>
+                  </div>
                 ))}
               </div>
 
               {/* Main text */}
               <div className="space-y-2 mb-6">
-                <p className="text-2xl font-semibold text-foreground">
-                  {isDragging ? (
-                    <span className="text-primary">¡Suelta los archivos aquí!</span>
-                  ) : (
-                    'Arrastra archivos aquí'
-                  )}
-                </p>
-                <p className="text-muted-foreground">
-                  o haz clic para seleccionar
-                </p>
+                {isProcessing ? (
+                  <p className="text-xl font-semibold text-primary">{processingStatus}</p>
+                ) : (
+                  <>
+                    <p className="text-2xl font-semibold text-foreground">
+                      {isDragging ? (
+                        <span className="text-primary">¡Suelta los archivos aquí!</span>
+                      ) : (
+                        'Arrastra archivos aquí'
+                      )}
+                    </p>
+                    <p className="text-muted-foreground">
+                      o haz clic para seleccionar
+                    </p>
+                  </>
+                )}
               </div>
 
               {/* Hidden file input */}
@@ -184,7 +317,7 @@ export default function Step1({ onComplete }: Step1Props) {
                 {fileFormats.map((format) => (
                   <span 
                     key={format.ext} 
-                    className="px-3 py-1.5 text-xs font-medium rounded-md bg-muted/50 border border-border text-muted-foreground hover:border-primary/50 hover:text-foreground transition-colors"
+                    className="px-3 py-1.5 text-xs font-medium rounded-md bg-muted/50 border border-border text-muted-foreground hover:border-primary/50 transition-colors"
                   >
                     {format.ext}
                   </span>
@@ -211,7 +344,7 @@ export default function Step1({ onComplete }: Step1Props) {
                       text-xs px-3 py-2 rounded-lg text-center transition-colors
                       ${index === 2 
                         ? 'bg-primary/15 border border-primary/30 text-primary font-semibold' 
-                        : 'bg-muted/30 border border-border text-muted-foreground hover:text-foreground'
+                        : 'bg-muted/30 border border-border text-muted-foreground'
                       }
                     `}
                   >
@@ -229,8 +362,6 @@ export default function Step1({ onComplete }: Step1Props) {
           </div>
         </CardContent>
       </Card>
-
-      {/* Panel de información ELIMINADO según diseño acordado */}
     </motion.div>
   )
 }
