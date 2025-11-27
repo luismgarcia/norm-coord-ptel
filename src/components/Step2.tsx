@@ -109,10 +109,11 @@ export default function Step2({ data, onComplete, onBack }: Step2Props) {
           y: inf.yOriginal
         })
         
+        // 🔧 BUG FIX: Usar normResult.x/y directamente (no .normalized)
         return {
           ...inf,
-          xFinal: normResult.normalized?.x,
-          yFinal: normResult.normalized?.y,
+          xFinal: normResult.x ?? undefined,
+          yFinal: normResult.y ?? undefined,
           normalization: normResult,
           score: normResult.score,
           source: 'original',
@@ -149,8 +150,23 @@ export default function Step2({ data, onComplete, onBack }: Step2Props) {
       metadata.province || 'Granada'
     )
     
-    // Actualizar datos procesados con resultados de geocodificación
-    setProcessedData(result)
+    // 🔧 BUG FIX #2: Fusionar resultados en lugar de sobrescribir
+    // Preservar las coordenadas normalizadas y añadir las geocodificadas
+    setProcessedData(prevData => {
+      const resultMap = new Map(result.map(r => [r.id, r]))
+      return prevData.map(item => {
+        const geocoded = resultMap.get(item.id)
+        // Si el item ya tenía coordenadas normalizadas (source='original'), mantenerlo
+        if (item.source === 'original' && item.xFinal && item.yFinal) {
+          return item
+        }
+        // Si hay resultado de geocodificación, usarlo
+        if (geocoded) {
+          return geocoded
+        }
+        return item
+      })
+    })
   }
 
   /**
