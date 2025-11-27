@@ -224,7 +224,7 @@ export class CartoCiudadGeocoder {
       }
 
       const response = await this.axiosInstance.get<CartoCiudadResponse>(
-        `${this.BASE_URL}/findJsonp?${params.toString()}`
+        `${this.BASE_URL}/find?${params.toString()}`
       );
 
       const data = response.data;
@@ -267,7 +267,7 @@ export class CartoCiudadGeocoder {
         y,
         confidence,
         source: 'CartoCiudad',
-        sourceLayer: 'findJsonp',
+        sourceLayer: 'find',
         matchedName: this.buildMatchedName(data),
         matchType: data.type || 'unknown',
         address: data.address ? `${data.tip_via || ''} ${data.address} ${data.portalNumber || ''}`.trim() : undefined,
@@ -309,7 +309,7 @@ export class CartoCiudadGeocoder {
       }
 
       const response = await this.axiosInstance.get<CartoCiudadResponse[]>(
-        `${this.BASE_URL}/candidatesJsonp?${params.toString()}`
+        `${this.BASE_URL}/candidates?${params.toString()}`
       );
 
       const candidates = response.data;
