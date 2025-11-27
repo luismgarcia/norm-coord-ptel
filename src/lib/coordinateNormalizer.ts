@@ -1,19 +1,20 @@
 /**
- * PTEL Coordinate Normalizer v4.1
+ * PTEL Coordinate Normalizer v4.2
  * 
  * Sistema de normalización de coordenadas para documentos PTEL Andalucía.
- * Implementa pipeline de 14 fases con cobertura COMPLETA de 52 patrones (100%).
+ * Implementa pipeline de 16 fases con cobertura extendida: 52 patrones base + 8 nuevos.
  * 
- * NOVEDADES v4.1:
- * - E1: Proyección Lambert Conforme Cónica
- * - E3: Datum Madrid (pre-1970)
- * - E5: Referencias catastrales (detección + flag API)
- * - E6: Topónimos (detección + flag geocodificación)
- * - H1: Texto narrativo con unidades
- * - H2: Texto cardinal (Este/Norte)
+ * NOVEDADES v4.2 (Fases 1-2 investigación):
+ * - Corrección errores OCR (0↔O, 1↔l, 5↔S, etc.)
+ * - Detección sistema local/DXF sin CRS
+ * - Detección y corrección swap lon/lat en KML
+ * - Parser MGRS militar (30TVK4041 → UTM)
+ * - Validación overflow minutos/segundos ≥60
+ * - Soporte notación científica
+ * - Detección baja precisión GPS (<4 decimales)
  * 
  * @author PTEL Development Team
- * @version 4.1.0
+ * @version 4.2.0
  * @license MIT
  */
 
@@ -23,18 +24,16 @@ import proj4 from 'proj4';
 // CONFIGURACIÓN PROJ4 - SISTEMAS DE REFERENCIA
 // ============================================================================
 
-// Definir sistemas de coordenadas
-proj4.defs('EPSG:25830', '+proj=utm +zone=30 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs'); // ETRS89 UTM30
-proj4.defs('EPSG:23030', '+proj=utm +zone=30 +ellps=intl +towgs84=-87,-98,-121,0,0,0,0 +units=m +no_defs'); // ED50 UTM30
-proj4.defs('EPSG:4326', '+proj=longlat +datum=WGS84 +no_defs'); // WGS84 geográficas
-proj4.defs('EPSG:4258', '+proj=longlat +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +no_defs'); // ETRS89 geográficas
-
-// E1: Lambert Conforme Cónica (España peninsular histórica)
+proj4.defs('EPSG:25830', '+proj=utm +zone=30 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs');
+proj4.defs('EPSG:23030', '+proj=utm +zone=30 +ellps=intl +towgs84=-87,-98,-121,0,0,0,0 +units=m +no_defs');
+proj4.defs('EPSG:4326', '+proj=longlat +datum=WGS84 +no_defs');
+proj4.defs('EPSG:4258', '+proj=longlat +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +no_defs');
 proj4.defs('EPSG:2062', '+proj=lcc +lat_1=40 +lat_0=40 +lon_0=-3.68775 +k_0=0.9988085293 +x_0=600000 +y_0=600000 +ellps=intl +towgs84=-87,-98,-121,0,0,0,0 +units=m +no_defs');
-
-// E3: Datum Madrid 1870 (aproximación para conversión)
-// Nota: La transformación exacta requeriría rejilla NTv2 específica
 proj4.defs('EPSG:4903', '+proj=longlat +ellps=struve_1860 +towgs84=-87,-98,-121,0,0,0,0 +no_defs');
+
+// Zonas UTM adicionales para MGRS
+proj4.defs('EPSG:25829', '+proj=utm +zone=29 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs');
+proj4.defs('EPSG:25831', '+proj=utm +zone=31 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs');
 
 // ============================================================================
 // TIPOS Y INTERFACES
@@ -47,6 +46,7 @@ export interface CoordinateInput {
   province?: Province;
   documentYear?: number;
   rawText?: string;
+  sourceFile?: string; // Para detectar KML/DXF
 }
 
 export interface NormalizationResult {
@@ -63,6 +63,7 @@ export interface NormalizationResult {
   sourceCRS?: string;
   cadastralRef?: string;
   toponym?: string;
+  mgrsRef?: string;
 }
 
 export interface Correction {
@@ -103,6 +104,15 @@ export interface ToponymDetection {
   confidence: number;
 }
 
+export interface MGRSCoordinate {
+  zone: number;
+  band: string;
+  squareId: string;
+  easting: number;
+  northing: number;
+  precision: number;
+}
+
 export type Province = 
   | 'Almería' | 'Cádiz' | 'Córdoba' | 'Granada' 
   | 'Huelva' | 'Jaén' | 'Málaga' | 'Sevilla';
@@ -116,18 +126,25 @@ export type CorrectionType =
   | 'DMS_CONVERTED' | 'NMEA_CONVERTED' | 'WKT_PARSED' | 'GEOJSON_PARSED'
   | 'COORDS_SEPARATED' | 'ED50_TRANSFORMED' | 'WGS84_TO_UTM'
   | 'LAMBERT_TRANSFORMED' | 'MADRID_DATUM_TRANSFORMED'
-  | 'NARRATIVE_EXTRACTED' | 'CARDINAL_EXTRACTED';
+  | 'NARRATIVE_EXTRACTED' | 'CARDINAL_EXTRACTED'
+  // v4.2 nuevos
+  | 'OCR_FIXED' | 'KML_LONLAT_SWAPPED' | 'MGRS_CONVERTED'
+  | 'SCIENTIFIC_NOTATION_PARSED' | 'DMS_OVERFLOW_FIXED';
 
 export type FlagType = 
   | 'OUT_OF_RANGE' | 'MISSING_DECIMALS' | 'SUSPICIOUS_VALUE' 
   | 'GEOCODING_NEEDED' | 'MANUAL_REVIEW' | 'HEURISTIC_APPLIED'
   | 'ED50_DETECTED' | 'GEOGRAPHIC_COORDS' | 'FORMAT_DETECTED'
   | 'LAMBERT_DETECTED' | 'MADRID_DATUM_DETECTED'
-  | 'CADASTRAL_REFERENCE' | 'TOPONYM_DETECTED';
+  | 'CADASTRAL_REFERENCE' | 'TOPONYM_DETECTED'
+  // v4.2 nuevos
+  | 'OCR_ERRORS_DETECTED' | 'LOCAL_SYSTEM_DETECTED' | 'KML_FORMAT_DETECTED'
+  | 'MGRS_DETECTED' | 'LOW_PRECISION_GPS' | 'DMS_OVERFLOW_DETECTED';
 
 export type SourceFormat = 
   | 'UTM' | 'DMS' | 'DD' | 'NMEA' | 'WKT' | 'GEOJSON' | 'PEGADA' 
-  | 'LAMBERT' | 'MADRID_DATUM' | 'CADASTRAL' | 'TOPONYM' | 'NARRATIVE' | 'UNKNOWN';
+  | 'LAMBERT' | 'MADRID_DATUM' | 'CADASTRAL' | 'TOPONYM' | 'NARRATIVE'
+  | 'MGRS' | 'LOCAL_SYSTEM' | 'UNKNOWN';
 
 // ============================================================================
 // CONFIGURACIÓN Y CONSTANTES
@@ -143,7 +160,11 @@ export const ANDALUSIA_GEOGRAPHIC_BOUNDS = {
   lon: { min: -7.55, max: -1.60 }
 };
 
-/** Rangos para Lambert Conforme Cónica (España) */
+export const SPAIN_GEOGRAPHIC_BOUNDS = {
+  lat: { min: 35.0, max: 44.0 },
+  lon: { min: -10.0, max: 5.0 }
+};
+
 export const LAMBERT_BOUNDS = {
   x: { min: 0, max: 1_200_000 },
   y: { min: 0, max: 1_200_000 }
@@ -159,6 +180,51 @@ export const PROVINCE_Y_PREFIXES: Record<Province, string[]> = {
   'Málaga': ['40', '41'],
   'Sevilla': ['41', '42']
 };
+
+// ============================================================================
+// v4.2: DICCIONARIO OCR - Corrección de errores de escaneo
+// ============================================================================
+
+/**
+ * Diccionario de correcciones OCR: letra confundida → dígito correcto
+ * Basado en confusiones típicas de reconocimiento óptico de caracteres
+ */
+const OCR_CORRECTIONS: Record<string, string> = {
+  'O': '0', 'o': '0',           // O mayúscula/minúscula → 0
+  'l': '1', 'I': '1', 'i': '1', // l, I, i → 1
+  'S': '5', 's': '5',           // S → 5
+  'G': '6',                      // G → 6 (menos común)
+  'B': '8', 'b': '8',           // B → 8
+  'Z': '2', 'z': '2',           // Z → 2 (en algunos fonts)
+  'q': '9',                      // q → 9 (confusión de cola)
+  'D': '0',                      // D → 0
+  '°': '',                       // Símbolo grado residual
+  'º': '',                       // Ordinal masculino
+  'ª': '',                       // Ordinal femenino
+};
+
+/**
+ * Regex para detectar letras mezcladas con dígitos (indicador de error OCR)
+ */
+const OCR_ERROR_PATTERN = /\d+[OolIiSsGgBbZzDqª°º]+\d*|\d*[OolIiSsGgBbZzDqª°º]+\d+/;
+
+// ============================================================================
+// v4.2: CUADRÍCULA MGRS - Military Grid Reference System
+// ============================================================================
+
+/**
+ * Letras de banda MGRS para España (latitudes 36°N - 44°N)
+ */
+const MGRS_BANDS_SPAIN = ['S', 'T', 'U']; // S: 32-40°N, T: 40-48°N
+
+/**
+ * Cuadrículas de 100km para zonas UTM 29, 30, 31 en España
+ */
+const MGRS_GRID_LETTERS = 'ABCDEFGHJKLMNPQRSTUVWXYZ'; // Sin I y O
+
+// ============================================================================
+// PATRONES DE DETECCIÓN
+// ============================================================================
 
 const PLACEHOLDER_PATTERNS = [
   /^[Nn]\/[DdAa]$/,
@@ -200,11 +266,305 @@ const SEPARATOR_PATTERNS: [RegExp, string, string][] = [
 ];
 
 // ============================================================================
-// PARSERS DE FORMATOS ESPECIALES (existentes v4.0)
+// FUNCIONES v4.2: CORRECCIÓN OCR
+// ============================================================================
+
+/**
+ * v4.2: Detecta si una cadena tiene posibles errores OCR
+ */
+export function hasOCRErrors(value: string): boolean {
+  return OCR_ERROR_PATTERN.test(value);
+}
+
+/**
+ * v4.2: Corrige errores OCR en una cadena numérica
+ * @returns Objeto con valor corregido y lista de correcciones aplicadas
+ */
+export function fixOCRErrors(value: string): { fixed: string; corrections: string[] } {
+  const corrections: string[] = [];
+  let fixed = value;
+  
+  for (const [letter, digit] of Object.entries(OCR_CORRECTIONS)) {
+    if (fixed.includes(letter)) {
+      const count = (fixed.match(new RegExp(letter, 'g')) || []).length;
+      fixed = fixed.split(letter).join(digit);
+      corrections.push(`${letter}→${digit} (×${count})`);
+    }
+  }
+  
+  return { fixed, corrections };
+}
+
+// ============================================================================
+// FUNCIONES v4.2: DETECCIÓN SISTEMA LOCAL (DXF/CAD)
+// ============================================================================
+
+/**
+ * v4.2: Detecta si las coordenadas parecen ser de un sistema local (sin CRS)
+ * Típico en ficheros DXF/AutoCAD donde el origen es arbitrario
+ */
+export function mightBeLocalSystem(x: number, y: number): boolean {
+  // Sistema local típico: valores pequeños (<10.000) para ambas coordenadas
+  // O valores negativos (origen desplazado)
+  const isSmallX = Math.abs(x) < 10000;
+  const isSmallY = Math.abs(y) < 10000;
+  const isNegative = x < 0 || y < 0;
+  
+  // Si ambas son pequeñas o hay negativos sospechosos, probablemente es local
+  return (isSmallX && isSmallY) || (isNegative && Math.abs(x) < 100000);
+}
+
+/**
+ * v4.2: Detecta si el archivo fuente es DXF/DWG
+ */
+export function isDXFSource(sourceFile?: string): boolean {
+  if (!sourceFile) return false;
+  const ext = sourceFile.toLowerCase();
+  return ext.endsWith('.dxf') || ext.endsWith('.dwg') || ext.endsWith('.dgn');
+}
+
+// ============================================================================
+// FUNCIONES v4.2: DETECCIÓN KML Y SWAP LON/LAT
+// ============================================================================
+
+/**
+ * v4.2: Detecta si las coordenadas vienen de KML y necesitan swap
+ * KML usa orden [lon, lat], opuesto a la convención habitual [lat, lon]
+ */
+export function detectKMLLonLatSwap(x: number, y: number): boolean {
+  // Si X está en rango de longitud de España (-10 a +5) y
+  // Y está en rango de latitud de España (35 a 44) → están en orden correcto (lon, lat)
+  // Pero si están al revés, necesitamos swap
+  
+  const xIsLongitude = x >= -10 && x <= 5;
+  const yIsLatitude = y >= 35 && y <= 44;
+  
+  const xIsLatitude = x >= 35 && x <= 44;
+  const yIsLongitude = y >= -10 && y <= 5;
+  
+  // Si X parece latitud y Y parece longitud → necesita swap
+  return xIsLatitude && yIsLongitude;
+}
+
+/**
+ * v4.2: Detecta si el archivo fuente es KML/KMZ
+ */
+export function isKMLSource(sourceFile?: string): boolean {
+  if (!sourceFile) return false;
+  const ext = sourceFile.toLowerCase();
+  return ext.endsWith('.kml') || ext.endsWith('.kmz');
+}
+
+// ============================================================================
+// FUNCIONES v4.2: PARSER MGRS (Military Grid Reference System)
+// ============================================================================
+
+/**
+ * v4.2: Parser de coordenadas MGRS
+ * Formato: GGBKKEEEEENNNNN donde:
+ * - GG: Zona UTM (29, 30, 31 para España)
+ * - B: Banda de latitud (S, T para España peninsular)
+ * - KK: Identificador de cuadrícula 100km
+ * - EEEEE/NNNNN: Easting/Northing (precisión variable)
+ * 
+ * Ejemplos: 30TVK4041 (1km), 30TVK40854123 (10m)
+ */
+export function parseMGRS(value: string): MGRSCoordinate | null {
+  const v = value.trim().toUpperCase().replace(/\s+/g, '');
+  
+  // Regex: zona(2) + banda(1) + cuadrícula(2) + coordenadas(2-10 pares)
+  const mgrsMatch = v.match(/^(\d{1,2})([C-X])([A-HJ-NP-Z]{2})(\d{2,10})$/);
+  
+  if (!mgrsMatch) return null;
+  
+  const zone = parseInt(mgrsMatch[1]);
+  const band = mgrsMatch[2];
+  const squareId = mgrsMatch[3];
+  const coords = mgrsMatch[4];
+  
+  // Validar zona para España
+  if (zone < 29 || zone > 31) return null;
+  
+  // Validar banda para España peninsular
+  if (!MGRS_BANDS_SPAIN.includes(band)) return null;
+  
+  // Coordenadas deben ser pares (mitad easting, mitad northing)
+  if (coords.length % 2 !== 0) return null;
+  
+  const halfLen = coords.length / 2;
+  const eastingStr = coords.slice(0, halfLen);
+  const northingStr = coords.slice(halfLen);
+  
+  // Calcular precisión basada en dígitos
+  // 2 dígitos = 10km, 4 = 1km, 6 = 100m, 8 = 10m, 10 = 1m
+  const precision = Math.pow(10, 5 - halfLen);
+  
+  // Expandir a coordenadas completas de cuadrícula
+  const easting = parseInt(eastingStr) * precision;
+  const northing = parseInt(northingStr) * precision;
+  
+  return {
+    zone,
+    band,
+    squareId,
+    easting,
+    northing,
+    precision
+  };
+}
+
+/**
+ * v4.2: Convierte MGRS a UTM
+ * Nota: Conversión simplificada para España peninsular
+ */
+export function convertMGRStoUTM(mgrs: MGRSCoordinate): { x: number; y: number; zone: number } {
+  // Obtener offset de la cuadrícula 100km
+  // Esta es una implementación simplificada
+  const col = MGRS_GRID_LETTERS.indexOf(mgrs.squareId[0]);
+  const row = MGRS_GRID_LETTERS.indexOf(mgrs.squareId[1]);
+  
+  // Calcular easting base (columna * 100km + offset de zona)
+  // Para zona 30 en España, el falso easting es 500km
+  const eastingBase = ((col % 8) + 1) * 100000;
+  
+  // Calcular northing base (más complejo, depende de banda)
+  // Para banda S (36-40°N), el northing base aproximado es 4.000.000
+  // Para banda T (40-48°N), incrementa en ~900km por banda
+  let northingBase = 0;
+  if (mgrs.band === 'S') northingBase = 4000000;
+  else if (mgrs.band === 'T') northingBase = 4400000;
+  else if (mgrs.band === 'U') northingBase = 4800000;
+  
+  // Ajustar por fila dentro de la banda
+  northingBase += (row % 20) * 100000;
+  
+  const x = eastingBase + mgrs.easting;
+  const y = northingBase + mgrs.northing;
+  
+  return { x, y, zone: mgrs.zone };
+}
+
+// ============================================================================
+// FUNCIONES v4.2: VALIDACIÓN DMS OVERFLOW
+// ============================================================================
+
+/**
+ * v4.2: Detecta si los minutos o segundos DMS son ≥60 (error de conversión)
+ */
+export function detectDMSOverflow(value: string): { hasOverflow: boolean; type: 'minutes' | 'seconds' | null } {
+  // Buscar minutos ≥60
+  const minutesMatch = value.match(/[°º]\s*(\d+)[''′]/);
+  if (minutesMatch) {
+    const minutes = parseInt(minutesMatch[1]);
+    if (minutes >= 60) {
+      return { hasOverflow: true, type: 'minutes' };
+    }
+  }
+  
+  // Buscar segundos ≥60
+  const secondsMatch = value.match(/[''′]\s*(\d+(?:\.\d+)?)[""″]/);
+  if (secondsMatch) {
+    const seconds = parseFloat(secondsMatch[1]);
+    if (seconds >= 60) {
+      return { hasOverflow: true, type: 'seconds' };
+    }
+  }
+  
+  return { hasOverflow: false, type: null };
+}
+
+/**
+ * v4.2: Corrige overflow de minutos/segundos DMS
+ */
+export function fixDMSOverflow(degrees: number, minutes: number, seconds: number): {
+  degrees: number;
+  minutes: number;
+  seconds: number;
+  wasFixed: boolean;
+} {
+  let d = degrees;
+  let m = minutes;
+  let s = seconds;
+  let wasFixed = false;
+  
+  // Corregir segundos ≥60
+  if (s >= 60) {
+    const extraMinutes = Math.floor(s / 60);
+    s = s % 60;
+    m += extraMinutes;
+    wasFixed = true;
+  }
+  
+  // Corregir minutos ≥60
+  if (m >= 60) {
+    const extraDegrees = Math.floor(m / 60);
+    m = m % 60;
+    d += extraDegrees;
+    wasFixed = true;
+  }
+  
+  return { degrees: d, minutes: m, seconds: s, wasFixed };
+}
+
+// ============================================================================
+// FUNCIONES v4.2: NOTACIÓN CIENTÍFICA
+// ============================================================================
+
+/**
+ * v4.2: Detecta y parsea notación científica
+ * Ejemplo: 3.888889E-02 = 0.0388889
+ */
+export function parseScientificNotation(value: string): number | null {
+  const v = value.trim();
+  
+  // Patrón: número con exponente
+  const sciMatch = v.match(/^(-?\d+\.?\d*)[eE]([+-]?\d+)$/);
+  
+  if (sciMatch) {
+    const mantissa = parseFloat(sciMatch[1]);
+    const exponent = parseInt(sciMatch[2]);
+    return mantissa * Math.pow(10, exponent);
+  }
+  
+  return null;
+}
+
+/**
+ * v4.2: Detecta si el valor está en notación científica
+ */
+export function isScientificNotation(value: string): boolean {
+  return /^-?\d+\.?\d*[eE][+-]?\d+$/.test(value.trim());
+}
+
+// ============================================================================
+// FUNCIONES v4.2: PRECISIÓN GPS
+// ============================================================================
+
+/**
+ * v4.2: Detecta coordenadas geográficas con baja precisión (<4 decimales)
+ * Menos de 4 decimales = precisión >11m (insuficiente para emergencias)
+ */
+export function detectLowPrecisionGPS(value: number, originalStr: string): boolean {
+  // Si es coordenada geográfica (entre -180 y 180)
+  if (Math.abs(value) > 180) return false;
+  
+  // Contar decimales en string original
+  const decimalMatch = originalStr.match(/\.(\d+)/);
+  if (!decimalMatch) return true; // Sin decimales = muy baja precisión
+  
+  const decimals = decimalMatch[1].length;
+  return decimals < 4;
+}
+
+// ============================================================================
+// PARSERS EXISTENTES (v4.1)
 // ============================================================================
 
 export function parseDMS(value: string): { decimal: number; direction: string } | null {
   const v = value.trim();
+  
+  // Primero verificar overflow
+  const overflow = detectDMSOverflow(v);
   
   const ddMatch = v.match(/^(-?\d{1,3}\.\d+)[°º]?\s*([NSEW])?$/i);
   if (ddMatch) {
@@ -217,8 +577,16 @@ export function parseDMS(value: string): { decimal: number; direction: string } 
   const dmMatch = v.match(/^(-?\d{1,3})[°º]\s*(\d{1,2}\.\d+)[''′]\s*([NSEW])?$/i);
   if (dmMatch) {
     const deg = parseFloat(dmMatch[1]);
-    const min = parseFloat(dmMatch[2]);
+    let min = parseFloat(dmMatch[2]);
     const dir = dmMatch[3]?.toUpperCase() || '';
+    
+    // Corregir overflow de minutos
+    if (min >= 60) {
+      const fixed = fixDMSOverflow(Math.abs(deg), min, 0);
+      const decimal = fixed.degrees + (fixed.minutes / 60);
+      return { decimal: deg < 0 || dir === 'S' || dir === 'W' ? -decimal : decimal, direction: dir };
+    }
+    
     let decimal = Math.abs(deg) + (min / 60);
     if (deg < 0 || dir === 'S' || dir === 'W') decimal = -decimal;
     return { decimal, direction: dir };
@@ -227,9 +595,17 @@ export function parseDMS(value: string): { decimal: number; direction: string } 
   const dmsSymbolMatch = v.match(/^(-?\d{1,3})[°º]\s*(\d{1,2})[''′]\s*(\d{1,2}(?:\.\d+)?)[""″\\"]?\s*([NSEW])?$/i);
   if (dmsSymbolMatch) {
     const deg = parseFloat(dmsSymbolMatch[1]);
-    const min = parseFloat(dmsSymbolMatch[2]);
-    const sec = parseFloat(dmsSymbolMatch[3]);
+    let min = parseFloat(dmsSymbolMatch[2]);
+    let sec = parseFloat(dmsSymbolMatch[3]);
     const dir = dmsSymbolMatch[4]?.toUpperCase() || '';
+    
+    // Corregir overflow
+    if (min >= 60 || sec >= 60) {
+      const fixed = fixDMSOverflow(Math.abs(deg), min, sec);
+      const decimal = fixed.degrees + (fixed.minutes / 60) + (fixed.seconds / 3600);
+      return { decimal: deg < 0 || dir === 'S' || dir === 'W' ? -decimal : decimal, direction: dir };
+    }
+    
     let decimal = Math.abs(deg) + (min / 60) + (sec / 3600);
     if (deg < 0 || dir === 'S' || dir === 'W') decimal = -decimal;
     return { decimal, direction: dir };
@@ -238,9 +614,16 @@ export function parseDMS(value: string): { decimal: number; direction: string } 
   const dmsSpaceMatch = v.match(/^(-?\d{1,3})\s+(\d{1,2})\s+(\d{1,2}(?:\.\d+)?)\s*([NSEW])?$/i);
   if (dmsSpaceMatch) {
     const deg = parseFloat(dmsSpaceMatch[1]);
-    const min = parseFloat(dmsSpaceMatch[2]);
-    const sec = parseFloat(dmsSpaceMatch[3]);
+    let min = parseFloat(dmsSpaceMatch[2]);
+    let sec = parseFloat(dmsSpaceMatch[3]);
     const dir = dmsSpaceMatch[4]?.toUpperCase() || '';
+    
+    if (min >= 60 || sec >= 60) {
+      const fixed = fixDMSOverflow(Math.abs(deg), min, sec);
+      const decimal = fixed.degrees + (fixed.minutes / 60) + (fixed.seconds / 3600);
+      return { decimal: deg < 0 || dir === 'S' || dir === 'W' ? -decimal : decimal, direction: dir };
+    }
+    
     let decimal = Math.abs(deg) + (min / 60) + (sec / 3600);
     if (deg < 0 || dir === 'S' || dir === 'W') decimal = -decimal;
     return { decimal, direction: dir };
@@ -249,9 +632,16 @@ export function parseDMS(value: string): { decimal: number; direction: string } 
   const dmsHyphenMatch = v.match(/^(-?\d{1,3})-(\d{1,2})-(\d{1,2}(?:\.\d+)?)\s*([NSEW])?$/i);
   if (dmsHyphenMatch) {
     const deg = parseFloat(dmsHyphenMatch[1]);
-    const min = parseFloat(dmsHyphenMatch[2]);
-    const sec = parseFloat(dmsHyphenMatch[3]);
+    let min = parseFloat(dmsHyphenMatch[2]);
+    let sec = parseFloat(dmsHyphenMatch[3]);
     const dir = dmsHyphenMatch[4]?.toUpperCase() || '';
+    
+    if (min >= 60 || sec >= 60) {
+      const fixed = fixDMSOverflow(Math.abs(deg), min, sec);
+      const decimal = fixed.degrees + (fixed.minutes / 60) + (fixed.seconds / 3600);
+      return { decimal: deg < 0 || dir === 'S' || dir === 'W' ? -decimal : decimal, direction: dir };
+    }
+    
     let decimal = Math.abs(deg) + (min / 60) + (sec / 3600);
     if (deg < 0 || dir === 'S' || dir === 'W') decimal = -decimal;
     return { decimal, direction: dir };
@@ -381,95 +771,47 @@ export function parseLabeledCoordinates(value: string): { x: number; y: number }
   return null;
 }
 
-// ============================================================================
-// NUEVOS PARSERS v4.1 - PATRONES E1, E3, E5, E6, H1, H2
-// ============================================================================
-
-/**
- * E5: Parser de Referencias Catastrales
- * Formato: 14 dígitos + 2 letras + 4 dígitos + 1 letra = 21 caracteres
- * Ejemplo: "1234567VK1234N0001FG" o "1234567VK1234N"
- */
 export function parseCadastralReference(value: string): CadastralReference | null {
   const v = value.trim().toUpperCase();
-  
-  // Referencia catastral completa (20 caracteres) o parcial (14 caracteres)
-  // Formato: DDDDDDDLLDDDDL (7 dígitos + 2 letras + 4 dígitos + 1 letra) = 14 caracteres mínimo
   const cadastralMatch = v.match(/^(\d{7})([A-Z]{2})(\d{4})([A-Z])(\d{4})?([A-Z]{2})?$/);
-  
   if (cadastralMatch) {
-    return {
-      reference: v,
-      isValid: true
-    };
+    return { reference: v, isValid: true };
   }
-  
-  // Formato alternativo más flexible
   const flexMatch = v.match(/^\d{5,7}[A-Z]{1,2}\d{3,5}[A-Z]?/);
   if (flexMatch) {
-    return {
-      reference: flexMatch[0],
-      isValid: true
-    };
+    return { reference: flexMatch[0], isValid: true };
   }
-  
   return null;
 }
 
-/**
- * E6: Detector de Topónimos
- * Detecta nombres de lugares que requieren geocodificación
- */
 export function detectToponym(value: string): ToponymDetection | null {
   const v = value.trim();
-  
-  // Ignorar si parece ser un número o coordenada
   if (/^[\d\s.,´'-]+$/.test(v)) return null;
   if (/^[NSEW\d°'"]+$/i.test(v)) return null;
   
-  // Patrones de topónimos
   const patterns = [
-    // Calles y vías
     { regex: /^(C\/|Calle|Avda\.?|Avenida|Plaza|Pza\.?|Paseo|Camino|Ctra\.?|Carretera)\s+.+/i, type: 'via' as const, confidence: 95 },
-    // Poblaciones con prefijo
     { regex: /^(Barrio|Barriada|Urbanización|Urb\.?|Polígono|Pol\.?)\s+.+/i, type: 'poblacion' as const, confidence: 90 },
-    // Parajes y lugares
     { regex: /^(Paraje|Cortijo|Finca|Hacienda|Venta|Molino|Ermita)\s+.+/i, type: 'paraje' as const, confidence: 85 },
-    // Municipios (si es solo texto sin números)
     { regex: /^[A-ZÁÉÍÓÚÑ][a-záéíóúñ]+(\s+[A-ZÁÉÍÓÚÑ]?[a-záéíóúñ]+)*$/u, type: 'municipio' as const, confidence: 60 }
   ];
   
   for (const p of patterns) {
     if (p.regex.test(v)) {
-      return {
-        toponym: v,
-        type: p.type,
-        confidence: p.confidence
-      };
+      return { toponym: v, type: p.type, confidence: p.confidence };
     }
   }
   
-  // Si tiene más de 3 caracteres alfabéticos y no parece coordenada
   if (v.length > 3 && /^[A-Za-záéíóúñÁÉÍÓÚÑ\s]+$/.test(v)) {
-    return {
-      toponym: v,
-      type: 'unknown',
-      confidence: 40
-    };
+    return { toponym: v, type: 'unknown', confidence: 40 };
   }
   
   return null;
 }
 
-/**
- * H1: Parser de Texto Narrativo con Coordenadas
- * Ejemplos: "Coordenadas: X=504750m, Y=4077905m"
- *           "Las coordenadas UTM son X: 504750 e Y: 4077905"
- */
 export function parseNarrativeCoordinates(value: string): { x: number; y: number } | null {
   const v = value.trim();
   
-  // Patrón 1: "Coordenadas: X=504750m, Y=4077905m" o similar
   const pattern1 = v.match(/X\s*[=:]\s*(\d+[\d.,]*)\s*m?\s*[,;/y]\s*Y\s*[=:]\s*(\d+[\d.,]*)\s*m?/i);
   if (pattern1) {
     const x = parseFloat(pattern1[1].replace(/\./g, '').replace(',', '.'));
@@ -477,7 +819,6 @@ export function parseNarrativeCoordinates(value: string): { x: number; y: number
     if (!isNaN(x) && !isNaN(y)) return { x, y };
   }
   
-  // Patrón 2: "Y=4077905m, X=504750m" (orden inverso)
   const pattern2 = v.match(/Y\s*[=:]\s*(\d+[\d.,]*)\s*m?\s*[,;/y]\s*X\s*[=:]\s*(\d+[\d.,]*)\s*m?/i);
   if (pattern2) {
     const y = parseFloat(pattern2[1].replace(/\./g, '').replace(',', '.'));
@@ -485,7 +826,6 @@ export function parseNarrativeCoordinates(value: string): { x: number; y: number
     if (!isNaN(x) && !isNaN(y)) return { x, y };
   }
   
-  // Patrón 3: "UTM X 504750 Y 4077905" 
   const pattern3 = v.match(/UTM\s+X\s*[=:]?\s*(\d+[\d.,]*)\s+Y\s*[=:]?\s*(\d+[\d.,]*)/i);
   if (pattern3) {
     const x = parseFloat(pattern3[1].replace(/\./g, '').replace(',', '.'));
@@ -493,13 +833,11 @@ export function parseNarrativeCoordinates(value: string): { x: number; y: number
     if (!isNaN(x) && !isNaN(y)) return { x, y };
   }
   
-  // Patrón 4: "(504750, 4077905)" o "[504750, 4077905]"
   const pattern4 = v.match(/[\[(]\s*(\d+[\d.,]*)\s*[,;]\s*(\d+[\d.,]*)\s*[\])]/);
   if (pattern4) {
     const first = parseFloat(pattern4[1].replace(/\./g, '').replace(',', '.'));
     const second = parseFloat(pattern4[2].replace(/\./g, '').replace(',', '.'));
     if (!isNaN(first) && !isNaN(second)) {
-      // Determinar cuál es X y cuál es Y por magnitud
       if (first > 1000000) return { x: second, y: first };
       return { x: first, y: second };
     }
@@ -508,15 +846,9 @@ export function parseNarrativeCoordinates(value: string): { x: number; y: number
   return null;
 }
 
-/**
- * H2: Parser de Texto Cardinal
- * Ejemplos: "Este: 504.750 / Norte: 4.077.905"
- *           "Coordenada Este 504750, Coordenada Norte 4077905"
- */
 export function parseCardinalCoordinates(value: string): { x: number; y: number } | null {
   const v = value.trim();
   
-  // Patrón 1: "Este: 504.750 / Norte: 4.077.905"
   const pattern1 = v.match(/Este\s*[=:]\s*([\d.,\s]+)\s*[\/,;]\s*Norte\s*[=:]\s*([\d.,\s]+)/i);
   if (pattern1) {
     const x = parseFloat(pattern1[1].replace(/[\s.]/g, '').replace(',', '.'));
@@ -524,7 +856,6 @@ export function parseCardinalCoordinates(value: string): { x: number; y: number 
     if (!isNaN(x) && !isNaN(y)) return { x, y };
   }
   
-  // Patrón 2: "Norte: 4.077.905 / Este: 504.750" (orden inverso)
   const pattern2 = v.match(/Norte\s*[=:]\s*([\d.,\s]+)\s*[\/,;]\s*Este\s*[=:]\s*([\d.,\s]+)/i);
   if (pattern2) {
     const y = parseFloat(pattern2[1].replace(/[\s.]/g, '').replace(',', '.'));
@@ -532,7 +863,6 @@ export function parseCardinalCoordinates(value: string): { x: number; y: number 
     if (!isNaN(x) && !isNaN(y)) return { x, y };
   }
   
-  // Patrón 3: "E: 504750 N: 4077905" (abreviado)
   const pattern3 = v.match(/E\s*[=:]\s*([\d.,\s]+)\s*[,;/]\s*N\s*[=:]\s*([\d.,\s]+)/i);
   if (pattern3) {
     const x = parseFloat(pattern3[1].replace(/[\s.]/g, '').replace(',', '.'));
@@ -540,7 +870,6 @@ export function parseCardinalCoordinates(value: string): { x: number; y: number 
     if (!isNaN(x) && !isNaN(y)) return { x, y };
   }
   
-  // Patrón 4: "Easting: 504750, Northing: 4077905" (inglés)
   const pattern4 = v.match(/Easting\s*[=:]\s*([\d.,\s]+)\s*[,;/]\s*Northing\s*[=:]\s*([\d.,\s]+)/i);
   if (pattern4) {
     const x = parseFloat(pattern4[1].replace(/[\s.]/g, '').replace(',', '.'));
@@ -573,36 +902,20 @@ export function transformWGS84toUTM30(lon: number, lat: number): { x: number; y:
   }
 }
 
-/**
- * E1: Transforma coordenadas Lambert Conforme Cónica a UTM30 ETRS89
- */
 export function transformLambertToETRS89(x: number, y: number): { x: number; y: number } {
   try {
     const result = proj4('EPSG:2062', 'EPSG:25830', [x, y]);
     return { x: result[0], y: result[1] };
   } catch {
-    // Aproximación si falla proj4
-    // Offset típico Lambert→UTM en Andalucía central
     return { x: x - 200000, y: y + 3400000 };
   }
 }
 
-/**
- * E3: Transforma coordenadas Datum Madrid a UTM30 ETRS89
- * Nota: Transformación aproximada, precisión ~5-10m
- */
 export function transformMadridDatumToETRS89(x: number, y: number): { x: number; y: number } {
-  // El Datum Madrid usaba el meridiano de Madrid como origen
-  // Diferencia Madrid-Greenwich: 3° 41' 16.58" W = -3.6879° aprox
-  // Aplicamos transformación similar a ED50 con ajuste adicional
   try {
-    // Primero convertimos asumiendo que son coordenadas geográficas en Datum Madrid
-    // y las transformamos a ETRS89
     const result = proj4('EPSG:23030', 'EPSG:25830', [x, y]);
-    // Aplicar corrección adicional para Datum Madrid (~50m más que ED50)
     return { x: result[0] - 50, y: result[1] - 50 };
   } catch {
-    // Aproximación manual
     return { x: x - 160, y: y - 258 };
   }
 }
@@ -613,18 +926,11 @@ export function isGeographic(x: number, y: number): boolean {
   return isLat && isLon;
 }
 
-/**
- * E1: Detecta si las coordenadas podrían ser Lambert
- */
 export function mightBeLambert(x: number, y: number): boolean {
-  // Lambert en España tiene rangos específicos
   return x >= 0 && x <= 1200000 && y >= 0 && y <= 1200000 &&
-         !(x >= 100000 && x <= 800000 && y >= 3900000); // Excluir UTM válido
+         !(x >= 100000 && x <= 800000 && y >= 3900000);
 }
 
-/**
- * E3: Detecta si el documento podría usar Datum Madrid
- */
 export function mightBeMadridDatum(documentYear?: number): boolean {
   if (!documentYear) return false;
   return documentYear < 1970;
@@ -636,7 +942,7 @@ export function mightBeED50(documentYear?: number): boolean {
 }
 
 // ============================================================================
-// FUNCIÓN PRINCIPAL DE NORMALIZACIÓN v4.1
+// FUNCIÓN PRINCIPAL DE NORMALIZACIÓN v4.2
 // ============================================================================
 
 export function normalizeCoordinate(input: CoordinateInput): NormalizationResult {
@@ -647,22 +953,85 @@ export function normalizeCoordinate(input: CoordinateInput): NormalizationResult
   let sourceCRS: string | undefined;
   let cadastralRef: string | undefined;
   let toponym: string | undefined;
+  let mgrsRef: string | undefined;
+  
+  // ═══════════════════════════════════════════════════════════════════════════
+  // FASE -1 (v4.2): Corrección de errores OCR
+  // ═══════════════════════════════════════════════════════════════════════════
+  let xStr = String(input.x).trim();
+  let yStr = String(input.y).trim();
+  
+  if (hasOCRErrors(xStr)) {
+    const ocrFix = fixOCRErrors(xStr);
+    if (ocrFix.corrections.length > 0) {
+      corrections.push({
+        type: 'OCR_FIXED', field: 'x',
+        from: xStr, to: ocrFix.fixed,
+        pattern: `OCR: ${ocrFix.corrections.join(', ')}`, priority: 'P0'
+      });
+      flags.push({
+        type: 'OCR_ERRORS_DETECTED', severity: 'warning',
+        message: `Errores OCR corregidos en X: ${ocrFix.corrections.join(', ')}`
+      });
+      input.x = ocrFix.fixed;
+      xStr = ocrFix.fixed;
+    }
+  }
+  
+  if (hasOCRErrors(yStr)) {
+    const ocrFix = fixOCRErrors(yStr);
+    if (ocrFix.corrections.length > 0) {
+      corrections.push({
+        type: 'OCR_FIXED', field: 'y',
+        from: yStr, to: ocrFix.fixed,
+        pattern: `OCR: ${ocrFix.corrections.join(', ')}`, priority: 'P0'
+      });
+      flags.push({
+        type: 'OCR_ERRORS_DETECTED', severity: 'warning',
+        message: `Errores OCR corregidos en Y: ${ocrFix.corrections.join(', ')}`
+      });
+      input.y = ocrFix.fixed;
+      yStr = ocrFix.fixed;
+    }
+  }
   
   // ═══════════════════════════════════════════════════════════════════════════
   // FASE 0: Detectar formatos especiales en rawText
   // ═══════════════════════════════════════════════════════════════════════════
   if (input.rawText) {
-    // Intentar WKT
-    const wktResult = parseWKT(input.rawText);
-    if (wktResult) {
-      sourceFormat = 'WKT';
+    // v4.2: Intentar MGRS
+    const mgrsResult = parseMGRS(input.rawText);
+    if (mgrsResult) {
+      sourceFormat = 'MGRS';
+      mgrsRef = input.rawText.trim().toUpperCase();
+      const utm = convertMGRStoUTM(mgrsResult);
       corrections.push({
-        type: 'WKT_PARSED', field: 'both',
-        from: input.rawText, to: `X=${wktResult.x}, Y=${wktResult.y}`,
-        pattern: 'WKT_POINT', priority: 'P1'
+        type: 'MGRS_CONVERTED', field: 'both',
+        from: input.rawText, to: `X=${utm.x}, Y=${utm.y} (zona ${utm.zone})`,
+        pattern: 'MGRS_TO_UTM', priority: 'P1'
       });
-      input.x = wktResult.x;
-      input.y = wktResult.y;
+      flags.push({
+        type: 'MGRS_DETECTED', severity: 'info',
+        message: `Coordenada MGRS detectada: ${mgrsRef} (precisión ${mgrsResult.precision}m)`,
+        data: { mgrs: mgrsRef, precision: mgrsResult.precision }
+      });
+      input.x = utm.x;
+      input.y = utm.y;
+    }
+    
+    // Intentar WKT
+    if (sourceFormat === 'UNKNOWN') {
+      const wktResult = parseWKT(input.rawText);
+      if (wktResult) {
+        sourceFormat = 'WKT';
+        corrections.push({
+          type: 'WKT_PARSED', field: 'both',
+          from: input.rawText, to: `X=${wktResult.x}, Y=${wktResult.y}`,
+          pattern: 'WKT_POINT', priority: 'P1'
+        });
+        input.x = wktResult.x;
+        input.y = wktResult.y;
+      }
     }
     
     // Intentar GeoJSON
@@ -745,7 +1114,7 @@ export function normalizeCoordinate(input: CoordinateInput): NormalizationResult
         cadastralRef = cadastralResult.reference;
         flags.push({
           type: 'CADASTRAL_REFERENCE', severity: 'warning',
-          message: `Referencia catastral detectada: ${cadastralResult.reference}. Requiere API Catastro para geocodificación.`,
+          message: `Referencia catastral detectada: ${cadastralResult.reference}. Requiere API Catastro.`,
           data: { reference: cadastralResult.reference }
         });
         flags.push({
@@ -785,6 +1154,35 @@ export function normalizeCoordinate(input: CoordinateInput): NormalizationResult
   }
   
   // ═══════════════════════════════════════════════════════════════════════════
+  // FASE 0b (v4.2): Notación científica
+  // ═══════════════════════════════════════════════════════════════════════════
+  if (isScientificNotation(xStr)) {
+    const sciValue = parseScientificNotation(xStr);
+    if (sciValue !== null) {
+      corrections.push({
+        type: 'SCIENTIFIC_NOTATION_PARSED', field: 'x',
+        from: xStr, to: String(sciValue),
+        pattern: 'SCIENTIFIC', priority: 'P1'
+      });
+      input.x = sciValue;
+      xStr = String(sciValue);
+    }
+  }
+  
+  if (isScientificNotation(yStr)) {
+    const sciValue = parseScientificNotation(yStr);
+    if (sciValue !== null) {
+      corrections.push({
+        type: 'SCIENTIFIC_NOTATION_PARSED', field: 'y',
+        from: yStr, to: String(sciValue),
+        pattern: 'SCIENTIFIC', priority: 'P1'
+      });
+      input.y = sciValue;
+      yStr = String(sciValue);
+    }
+  }
+  
+  // ═══════════════════════════════════════════════════════════════════════════
   // FASE 1: Detectar placeholders
   // ═══════════════════════════════════════════════════════════════════════════
   const xPlaceholder = isPlaceholder(input.x);
@@ -819,16 +1217,24 @@ export function normalizeCoordinate(input: CoordinateInput): NormalizationResult
   }
   
   // ═══════════════════════════════════════════════════════════════════════════
-  // FASE 2: Intentar parsear como DMS
+  // FASE 2: Intentar parsear como DMS (con corrección overflow v4.2)
   // ═══════════════════════════════════════════════════════════════════════════
-  const xStr = String(input.x).trim();
-  const yStr = String(input.y).trim();
-  
   const xDMS = parseDMS(xStr);
   const yDMS = parseDMS(yStr);
   
   if (xDMS && yDMS) {
     sourceFormat = 'DMS';
+    
+    // Verificar overflow
+    const xOverflow = detectDMSOverflow(xStr);
+    const yOverflow = detectDMSOverflow(yStr);
+    if (xOverflow.hasOverflow || yOverflow.hasOverflow) {
+      flags.push({
+        type: 'DMS_OVERFLOW_DETECTED', severity: 'warning',
+        message: `Overflow DMS detectado y corregido (${xOverflow.type || yOverflow.type} ≥60)`
+      });
+    }
+    
     const utm = transformWGS84toUTM30(xDMS.decimal, yDMS.decimal);
     corrections.push({
       type: 'DMS_CONVERTED', field: 'both',
@@ -875,7 +1281,6 @@ export function normalizeCoordinate(input: CoordinateInput): NormalizationResult
   let y = normalizeNumber(input.y, corrections, 'y');
   
   if (x === null || y === null) {
-    // Intentar detectar topónimo en valores individuales
     const xToponym = detectToponym(xStr);
     const yToponym = detectToponym(yStr);
     
@@ -900,10 +1305,46 @@ export function normalizeCoordinate(input: CoordinateInput): NormalizationResult
   }
   
   // ═══════════════════════════════════════════════════════════════════════════
+  // FASE 4b (v4.2): Detectar sistema local (DXF/CAD)
+  // ═══════════════════════════════════════════════════════════════════════════
+  if (mightBeLocalSystem(x, y)) {
+    sourceFormat = 'LOCAL_SYSTEM';
+    flags.push({
+      type: 'LOCAL_SYSTEM_DETECTED', severity: 'error',
+      message: `Coordenadas parecen ser de sistema local (X=${x}, Y=${y}). Sin CRS definido.`,
+      data: { x, y, possibleSource: isDXFSource(input.sourceFile) ? 'DXF/CAD' : 'desconocido' }
+    });
+    
+    if (isDXFSource(input.sourceFile)) {
+      flags.push({
+        type: 'MANUAL_REVIEW', severity: 'error',
+        message: 'Archivo DXF detectado sin información de CRS. Requiere georreferenciación manual.'
+      });
+    }
+    
+    return {
+      x: null, y: null, original, corrections, flags,
+      score: 0, confidence: 'CRITICAL', isValid: false,
+      sourceFormat
+    };
+  }
+  
+  // ═══════════════════════════════════════════════════════════════════════════
   // FASE 5: Detectar coordenadas geográficas y convertir
   // ═══════════════════════════════════════════════════════════════════════════
   if (isGeographic(x, y)) {
     sourceFormat = 'DD';
+    
+    // v4.2: Verificar baja precisión GPS
+    const xLowPrec = detectLowPrecisionGPS(x, String(original.x));
+    const yLowPrec = detectLowPrecisionGPS(y, String(original.y));
+    if (xLowPrec || yLowPrec) {
+      flags.push({
+        type: 'LOW_PRECISION_GPS', severity: 'warning',
+        message: 'Coordenadas GPS con baja precisión (<4 decimales = >11m de error)'
+      });
+    }
+    
     flags.push({
       type: 'GEOGRAPHIC_COORDS', severity: 'info',
       message: 'Coordenadas geográficas detectadas (WGS84/ETRS89)'
@@ -922,7 +1363,44 @@ export function normalizeCoordinate(input: CoordinateInput): NormalizationResult
   }
   
   // ═══════════════════════════════════════════════════════════════════════════
-  // FASE 5b: E1 - Detectar Lambert y convertir
+  // FASE 5b (v4.2): Detectar swap KML lon/lat
+  // ═══════════════════════════════════════════════════════════════════════════
+  if (isKMLSource(input.sourceFile) || detectKMLLonLatSwap(x, y)) {
+    // Si parece que están intercambiadas (lat en X, lon en Y)
+    if (detectKMLLonLatSwap(x, y)) {
+      const temp = x;
+      x = y;
+      y = temp;
+      
+      corrections.push({
+        type: 'KML_LONLAT_SWAPPED', field: 'both',
+        from: `X=${original.x}, Y=${original.y}`,
+        to: `X=${x}, Y=${y}`,
+        pattern: 'KML_SWAP', priority: 'P0'
+      });
+      flags.push({
+        type: 'KML_FORMAT_DETECTED', severity: 'warning',
+        message: 'Coordenadas KML con orden lat/lon intercambiado detectado y corregido'
+      });
+      
+      // Ahora transformar a UTM
+      if (isGeographic(x, y)) {
+        const utm = transformWGS84toUTM30(x, y);
+        corrections.push({
+          type: 'WGS84_TO_UTM', field: 'both',
+          from: `lon=${x}, lat=${y}`,
+          to: `X=${utm.x.toFixed(2)}, Y=${utm.y.toFixed(2)}`,
+          pattern: 'GEO_TO_UTM', priority: 'P1'
+        });
+        x = utm.x;
+        y = utm.y;
+        sourceCRS = 'EPSG:4326';
+      }
+    }
+  }
+  
+  // ═══════════════════════════════════════════════════════════════════════════
+  // FASE 5c: Detectar Lambert y convertir
   // ═══════════════════════════════════════════════════════════════════════════
   if (mightBeLambert(x, y) && !isInRange(x, 'x')) {
     sourceFormat = 'LAMBERT';
@@ -1008,7 +1486,7 @@ export function normalizeCoordinate(input: CoordinateInput): NormalizationResult
   }
   
   // ═══════════════════════════════════════════════════════════════════════════
-  // FASE 10: E3 - Detectar y transformar Datum Madrid (pre-1970)
+  // FASE 10: Detectar y transformar Datum Madrid (pre-1970)
   // ═══════════════════════════════════════════════════════════════════════════
   if (mightBeMadridDatum(input.documentYear)) {
     sourceFormat = 'MADRID_DATUM';
@@ -1104,12 +1582,13 @@ export function normalizeCoordinate(input: CoordinateInput): NormalizationResult
     sourceFormat: sourceFormat !== 'UNKNOWN' ? sourceFormat : 'UTM',
     sourceCRS,
     cadastralRef,
-    toponym
+    toponym,
+    mgrsRef
   };
 }
 
 // ============================================================================
-// FUNCIONES DE DETECCIÓN Y CORRECCIÓN
+// FUNCIONES AUXILIARES
 // ============================================================================
 
 function normalizeNumber(
@@ -1270,25 +1749,21 @@ function runHeuristicRescue(
   
   const heuristics = [
     {
-      condition: (v: number, f: 'x' | 'y') => 
-        f === 'x' && v > 0 && v < 1000,
+      condition: (v: number, f: 'x' | 'y') => f === 'x' && v > 0 && v < 1000,
       transform: (v: number) => Math.round(v * 1000),
       hypothesis: 'Coordenada X parece estar en kilómetros',
       method: 'HEUR_KM_X',
       confidence: 90
     },
     {
-      condition: (_v: number, _f: 'x' | 'y', orig: string) => 
-        /^\d{3},\d{3}/.test(orig),
-      transform: (_v: number, orig: string) => 
-        parseFloat(orig.replace(/,/g, '')),
+      condition: (_v: number, _f: 'x' | 'y', orig: string) => /^\d{3},\d{3}/.test(orig),
+      transform: (_v: number, orig: string) => parseFloat(orig.replace(/,/g, '')),
       hypothesis: 'Coma usada como separador de miles',
       method: 'HEUR_COMMA_THOUSANDS',
       confidence: 88
     },
     {
-      condition: (v: number, f: 'x' | 'y') => 
-        f === 'x' && v >= 10000 && v < 100000,
+      condition: (v: number, f: 'x' | 'y') => f === 'x' && v >= 10000 && v < 100000,
       transform: (v: number) => v * 10,
       hypothesis: 'Coordenada X truncada (falta 1 dígito)',
       method: 'HEUR_X_TRUNC',
@@ -1303,10 +1778,8 @@ function runHeuristicRescue(
       confidence: 90
     },
     {
-      condition: (_v: number, _f: 'x' | 'y', orig: string) => 
-        /^\d{3}\.\d{3}$/.test(orig.trim()),
-      transform: (_v: number, orig: string) => 
-        parseFloat(orig.replace(/\./g, '')),
+      condition: (_v: number, _f: 'x' | 'y', orig: string) => /^\d{3}\.\d{3}$/.test(orig.trim()),
+      transform: (_v: number, orig: string) => parseFloat(orig.replace(/\./g, '')),
       hypothesis: 'Punto usado como separador de miles',
       method: 'HEUR_DOT_THOUSANDS',
       confidence: 87
@@ -1316,7 +1789,6 @@ function runHeuristicRescue(
   for (const h of heuristics) {
     if (h.condition(parsedValue, field, originalValue)) {
       const corrected = h.transform(parsedValue, originalValue);
-      
       if (isInRange(corrected, field)) {
         return {
           originalValue,
@@ -1332,10 +1804,6 @@ function runHeuristicRescue(
   
   return null;
 }
-
-// ============================================================================
-// FUNCIONES DE VALIDACIÓN
-// ============================================================================
 
 function isInRange(value: number, field: 'x' | 'y'): boolean {
   const bounds = field === 'x' ? ANDALUSIA_BOUNDS.x : ANDALUSIA_BOUNDS.y;
@@ -1436,6 +1904,9 @@ export function getBatchStats(results: NormalizationResult[]): {
   formatDistribution: Record<SourceFormat, number>;
   cadastralRefs: number;
   toponyms: number;
+  mgrsRefs: number;
+  ocrErrors: number;
+  localSystemErrors: number;
 } {
   const correctionsByType: Record<string, number> = {};
   const confidenceDistribution: Record<ConfidenceLevel, number> = {
@@ -1443,7 +1914,8 @@ export function getBatchStats(results: NormalizationResult[]): {
   };
   const formatDistribution: Record<SourceFormat, number> = {
     UTM: 0, DMS: 0, DD: 0, NMEA: 0, WKT: 0, GEOJSON: 0, PEGADA: 0,
-    LAMBERT: 0, MADRID_DATUM: 0, CADASTRAL: 0, TOPONYM: 0, NARRATIVE: 0, UNKNOWN: 0
+    LAMBERT: 0, MADRID_DATUM: 0, CADASTRAL: 0, TOPONYM: 0, NARRATIVE: 0,
+    MGRS: 0, LOCAL_SYSTEM: 0, UNKNOWN: 0
   };
   
   let totalScore = 0;
@@ -1451,6 +1923,9 @@ export function getBatchStats(results: NormalizationResult[]): {
   let heuristicsCount = 0;
   let cadastralCount = 0;
   let toponymCount = 0;
+  let mgrsCount = 0;
+  let ocrCount = 0;
+  let localSystemCount = 0;
   
   for (const result of results) {
     totalScore += result.score;
@@ -1458,6 +1933,9 @@ export function getBatchStats(results: NormalizationResult[]): {
     if (result.heuristicApplied) heuristicsCount++;
     if (result.cadastralRef) cadastralCount++;
     if (result.toponym) toponymCount++;
+    if (result.mgrsRef) mgrsCount++;
+    if (result.flags.some(f => f.type === 'OCR_ERRORS_DETECTED')) ocrCount++;
+    if (result.sourceFormat === 'LOCAL_SYSTEM') localSystemCount++;
     confidenceDistribution[result.confidence]++;
     if (result.sourceFormat) {
       formatDistribution[result.sourceFormat]++;
@@ -1478,7 +1956,10 @@ export function getBatchStats(results: NormalizationResult[]): {
     heuristicsApplied: heuristicsCount,
     formatDistribution,
     cadastralRefs: cadastralCount,
-    toponyms: toponymCount
+    toponyms: toponymCount,
+    mgrsRefs: mgrsCount,
+    ocrErrors: ocrCount,
+    localSystemErrors: localSystemCount
   };
 }
 
@@ -1503,6 +1984,21 @@ export default {
   detectToponym,
   parseNarrativeCoordinates,
   parseCardinalCoordinates,
+  // Parsers v4.2
+  parseMGRS,
+  convertMGRStoUTM,
+  parseScientificNotation,
+  isScientificNotation,
+  // Funciones v4.2
+  hasOCRErrors,
+  fixOCRErrors,
+  mightBeLocalSystem,
+  isDXFSource,
+  isKMLSource,
+  detectKMLLonLatSwap,
+  detectDMSOverflow,
+  fixDMSOverflow,
+  detectLowPrecisionGPS,
   // Transformaciones
   transformED50toETRS89,
   transformWGS84toUTM30,
@@ -1515,6 +2011,7 @@ export default {
   // Constantes
   ANDALUSIA_BOUNDS,
   ANDALUSIA_GEOGRAPHIC_BOUNDS,
+  SPAIN_GEOGRAPHIC_BOUNDS,
   LAMBERT_BOUNDS,
   PROVINCE_Y_PREFIXES
 };
