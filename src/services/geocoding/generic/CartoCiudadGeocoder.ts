@@ -235,6 +235,19 @@ export class CartoCiudadGeocoder {
       if (!data || data.state === -1 || data.state === undefined) {
         return null;
       }
+      
+      // 🔧 BUG FIX #3: Validar que el municipio del resultado coincida con el buscado
+      // CartoCiudad puede devolver resultados de otros municipios con nombres similares
+      if (options.municipality && data.muni) {
+        const searchMuni = options.municipality.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+        const resultMuni = data.muni.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+        
+        // Si el municipio del resultado no contiene el buscado ni viceversa, rechazar
+        if (!resultMuni.includes(searchMuni) && !searchMuni.includes(resultMuni)) {
+          console.warn(`CartoCiudad: Municipio no coincide. Buscado: ${options.municipality}, Encontrado: ${data.muni}`);
+          return null;
+        }
+      }
 
       // Extraer coordenadas
       let lat: number | undefined;
@@ -318,18 +331,21 @@ export class CartoCiudadGeocoder {
         return null;
       }
 
-      // Filtrar por municipio si está especificado
+      // 🔧 BUG FIX #4: Filtrar ESTRICTAMENTE por municipio
+      // No usar candidatos de otros municipios aunque no haya coincidencias
       let filteredCandidates = candidates;
       if (options.municipality) {
-        const muniLower = options.municipality.toLowerCase();
-        filteredCandidates = candidates.filter(c => 
-          c.muni?.toLowerCase().includes(muniLower) ||
-          c.locality?.toLowerCase().includes(muniLower)
-        );
+        const searchMuni = options.municipality.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+        filteredCandidates = candidates.filter(c => {
+          const candidateMuni = (c.muni || c.locality || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+          return candidateMuni.includes(searchMuni) || searchMuni.includes(candidateMuni);
+        });
       }
 
+      // Si no hay candidatos del municipio correcto, NO usar candidatos de otros municipios
       if (filteredCandidates.length === 0) {
-        filteredCandidates = candidates;
+        console.warn(`CartoCiudad candidates: No hay candidatos para municipio ${options.municipality}`);
+        return null;
       }
 
       // Seleccionar mejor candidato (priorizar portales sobre calles)

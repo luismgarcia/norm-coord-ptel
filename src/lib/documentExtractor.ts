@@ -102,14 +102,24 @@ export function cleanCoordinateValue(val: string): string {
     }
   }
   
-  // Puntos como separadores de miles
+  // Puntos como separadores de miles (ej: "524.891" → "524891", "4.230.105" → "4230105")
   const dotCount = (cleaned.match(/\./g) || []).length;
   if (dotCount > 1) {
+    // Múltiples puntos = claramente separadores de miles (ej: 4.230.105)
     cleaned = cleaned.replace(/\./g, '');
   } else if (dotCount === 1) {
     const parts = cleaned.split('.');
+    // Si la parte después del punto tiene exactamente 3 dígitos, es separador de miles
+    // Ejemplos: "524.891" → "524891", "4230.105" → "4230105"
+    // PERO NO: "437301.8" (decimal legítimo con 1 dígito)
     if (parts[1]?.length === 3 && /^\d+$/.test(parts[0]) && /^\d+$/.test(parts[1])) {
-      if (parseInt(parts[0]) >= 1000) {
+      // Verificar que el resultado sería una coordenada válida
+      const combined = parseInt(parts[0] + parts[1]);
+      // Para X: debe ser 100000-800000 (6 dígitos que empiezan con 1-8)
+      // Para Y: debe ser 3980000-4320000 (7 dígitos que empiezan con 39-43)
+      const isValidX = combined >= 100000 && combined <= 800000;
+      const isValidY = combined >= 3980000 && combined <= 4320000;
+      if (isValidX || isValidY) {
         cleaned = cleaned.replace('.', '');
       }
     }
