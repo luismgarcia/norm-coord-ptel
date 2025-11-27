@@ -168,6 +168,7 @@ export function useGeocoding(): UseGeocodingReturn {
     // Estadísticas locales
     let successful = 0;
     let failed = 0;
+    let geocodedCount = 0; // 🔧 BUG FIX #3: Contador separado para progreso
     const bySource: Record<string, number> = {};
     
     try {
@@ -186,7 +187,7 @@ export function useGeocoding(): UseGeocodingReturn {
           await new Promise(resolve => setTimeout(resolve, 100));
         }
         
-        // Si ya tiene coordenadas, solo normalizar
+        // Si ya tiene coordenadas, solo normalizar (no cuenta para progreso de geocodificación)
         if (inf.hasCoordinates) {
           const xNum = parseFloat(inf.xOriginal);
           const yNum = parseFloat(inf.yOriginal);
@@ -202,11 +203,14 @@ export function useGeocoding(): UseGeocodingReturn {
           continue;
         }
         
-        // Geocodificar
+        // 🔧 BUG FIX #3: Incrementar contador de geocodificación ANTES de actualizar progreso
+        geocodedCount++;
+        
+        // Geocodificar - usar geocodedCount en lugar de i para cálculo correcto
         setProgress(prev => ({
           ...prev,
-          current: i + 1,
-          percentage: Math.round(((i + 1) / toGeocode.length) * 100),
+          current: geocodedCount,
+          percentage: Math.round((geocodedCount / toGeocode.length) * 100),
           currentItem: inf.nombre
         }));
         
