@@ -165,6 +165,30 @@ export class InfrastructureClassifier {
         primary: /\b(subestaci[óo]n|centro\s+de?\s*transformaci[óo]n|central\s+(el[ée]ctrica|t[ée]rmica)|parque\s+e[óo]lico|planta\s+solar|fotovoltaica|l[íi]nea\s+(de\s+)?(alta\s+)?tensi[óo]n)\b/i,
         secondary: /\b(energ[ée]tic[oa]|el[ée]ctric[oa]|aerogenerador|renovable|kv\b|\d+\s*kv)/i,
         keywords: ['subestación', 'centro transformación', 'central eléctrica', 'parque eólico', 'planta solar', 'fotovoltaica', 'línea tensión']
+      },
+      
+      // TELECOMUNICACIONES - Antenas, repetidores, torres (NUEVO Fase B)
+      {
+        type: InfrastructureType.TELECOM,
+        primary: /\b(antena|repetidor|torre\s+(de\s+)?comunicaci[óo]n|estaci[óo]n\s+base|bts|centro\s+(de\s+)?telecomunicaci[óo]n)\b/i,
+        secondary: /\b(movistar|vodafone|orange|yoigo|masmovil|telefon[íi]a|m[óo]vil|telecom)\b/i,
+        keywords: ['antena', 'repetidor', 'torre comunicación', 'estación base', 'telecomunicaciones', 'bts']
+      },
+      
+      // VIAL - Carreteras, caminos (NUEVO Fase B)
+      {
+        type: InfrastructureType.VIAL,
+        primary: /\b(carretera|autov[íi]a|autopista|camino\s+rural|v[íi]a\s+p[ú]blica|acceso\s+principal)\b/i,
+        secondary: /\b(vial|viario|carril|tramo|cruce|rotonda|camino)\b/i,
+        keywords: ['carretera', 'autovía', 'camino rural', 'vía', 'vial', 'acceso']
+      },
+      
+      // INDUSTRIAL - Fábricas, polígonos (NUEVO Fase B)
+      {
+        type: InfrastructureType.INDUSTRIAL,
+        primary: /\b(pol[íi]gono\s+industrial|nave\s+industrial|f[áa]brica|planta\s+industrial|zona\s+industrial|parque\s+empresarial)\b/i,
+        secondary: /\b(industrial|industria|almac[ée]n|taller|manufactura)\b/i,
+        keywords: ['polígono industrial', 'nave industrial', 'fábrica', 'zona industrial', 'parque empresarial']
       }
     ];
   }

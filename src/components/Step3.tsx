@@ -1,11 +1,13 @@
 /**
- * Step3 - Descarga de resultados
+ * Step3 - Exportación de resultados
  * 
- * Incluye:
- * - Resumen de tipologías y métricas (igual que Step2)
- * - 4 botones de descarga: CSV, Excel, GeoJSON, KML
- * - Excel con 3 pestañas: Resumen, Por Tipología, No Geolocalizados
- * - CSV compatible con Excel y LibreOffice (separador ;)
+ * Genera archivos de salida en múltiples formatos:
+ * - CSV (separador ; para Excel/LibreOffice)
+ * - Excel con 3 pestañas (Resumen, Por Tipología, No Geolocalizados)
+ * - GeoJSON (EPSG:25830 para QGIS)
+ * - KML (Google Earth)
+ * 
+ * v2: Integrado con nueva estructura de ProcessedInfrastructure
  */
 
 import { useMemo } from 'react'
@@ -18,16 +20,18 @@ import {
   FileArrowDown,
   CheckCircle,
   ArrowRight,
-  FunnelSimple
+  FunnelSimple,
+  MapPin,
+  Buildings
 } from '@phosphor-icons/react'
 import * as XLSX from 'xlsx'
 import { Card, CardContent } from './ui/card'
 import { Button } from './ui/button'
-import { ProcessedData } from './Step1'
-import { detectTypology, TypologyCode, TYPOLOGY_CONFIG } from './TypologyBadge'
+import { ProcessingComplete } from './Step2'
+import ScoreIndicator from './ScoreIndicator'
 
 interface Step3Props {
-  data: ProcessedData | null
+  data: ProcessingComplete | null
   onReset: () => void
 }
 
@@ -40,80 +44,63 @@ export default function Step3({ data, onReset }: Step3Props) {
     )
   }
 
-  const { results, rows, headers, fileName, stats } = data
+  const { infrastructures, metadata, stats } = data
 
-  // Generar nombre base del archivo
-  const baseName = fileName.replace(/\.[^/.]+$/, '') + '_normalizado'
+  // Nombre base del archivo
+  const baseName = metadata.fileName.replace(/\.[^/.]+$/, '') + '_geocodificado'
 
   // Calcular métricas
-  const totalOrigin = stats.total
-  const detected = stats.valid
-  const pending = stats.invalid
-  const detectedPercent = totalOrigin > 0 ? ((detected / totalOrigin) * 100).toFixed(1) : '0'
-  const pendingPercent = totalOrigin > 0 ? ((pending / totalOrigin) * 100).toFixed(1) : '0'
+  const withCoords = infrastructures.filter(inf => inf.xFinal && inf.yFinal)
+  const coveragePercent = infrastructures.length > 0 
+    ? Math.round((withCoords.length / infrastructures.length) * 100)
+    : 0
 
-  // Detectar tipologías
-  const { typologyData, rowTypologies } = useMemo(() => {
-    const counts: Partial<Record<TypologyCode, number>> = {}
-    const rowTypes: TypologyCode[] = []
-    
-    rows.forEach((row) => {
-      const searchText = [
-        row['Tabla'] || '',
-        row['Tipo'] || '',
-        row['Nombre'] || '',
-        row['Tipología'] || ''
-      ].join(' ')
-      
-      const typ = detectTypology(searchText)
-      counts[typ] = (counts[typ] || 0) + 1
-      rowTypes.push(typ)
+  // Agrupar por tipología
+  const typologyData = useMemo(() => {
+    const counts: Record<string, number> = {}
+    infrastructures.forEach(inf => {
+      const tipo = inf.tipo || 'OTRO'
+      counts[tipo] = (counts[tipo] || 0) + 1
     })
-    
-    return { typologyData: counts, rowTypologies: rowTypes }
-  }, [rows])
+    return counts
+  }, [infrastructures])
 
-  // Ordenar tipologías por cantidad
+  // Ordenar tipologías
   const sortedTypologies = useMemo(() => {
     return Object.entries(typologyData)
-      .sort(([, a], [, b]) => (b || 0) - (a || 0))
-      .map(([code]) => code as TypologyCode)
+      .sort(([, a], [, b]) => b - a)
   }, [typologyData])
 
-  // Preparar datos con tipología
-  const enrichedRows = useMemo(() => {
-    return rows.map((row, index) => ({
-      ...row,
-      _tipologia: rowTypologies[index],
-      _x_norm: results[index].x?.toFixed(2) ?? '',
-      _y_norm: results[index].y?.toFixed(2) ?? '',
-      _score: results[index].score,
-      _valido: results[index].isValid ? 'SI' : 'NO',
-      _confianza: results[index].confidence,
-      _x_original: results[index].original.x,
-      _y_original: results[index].original.y
-    }))
-  }, [rows, results, rowTypologies])
+  // ===== FUNCIONES DE DESCARGA =====
 
-  // ===== DESCARGAS =====
-
-  // Descargar como CSV (separador ; para Excel/LibreOffice)
+  // Descargar como CSV
   const downloadCSV = () => {
-    const csvHeaders = [...headers, 'TIPOLOGIA', 'X_NORM', 'Y_NORM', 'SCORE', 'VALIDO', 'CONFIANZA']
+    const headers = [
+      'ID', 'NOMBRE', 'TIPO', 'DIRECCION', 'TABLA',
+      'X_ORIGINAL', 'Y_ORIGINAL', 'X_UTM30', 'Y_UTM30',
+      'FUENTE', 'SCORE', 'CONFIANZA', 'STATUS',
+      'MUNICIPIO', 'PROVINCIA'
+    ]
     
-    const csvRows = enrichedRows.map((row, index) => {
-      return [
-        ...headers.map(h => escapeCSV(row[h])),
-        row._tipologia,
-        row._x_norm,
-        row._y_norm,
-        row._score,
-        row._valido,
-        row._confianza
-      ].join(';')
-    })
+    const csvRows = infrastructures.map(inf => [
+      inf.id,
+      escapeCSV(inf.nombre),
+      inf.tipo,
+      escapeCSV(inf.direccion),
+      inf.tabla,
+      inf.xOriginal || '',
+      inf.yOriginal || '',
+      inf.xFinal?.toFixed(2) || '',
+      inf.yFinal?.toFixed(2) || '',
+      inf.source,
+      inf.score,
+      inf.confidence,
+      inf.status,
+      inf.municipio || metadata.municipality || '',
+      inf.provincia || metadata.province || ''
+    ].join(';'))
 
-    const csv = [csvHeaders.join(';'), ...csvRows].join('\n')
+    const csv = [headers.join(';'), ...csvRows].join('\n')
     const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' })
     downloadBlob(blob, `${baseName}.csv`)
   }
@@ -122,113 +109,120 @@ export default function Step3({ data, onReset }: Step3Props) {
   const downloadExcel = () => {
     const wb = XLSX.utils.book_new()
     
-    // Pestaña 1: Resumen - Todos los datos con filtros
-    const allData = enrichedRows.map((row, index) => ({
-      '#': index + 1,
-      ...Object.fromEntries(headers.map(h => [h, row[h]])),
-      'TIPOLOGÍA': row._tipologia,
-      'X_NORMALIZADO': row._x_norm,
-      'Y_NORMALIZADO': row._y_norm,
-      'SCORE': row._score,
-      'VÁLIDO': row._valido,
-      'CONFIANZA': row._confianza
+    // Pestaña 1: Resumen - Todos los datos
+    const allData = infrastructures.map((inf, idx) => ({
+      '#': idx + 1,
+      'NOMBRE': inf.nombre,
+      'TIPO': inf.tipo,
+      'DIRECCIÓN': inf.direccion,
+      'TABLA': inf.tabla,
+      'X_ORIGINAL': inf.xOriginal || '',
+      'Y_ORIGINAL': inf.yOriginal || '',
+      'X_UTM30': inf.xFinal?.toFixed(2) || '',
+      'Y_UTM30': inf.yFinal?.toFixed(2) || '',
+      'FUENTE': inf.source,
+      'SCORE': inf.score,
+      'CONFIANZA': inf.confidence,
+      'STATUS': inf.status,
+      'MUNICIPIO': inf.municipio || metadata.municipality || '',
+      'PROVINCIA': inf.provincia || metadata.province || ''
     }))
     
     const ws1 = XLSX.utils.json_to_sheet(allData)
-    // Establecer anchos de columna
     ws1['!cols'] = [
-      { wch: 5 }, // #
-      ...headers.map(() => ({ wch: 20 })),
-      { wch: 10 }, // TIPOLOGÍA
-      { wch: 12 }, // X_NORM
-      { wch: 12 }, // Y_NORM
-      { wch: 8 },  // SCORE
-      { wch: 8 },  // VÁLIDO
-      { wch: 10 }  // CONFIANZA
+      { wch: 5 }, { wch: 35 }, { wch: 15 }, { wch: 30 }, { wch: 15 },
+      { wch: 12 }, { wch: 12 }, { wch: 12 }, { wch: 12 },
+      { wch: 15 }, { wch: 8 }, { wch: 10 }, { wch: 10 },
+      { wch: 15 }, { wch: 12 }
     ]
     XLSX.utils.book_append_sheet(wb, ws1, 'Resumen')
     
-    // Pestaña 2: Por Tipología - Una sección por tipo
+    // Pestaña 2: Por Tipología
     const byTypologyData: any[] = []
-    sortedTypologies.forEach(code => {
-      const config = TYPOLOGY_CONFIG[code]
-      const typeRows = enrichedRows.filter((_, idx) => rowTypologies[idx] === code)
+    sortedTypologies.forEach(([tipo, count]) => {
+      const typeInfs = infrastructures.filter(inf => inf.tipo === tipo)
       
-      if (typeRows.length > 0) {
-        // Encabezado de sección
-        byTypologyData.push({ 'TIPOLOGÍA': `=== ${config.name} (${code}) - ${typeRows.length} elementos ===` })
-        
-        typeRows.forEach((row, idx) => {
-          byTypologyData.push({
-            '#': idx + 1,
-            ...Object.fromEntries(headers.map(h => [h, row[h]])),
-            'X_NORMALIZADO': row._x_norm,
-            'Y_NORMALIZADO': row._y_norm,
-            'SCORE': row._score,
-            'VÁLIDO': row._valido
-          })
+      byTypologyData.push({ 'TIPOLOGÍA': `=== ${tipo} (${count} elementos) ===` })
+      
+      typeInfs.forEach((inf, idx) => {
+        byTypologyData.push({
+          '#': idx + 1,
+          'NOMBRE': inf.nombre,
+          'DIRECCIÓN': inf.direccion,
+          'X_UTM30': inf.xFinal?.toFixed(2) || '',
+          'Y_UTM30': inf.yFinal?.toFixed(2) || '',
+          'FUENTE': inf.source,
+          'SCORE': inf.score
         })
-        
-        // Línea vacía entre secciones
-        byTypologyData.push({})
-      }
+      })
+      
+      byTypologyData.push({})
     })
     
     const ws2 = XLSX.utils.json_to_sheet(byTypologyData)
     XLSX.utils.book_append_sheet(wb, ws2, 'Por Tipología')
     
     // Pestaña 3: No Geolocalizados
-    const notGeolocated = enrichedRows
-      .map((row, index) => ({ row, index }))
-      .filter(({ row }) => row._valido === 'NO')
-      .map(({ row, index }) => ({
-        '#': index + 1,
-        ...Object.fromEntries(headers.map(h => [h, row[h]])),
-        'TIPOLOGÍA': row._tipologia,
-        'X_ORIGINAL': row._x_original,
-        'Y_ORIGINAL': row._y_original,
-        'SCORE': row._score,
-        'CONFIANZA': row._confianza,
-        'MOTIVO': results[index].errors?.join(', ') || 'Sin coordenadas válidas'
+    const notGeolocated = infrastructures
+      .filter(inf => !inf.xFinal || !inf.yFinal)
+      .map((inf, idx) => ({
+        '#': idx + 1,
+        'NOMBRE': inf.nombre,
+        'TIPO': inf.tipo,
+        'DIRECCIÓN': inf.direccion || 'Sin dirección',
+        'X_ORIGINAL': inf.xOriginal || '',
+        'Y_ORIGINAL': inf.yOriginal || '',
+        'STATUS': inf.status,
+        'MOTIVO': inf.status === 'failed' ? 'Geocodificación fallida' : 
+                  inf.status === 'pending' ? 'Pendiente de geocodificación' :
+                  'Sin coordenadas originales',
+        'MUNICIPIO': inf.municipio || metadata.municipality || ''
       }))
     
     if (notGeolocated.length > 0) {
       const ws3 = XLSX.utils.json_to_sheet(notGeolocated)
       XLSX.utils.book_append_sheet(wb, ws3, 'No Geolocalizados')
     } else {
-      const ws3 = XLSX.utils.json_to_sheet([{ 'RESULTADO': 'Todos los elementos fueron geolocalizados correctamente' }])
+      const ws3 = XLSX.utils.json_to_sheet([{ 
+        'RESULTADO': '✅ Todos los elementos fueron geolocalizados correctamente' 
+      }])
       XLSX.utils.book_append_sheet(wb, ws3, 'No Geolocalizados')
     }
     
     // Generar y descargar
     const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' })
-    const blob = new Blob([wbout], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' })
+    const blob = new Blob([wbout], { 
+      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
+    })
     downloadBlob(blob, `${baseName}.xlsx`)
   }
 
   // Descargar como GeoJSON
   const downloadGeoJSON = () => {
-    const features = results
-      .map((result, index) => {
-        if (!result.isValid || result.x === null || result.y === null) return null
-        
-        return {
-          type: 'Feature' as const,
-          geometry: {
-            type: 'Point' as const,
-            coordinates: [result.x, result.y]
-          },
-          properties: {
-            ...rows[index],
-            _tipologia: rowTypologies[index],
-            _score: result.score,
-            _confidence: result.confidence,
-            _x_original: result.original.x,
-            _y_original: result.original.y
-          }
+    const features = infrastructures
+      .filter(inf => inf.xFinal && inf.yFinal)
+      .map(inf => ({
+        type: 'Feature' as const,
+        geometry: {
+          type: 'Point' as const,
+          coordinates: [inf.xFinal!, inf.yFinal!]
+        },
+        properties: {
+          id: inf.id,
+          nombre: inf.nombre,
+          tipo: inf.tipo,
+          direccion: inf.direccion,
+          tabla: inf.tabla,
+          fuente: inf.source,
+          score: inf.score,
+          confianza: inf.confidence,
+          status: inf.status,
+          municipio: inf.municipio || metadata.municipality,
+          provincia: inf.provincia || metadata.province,
+          x_original: inf.xOriginal,
+          y_original: inf.yOriginal
         }
-      })
-      .filter(Boolean)
+      }))
 
     const geojson = {
       type: 'FeatureCollection',
@@ -246,31 +240,33 @@ export default function Step3({ data, onReset }: Step3Props) {
 
   // Descargar como KML
   const downloadKML = () => {
-    const placemarks = results
-      .map((result, index) => {
-        if (!result.isValid || result.x === null || result.y === null) return ''
-        
-        const row = rows[index]
-        const name = row['DENOMINACION'] || row['NOMBRE'] || row['NAME'] || `Punto ${index + 1}`
-        const tipologia = rowTypologies[index]
-        
-        return `
+    const placemarks = infrastructures
+      .filter(inf => inf.xFinal && inf.yFinal)
+      .map(inf => `
     <Placemark>
-      <name>${escapeXml(String(name))}</name>
-      <description>Tipología: ${tipologia}, Score: ${result.score}</description>
+      <name>${escapeXml(inf.nombre)}</name>
+      <description>
+        Tipo: ${inf.tipo}
+        Fuente: ${inf.source}
+        Score: ${inf.score}
+        ${inf.direccion ? `Dirección: ${escapeXml(inf.direccion)}` : ''}
+      </description>
       <Point>
-        <coordinates>${result.x},${result.y},0</coordinates>
+        <coordinates>${inf.xFinal},${inf.yFinal},0</coordinates>
       </Point>
-    </Placemark>`
-      })
-      .filter(Boolean)
+    </Placemark>`)
       .join('')
 
     const kml = `<?xml version="1.0" encoding="UTF-8"?>
 <kml xmlns="http://www.opengis.net/kml/2.2">
   <Document>
     <name>${baseName}</name>
-    <description>Coordenadas normalizadas PTEL - EPSG:25830</description>
+    <description>
+      Infraestructuras PTEL geocodificadas
+      Municipio: ${metadata.municipality || 'N/A'}
+      Sistema: EPSG:25830 (ETRS89 / UTM30N)
+      Fecha: ${new Date().toISOString().split('T')[0]}
+    </description>
     ${placemarks}
   </Document>
 </kml>`
@@ -312,71 +308,98 @@ export default function Step3({ data, onReset }: Step3Props) {
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -20 }}
       className="space-y-4"
     >
       {/* Resumen Card */}
       <Card className="bg-card border border-border rounded-xl overflow-hidden">
         <CardContent className="p-0">
-          {/* Header con check */}
-          <div className="px-4 py-3 bg-green-500/10 border-b border-green-500/20 flex items-center gap-3">
-            <CheckCircle size={24} weight="fill" className="text-green-500" />
-            <div>
-              <span className="font-semibold text-green-400">Normalización completada</span>
-              <span className="text-xs text-gray-400 ml-2">{fileName}</span>
+          {/* Header */}
+          <div className="px-4 py-3 bg-green-500/10 border-b border-green-500/20 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <CheckCircle size={24} weight="fill" className="text-green-500" />
+              <div>
+                <span className="font-semibold text-green-400">Procesamiento completado</span>
+                <span className="text-xs text-gray-400 ml-2">{metadata.fileName}</span>
+              </div>
+            </div>
+            <ScoreIndicator score={stats.avgScore} size="md" />
+          </div>
+
+          {/* Info municipio */}
+          <div className="px-4 py-2 bg-primary/5 border-b border-primary/10 flex items-center gap-4">
+            <div className="flex items-center gap-1.5 text-sm">
+              <Buildings size={16} className="text-primary" />
+              <span className="text-muted-foreground">Municipio:</span>
+              <span className="text-primary font-medium">{metadata.municipality || 'N/A'}</span>
+            </div>
+            <div className="flex items-center gap-1.5 text-sm">
+              <MapPin size={16} className="text-primary" />
+              <span className="text-muted-foreground">Provincia:</span>
+              <span className="text-primary font-medium">{metadata.province || 'N/A'}</span>
             </div>
           </div>
 
           {/* Métricas */}
           <div className="p-4 space-y-3">
-            {/* Tipologías como badges */}
-            <div className="flex items-center gap-2 flex-wrap">
-              <FunnelSimple size={14} className="text-gray-500" />
-              {sortedTypologies.map(code => {
-                const count = typologyData[code] || 0
-                const config = TYPOLOGY_CONFIG[code]
-                
-                return (
-                  <span
-                    key={code}
-                    className="flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium"
-                    style={{
-                      color: config.color,
-                      backgroundColor: `${config.color}15`,
-                      border: `1px solid ${config.color}30`
-                    }}
-                  >
-                    {code}: {count}
-                  </span>
-                )
-              })}
+            {/* Métricas principales */}
+            <div className="grid grid-cols-4 gap-2">
+              <div className="p-3 bg-slate-800/50 rounded-lg text-center">
+                <div className="text-xl font-bold text-white">{stats.total}</div>
+                <div className="text-xs text-muted-foreground">Total</div>
+              </div>
+              <div className="p-3 bg-green-500/10 border border-green-500/30 rounded-lg text-center">
+                <div className="text-xl font-bold text-green-400">{stats.normalized}</div>
+                <div className="text-xs text-green-400/80">Originales</div>
+              </div>
+              <div className="p-3 bg-blue-500/10 border border-blue-500/30 rounded-lg text-center">
+                <div className="text-xl font-bold text-blue-400">{stats.geocoded}</div>
+                <div className="text-xs text-blue-400/80">Geocodificados</div>
+              </div>
+              <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-lg text-center">
+                <div className="text-xl font-bold text-red-400">{stats.failed}</div>
+                <div className="text-xs text-red-400/80">Fallidos</div>
+              </div>
             </div>
 
-            {/* Barra de progreso */}
-            <div className="h-1.5 bg-slate-700/50 rounded-full overflow-hidden">
-              <div
-                className="h-full bg-gradient-to-r from-green-500 to-emerald-400"
-                style={{ width: `${detectedPercent}%` }}
-              />
-            </div>
-
-            {/* Totalizadores */}
-            <div className="flex items-center justify-between text-xs">
-              <span className="text-gray-400">
-                Total: <span className="font-bold text-white">{totalOrigin}</span>
-              </span>
-              <div className="flex items-center gap-3">
+            {/* Barra de cobertura */}
+            <div className="space-y-1">
+              <div className="flex justify-between text-xs text-muted-foreground">
+                <span>Cobertura final</span>
+                <span>{coveragePercent}%</span>
+              </div>
+              <div className="h-2 bg-slate-700/50 rounded-full overflow-hidden flex">
+                <div 
+                  className="h-full bg-green-500"
+                  style={{ width: `${(stats.normalized / stats.total) * 100}%` }}
+                />
+                <div 
+                  className="h-full bg-blue-500"
+                  style={{ width: `${(stats.geocoded / stats.total) * 100}%` }}
+                />
+              </div>
+              <div className="flex gap-4 text-xs">
                 <span className="flex items-center gap-1">
-                  <span className="w-1.5 h-1.5 rounded-full bg-green-500" />
-                  <span className="text-green-400 font-bold">{detected}</span>
-                  <span className="text-gray-500">válidos ({detectedPercent}%)</span>
+                  <span className="w-2 h-2 bg-green-500 rounded-full" />
+                  Originales ({stats.normalized})
                 </span>
                 <span className="flex items-center gap-1">
-                  <span className="w-1.5 h-1.5 rounded-full bg-orange-500" />
-                  <span className="text-orange-400 font-bold">{pending}</span>
-                  <span className="text-gray-500">pendientes ({pendingPercent}%)</span>
+                  <span className="w-2 h-2 bg-blue-500 rounded-full" />
+                  Geocodificados ({stats.geocoded})
                 </span>
               </div>
+            </div>
+
+            {/* Tipologías */}
+            <div className="flex items-center gap-2 flex-wrap">
+              <FunnelSimple size={14} className="text-gray-500" />
+              {sortedTypologies.map(([tipo, count]) => (
+                <span
+                  key={tipo}
+                  className="px-2 py-0.5 bg-slate-800/50 border border-slate-700 rounded text-xs"
+                >
+                  {tipo}: <span className="font-bold">{count}</span>
+                </span>
+              ))}
             </div>
           </div>
         </CardContent>
@@ -385,13 +408,14 @@ export default function Step3({ data, onReset }: Step3Props) {
       {/* Download Card */}
       <Card className="bg-card border border-border rounded-xl overflow-hidden">
         <CardContent className="p-0">
-          {/* Header */}
           <div className="px-4 py-3 border-b border-border flex items-center gap-2">
             <DownloadSimple size={18} weight="duotone" className="text-primary" />
             <span className="font-semibold text-sm">Descargar resultados</span>
+            <span className="text-xs text-muted-foreground ml-auto">
+              {withCoords.length} elementos con coordenadas
+            </span>
           </div>
 
-          {/* 4 botones de descarga */}
           <div className="p-4">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
               {/* CSV */}
@@ -417,7 +441,8 @@ export default function Step3({ data, onReset }: Step3Props) {
               {/* GeoJSON */}
               <button
                 onClick={downloadGeoJSON}
-                className="p-4 bg-slate-800/50 border border-slate-700/50 rounded-lg text-center hover:border-blue-500/50 hover:bg-blue-500/5 transition-all"
+                disabled={withCoords.length === 0}
+                className="p-4 bg-slate-800/50 border border-slate-700/50 rounded-lg text-center hover:border-blue-500/50 hover:bg-blue-500/5 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <MapTrifold size={28} weight="duotone" className="text-blue-400 mx-auto mb-2" />
                 <div className="font-semibold text-sm">GeoJSON</div>
@@ -427,7 +452,8 @@ export default function Step3({ data, onReset }: Step3Props) {
               {/* KML */}
               <button
                 onClick={downloadKML}
-                className="p-4 bg-slate-800/50 border border-slate-700/50 rounded-lg text-center hover:border-orange-500/50 hover:bg-orange-500/5 transition-all"
+                disabled={withCoords.length === 0}
+                className="p-4 bg-slate-800/50 border border-slate-700/50 rounded-lg text-center hover:border-orange-500/50 hover:bg-orange-500/5 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <FileArrowDown size={28} weight="duotone" className="text-orange-400 mx-auto mb-2" />
                 <div className="font-semibold text-sm">KML</div>
@@ -437,19 +463,18 @@ export default function Step3({ data, onReset }: Step3Props) {
 
             {/* Info formato */}
             <div className="mt-4 px-3 py-2 bg-primary/5 border border-primary/20 rounded-lg text-xs text-gray-400">
-              <strong className="text-gray-300">Formato:</strong> EPSG:25830 (ETRS89 / UTM zona 30N) — Compatible con QGIS
+              <strong className="text-gray-300">Formato de salida:</strong> EPSG:25830 (ETRS89 / UTM zona 30N) — Compatible con QGIS y sistemas GIS españoles
             </div>
           </div>
 
-          {/* Botón procesar nuevo */}
+          {/* Botón nuevo proceso */}
           <div className="px-4 py-3 border-t border-border">
             <Button
               onClick={onReset}
               className="w-full gap-2 bg-primary hover:bg-primary/90"
             >
-              Procesar nuevo archivo
+              Procesar nuevo documento
               <ArrowRight size={16} />
-              Paso 1
             </Button>
           </div>
         </CardContent>

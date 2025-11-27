@@ -50,6 +50,15 @@ export enum InfrastructureType {
   /** Subestaciones, centrales, parques eólicos, plantas solares (500+ vía Agencia Energía) - NUEVO Fase A */
   ENERGY = 'ENERGIA',
   
+  /** Antenas de telecomunicaciones, repetidores, torres de comunicación - NUEVO Fase B */
+  TELECOM = 'TELECOM',
+  
+  /** Carreteras, caminos rurales, vías principales */
+  VIAL = 'VIAL',
+  
+  /** Industrias, polígonos industriales, fábricas */
+  INDUSTRIAL = 'INDUSTRIAL',
+  
   /** Infraestructura no categorizada - usa geocodificación genérica */
   GENERIC = 'GENERICO'
 }

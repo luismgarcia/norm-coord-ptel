@@ -3,6 +3,7 @@
  * 
  * Fase 1 - Geocodificación por Tipología Especializada
  * Fase A - Alta Prioridad (REDIAM Hidráulicas, Agencia Energía)
+ * Fase B - Topónimos, Deportes, OSM (NGA, IAID, Overpass)
  * 
  * @module services/geocoding/specialized
  */
@@ -38,16 +39,44 @@ export {
   type SecuritySearchOptions
 } from './WFSSecurityGeocoder';
 
-// Geocodificador Hidráulicas - NUEVO Fase A (4,400+ infraestructuras)
+// Geocodificador Hidráulicas - Fase A (4,400+ infraestructuras)
 export {
   WFSHydraulicGeocoder,
   HydraulicFacilityType,
   type HydraulicSearchOptions
 } from './WFSHydraulicGeocoder';
 
-// Geocodificador Energía - NUEVO Fase A (500+ instalaciones)
+// Geocodificador Energía - Fase A (500+ instalaciones)
 export {
   WFSEnergyGeocoder,
   EnergyFacilityType,
   type EnergySearchOptions
 } from './WFSEnergyGeocoder';
+
+// ============================================
+// FASE B - Nuevos Geocodificadores Nov 2025
+// ============================================
+
+// Geocodificador NGA - Nomenclátor Geográfico Andalucía (232,000+ topónimos)
+// CRÍTICO para: parajes, cerros, eras, cortijos, arroyos
+export {
+  NGAGeocoder,
+  ToponymType,
+  type NGASearchOptions
+} from './NGAGeocoder';
+
+// Geocodificador IAID - Instalaciones Deportivas (3,500+ instalaciones)
+// CRÍTICO para: piscinas, campos de fútbol, polideportivos
+export {
+  IAIDGeocoder,
+  SportsFacilityType,
+  type IAIDSearchOptions
+} from './IAIDGeocoder';
+
+// Geocodificador Overpass/OSM - OpenStreetMap
+// CRÍTICO para: antenas telecomunicaciones, industrias, equipamientos varios
+export {
+  OverpassGeocoder,
+  type OSMElement,
+  type OverpassSearchOptions
+} from './OverpassGeocoder';

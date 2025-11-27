@@ -2,9 +2,9 @@ import { useState, lazy, Suspense } from 'react'
 import { MapPin, SpinnerGap } from '@phosphor-icons/react'
 import { motion } from 'framer-motion'
 import StepIndicator from './components/StepIndicator'
-import Step1 from './components/Step1'
+import Step1, { ExtractionResult } from './components/Step1'
 
-// Lazy loading de Step2 y Step3 para reducir bundle inicial
+// Lazy loading de Step2 y Step3
 const Step2 = lazy(() => import('./components/Step2'))
 const Step3 = lazy(() => import('./components/Step3'))
 
@@ -21,18 +21,23 @@ function StepLoading() {
 function App() {
   const [currentStep, setCurrentStep] = useState(1)
   const [completedSteps, setCompletedSteps] = useState<number[]>([])
+  const [extractionData, setExtractionData] = useState<ExtractionResult | null>(null)
   const [processedData, setProcessedData] = useState<any>(null)
 
-  const handleStepComplete = (step: number, data?: any) => {
-    if (!completedSteps.includes(step)) {
-      setCompletedSteps([...completedSteps, step])
+  const handleStep1Complete = (data: ExtractionResult) => {
+    setExtractionData(data)
+    if (!completedSteps.includes(1)) {
+      setCompletedSteps([...completedSteps, 1])
     }
-    if (data) {
-      setProcessedData(data)
+    setCurrentStep(2)
+  }
+
+  const handleStep2Complete = (data: any) => {
+    setProcessedData(data)
+    if (!completedSteps.includes(2)) {
+      setCompletedSteps([...completedSteps, 2])
     }
-    if (step < 3) {
-      setCurrentStep(step + 1)
-    }
+    setCurrentStep(3)
   }
 
   const handleStepClick = (step: number) => {
@@ -44,6 +49,7 @@ function App() {
   const handleReset = () => {
     setCurrentStep(1)
     setCompletedSteps([])
+    setExtractionData(null)
     setProcessedData(null)
   }
 
@@ -52,7 +58,6 @@ function App() {
       <div className="container mx-auto px-4 py-6 max-w-5xl">
         {/* Header compacto */}
         <header className="text-center mb-8">
-          {/* Logo + Título en línea */}
           <div className="flex items-center justify-center gap-3 mb-3">
             <motion.div 
               className="p-2.5 bg-primary/10 border border-primary/30 rounded-xl"
@@ -82,7 +87,7 @@ function App() {
             Planes Territoriales de Emergencias Locales — Andalucía
           </motion.p>
 
-          {/* Badges compactos */}
+          {/* Badges de características */}
           <motion.div 
             className="flex flex-wrap justify-center gap-3"
             initial={{ opacity: 0 }}
@@ -97,14 +102,14 @@ function App() {
                 <path d="M7 21H5a2 2 0 0 1-2-2v-2"/>
                 <rect x="7" y="7" width="10" height="10" rx="1"/>
               </svg>
-              Detección automática
+              Extracción completa
             </span>
             <span className="flex items-center gap-1.5 px-3 py-1 bg-card border border-border rounded-full text-xs text-muted-foreground">
               <svg className="w-3.5 h-3.5 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <ellipse cx="12" cy="5" rx="9" ry="3"/>
-                <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/>
+                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+                <circle cx="12" cy="10" r="3"/>
               </svg>
-              785 municipios
+              Geocodificación automática
             </span>
             <span className="flex items-center gap-1.5 px-3 py-1 bg-card border border-border rounded-full text-xs text-muted-foreground">
               <svg className="w-3.5 h-3.5 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -123,16 +128,16 @@ function App() {
           onStepClick={handleStepClick}
         />
 
-        {/* Content con Suspense para lazy loading */}
+        {/* Content */}
         <main className="mt-6">
           {currentStep === 1 && (
-            <Step1 onComplete={(data) => handleStepComplete(1, data)} />
+            <Step1 onComplete={handleStep1Complete} />
           )}
           {currentStep === 2 && (
             <Suspense fallback={<StepLoading />}>
               <Step2 
-                data={processedData} 
-                onComplete={(data) => handleStepComplete(2, data)} 
+                data={extractionData}
+                onComplete={handleStep2Complete}
                 onBack={() => setCurrentStep(1)}
               />
             </Suspense>
@@ -140,20 +145,20 @@ function App() {
           {currentStep === 3 && (
             <Suspense fallback={<StepLoading />}>
               <Step3 
-                data={processedData} 
+                data={processedData}
                 onReset={handleReset}
               />
             </Suspense>
           )}
         </main>
 
-        {/* Footer compacto */}
+        {/* Footer */}
         <footer className="text-center mt-8 text-xs text-muted-foreground">
           Compatible con{' '}
           <a href="https://qgis.org" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
             QGIS
           </a>
-          {' '}· Salida ETRS89 / UTM30N
+          {' '}· Salida ETRS89 / UTM30N · v2.0 con geocodificación
         </footer>
       </div>
     </div>
