@@ -11,16 +11,16 @@
 | Categoría | Documentados | Implementados | GAP | Prioridad |
 |-----------|--------------|---------------|-----|-----------|
 | A: UTM válidos | 10 | 10 | 0 | ✅ |
-| B: UTM erróneos | 12 | 10 | **2** | 🔴 |
-| C: DMS sexagesimales | 8 | 0 | **8** | 🟠 |
-| D: NMEA GPS | 4 | 0 | **4** | 🟡 |
-| E: Especiales/históricos | 6 | 1 | **5** | 🔴 |
-| F: Mixtos/ambiguos | 6 | 2 | **4** | 🟡 |
-| G: Compuestos (WKT, JSON) | 4 | 0 | **4** | 🟡 |
+| B: UTM erróneos | 12 | **12** | 0 | ✅ |
+| C: DMS sexagesimales | 8 | **8** | 0 | ✅ |
+| D: NMEA GPS | 4 | **4** | 0 | ✅ |
+| E: Especiales/históricos | 6 | **4** | 2 | 🟡 |
+| F: Mixtos/ambiguos | 6 | **4** | 2 | 🟡 |
+| G: Compuestos (WKT, JSON) | 4 | **4** | 0 | ✅ |
 | H: Libre/narrativo | 2 | 0 | **2** | ⚪ |
-| **TOTAL** | **52** | **23** | **29** | - |
+| **TOTAL** | **52** | **46** | **6** | ✅ |
 
-**Cobertura actual: 44.2%** (23 de 52 patrones)
+**Cobertura actual: 88.5%** (46 de 52 patrones) ✅ ACTUALIZADO v4.0
 
 ---
 
