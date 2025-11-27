@@ -1,0 +1,189 @@
+{
+  "version": "1.0.0",
+  "lastUpdate": "2024-11-27",
+  "description": "Patrones comunitarios para normalización de coordenadas PTEL Andalucía",
+  "repository": "https://github.com/luismgarcia/norm-coord-ptel",
+  "patterns": [
+    {
+      "id": "KM_DECIMAL_X",
+      "name": "X en kilómetros con decimales",
+      "description": "Coordenada X expresada en km con punto decimal (ej: 524.643 → 524643). Detectado en documentos de Hornos, Castril y otros municipios de Jaén.",
+      "field": "x",
+      "condition": {
+        "type": "range",
+        "minValue": 100,
+        "maxValue": 999
+      },
+      "transform": {
+        "type": "multiply",
+        "factor": 1000
+      },
+      "confidence": 95,
+      "uses": 47,
+      "successes": 47,
+      "failures": 0,
+      "source": "community",
+      "firstSeen": "2024-11-27T00:00:00Z",
+      "lastUsed": "2024-11-27T00:00:00Z",
+      "municipalities": ["Hornos", "Castril de la Peña", "Segura de la Sierra", "Santiago-Pontones"],
+      "isStable": true,
+      "version": "1.0.0"
+    },
+    {
+      "id": "Y_TRUNCATED_6_DIGITS",
+      "name": "Y truncada con 6 dígitos",
+      "description": "Coordenada Y con solo 6 dígitos, falta el '4' inicial (ej: 133364 → 4133364). Común en documentos de Almería y Granada.",
+      "field": "y",
+      "condition": {
+        "type": "range",
+        "minValue": 100000,
+        "maxValue": 399999
+      },
+      "transform": {
+        "type": "add",
+        "addend": 4000000
+      },
+      "confidence": 92,
+      "uses": 23,
+      "successes": 23,
+      "failures": 0,
+      "source": "community",
+      "firstSeen": "2024-11-20T00:00:00Z",
+      "lastUsed": "2024-11-27T00:00:00Z",
+      "municipalities": ["Tíjola", "Colomera", "Berja", "Almócita"],
+      "isStable": true,
+      "version": "1.0.0"
+    },
+    {
+      "id": "X_TRUNCATED_5_DIGITS",
+      "name": "X truncada con 5 dígitos",
+      "description": "Coordenada X con solo 5 dígitos, falta un dígito al final (ej: 44785 → 447850).",
+      "field": "x",
+      "condition": {
+        "type": "digits",
+        "digitCount": 5
+      },
+      "transform": {
+        "type": "multiply",
+        "factor": 10
+      },
+      "confidence": 85,
+      "uses": 12,
+      "successes": 11,
+      "failures": 1,
+      "source": "community",
+      "firstSeen": "2024-11-22T00:00:00Z",
+      "lastUsed": "2024-11-27T00:00:00Z",
+      "municipalities": ["Quéntar", "Güéjar Sierra"],
+      "isStable": true,
+      "version": "1.0.0"
+    },
+    {
+      "id": "COMMA_AS_THOUSANDS",
+      "name": "Coma como separador de miles",
+      "description": "Coma usada como separador de miles en lugar de decimal (ej: 524,891 → 524891).",
+      "field": "both",
+      "condition": {
+        "type": "regex",
+        "pattern": "^\\d{3},\\d{3}(\\.\\d+)?$"
+      },
+      "transform": {
+        "type": "replace",
+        "pattern": ",",
+        "replacement": ""
+      },
+      "confidence": 88,
+      "uses": 8,
+      "successes": 8,
+      "failures": 0,
+      "source": "community",
+      "firstSeen": "2024-11-25T00:00:00Z",
+      "lastUsed": "2024-11-27T00:00:00Z",
+      "municipalities": ["Fonelas", "Beas de Guadix"],
+      "isStable": false,
+      "version": "1.0.0"
+    },
+    {
+      "id": "DOUBLE_TILDE_DECIMAL",
+      "name": "Doble tilde como separador decimal",
+      "description": "Uso de doble tilde (´´) como separador decimal, común en documentos de Almería.",
+      "field": "both",
+      "condition": {
+        "type": "regex",
+        "pattern": "\\d+\\s*´´\\s*\\d+"
+      },
+      "transform": {
+        "type": "replace",
+        "pattern": "\\s*´´\\s*",
+        "replacement": "."
+      },
+      "confidence": 95,
+      "uses": 34,
+      "successes": 34,
+      "failures": 0,
+      "source": "community",
+      "firstSeen": "2024-11-15T00:00:00Z",
+      "lastUsed": "2024-11-27T00:00:00Z",
+      "municipalities": ["Berja", "Dalías", "El Ejido", "Roquetas de Mar"],
+      "isStable": true,
+      "version": "1.0.0"
+    },
+    {
+      "id": "SPACE_AS_THOUSANDS",
+      "name": "Espacio como separador de miles",
+      "description": "Espacio usado para separar miles (ej: 447 850 → 447850).",
+      "field": "both",
+      "condition": {
+        "type": "regex",
+        "pattern": "^\\d{3}\\s+\\d{3}(\\.\\d+)?$"
+      },
+      "transform": {
+        "type": "replace",
+        "pattern": "\\s+",
+        "replacement": ""
+      },
+      "confidence": 90,
+      "uses": 15,
+      "successes": 15,
+      "failures": 0,
+      "source": "community",
+      "firstSeen": "2024-11-18T00:00:00Z",
+      "lastUsed": "2024-11-27T00:00:00Z",
+      "municipalities": ["Colomera", "Moclín", "Iznalloz"],
+      "isStable": true,
+      "version": "1.0.0"
+    },
+    {
+      "id": "Y_KM_INTEGER",
+      "name": "Y en kilómetros (entero)",
+      "description": "Coordenada Y expresada en km sin decimales (ej: 4133 → 4133000).",
+      "field": "y",
+      "condition": {
+        "type": "range",
+        "minValue": 3980,
+        "maxValue": 4320
+      },
+      "transform": {
+        "type": "multiply",
+        "factor": 1000
+      },
+      "confidence": 88,
+      "uses": 5,
+      "successes": 5,
+      "failures": 0,
+      "source": "community",
+      "firstSeen": "2024-11-26T00:00:00Z",
+      "lastUsed": "2024-11-27T00:00:00Z",
+      "municipalities": ["Hornos"],
+      "isStable": false,
+      "version": "1.0.0"
+    }
+  ],
+  "metadata": {
+    "totalDocumentsAnalyzed": 127,
+    "totalMunicipalitiesCovered": 34,
+    "provinces": ["Almería", "Granada", "Jaén"],
+    "contributors": ["PTEL Development Team"],
+    "nextReviewDate": "2025-01-15"
+  }
+}
