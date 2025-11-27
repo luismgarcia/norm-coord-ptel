@@ -2,6 +2,8 @@
  * Tipos de infraestructuras críticas según PTEL (Planes Territoriales de Emergencias Locales)
  * 
  * Basado en análisis de 786 municipios andaluces y Decreto 197/2024
+ * Actualizado con Fase A: Hidráulicas y Energía
+ * 
  * @module types/infrastructure
  */
 
@@ -42,6 +44,12 @@ export enum InfrastructureType {
   /** Centros de protección civil, 112 */
   EMERGENCY = 'EMERGENCIAS',
   
+  /** EDAR, depuradoras, embalses, depósitos agua (4,400+ vía REDIAM) - NUEVO Fase A */
+  HYDRAULIC = 'HIDRAULICO',
+  
+  /** Subestaciones, centrales, parques eólicos, plantas solares (500+ vía Agencia Energía) - NUEVO Fase A */
+  ENERGY = 'ENERGIA',
+  
   /** Infraestructura no categorizada - usa geocodificación genérica */
   GENERIC = 'GENERICO'
 }
@@ -81,7 +89,7 @@ export interface ClassificationResult {
 }
 
 /**
- * Resultado de geocodificación especializada
+ * Resultado de geocodificación (especializada o genérica)
  */
 export interface GeocodingResult {
   /** Coordenada X (Este) en EPSG:25830 */
@@ -96,20 +104,32 @@ export interface GeocodingResult {
   /** Fuente de datos que proporcionó las coordenadas */
   source: string;
   
-  /** Nombre exacto encontrado en la base de datos especializada */
+  /** Capa/endpoint específico usado */
+  sourceLayer?: string;
+  
+  /** Query original enviada */
+  originalQuery?: string;
+  
+  /** Nombre exacto encontrado en la base de datos */
   matchedName: string;
   
-  /** Score de fuzzy matching (0-1) */
-  fuzzyScore: number;
+  /** Tipo de match: 'portal', 'street', 'municipality', 'exact', etc */
+  matchType?: string;
+  
+  /** Score de fuzzy matching (0-1) - solo para WFS especializados */
+  fuzzyScore?: number;
   
   /** Dirección completa si está disponible */
   address?: string;
   
   /** Municipio geocodificado */
-  municipality: string;
+  municipality?: string;
   
   /** Provincia geocodificada */
-  province: string;
+  province?: string;
+  
+  /** Metadatos adicionales según la fuente */
+  metadata?: Record<string, any>;
 }
 
 /**
@@ -141,4 +161,24 @@ export interface ClassifierConfig {
   
   /** Ignorar acentos y mayúsculas en matching */
   caseSensitive: boolean;
+}
+
+/**
+ * Estadísticas de geocodificación
+ */
+export interface GeocodingStats {
+  /** Total de solicitudes */
+  totalRequests: number;
+  
+  /** Solicitudes exitosas */
+  successfulRequests: number;
+  
+  /** Solicitudes fallidas */
+  failedRequests: number;
+  
+  /** Hits de caché */
+  cacheHits: number;
+  
+  /** Tiempo promedio de respuesta en ms */
+  avgResponseTime: number;
 }

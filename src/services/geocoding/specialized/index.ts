@@ -2,6 +2,7 @@
  * Exportaciones centralizadas de geocodificadores especializados WFS
  * 
  * Fase 1 - Geocodificación por Tipología Especializada
+ * Fase A - Alta Prioridad (REDIAM Hidráulicas, Agencia Energía)
  * 
  * @module services/geocoding/specialized
  */
@@ -36,3 +37,17 @@ export {
   SecurityFacilityType,
   type SecuritySearchOptions
 } from './WFSSecurityGeocoder';
+
+// Geocodificador Hidráulicas - NUEVO Fase A (4,400+ infraestructuras)
+export {
+  WFSHydraulicGeocoder,
+  HydraulicFacilityType,
+  type HydraulicSearchOptions
+} from './WFSHydraulicGeocoder';
+
+// Geocodificador Energía - NUEVO Fase A (500+ instalaciones)
+export {
+  WFSEnergyGeocoder,
+  EnergyFacilityType,
+  type EnergySearchOptions
+} from './WFSEnergyGeocoder';

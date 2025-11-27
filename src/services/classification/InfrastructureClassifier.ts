@@ -4,6 +4,8 @@
  * Implementa detección automática de categorías mediante patrones regex
  * optimizados para nomenclatura andaluza de documentos municipales.
  * 
+ * Actualizado con Fase A: Hidráulicas y Energía
+ * 
  * @example
  * ```typescript
  * const classifier = new InfrastructureClassifier();
@@ -39,7 +41,7 @@ interface ClassificationPattern {
  * Clasificador tipológico de infraestructuras basado en análisis de 
  * documentos PTEL reales de municipios andaluces.
  * 
- * Patrones calibrados contra nomenclatura oficial de IECA, ISE, DERA, IAPH.
+ * Patrones calibrados contra nomenclatura oficial de IECA, ISE, DERA, IAPH, REDIAM.
  */
 export class InfrastructureClassifier {
   private config: ClassifierConfig;
@@ -147,6 +149,22 @@ export class InfrastructureClassifier {
         primary: /\b(protecci[óo]n\s+civil|emergencias?|112|centro\s+coordinaci[óo]n|cecopal)\b/i,
         secondary: /\b(emergencia|urgencia|coordinaci[óo]n)\b/i,
         keywords: ['protección civil', 'emergencias', '112', 'cecopal', 'coordinación']
+      },
+      
+      // HIDRÁULICAS - 4,400+ vía REDIAM (NUEVO Fase A)
+      {
+        type: InfrastructureType.HYDRAULIC,
+        primary: /\b(edar|etap|depuradora|potabilizadora|embalse|presa|dep[óo]sito\s+(de\s+)?agua|captaci[óo]n|aljibe)\b/i,
+        secondary: /\b(hidráulic[oa]|saneamiento|abastecimiento|agua\s+potable|aguas?\s+residuales?)\b/i,
+        keywords: ['edar', 'depuradora', 'embalse', 'depósito agua', 'captación', 'potabilizadora', 'etap', 'presa']
+      },
+      
+      // ENERGÍA - 500+ vía Agencia Andaluza Energía (NUEVO Fase A)
+      {
+        type: InfrastructureType.ENERGY,
+        primary: /\b(subestaci[óo]n|centro\s+de?\s*transformaci[óo]n|central\s+(el[ée]ctrica|t[ée]rmica)|parque\s+e[óo]lico|planta\s+solar|fotovoltaica|l[íi]nea\s+(de\s+)?(alta\s+)?tensi[óo]n)\b/i,
+        secondary: /\b(energ[ée]tic[oa]|el[ée]ctric[oa]|aerogenerador|renovable|kv\b|\d+\s*kv)/i,
+        keywords: ['subestación', 'centro transformación', 'central eléctrica', 'parque eólico', 'planta solar', 'fotovoltaica', 'línea tensión']
       }
     ];
   }
@@ -161,6 +179,12 @@ export class InfrastructureClassifier {
    * ```typescript
    * classifier.classify("CEIP Miguel Hernández")
    * // { type: 'EDUCATIVO', confidence: 'ALTA', keywords: ['ceip', 'escuela'] }
+   * 
+   * classifier.classify("EDAR Granada Sur")
+   * // { type: 'HIDRAULICO', confidence: 'ALTA', keywords: ['edar', 'depuradora'] }
+   * 
+   * classifier.classify("Subestación Baza 220kV")
+   * // { type: 'ENERGIA', confidence: 'ALTA', keywords: ['subestación', 'kv'] }
    * ```
    */
   public classify(name: string): ClassificationResult {

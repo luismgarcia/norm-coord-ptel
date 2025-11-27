@@ -2,13 +2,17 @@
  * Orquestador de Geocodificación Especializada
  * 
  * Integra clasificación tipológica con geocodificadores especializados WFS
- * para máxima precisión y cobertura en infraestructuras PTEL Andalucía.
+ * y fallbacks genéricos (CDAU, CartoCiudad) para máxima precisión y cobertura
+ * en infraestructuras PTEL Andalucía.
  * 
- * Flujo:
+ * Flujo de geocodificación:
  * 1. Clasifica infraestructura por tipología
- * 2. Selecciona geocodificador especializado óptimo
- * 3. Ejecuta geocodificación con fallback a genérico
- * 4. Valida resultado y asigna scoring final
+ * 2. Selecciona geocodificador especializado óptimo (WFS)
+ * 3. Si falla, intenta CDAU (para Andalucía)
+ * 4. Si falla, intenta CartoCiudad (fallback universal)
+ * 5. Valida resultado y asigna scoring final
+ * 
+ * Cobertura esperada: ~85-90% con todos los geocodificadores activos
  * 
  * @module services/geocoding
  */
@@ -20,13 +24,22 @@ import {
   ClassificationResult 
 } from '../../types/infrastructure';
 
+// Geocodificadores especializados WFS
 import {
   WFSHealthGeocoder,
   WFSEducationGeocoder,
   WFSCulturalGeocoder,
   WFSSecurityGeocoder,
+  WFSHydraulicGeocoder,
+  WFSEnergyGeocoder,
   type WFSSearchOptions
 } from './specialized';
+
+// Geocodificadores genéricos (fallback)
+import { 
+  CartoCiudadGeocoder,
+  CDAUGeocoder 
+} from './generic';
 
 /**
  * Opciones para geocodificación orquestada
@@ -40,6 +53,9 @@ export interface OrchestrationOptions {
   
   /** Provincia */
   province: string;
+  
+  /** Dirección postal (para fallbacks genéricos) */
+  address?: string;
   
   /** Tipo forzado (omitir clasificación automática) */
   forceType?: InfrastructureType;
@@ -61,7 +77,7 @@ export interface OrchestrationResult {
   /** Clasificación tipológica aplicada */
   classification: ClassificationResult;
   
-  /** Geocodificador usado ('specialized' | 'generic' | 'none') */
+  /** Geocodificador usado ('specialized:health' | 'cdau' | 'cartociudad' | 'none') */
   geocoderUsed: string;
   
   /** Tiempo total de procesamiento en ms */
@@ -69,12 +85,15 @@ export interface OrchestrationResult {
   
   /** Errores encontrados durante proceso */
   errors: string[];
+  
+  /** Intentos realizados */
+  attempts: string[];
 }
 
 /**
- * Orquestador principal de geocodificación especializada
+ * Orquestador principal de geocodificación
  * 
- * Gestiona flujo completo: clasificación → geocodificación → validación
+ * Gestiona flujo completo: clasificación → especializado → CDAU → CartoCiudad
  * 
  * @example
  * ```typescript
@@ -83,7 +102,8 @@ export interface OrchestrationResult {
  * const result = await orchestrator.geocode({
  *   name: 'Centro de Salud San Antón',
  *   municipality: 'Granada',
- *   province: 'Granada'
+ *   province: 'Granada',
+ *   address: 'C/ San Antón 72'
  * });
  * 
  * if (result.geocoding) {
@@ -93,13 +113,23 @@ export interface OrchestrationResult {
  * ```
  */
 export class GeocodingOrchestrator {
+  // Clasificador tipológico
   private classifier: InfrastructureClassifier;
+  
+  // Geocodificadores especializados WFS
   private healthGeocoder: WFSHealthGeocoder;
   private educationGeocoder: WFSEducationGeocoder;
   private culturalGeocoder: WFSCulturalGeocoder;
   private securityGeocoder: WFSSecurityGeocoder;
+  private hydraulicGeocoder: WFSHydraulicGeocoder;
+  private energyGeocoder: WFSEnergyGeocoder;
+  
+  // Geocodificadores genéricos (fallback)
+  private cdauGeocoder: CDAUGeocoder;
+  private cartoCiudadGeocoder: CartoCiudadGeocoder;
 
   constructor() {
+    // Inicializar clasificador
     this.classifier = new InfrastructureClassifier({
       strictMode: false,
       caseSensitive: false
@@ -110,14 +140,21 @@ export class GeocodingOrchestrator {
     this.educationGeocoder = new WFSEducationGeocoder();
     this.culturalGeocoder = new WFSCulturalGeocoder();
     this.securityGeocoder = new WFSSecurityGeocoder();
+    this.hydraulicGeocoder = new WFSHydraulicGeocoder();
+    this.energyGeocoder = new WFSEnergyGeocoder();
+    
+    // Inicializar geocodificadores genéricos
+    this.cdauGeocoder = new CDAUGeocoder();
+    this.cartoCiudadGeocoder = new CartoCiudadGeocoder();
   }
 
   /**
-   * Geocodifica una infraestructura usando clasificación + geocodificador especializado
+   * Geocodifica una infraestructura usando clasificación + geocodificador óptimo
    */
   public async geocode(options: OrchestrationOptions): Promise<OrchestrationResult> {
     const startTime = Date.now();
     const errors: string[] = [];
+    const attempts: string[] = [];
 
     try {
       // Paso 1: Clasificar tipología (o usar tipo forzado)
@@ -129,7 +166,7 @@ export class GeocodingOrchestrator {
           }
         : this.classifier.classify(options.name);
 
-      // Paso 2: Seleccionar y ejecutar geocodificador especializado
+      // Paso 2: Preparar opciones de búsqueda
       const searchOptions: WFSSearchOptions = {
         name: options.name,
         municipality: options.municipality,
@@ -140,46 +177,55 @@ export class GeocodingOrchestrator {
       let geocodingResult: GeocodingResult | null = null;
       let geocoderUsed = 'none';
 
-      // Intentar geocodificación especializada según tipo
-      switch (classification.type) {
-        case InfrastructureType.HEALTH:
-          geocodingResult = await this.healthGeocoder.geocodeWithAutoLayer(searchOptions);
-          geocoderUsed = geocodingResult ? 'specialized:health' : geocoderUsed;
-          break;
+      // Paso 3: Intentar geocodificación especializada según tipo
+      const specializedResult = await this.trySpecializedGeocoder(
+        classification.type,
+        searchOptions,
+        attempts
+      );
 
-        case InfrastructureType.EDUCATION:
-          geocodingResult = await this.educationGeocoder.geocode(searchOptions);
-          geocoderUsed = geocodingResult ? 'specialized:education' : geocoderUsed;
-          break;
-
-        case InfrastructureType.CULTURAL:
-          geocodingResult = await this.culturalGeocoder.geocodeWithAutoLayer(searchOptions);
-          geocoderUsed = geocodingResult ? 'specialized:cultural' : geocoderUsed;
-          break;
-
-        case InfrastructureType.POLICE:
-        case InfrastructureType.FIRE:
-        case InfrastructureType.EMERGENCY:
-          geocodingResult = await this.securityGeocoder.geocodeWithAutoLayer(searchOptions);
-          geocoderUsed = geocodingResult ? 'specialized:security' : geocoderUsed;
-          break;
-
-        case InfrastructureType.GENERIC:
-        default:
-          // Para tipos genéricos, ir directo a fallback
-          if (options.useGenericFallback !== false) {
-            geocodingResult = await this.genericFallback(searchOptions);
-            geocoderUsed = geocodingResult ? 'generic:cartociudad' : geocoderUsed;
-          }
-          break;
+      if (specializedResult.result && specializedResult.result.confidence >= 70) {
+        geocodingResult = specializedResult.result;
+        geocoderUsed = specializedResult.geocoder;
       }
 
-      // Paso 3: Fallback genérico si falla especializado y está habilitado
+      // Paso 4: Fallback CDAU (para direcciones andaluzas)
       if (!geocodingResult && options.useGenericFallback !== false) {
-        geocodingResult = await this.genericFallback(searchOptions);
-        if (geocodingResult) {
-          geocoderUsed = 'generic:fallback';
-          errors.push('Geocodificador especializado falló, usado fallback genérico');
+        attempts.push('cdau');
+        
+        const cdauResult = await this.cdauGeocoder.geocode({
+          street: options.address || options.name,
+          municipality: options.municipality,
+          province: options.province
+        });
+
+        if (cdauResult && cdauResult.confidence >= 60) {
+          geocodingResult = cdauResult;
+          geocoderUsed = 'generic:cdau';
+        }
+      }
+
+      // Paso 5: Fallback CartoCiudad (universal)
+      if (!geocodingResult && options.useGenericFallback !== false) {
+        attempts.push('cartociudad');
+        
+        const address = options.address 
+          ? `${options.address}, ${options.municipality}`
+          : `${options.name}, ${options.municipality}`;
+        
+        const cartoCiudadResult = await this.cartoCiudadGeocoder.geocode({
+          address,
+          municipality: options.municipality,
+          province: options.province
+        });
+
+        if (cartoCiudadResult) {
+          geocodingResult = cartoCiudadResult;
+          geocoderUsed = 'generic:cartociudad';
+          
+          if (cartoCiudadResult.confidence < 70) {
+            errors.push('CartoCiudad: match de baja confianza');
+          }
         }
       }
 
@@ -190,7 +236,8 @@ export class GeocodingOrchestrator {
         classification,
         geocoderUsed,
         processingTime,
-        errors
+        errors,
+        attempts
       };
 
     } catch (error) {
@@ -206,9 +253,70 @@ export class GeocodingOrchestrator {
         },
         geocoderUsed: 'none',
         processingTime,
-        errors
+        errors,
+        attempts
       };
     }
+  }
+
+  /**
+   * Intenta geocodificación con geocodificador especializado según tipo
+   */
+  private async trySpecializedGeocoder(
+    type: InfrastructureType,
+    options: WFSSearchOptions,
+    attempts: string[]
+  ): Promise<{ result: GeocodingResult | null; geocoder: string }> {
+    
+    let result: GeocodingResult | null = null;
+    let geocoder = 'none';
+
+    switch (type) {
+      case InfrastructureType.HEALTH:
+        attempts.push('specialized:health');
+        result = await this.healthGeocoder.geocodeWithAutoLayer(options);
+        geocoder = result ? 'specialized:health' : geocoder;
+        break;
+
+      case InfrastructureType.EDUCATION:
+        attempts.push('specialized:education');
+        result = await this.educationGeocoder.geocode(options);
+        geocoder = result ? 'specialized:education' : geocoder;
+        break;
+
+      case InfrastructureType.CULTURAL:
+        attempts.push('specialized:cultural');
+        result = await this.culturalGeocoder.geocodeWithAutoLayer(options);
+        geocoder = result ? 'specialized:cultural' : geocoder;
+        break;
+
+      case InfrastructureType.POLICE:
+      case InfrastructureType.FIRE:
+      case InfrastructureType.EMERGENCY:
+        attempts.push('specialized:security');
+        result = await this.securityGeocoder.geocodeWithAutoLayer(options);
+        geocoder = result ? 'specialized:security' : geocoder;
+        break;
+
+      case InfrastructureType.HYDRAULIC:
+        attempts.push('specialized:hydraulic');
+        result = await this.hydraulicGeocoder.geocodeWithAutoLayer(options);
+        geocoder = result ? 'specialized:hydraulic' : geocoder;
+        break;
+
+      case InfrastructureType.ENERGY:
+        attempts.push('specialized:energy');
+        result = await this.energyGeocoder.geocodeWithAutoLayer(options);
+        geocoder = result ? 'specialized:energy' : geocoder;
+        break;
+
+      case InfrastructureType.GENERIC:
+      default:
+        // Tipos genéricos van directo a fallback
+        break;
+    }
+
+    return { result, geocoder };
   }
 
   /**
@@ -216,11 +324,12 @@ export class GeocodingOrchestrator {
    * Optimizado para procesamiento masivo de CSVs PTEL
    */
   public async geocodeBatch(
-    infrastructures: OrchestrationOptions[]
+    infrastructures: OrchestrationOptions[],
+    onProgress?: (current: number, total: number) => void
   ): Promise<OrchestrationResult[]> {
     
-    // Procesar en paralelo con límite de concurrencia (10 simultáneos)
-    const BATCH_SIZE = 10;
+    // Procesar en paralelo con límite de concurrencia (5 simultáneos)
+    const BATCH_SIZE = 5;
     const results: OrchestrationResult[] = [];
 
     for (let i = 0; i < infrastructures.length; i += BATCH_SIZE) {
@@ -230,23 +339,18 @@ export class GeocodingOrchestrator {
       );
       results.push(...batchResults);
 
-      // Log progreso
-      console.log(`Geocodificadas ${Math.min(i + BATCH_SIZE, infrastructures.length)}/${infrastructures.length}`);
+      // Callback de progreso
+      if (onProgress) {
+        onProgress(Math.min(i + BATCH_SIZE, infrastructures.length), infrastructures.length);
+      }
+
+      // Pequeña pausa entre batches para no saturar APIs
+      if (i + BATCH_SIZE < infrastructures.length) {
+        await new Promise(resolve => setTimeout(resolve, 100));
+      }
     }
 
     return results;
-  }
-
-  /**
-   * Fallback genérico usando CartoCiudad IGN
-   * TODO: Implementar cuando integremos CartoCiudad
-   */
-  private async genericFallback(
-    options: WFSSearchOptions
-  ): Promise<GeocodingResult | null> {
-    // Placeholder - implementar CartoCiudad en Fase 2
-    console.warn('Fallback genérico no implementado aún (Fase 2)');
-    return null;
   }
 
   /**
@@ -257,6 +361,7 @@ export class GeocodingOrchestrator {
     byType: Record<string, number>;
     byConfidence: Record<string, number>;
     totalSpecializedCoverage: number;
+    estimatedGeocodingSuccess: number;
   } {
     const classifications = names.map(name => this.classifier.classify(name));
 
@@ -278,11 +383,18 @@ export class GeocodingOrchestrator {
     });
 
     const totalSpecializedCoverage = (specializedCount / names.length) * 100;
+    
+    // Estimar éxito de geocodificación:
+    // - Especializados: ~80% éxito
+    // - Genéricos con fallback: ~60% éxito
+    const estimatedGeocodingSuccess = 
+      (specializedCount * 0.80 + (names.length - specializedCount) * 0.60) / names.length * 100;
 
     return {
       byType,
       byConfidence,
-      totalSpecializedCoverage
+      totalSpecializedCoverage,
+      estimatedGeocodingSuccess
     };
   }
 
@@ -291,11 +403,19 @@ export class GeocodingOrchestrator {
    * Útil al cambiar de municipio/dataset
    */
   public clearAllCaches(): void {
+    // Especializados
     this.healthGeocoder.clearCache();
     this.educationGeocoder.clearCache();
     this.culturalGeocoder.clearCache();
     this.securityGeocoder.clearCache();
-    console.log('✅ Cachés de geocodificadores limpiados');
+    this.hydraulicGeocoder.clearCache();
+    this.energyGeocoder.clearCache();
+    
+    // Genéricos
+    this.cdauGeocoder.clearCache();
+    this.cartoCiudadGeocoder.clearCache();
+    
+    console.log('✅ Cachés de todos los geocodificadores limpiados');
   }
 
   /**
@@ -303,10 +423,27 @@ export class GeocodingOrchestrator {
    */
   public getAllStats() {
     return {
-      health: this.healthGeocoder.getStats(),
-      education: this.educationGeocoder.getStats(),
-      cultural: this.culturalGeocoder.getStats(),
-      security: this.securityGeocoder.getStats()
+      specialized: {
+        health: this.healthGeocoder.getStats(),
+        education: this.educationGeocoder.getStats(),
+        cultural: this.culturalGeocoder.getStats(),
+        security: this.securityGeocoder.getStats(),
+        hydraulic: this.hydraulicGeocoder.getStats(),
+        energy: this.energyGeocoder.getStats()
+      },
+      generic: {
+        cdau: this.cdauGeocoder.getStats(),
+        cartociudad: this.cartoCiudadGeocoder.getStats()
+      }
     };
+  }
+
+  /**
+   * Resetea estadísticas de todos los geocodificadores
+   */
+  public resetAllStats(): void {
+    this.cdauGeocoder.resetStats();
+    this.cartoCiudadGeocoder.resetStats();
+    console.log('✅ Estadísticas reseteadas');
   }
 }

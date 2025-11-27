@@ -1,13 +1,25 @@
 /**
- * Servicios de Geocodificación PTEL
+ * Módulo de Geocodificación PTEL Andalucía
  * 
- * Fase 1: Geocodificación Especializada por Tipología
+ * Exporta el orquestador principal y todos los geocodificadores
+ * especializados y genéricos.
+ * 
+ * Cobertura por tipo:
+ * - Especializados (WFS): Sanitarios, Educación, Cultural, Seguridad, Hidráulicas, Energía
+ * - Genéricos (fallback): CDAU (Andalucía), CartoCiudad (España)
  * 
  * @module services/geocoding
  */
 
 // Orquestador principal
-export { GeocodingOrchestrator, type OrchestrationOptions, type OrchestrationResult } from './GeocodingOrchestrator';
+export { 
+  GeocodingOrchestrator,
+  type OrchestrationOptions,
+  type OrchestrationResult 
+} from './GeocodingOrchestrator';
 
-// Geocodificadores especializados
+// Geocodificadores especializados WFS
 export * from './specialized';
+
+// Geocodificadores genéricos (fallback)
+export * from './generic';
