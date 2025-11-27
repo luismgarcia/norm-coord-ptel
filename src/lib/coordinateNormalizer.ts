@@ -129,13 +129,36 @@ const MOJIBAKE_PATTERNS: [RegExp, string][] = [
 
 /**
  * Patrones de separadores numéricos corruptos
+ * PRIORIDAD: Los patrones más específicos van primero
+ * 
+ * v3.1: Añadidos patrones detectados en documentos de Berja:
+ * - DOUBLE_DOT: Doble punto como decimal (4 076 464..97)
+ * - SPANISH_LONG: Formato español largo (4.077.905,68)
+ * - SPANISH_SHORT: Formato español corto (504.352,98)
  */
 const SEPARATOR_PATTERNS: [RegExp, string, string][] = [
+  // P0: Doble punto → punto simple (error tipográfico común)
+  [/(\d+)\.\.(\d+)/g, '$1.$2', 'DOUBLE_DOT'],
+  
+  // P1: Tildes como separador decimal (muy común en Almería)
   [/(\d+)\s*´´\s*(\d+)/g, '$1.$2', 'DOUBLE_TILDE'],
   [/(\d+)\s*´\s*(\d+)/g, '$1.$2', 'SINGLE_TILDE'],
-  [/(\d{1,3})\s+(\d{3})\s*[,.]?\s*(\d*)$/g, '$1$2.$3', 'SPACE_THOUSANDS'],
+  
+  // P2: Formato español LARGO (punto miles, coma decimal): 4.077.905,68 → 4077905.68
+  [/(\d{1,3})\.(\d{3})\.(\d{3}),(\d+)/g, '$1$2$3.$4', 'SPANISH_LONG'],
+  
+  // P3: Formato español CORTO (punto miles, coma decimal): 504.352,98 → 504352.98
+  [/(\d{3})\.(\d{3}),(\d+)/g, '$1$2.$3', 'SPANISH_SHORT'],
+  
+  // P4: Espacios como separador de miles: 504 516 → 504516
+  [/(\d{1,3})\s+(\d{3})\s+(\d{3})[,.]?(\d*)/g, '$1$2$3.$4', 'SPACE_THOUSANDS_3'],
+  [/(\d{1,3})\s+(\d{3})[,.]?(\d*)/g, '$1$2.$3', 'SPACE_THOUSANDS_2'],
+  
+  // P5: Punto como separador de miles SIN coma (casos legacy)
   [/(\d{1,3})\.(\d{3})\.(\d{3})[,.]?(\d*)/g, '$1$2$3.$4', 'DOT_THOUSANDS_3'],
   [/(\d{1,3})\.(\d{3})[,.](\d+)/g, '$1$2.$3', 'DOT_THOUSANDS_2'],
+  
+  // P6: Coma decimal final (después de limpiar otros patrones)
   [/(\d+),(\d+)/g, '$1.$2', 'COMMA_DECIMAL'],
 ];
 
