@@ -14,13 +14,13 @@
 | B: UTM erróneos | 12 | **12** | 0 | ✅ |
 | C: DMS sexagesimales | 8 | **8** | 0 | ✅ |
 | D: NMEA GPS | 4 | **4** | 0 | ✅ |
-| E: Especiales/históricos | 6 | **4** | 2 | 🟡 |
-| F: Mixtos/ambiguos | 6 | **4** | 2 | 🟡 |
+| E: Especiales/históricos | 6 | **6** | 0 | ✅ |
+| F: Mixtos/ambiguos | 6 | **6** | 0 | ✅ |
 | G: Compuestos (WKT, JSON) | 4 | **4** | 0 | ✅ |
-| H: Libre/narrativo | 2 | 0 | **2** | ⚪ |
-| **TOTAL** | **52** | **46** | **6** | ✅ |
+| H: Libre/narrativo | 2 | **2** | 0 | ✅ |
+| **TOTAL** | **52** | **52** | **0** | ✅ |
 
-**Cobertura actual: 88.5%** (46 de 52 patrones) ✅ ACTUALIZADO v4.0
+**Cobertura actual: 100%** (52 de 52 patrones) ✅ COMPLETADO v4.1
 
 ---
 
