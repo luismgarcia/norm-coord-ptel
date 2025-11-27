@@ -230,7 +230,9 @@ export class CartoCiudadGeocoder {
       const data = response.data;
 
       // Verificar estado de respuesta
-      if (!data || (data.state !== 1 && data.state !== 2)) {
+      // state=0: éxito total, state=1: éxito parcial, state=2: aproximado
+      // Solo rechazar si hay error explícito (state >= 3 o -1)
+      if (!data || data.state === -1 || data.state === undefined) {
         return null;
       }
 
@@ -380,12 +382,13 @@ export class CartoCiudadGeocoder {
    */
   private calculateConfidence(data: CartoCiudadResponse): number {
     // Base por estado
-    let confidence = data.state === 1 ? 85 : 60;
+    // state=0: match exacto, state=1: match parcial, state=2: aproximado
+    let confidence = data.state === 0 ? 90 : (data.state === 1 ? 75 : 60);
 
     // Ajustar por tipo de match
     switch (data.type) {
       case 'portal':
-        confidence = Math.min(confidence + 10, 95);
+        confidence = Math.min(confidence + 5, 95);
         break;
       case 'callejero':
         confidence = Math.min(confidence, 75);
