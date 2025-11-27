@@ -38,19 +38,14 @@ Este documento detalla el plan de implementación de 12 recursos de geocodificac
 | `WFSCulturalGeocoder` | `src/services/geocoding/specialized/WFSCulturalGeocoder.ts` | DERA G09 | ✅ Funcional |
 | `WFSSecurityGeocoder` | `src/services/geocoding/specialized/WFSSecurityGeocoder.ts` | ISE Seguridad | ⚠️ API no pública |
 
-### Gap Crítico Identificado
+### ✅ Gap Crítico RESUELTO (Nov 2025)
 
-El método `genericFallback()` en `GeocodingOrchestrator.ts` está marcado como TODO:
+El método `genericFallback()` en `GeocodingOrchestrator.ts` ha sido completamente implementado con:
 
-```typescript
-private async genericFallback(options: WFSSearchOptions): Promise<GeocodingResult | null> {
-  // Placeholder - implementar CartoCiudad en Fase 2
-  console.warn('Fallback genérico no implementado aún (Fase 2)');
-  return null;
-}
-```
+1. **Fallback CDAU** (paso 4): Alta precisión para direcciones andaluzas
+2. **Fallback CartoCiudad** (paso 5): Cobertura universal España
 
-**Impacto:** Si el geocodificador especializado falla, el sistema devuelve `null` sin alternativa.
+**Cobertura actual estimada:** ~85-90% con todos los geocodificadores activos.
 
 ---
 
@@ -60,10 +55,10 @@ private async genericFallback(options: WFSSearchOptions): Promise<GeocodingResul
 
 | # | Recurso | Prioridad | Esfuerzo | Impacto | ROI | Tipologías |
 |---|---------|-----------|----------|---------|-----|------------|
-| 1 | CartoCiudad API | 🔴 CRÍTICA | 2-3h | +25-35% | ⭐⭐⭐⭐⭐ | Fallback universal |
-| 2 | CDAU | 🔴 CRÍTICA | 2-3h | +10-15% | ⭐⭐⭐⭐ | Direcciones 786 municipios |
-| 3 | REDIAM Hidráulicas | 🟠 ALTA | 3-4h | +3-5% | ⭐⭐⭐⭐ | EDAR, captaciones, embalses |
-| 4 | Agencia Energía WFS | 🟠 ALTA | 3-4h | +2-4% | ⭐⭐⭐ | Subestaciones, líneas AT |
+| 1 | CartoCiudad API | ✅ IMPLEMENTADO | — | +25-35% | ⭐⭐⭐⭐⭐ | Fallback universal |
+| 2 | CDAU | ✅ IMPLEMENTADO | — | +10-15% | ⭐⭐⭐⭐ | Direcciones 786 municipios |
+| 3 | REDIAM Hidráulicas | ✅ IMPLEMENTADO | — | +3-5% | ⭐⭐⭐⭐ | EDAR, captaciones, embalses |
+| 4 | Agencia Energía WFS | ✅ IMPLEMENTADO | — | +2-4% | ⭐⭐⭐ | Subestaciones, líneas AT |
 | 5 | OpenRTA | 🟡 MEDIA | 2-3h | +3-5% | ⭐⭐⭐ | Hoteles, albergues, campings |
 | 6 | REDIAM Equipamientos | 🟡 MEDIA | 2-3h | +3-5% | ⭐⭐ | Espacios naturales, senderos |
 | 7 | Catastro INSPIRE | 🟡 MEDIA | 4-5h | Validación | ⭐⭐ | Parcelas, edificios |
