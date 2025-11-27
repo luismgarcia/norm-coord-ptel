@@ -21,6 +21,18 @@ export type CoordinateStatus =
   | 'manual';       // Requiere intervención manual
 
 /**
+ * Tipo de dirección para clasificación de estrategia de geocodificación
+ */
+export type AddressType = 
+  | 'postal'        // Dirección postal (calle, avenida, plaza...)
+  | 'toponym'       // Topónimo (paraje, cerro, cortijo...)
+  | 'cadastral'     // Referencia catastral (polígono, parcela)
+  | 'sports'        // Instalación deportiva (piscina, campo...)
+  | 'telecom'       // Telecomunicaciones (antena, repetidor...)
+  | 'road'          // Carretera o vía (A-xxx, GR-xxx...)
+  | 'unknown';      // No clasificable
+
+/**
  * Infraestructura extraída del documento
  */
 export interface ExtractedInfrastructure {
@@ -56,6 +68,9 @@ export interface ExtractedInfrastructure {
   
   /** Provincia detectada */
   provincia?: string;
+  
+  /** Tipo de dirección para estrategia de geocodificación */
+  addressType?: AddressType;
 }
 
 /**

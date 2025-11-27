@@ -1,23 +1,77 @@
 /**
- * Utilidades para extracción de infraestructuras de documentos PTEL
+ * Extractor de Infraestructuras PTEL v3.0
  * 
- * Extrae TODAS las infraestructuras del documento, incluyendo las que
- * no tienen coordenadas (para geocodificación posterior).
+ * Estrategia ESCALONADA para identificar infraestructuras:
+ * 1. Detección por ESTRUCTURA de tabla (columnas Nombre/Dirección/Coordenadas)
+ * 2. Lista blanca de SECCIONES conocidas PTEL
+ * 3. Detección por CONTENIDO (patrones de infraestructura)
+ * 
+ * Extrae TANTO infraestructuras con coordenadas COMO sin coordenadas
+ * para posterior geocodificación.
  * 
  * @module lib/documentExtractor
  */
 
 import JSZip from 'jszip';
 import * as XLSX from 'xlsx';
-import { ExtractedInfrastructure, ExtractionStats, DocumentMetadata } from '../types/processing';
+import { ExtractedInfrastructure, ExtractionStats, DocumentMetadata, AddressType } from '../types/processing';
 
 // ============================================================================
-// UTILIDADES DE LIMPIEZA
+// TIPOS Y CONSTANTES
 // ============================================================================
 
-/**
- * Genera un ID único para una infraestructura
- */
+/** Resultado de análisis de estructura de tabla */
+interface TableStructure {
+  hasNameColumn: boolean;
+  hasAddressColumn: boolean;
+  hasCoordColumns: boolean;
+  hasCoordsInHeader: boolean;
+  nameColIdx: number;
+  addressColIdx: number;
+  typeColIdx: number;
+  xColIdx: number;
+  yColIdx: number;
+  dataStartRow: number;
+  confidence: number; // 0-100
+}
+
+/** Patrones para detectar columnas */
+const COLUMN_PATTERNS = {
+  name: /^(nombre|denominaci[oó]n|descripci[oó]n|elemento|infraestructura|instalaci[oó]n)$/i,
+  address: /^(direcci[oó]n|ubicaci[oó]n|localizaci[oó]n|domicilio|emplazamiento)$/i,
+  type: /^(tipo|tipolog[ií]a|categor[ií]a|clase|naturaleza)$/i,
+  coordX: /^(x|x[-_\s]?(utm|coord)?|longitud|este|easting|coord[-_\s]?x)$/i,
+  coordY: /^(y|y[-_\s]?(utm|coord)?|latitud|norte|northing|coord[-_\s]?y)$/i,
+  coordCombined: /^coordenadas?(\s*\(?utm\)?)?$/i,
+  owner: /^(titular|propietario|entidad|organismo|responsable)$/i,
+};
+
+/** Secciones PTEL conocidas que contienen infraestructuras */
+const KNOWN_SECTIONS = [
+  /patrimonio\s*(hist[oó]rico|cultural|natural)?/i,
+  /elementos?\s*vulnerables?/i,
+  /infraestructuras?\s*(cr[ií]ticas?|esenciales?)?/i,
+  /servicios?\s*(esenciales?|b[aá]sicos?)/i,
+  /centros?\s*(sanitarios?|educativos?|deportivos?)/i,
+  /instalaciones?\s*(deportivas?|municipales?)/i,
+  /recursos?\s*(municipales?|materiales?)/i,
+  /medios?\s*(materiales?|humanos?)/i,
+];
+
+/** Patrones para clasificar tipo de dirección */
+const ADDRESS_PATTERNS = {
+  postal: /^(c\/|calle|avda?\.?|avenida|plaza|pza\.?|paseo|ctra\.?|carretera|camino|travesía|ronda|glorieta)\s/i,
+  toponym: /^(paraje|cerro|cortijo|barranco|arroyo|fuente|era|cañada|llano|loma|monte|sierra|vega|haza)\s/i,
+  cadastral: /^(pol[ií]gono|parcela|pol\.?\s*\d|parc\.?\s*\d|\d+[-\/]\d+)/i,
+  sports: /(piscina|campo\s*(de\s*)?(f[uú]tbol|golf)|polideportivo|pabell[oó]n|gimnasio|pista)/i,
+  telecom: /(antena|repetidor|torre\s*(de\s*)?comunicaci[oó]n|bts|estaci[oó]n\s*base)/i,
+  road: /^(carretera|autov[ií]a|autopista|ctra\.?|[anc][-\s]?\d{1,4}|gr[-\s]?\d{3,4})/i,
+};
+
+// ============================================================================
+// UTILIDADES
+// ============================================================================
+
 function generateId(): string {
   return `inf_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 }
@@ -31,22 +85,20 @@ export function cleanCoordinateValue(val: string): string {
   let cleaned = val.trim();
   
   // Detectar placeholders
-  if (/^(indicar|sin datos?|-|n\/?[ac]|\.+|_+|xxx)$/i.test(cleaned)) {
+  if (/^(indicar|sin\s*datos?|-+|n\/?[ac]|\.+|_+|xxx?|completar)$/i.test(cleaned)) {
     return '';
   }
   
   // Eliminar comillas especiales
   cleaned = cleaned.replace(/[´`''""]+/g, '');
   
-  // Espacios como separadores de miles
+  // Espacios como separadores de miles: "437 686 30" → "437686.30"
   if (/^\d[\d\s]+\d$/.test(cleaned) && cleaned.includes(' ')) {
     const noSpaces = cleaned.replace(/\s/g, '');
-    if (/^\d+$/.test(noSpaces)) {
-      if (noSpaces.length > 6) {
-        cleaned = noSpaces.slice(0, -2) + '.' + noSpaces.slice(-2);
-      } else {
-        cleaned = noSpaces;
-      }
+    if (/^\d+$/.test(noSpaces) && noSpaces.length > 6) {
+      cleaned = noSpaces.slice(0, -2) + '.' + noSpaces.slice(-2);
+    } else {
+      cleaned = noSpaces;
     }
   }
   
@@ -56,24 +108,24 @@ export function cleanCoordinateValue(val: string): string {
     cleaned = cleaned.replace(/\./g, '');
   } else if (dotCount === 1) {
     const parts = cleaned.split('.');
-    if (parts[1] && parts[1].length === 3 && /^\d+$/.test(parts[0]) && /^\d+$/.test(parts[1])) {
+    if (parts[1]?.length === 3 && /^\d+$/.test(parts[0]) && /^\d+$/.test(parts[1])) {
       if (parseInt(parts[0]) >= 1000) {
         cleaned = cleaned.replace('.', '');
       }
     }
   }
   
-  // Coma por punto
+  // Coma por punto decimal
   cleaned = cleaned.replace(',', '.');
   
-  // Espacios restantes
+  // Limpiar espacios
   cleaned = cleaned.replace(/\s/g, '');
   
   return cleaned;
 }
 
 /**
- * Verifica si un valor parece una coordenada UTM válida para Andalucía
+ * Verifica si un valor es una coordenada UTM válida para Andalucía
  */
 export function isValidUTMValue(val: string, type: 'x' | 'y'): boolean {
   const num = parseFloat(val);
@@ -82,29 +134,27 @@ export function isValidUTMValue(val: string, type: 'x' | 'y'): boolean {
   if (type === 'x') {
     return num >= 100000 && num <= 800000;
   } else {
-    return num >= 4000000 && num <= 4300000;
+    return num >= 4000000 && num <= 4350000;
   }
 }
 
 /**
- * Detecta municipio del nombre del archivo o contenido
+ * Detecta municipio del nombre del archivo
  */
-export function detectMunicipality(fileName: string, content?: string): string | undefined {
-  // Patrones comunes en nombres de archivo PTEL
-  const filePatterns = [
-    /PTEL[_\s]+(?:Ayto?\.?\s*)?(\w+)/i,
-    /Ficha[_\s]+(?:Plantilla[_\s]+)?PTEL[_\s]+(?:Ayto?\.?\s*)?(\w+)/i,
-    /(\w+)[_\s]+PTEL/i
+export function detectMunicipality(fileName: string): string | undefined {
+  const patterns = [
+    /PTEL[_\s]+(?:Ayto?\.?\s*)?([A-Za-záéíóúñÁÉÍÓÚÑ]+)/i,
+    /Ficha[_\s]+(?:Plantilla[_\s]+)?PTEL[_\s]+(?:Ayto?\.?\s*)?([A-Za-záéíóúñÁÉÍÓÚÑ]+)/i,
+    /([A-Za-záéíóúñÁÉÍÓÚÑ]+)[_\s]+PTEL/i
   ];
   
-  for (const pattern of filePatterns) {
+  for (const pattern of patterns) {
     const match = fileName.match(pattern);
-    if (match && match[1]) {
-      // Limpiar y capitalizar
-      return match[1].charAt(0).toUpperCase() + match[1].slice(1).toLowerCase();
+    if (match?.[1]) {
+      const name = match[1].replace(/_/g, ' ');
+      return name.charAt(0).toUpperCase() + name.slice(1).toLowerCase();
     }
   }
-  
   return undefined;
 }
 
@@ -112,26 +162,75 @@ export function detectMunicipality(fileName: string, content?: string): string |
  * Detecta provincia basándose en el municipio
  */
 export function detectProvince(municipality?: string): string {
-  // Por defecto Granada (para pruebas de Colomera)
-  // En producción, esto debería consultar una tabla de municipios
   if (!municipality) return 'Granada';
   
-  // Lista simplificada de municipios por provincia (expandir en producción)
-  const granadaMunicipalities = [
-    'colomera', 'granada', 'motril', 'baza', 'guadix', 'loja', 'almuñécar',
-    'armilla', 'maracena', 'atarfe', 'pinos puente', 'santa fe'
-  ];
+  const municipiosPorProvincia: Record<string, string[]> = {
+    'Granada': ['colomera', 'granada', 'motril', 'baza', 'guadix', 'loja', 'almuñécar', 'quéntar', 'quentar', 'castril'],
+    'Almería': ['almería', 'almeria', 'roquetas', 'ejido', 'níjar', 'berja', 'adra', 'garrucha', 'tijola'],
+    'Jaén': ['jaén', 'jaen', 'linares', 'úbeda', 'baeza', 'andújar', 'hornos'],
+    'Málaga': ['málaga', 'malaga', 'marbella', 'fuengirola', 'torremolinos', 'ronda'],
+    'Sevilla': ['sevilla', 'dos hermanas', 'alcalá', 'utrera', 'écija'],
+    'Córdoba': ['córdoba', 'cordoba', 'lucena', 'puente genil', 'montilla'],
+    'Cádiz': ['cádiz', 'cadiz', 'jerez', 'algeciras', 'san fernando'],
+    'Huelva': ['huelva', 'lepe', 'almonte', 'moguer', 'ayamonte'],
+  };
   
-  if (granadaMunicipalities.includes(municipality.toLowerCase())) {
-    return 'Granada';
+  const muni = municipality.toLowerCase();
+  for (const [provincia, municipios] of Object.entries(municipiosPorProvincia)) {
+    if (municipios.some(m => muni.includes(m))) {
+      return provincia;
+    }
   }
   
-  // Por defecto
   return 'Granada';
 }
 
+/**
+ * Clasifica el tipo de dirección para determinar estrategia de geocodificación
+ */
+export function classifyAddressType(address: string, name: string): AddressType {
+  const combined = `${name} ${address}`.toLowerCase();
+  
+  // Orden importa: más específico primero
+  if (ADDRESS_PATTERNS.telecom.test(combined)) return 'telecom';
+  if (ADDRESS_PATTERNS.sports.test(combined)) return 'sports';
+  if (ADDRESS_PATTERNS.road.test(name)) return 'road';
+  if (ADDRESS_PATTERNS.cadastral.test(address)) return 'cadastral';
+  if (ADDRESS_PATTERNS.toponym.test(address)) return 'toponym';
+  if (ADDRESS_PATTERNS.postal.test(address)) return 'postal';
+  
+  // Si tiene número de portal, probablemente es postal
+  if (/,?\s*\d+\s*$/.test(address) || /n[ºo°]?\s*\d+/i.test(address)) return 'postal';
+  
+  // Si tiene nombre de calle común
+  if (/s\/n|sin\s*n[úu]mero/i.test(address)) return 'postal';
+  
+  return 'unknown';
+}
+
+/**
+ * Detecta el tipo de infraestructura desde nombre y contexto
+ */
+function detectInfrastructureType(name: string, type: string, tableName: string): string {
+  const combined = `${name} ${type} ${tableName}`.toLowerCase();
+  
+  if (/patrimonio|hist[oó]rico|cultural|monumento|iglesia|ermita|museo|castillo|torre|puente/i.test(combined)) return 'PATRIMONIO';
+  if (/sanita|salud|m[eé]dico|consultorio|hospital|ambulatorio|farmacia|centro\s*de\s*salud/i.test(combined)) return 'SANITARIO';
+  if (/educa|enseñanza|colegio|instituto|escuela|ceip|ies|guarder[ií]a|infantil/i.test(combined)) return 'EDUCATIVO';
+  if (/seguridad|polic[ií]a|guardia\s*civil|bomberos|protecci[oó]n\s*civil/i.test(combined)) return 'SEGURIDAD';
+  if (/telecom|antena|repetidor|comunicaci[oó]n|telef[oó]nica|movistar|vodafone|orange/i.test(combined)) return 'TELECOMUNICACIONES';
+  if (/deport|piscina|polideportivo|campo|pabell[oó]n|gimnasio|pista/i.test(combined)) return 'DEPORTIVO';
+  if (/hidr[aá]ulic|agua|dep[oó]sito|embalse|edar|depuradora|potabilizadora/i.test(combined)) return 'HIDRAULICO';
+  if (/energ[ií]a|el[eé]ctric|subestaci[oó]n|transformador|endesa|iberdrola/i.test(combined)) return 'ENERGIA';
+  if (/municipal|ayuntamiento|administrativo|casa\s*consist/i.test(combined)) return 'MUNICIPAL';
+  if (/vial|carretera|camino|acceso|autopista|autov[ií]a/i.test(combined)) return 'VIAL';
+  if (/recreativ|parque|[aá]rea\s*recreativa|jard[ií]n/i.test(combined)) return 'RECREATIVO';
+  
+  return 'OTRO';
+}
+
 // ============================================================================
-// PARSER ODT MEJORADO - EXTRAE TODAS LAS INFRAESTRUCTURAS
+// EXTRACCIÓN DE CELDAS ODT
 // ============================================================================
 
 function getRowCells(row: Element, ns: string): string[] {
@@ -140,10 +239,12 @@ function getRowCells(row: Element, ns: string): string[] {
   
   for (let i = 0; i < cells.length; i++) {
     const cell = cells[i];
-    const repeatCount = parseInt(cell.getAttribute('table:number-columns-repeated') || '1', 10);
+    const repeatAttr = cell.getAttribute('table:number-columns-repeated');
+    const repeatCount = repeatAttr ? parseInt(repeatAttr, 10) : 1;
     const text = cell.textContent?.trim() || '';
     
-    const effectiveRepeat = Math.min(repeatCount, text ? 20 : 3);
+    // Limitar repeticiones para evitar arrays enormes
+    const effectiveRepeat = Math.min(repeatCount, text ? 15 : 2);
     for (let r = 0; r < effectiveRepeat; r++) {
       result.push(text);
     }
@@ -152,53 +253,148 @@ function getRowCells(row: Element, ns: string): string[] {
   return result;
 }
 
+// ============================================================================
+// ANÁLISIS DE ESTRUCTURA DE TABLA
+// ============================================================================
+
 /**
- * Detecta si una fila contiene una infraestructura válida
+ * Analiza la estructura de una tabla para determinar si contiene infraestructuras
  */
-function isInfrastructureRow(cells: string[]): boolean {
-  // Debe tener al menos un nombre significativo
-  const nonEmptyCells = cells.filter(c => 
-    c.trim() && 
-    !/^(indicar|sin datos?|-|\.+|_+|x|y|coordenadas?)$/i.test(c.trim())
-  );
+function analyzeTableStructure(rows: string[][]): TableStructure {
+  const result: TableStructure = {
+    hasNameColumn: false,
+    hasAddressColumn: false,
+    hasCoordColumns: false,
+    hasCoordsInHeader: false,
+    nameColIdx: -1,
+    addressColIdx: -1,
+    typeColIdx: -1,
+    xColIdx: -1,
+    yColIdx: -1,
+    dataStartRow: 1,
+    confidence: 0,
+  };
   
-  if (nonEmptyCells.length < 1) return false;
+  if (rows.length < 2) return result;
   
-  // El primer campo no vacío debe parecer un nombre
-  const firstContent = nonEmptyCells[0];
-  if (firstContent.length < 3) return false;
+  // Analizar primeras 3 filas como posibles headers
+  for (let headerRow = 0; headerRow < Math.min(3, rows.length); headerRow++) {
+    const cells = rows[headerRow];
+    
+    for (let i = 0; i < cells.length; i++) {
+      const cell = cells[i].toLowerCase().trim();
+      if (!cell) continue;
+      
+      // Detectar columnas por patrón
+      if (result.nameColIdx === -1 && COLUMN_PATTERNS.name.test(cell)) {
+        result.nameColIdx = i;
+        result.hasNameColumn = true;
+      }
+      if (result.addressColIdx === -1 && COLUMN_PATTERNS.address.test(cell)) {
+        result.addressColIdx = i;
+        result.hasAddressColumn = true;
+      }
+      if (result.typeColIdx === -1 && COLUMN_PATTERNS.type.test(cell)) {
+        result.typeColIdx = i;
+      }
+      if (result.xColIdx === -1 && COLUMN_PATTERNS.coordX.test(cell)) {
+        result.xColIdx = i;
+        result.hasCoordColumns = true;
+      }
+      if (result.yColIdx === -1 && COLUMN_PATTERNS.coordY.test(cell)) {
+        result.yColIdx = i;
+        result.hasCoordColumns = true;
+      }
+      // Columna combinada "Coordenadas"
+      if (COLUMN_PATTERNS.coordCombined.test(cell)) {
+        result.hasCoordsInHeader = true;
+        if (result.xColIdx === -1) result.xColIdx = i;
+        if (result.yColIdx === -1) result.yColIdx = i + 1;
+        result.hasCoordColumns = true;
+      }
+    }
+    
+    // Si encontramos estructura, los datos empiezan después
+    if (result.hasNameColumn || result.hasAddressColumn || result.hasCoordColumns) {
+      result.dataStartRow = headerRow + 1;
+      
+      // Verificar si siguiente fila es sub-header (X/Y solos)
+      if (result.dataStartRow < rows.length) {
+        const nextRow = rows[result.dataStartRow];
+        const nextText = nextRow.join(' ').toLowerCase().trim();
+        if (/^[xy\s\-]+$/i.test(nextText) || (nextRow.filter(c => c.trim()).length <= 3 && /\bx\b.*\by\b/i.test(nextText))) {
+          // Es sub-header, buscar índices X/Y aquí
+          for (let i = 0; i < nextRow.length; i++) {
+            const c = nextRow[i].toLowerCase().trim();
+            if (c === 'x' && result.xColIdx === -1) result.xColIdx = i;
+            if (c === 'y' && result.yColIdx === -1) result.yColIdx = i;
+          }
+          result.dataStartRow++;
+        }
+      }
+      break;
+    }
+  }
   
-  // Excluir headers y labels
-  const headerPatterns = /^(nombre|tipo|dirección|coordenadas?|denominación|descripción|observaciones)$/i;
-  if (headerPatterns.test(firstContent)) return false;
+  // Si no encontramos nombre por header, usar primera columna
+  if (result.nameColIdx === -1 && rows[0]?.length > 0) {
+    result.nameColIdx = 0;
+  }
+  
+  // Calcular confianza
+  let confidence = 0;
+  if (result.hasNameColumn) confidence += 30;
+  if (result.hasAddressColumn) confidence += 30;
+  if (result.hasCoordColumns) confidence += 40;
+  result.confidence = confidence;
+  
+  return result;
+}
+
+/**
+ * Verifica si una fila contiene datos de infraestructura válidos
+ */
+function isValidInfrastructureRow(cells: string[], structure: TableStructure): boolean {
+  // Debe tener un nombre válido
+  const nameIdx = structure.nameColIdx >= 0 ? structure.nameColIdx : 0;
+  const name = cells[nameIdx]?.trim() || '';
+  
+  // Filtrar nombres vacíos o muy cortos
+  if (name.length < 3) return false;
+  
+  // Filtrar headers y sub-headers de coordenadas
+  if (COLUMN_PATTERNS.name.test(name) || COLUMN_PATTERNS.address.test(name)) return false;
+  if (/^[xy][-_\s]*(longitud|latitud|utm|coord)?$/i.test(name)) return false;
+  if (/^(longitud|latitud|este|norte|easting|northing)$/i.test(name)) return false;
+  
+  // Filtrar placeholders
+  if (/^(indicar|completar|rellenar|ejemplo|muestra|-+|\.+|_+|n\/a|sin\s*datos?)$/i.test(name)) return false;
+  
+  // Filtrar textos que son claramente descripciones de riesgos
+  if (/^(movimiento|incendio|accidente|inundaci|sequ[ií]a|terremoto|epidemia|tipolog[ií]a)s?\s/i.test(name)) return false;
+  
+  // Filtrar nombres de personas (Nombre Apellido Apellido)
+  if (/^[A-ZÁÉÍÓÚÑ][a-záéíóúñ]+\s+[A-ZÁÉÍÓÚÑ][a-záéíóúñ]+\s+[A-ZÁÉÍÓÚÑ][a-záéíóúñ]+$/.test(name)) return false;
+  
+  // Filtrar textos tipo "AFORO: X PERSONAS" que son recursos, no infraestructuras
+  if (/AFORO:\s*\d+\s*PERSONAS?/i.test(name)) return false;
+  
+  // Filtrar textos genéricos sin valor
+  if (/^(no existe|suplente|pendiente|sin\s*(constancia|determinar)|otros?)$/i.test(name)) return false;
+  
+  // Debe tener algo más que solo el nombre
+  const nonEmptyCells = cells.filter(c => c.trim() && c.trim().length > 1);
+  if (nonEmptyCells.length < 2) return false;
   
   return true;
 }
 
-/**
- * Detecta el tipo de infraestructura desde el contexto
- */
-function detectInfrastructureType(tableName: string, rowText: string): string {
-  const combined = `${tableName} ${rowText}`.toLowerCase();
-  
-  if (/patrimonio|histórico|cultural|monumento|iglesia|ermita|museo/i.test(combined)) return 'PATRIMONIO';
-  if (/sanita|salud|médico|consultorio|hospital|ambulatorio/i.test(combined)) return 'SANITARIO';
-  if (/educa|enseñanza|colegio|instituto|escuela|ceip|ies/i.test(combined)) return 'EDUCATIVO';
-  if (/seguridad|policía|guardia civil|bomberos|protección/i.test(combined)) return 'SEGURIDAD';
-  if (/telecom|antena|repetidor|comunicación/i.test(combined)) return 'TELECOMUNICACIONES';
-  if (/deport|piscina|polideportivo|campo|pabellón/i.test(combined)) return 'DEPORTIVO';
-  if (/hidráulic|agua|depósito|embalse|edar|depuradora/i.test(combined)) return 'HIDRAULICO';
-  if (/energía|eléctric|subestación|transformador/i.test(combined)) return 'ENERGIA';
-  if (/municipal|ayuntamiento|administrativo/i.test(combined)) return 'MUNICIPAL';
-  if (/vial|carretera|camino|acceso/i.test(combined)) return 'VIAL';
-  if (/recreativ|parque|área/i.test(combined)) return 'RECREATIVO';
-  
-  return 'OTRO';
-}
+// ============================================================================
+// EXTRACTOR PRINCIPAL ODT
+// ============================================================================
 
 /**
- * Extrae infraestructuras de un documento ODT
- * Incluye TODAS las infraestructuras, con y sin coordenadas
+ * Extrae infraestructuras de un documento ODT usando estrategia escalonada
  */
 export async function extractFromODT(
   file: File,
@@ -230,10 +426,10 @@ export async function extractFromODT(
   let withCoordinates = 0;
   let withoutCoordinates = 0;
   
-  // Detectar municipio del nombre del archivo si no se proporciona
   const detectedMunicipality = municipality || detectMunicipality(file.name);
   const detectedProvince = province || detectProvince(detectedMunicipality);
   
+  // Procesar cada tabla
   for (let t = 0; t < tables.length; t++) {
     const table = tables[t];
     const tableName = table.getAttribute('table:name') || `Tabla${t + 1}`;
@@ -241,107 +437,67 @@ export async function extractFromODT(
     
     if (tableRows.length < 2) continue;
     
-    // Obtener todas las filas como arrays de celdas
+    // Convertir filas a arrays de celdas
     const allRows: string[][] = [];
     for (let r = 0; r < tableRows.length; r++) {
       allRows.push(getRowCells(tableRows[r], tableNS));
     }
     
-    // Detectar si esta tabla contiene infraestructuras
-    const tableText = allRows.slice(0, 3).map(r => r.join(' ')).join(' ').toLowerCase();
+    // PASO 1: Analizar estructura de la tabla
+    const structure = analyzeTableStructure(allRows);
     
-    // Buscar tablas con infraestructuras (más permisivo)
-    const hasInfrastructureIndicators = 
-      tableText.includes('coordenada') ||
-      tableText.includes('utm') ||
-      tableText.includes('denominación') ||
-      tableText.includes('nombre') ||
-      tableText.includes('dirección') ||
-      tableText.includes('tipología') ||
-      tableText.includes('tipo') ||
-      /patrimonio|sanita|educa|seguridad|deport|hidráulic|energía/i.test(tableText);
+    // Solo procesar tablas con estructura de infraestructura (confianza >= 50)
+    // O que contengan coordenadas UTM válidas
+    const hasUTMCoords = allRows.some(row => 
+      row.some(cell => {
+        const cleaned = cleanCoordinateValue(cell);
+        return isValidUTMValue(cleaned, 'y'); // Y es más distintivo
+      })
+    );
     
-    if (!hasInfrastructureIndicators) continue;
+    // Filtrar tablas que son claramente de personal/contactos
+    const tableText = allRows.slice(0, 5).flat().join(' ').toLowerCase();
+    const isPersonnelTable = /cargo|tel[eé]fono\s*(de)?\s*contacto|disponibilidad|suplente|titular|responsable/.test(tableText)
+      && !/coordenada|utm|direcci[oó]n|ubicaci[oó]n/.test(tableText);
     
-    // Detectar índices de columnas
-    let nombreIdx = -1;
-    let tipoIdx = -1;
-    let direccionIdx = -1;
-    let xIdx = -1;
-    let yIdx = -1;
-    let dataStartRow = 1;
+    if (isPersonnelTable) continue;
     
-    // Buscar headers en primeras filas
-    for (let r = 0; r < Math.min(3, allRows.length); r++) {
-      const row = allRows[r];
-      for (let c = 0; c < row.length; c++) {
-        const cell = row[c].toLowerCase().trim();
-        
-        if (nombreIdx === -1 && /^(nombre|denominación|descripción)/.test(cell)) nombreIdx = c;
-        if (tipoIdx === -1 && /^tipo/.test(cell)) tipoIdx = c;
-        if (direccionIdx === -1 && /^(dirección|ubicación|localización)/.test(cell)) direccionIdx = c;
-        if (xIdx === -1 && (/^x$|longitud|este|coord.*x/.test(cell) || cell === 'x')) xIdx = c;
-        if (yIdx === -1 && (/^y$|latitud|norte|coord.*y/.test(cell) || cell === 'y')) yIdx = c;
-        
-        // Si encontramos "coordenadas", X está ahí e Y en la siguiente
-        if (/^coordenadas?$/.test(cell) && xIdx === -1) {
-          xIdx = c;
-          yIdx = c + 1;
-        }
-      }
-      
-      // Si encontramos headers, los datos empiezan en la siguiente fila
-      if (nombreIdx !== -1 || xIdx !== -1) {
-        dataStartRow = r + 1;
-        // Si hay subheader (X, Y solos), saltar otra fila
-        if (dataStartRow < allRows.length) {
-          const nextRow = allRows[dataStartRow];
-          const nextText = nextRow.join(' ').toLowerCase();
-          if (/^[xy\s-]+$/.test(nextText) || nextRow.filter(c => c.trim()).length <= 2) {
-            dataStartRow++;
+    // Requerir confianza mínima de 50 (Nombre+Dirección o Nombre+Coordenadas)
+    // O presencia de coordenadas UTM válidas
+    if (structure.confidence < 50 && !hasUTMCoords) continue;
+    
+    // PASO 2: Si no detectamos estructura pero hay coords, buscar por valores
+    if (!structure.hasCoordColumns && hasUTMCoords) {
+      // Buscar columnas por valores numéricos
+      for (let r = structure.dataStartRow; r < Math.min(allRows.length, structure.dataStartRow + 3); r++) {
+        const row = allRows[r];
+        for (let c = 0; c < row.length; c++) {
+          const cleaned = cleanCoordinateValue(row[c]);
+          if (isValidUTMValue(cleaned, 'x') && structure.xColIdx === -1) {
+            structure.xColIdx = c;
+          } else if (isValidUTMValue(cleaned, 'y') && structure.yColIdx === -1) {
+            structure.yColIdx = c;
           }
         }
-        break;
+        if (structure.xColIdx !== -1 && structure.yColIdx !== -1) break;
       }
+      structure.hasCoordColumns = structure.xColIdx !== -1 || structure.yColIdx !== -1;
     }
     
-    // Si no encontramos nombre, usar primera columna
-    if (nombreIdx === -1) nombreIdx = 0;
-    
-    // Procesar filas de datos
-    for (let r = dataStartRow; r < allRows.length; r++) {
+    // PASO 3: Extraer infraestructuras
+    for (let r = structure.dataStartRow; r < allRows.length; r++) {
       const cells = allRows[r];
       
-      // Verificar si es una fila de infraestructura válida
-      if (!isInfrastructureRow(cells)) continue;
+      if (!isValidInfrastructureRow(cells, structure)) continue;
       
-      // Extraer datos
-      const nombre = (cells[nombreIdx] || cells[0] || '').trim();
-      if (!nombre || nombre.length < 2) continue;
-      
-      const tipo = tipoIdx !== -1 ? (cells[tipoIdx] || '').trim() : '';
-      const direccion = direccionIdx !== -1 ? (cells[direccionIdx] || '').trim() : '';
+      // Extraer campos
+      const nombre = (cells[structure.nameColIdx] || cells[0] || '').trim();
+      const direccion = structure.addressColIdx >= 0 ? (cells[structure.addressColIdx] || '').trim() : '';
+      const tipo = structure.typeColIdx >= 0 ? (cells[structure.typeColIdx] || '').trim() : '';
       
       // Coordenadas
-      let rawX = xIdx !== -1 && xIdx < cells.length ? cells[xIdx] : '';
-      let rawY = yIdx !== -1 && yIdx < cells.length ? cells[yIdx] : '';
-      
-      // Si no encontramos por índice, buscar valores numéricos UTM en la fila
-      if (!rawX || !rawY) {
-        for (let c = 0; c < cells.length; c++) {
-          const cleaned = cleanCoordinateValue(cells[c]);
-          if (!cleaned) continue;
-          
-          const num = parseFloat(cleaned);
-          if (isNaN(num)) continue;
-          
-          if (!rawX && num >= 100000 && num <= 800000) {
-            rawX = cleaned;
-          } else if (!rawY && num >= 4000000 && num <= 4300000) {
-            rawY = cleaned;
-          }
-        }
-      }
+      let rawX = structure.xColIdx >= 0 && structure.xColIdx < cells.length ? cells[structure.xColIdx] : '';
+      let rawY = structure.yColIdx >= 0 && structure.yColIdx < cells.length ? cells[structure.yColIdx] : '';
       
       const cleanX = cleanCoordinateValue(rawX);
       const cleanY = cleanCoordinateValue(rawY);
@@ -350,10 +506,12 @@ export async function extractFromODT(
       const hasValidY = isValidUTMValue(cleanY, 'y');
       const hasCoords = hasValidX && hasValidY;
       
-      // Detectar tipo de infraestructura
-      const detectedType = tipo || detectInfrastructureType(tableName, nombre);
+      // Clasificar tipo de dirección para geocodificación
+      const addressType = classifyAddressType(direccion, nombre);
       
-      // Crear infraestructura
+      // Detectar tipo de infraestructura
+      const detectedType = tipo || detectInfrastructureType(nombre, tipo, tableName);
+      
       const infrastructure: ExtractedInfrastructure = {
         id: generateId(),
         tabla: tableName,
@@ -365,7 +523,8 @@ export async function extractFromODT(
         hasCoordinates: hasCoords,
         status: hasCoords ? 'original' : 'pending',
         municipio: detectedMunicipality,
-        provincia: detectedProvince
+        provincia: detectedProvince,
+        addressType,
       };
       
       infrastructures.push(infrastructure);
@@ -382,20 +541,22 @@ export async function extractFromODT(
     }
   }
   
-  const stats: ExtractionStats = {
-    total: infrastructures.length,
-    withCoordinates,
-    withoutCoordinates,
-    byTypology,
-    byTable
+  return {
+    infrastructures,
+    stats: {
+      total: infrastructures.length,
+      withCoordinates,
+      withoutCoordinates,
+      byTypology,
+      byTable
+    }
   };
-  
-  return { infrastructures, stats };
 }
 
-/**
- * Extrae infraestructuras de un archivo Excel/ODS
- */
+// ============================================================================
+// EXTRACTOR SPREADSHEET
+// ============================================================================
+
 export async function extractFromSpreadsheet(
   file: File,
   municipality?: string,
@@ -420,38 +581,33 @@ export async function extractFromSpreadsheet(
     
     if (data.length < 2) continue;
     
-    // Buscar headers
-    const headerRow = data[0].map(h => String(h || '').toLowerCase().trim());
+    // Convertir a strings
+    const rows: string[][] = data.map(row => 
+      (row || []).map(cell => String(cell ?? '').trim())
+    );
     
-    let nombreIdx = headerRow.findIndex(h => /nombre|denominación/.test(h));
-    let tipoIdx = headerRow.findIndex(h => /^tipo/.test(h));
-    let direccionIdx = headerRow.findIndex(h => /dirección|ubicación/.test(h));
-    let xIdx = headerRow.findIndex(h => /^x$|x_?utm|longitud|este/.test(h));
-    let yIdx = headerRow.findIndex(h => /^y$|y_?utm|latitud|norte/.test(h));
-    
-    if (nombreIdx === -1) nombreIdx = 0;
+    const structure = analyzeTableStructure(rows);
     
     // Procesar filas
-    for (let r = 1; r < data.length; r++) {
-      const row = data[r];
-      if (!row || row.length === 0) continue;
+    for (let r = structure.dataStartRow; r < rows.length; r++) {
+      const cells = rows[r];
+      if (!isValidInfrastructureRow(cells, structure)) continue;
       
-      const nombre = String(row[nombreIdx] || row[0] || '').trim();
-      if (!nombre || nombre.length < 2) continue;
+      const nombre = (cells[structure.nameColIdx] || cells[0] || '').trim();
+      const direccion = structure.addressColIdx >= 0 ? (cells[structure.addressColIdx] || '').trim() : '';
+      const tipo = structure.typeColIdx >= 0 ? (cells[structure.typeColIdx] || '').trim() : '';
       
-      const tipo = tipoIdx !== -1 ? String(row[tipoIdx] || '').trim() : '';
-      const direccion = direccionIdx !== -1 ? String(row[direccionIdx] || '').trim() : '';
-      
-      let rawX = xIdx !== -1 ? String(row[xIdx] || '') : '';
-      let rawY = yIdx !== -1 ? String(row[yIdx] || '') : '';
+      let rawX = structure.xColIdx >= 0 ? cells[structure.xColIdx] : '';
+      let rawY = structure.yColIdx >= 0 ? cells[structure.yColIdx] : '';
       
       const cleanX = cleanCoordinateValue(rawX);
       const cleanY = cleanCoordinateValue(rawY);
       
       const hasCoords = isValidUTMValue(cleanX, 'x') && isValidUTMValue(cleanY, 'y');
-      const detectedType = tipo || detectInfrastructureType(sheetName, nombre);
+      const addressType = classifyAddressType(direccion, nombre);
+      const detectedType = tipo || detectInfrastructureType(nombre, tipo, sheetName);
       
-      const infrastructure: ExtractedInfrastructure = {
+      infrastructures.push({
         id: generateId(),
         tabla: sheetName,
         nombre: nombre.substring(0, 150),
@@ -462,19 +618,15 @@ export async function extractFromSpreadsheet(
         hasCoordinates: hasCoords,
         status: hasCoords ? 'original' : 'pending',
         municipio: detectedMunicipality,
-        provincia: detectedProvince
-      };
-      
-      infrastructures.push(infrastructure);
+        provincia: detectedProvince,
+        addressType,
+      });
       
       byTypology[detectedType] = (byTypology[detectedType] || 0) + 1;
       byTable[sheetName] = (byTable[sheetName] || 0) + 1;
       
-      if (hasCoords) {
-        withCoordinates++;
-      } else {
-        withoutCoordinates++;
-      }
+      if (hasCoords) withCoordinates++;
+      else withoutCoordinates++;
     }
   }
   
@@ -490,9 +642,10 @@ export async function extractFromSpreadsheet(
   };
 }
 
-/**
- * Función principal de extracción - detecta tipo de archivo y extrae
- */
+// ============================================================================
+// FUNCIÓN PRINCIPAL
+// ============================================================================
+
 export async function extractInfrastructures(
   file: File,
   municipality?: string,
@@ -517,22 +670,20 @@ export async function extractInfrastructures(
       result = await extractFromSpreadsheet(file, municipality, province);
       break;
     default:
-      throw new Error(`Formato no soportado para extracción completa: ${extension}`);
+      throw new Error(`Formato no soportado: ${extension}. Use ODT, XLSX, XLS u ODS.`);
   }
   
   const detectedMunicipality = municipality || detectMunicipality(file.name);
   
-  const metadata: DocumentMetadata = {
-    fileName: file.name,
-    fileType: extension || 'unknown',
-    municipality: detectedMunicipality,
-    province: province || detectProvince(detectedMunicipality),
-    tablesProcessed: Object.keys(result.stats.byTable).length,
-    processedAt: new Date()
-  };
-  
   return {
     ...result,
-    metadata
+    metadata: {
+      fileName: file.name,
+      fileType: extension || 'unknown',
+      municipality: detectedMunicipality,
+      province: province || detectProvince(detectedMunicipality),
+      tablesProcessed: Object.keys(result.stats.byTable).length,
+      processedAt: new Date()
+    }
   };
 }
