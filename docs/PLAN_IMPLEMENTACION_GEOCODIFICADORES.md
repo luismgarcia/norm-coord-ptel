@@ -1,177 +1,264 @@
-# Plan de Implementación de Geocodificadores PTEL
+# Plan de Implementación de Geocodificadores PTEL Andalucía
+
+## Documento Técnico para Implementación de Recursos de Geocodificación
+
+**Versión:** 1.0  
+**Fecha:** Noviembre 2025  
+**Estado:** Planificación  
+**Autor:** Proyecto PTEL Normalizador de Coordenadas
+
+---
 
 ## Resumen Ejecutivo
 
-Este documento detalla los **12 recursos de geocodificación** identificados para el proyecto PTEL Andalucía, organizados por prioridad de implementación según su ROI (relación esfuerzo/impacto).
+Este documento detalla el plan de implementación de **12 recursos de geocodificación** organizados por prioridad y ROI. El objetivo es aumentar la cobertura de geocodificación del **~45% actual al ~85-90%** mediante la integración sistemática de APIs y servicios WFS oficiales españoles y andaluces.
 
-**Estado actual:** 4 geocodificadores implementados (Sanitarios, Educación, Cultura, Seguridad)  
-**Gap crítico:** Sin fallback genérico (CartoCiudad) - si falla especializado → resultado NULL  
-**Cobertura actual:** ~45%  
-**Cobertura potencial:** ~85-90%
+### Estado Actual vs Objetivo
 
----
-
-## Resumen de Prioridades
-
-| Prioridad | Recursos | Tiempo | Impacto | Tipologías |
-|-----------|----------|--------|---------|------------|
-| 🔴 **ALTA** | 1-4 | 10-14h | +40-55% | Fallback universal, EDAR, Energía |
-| 🟡 **MEDIA** | 5-8 | 10-14h | +8-12% | Turismo, Espacios naturales, Catastro |
-| 🟢 **BAJA** | 9-12 | 11-15h | +2-3% | Gasolineras, Trenes, Helipuertos |
-
----
-
-## PRIORIDAD ALTA (Implementar Primero)
-
-### 1. CartoCiudad API — IGN/CNIG
-
-**Prioridad:** 🔴 CRÍTICA  
-**Esfuerzo:** 2-3 horas  
-**Impacto:** +25-35% cobertura global  
-**ROI:** ⭐⭐⭐⭐⭐
-
-#### Descripción
-Servicio de geocodificación del Instituto Geográfico Nacional. Es el **fallback universal** cuando fallan los geocodificadores especializados.
-
-#### Endpoints
-
-| Servicio | URL |
-|----------|-----|
-| Geocodificación directa | `https://www.cartociudad.es/geocoder/api/geocoder/findJsonp` |
-| Geocodificación inversa | `https://www.cartociudad.es/geocoder/api/geocoder/reverseGeocode` |
-| Candidatos | `https://www.cartociudad.es/geocoder/api/geocoder/candidatesJsonp` |
-
-#### Ejemplo de Uso
-
-```typescript
-// Geocodificación directa
-const response = await fetch(
-  `https://www.cartociudad.es/geocoder/api/geocoder/findJsonp?` +
-  new URLSearchParams({
-    q: 'Calle Gran Vía 1, Granada',
-    type: 'portal',
-    tip_via: '',
-    id: '1',
-    portal: '',
-    municipio: 'Granada',
-    provincia: 'Granada',
-    countrycode: 'es'
-  })
-);
-
-const data = await response.json();
-// Respuesta incluye: lat, lng, address, type, muni, province, postalCode
+```
+COBERTURA ACTUAL:  ███████████████████░░░░░░░░░░░░░░░░░░░░░  ~45%
+OBJETIVO FASE A:   ██████████████████████████████████████░░░  ~85%
+OBJETIVO COMPLETO: ████████████████████████████████████████░  ~90%
 ```
 
-#### Campos de Respuesta
+### Recursos Ya Implementados
 
-```typescript
-interface CartoCiudadResult {
-  lat: number;           // Latitud WGS84
-  lng: number;           // Longitud WGS84
-  address: string;       // Dirección normalizada
-  type: string;          // 'portal', 'municipio', 'provincia', etc.
-  muni: string;          // Municipio
-  province: string;      // Provincia
-  postalCode: string;    // Código postal
-  countryCode: string;   // 'es'
-  state: number;         // Estado de la respuesta
-  stateMsg: string;      // Mensaje de estado
+| Geocodificador | Archivo | Tipologías | Estado |
+|----------------|---------|------------|--------|
+| `WFSHealthGeocoder` | `src/services/geocoding/specialized/WFSHealthGeocoder.ts` | Sanitarios | ✅ Funcional |
+| `WFSEducationGeocoder` | `src/services/geocoding/specialized/WFSEducationGeocoder.ts` | Educativos | ✅ Funcional |
+| `WFSCulturalGeocoder` | `src/services/geocoding/specialized/WFSCulturalGeocoder.ts` | Culturales | ✅ Funcional |
+| `WFSSecurityGeocoder` | `src/services/geocoding/specialized/WFSSecurityGeocoder.ts` | Seguridad | ⚠️ API no pública |
+
+---
+
+## Priorización de Implementación
+
+### Matriz de Decisión
+
+| # | Recurso | Tiempo | Impacto | ROI | Acumulado |
+|---|---------|--------|---------|-----|-----------|
+| 1 | CartoCiudad API | 2-3h | +25-35% | ⭐⭐⭐⭐⭐ | +25-35% |
+| 2 | CDAU | 2-3h | +10-15% | ⭐⭐⭐⭐ | +35-50% |
+| 3 | REDIAM Hidráulicas | 3-4h | +3-5% | ⭐⭐⭐⭐ | +38-55% |
+| 4 | Agencia Energía WFS | 3-4h | +2-4% | ⭐⭐⭐ | +40-59% |
+| 5 | OpenRTA | 2-3h | +3-5% | ⭐⭐⭐ | +43-64% |
+| 6 | REDIAM Equipamientos | 2-3h | +3-5% | ⭐⭐ | +46-69% |
+| 7 | Catastro INSPIRE | 4-5h | Validación | ⭐⭐ | — |
+| 8 | DERA G11 Patrimonio | 2-3h | +1-2% | ⭐⭐ | +47-71% |
+| 9 | MITECO Gasolineras | 2h | +1% | ⭐ | +48-72% |
+| 10 | IDEADIF | 2-3h | +0.5-1% | ⭐ | +48-73% |
+| 11 | ENAIRE AIP | 3-4h | +0.2% | ⭐ | +48-73% |
+| 12 | Patronatos Provinciales | 4-6h | Variable | ⭐ | +50-75% |
+
+### Fases de Implementación
+
+| Fase | Recursos | Tiempo Total | Impacto |
+|------|----------|--------------|---------|
+| **A: Alta Prioridad** | 1-4 | 10-14 horas | +40-55% |
+| **B: Media Prioridad** | 5-8 | 10-14 horas | +8-12% |
+| **C: Baja Prioridad** | 9-12 | 11-15 horas | +2-3% |
+
+---
+
+## FASE A: ALTA PRIORIDAD
+
+### 1. CartoCiudad API (IGN/CNIG)
+
+**Prioridad:** 🔴 CRÍTICA  
+**Tiempo estimado:** 2-3 horas  
+**Impacto:** +25-35% cobertura global  
+**Rol:** Fallback universal cuando fallan geocodificadores especializados
+
+#### Especificaciones Técnicas
+
+| Parámetro | Valor |
+|-----------|-------|
+| **Endpoint Base** | `https://www.cartociudad.es/geocoder/api/geocoder/` |
+| **Método Geocodificación** | `findJsonp` o `find` |
+| **Método Inverso** | `reverseGeocode` |
+| **Formato Respuesta** | JSON |
+| **Sistema Coordenadas** | WGS84 (EPSG:4326) |
+| **Autenticación** | No requerida |
+| **Rate Limit** | ~100 req/min (no documentado oficialmente) |
+| **CORS** | ✅ Soportado |
+| **Licencia** | CC BY 4.0 |
+
+#### Endpoints Disponibles
+
+```
+# Geocodificación directa
+GET https://www.cartociudad.es/geocoder/api/geocoder/findJsonp?q={dirección}
+
+# Con filtros
+GET https://www.cartociudad.es/geocoder/api/geocoder/findJsonp?q={dirección}&type=street&tip_via=calle&id={municipio}
+
+# Geocodificación inversa
+GET https://www.cartociudad.es/geocoder/api/geocoder/reverseGeocode?lon={lon}&lat={lat}
+
+# Candidatos (autocompletado)
+GET https://www.cartociudad.es/geocoder/api/geocoder/candidatesJsonp?q={texto}&limit=10
+```
+
+#### Estructura de Respuesta
+
+```json
+{
+  "id": "280796",
+  "province": "Granada",
+  "muni": "Granada",
+  "type": "portal",
+  "address": "Calle Real de la Alhambra",
+  "postalCode": "18009",
+  "poblacion": "Granada",
+  "geom": "POINT(-3.5878 37.1767)",
+  "tip_via": "Calle",
+  "lat": 37.1767,
+  "lng": -3.5878,
+  "portalNumber": 1,
+  "stateMsg": "Resultado exacto",
+  "state": 1,
+  "countryCode": "011"
 }
 ```
 
-#### Notas de Implementación
+#### Implementación Propuesta
 
-- Sistema de coordenadas: **WGS84 (EPSG:4326)** → Requiere conversión a UTM30
-- Rate limit: Sin límite documentado, pero usar con moderación
-- CORS: ✅ Soportado
-- Licencia: CC BY 4.0
-- Actualización: Trimestral
-
-#### Integración Propuesta
+**Archivo:** `src/services/geocoding/generic/CartoCiudadGeocoder.ts`
 
 ```typescript
-// src/services/geocoding/fallback/CartoCiudadGeocoder.ts
 export class CartoCiudadGeocoder {
   private readonly BASE_URL = 'https://www.cartociudad.es/geocoder/api/geocoder';
   
-  async geocode(address: string, municipality: string, province: string): Promise<GeocodingResult | null> {
-    // 1. Llamar a candidatesJsonp para obtener opciones
-    // 2. Seleccionar mejor candidato
-    // 3. Convertir WGS84 → UTM30 ETRS89
-    // 4. Retornar resultado con confianza MEDIA
-  }
+  async geocode(address: string, municipality?: string): Promise<GeocodingResult | null>;
+  async reverseGeocode(lat: number, lon: number): Promise<ReverseGeocodingResult | null>;
+  async getCandidates(query: string, limit?: number): Promise<Candidate[]>;
 }
 ```
 
+#### Integración con Orquestador
+
+Modificar `GeocodingOrchestrator.ts`:
+
+```typescript
+private async genericFallback(options: WFSSearchOptions): Promise<GeocodingResult | null> {
+  const cartoCiudad = new CartoCiudadGeocoder();
+  const address = `${options.name}, ${options.municipality}, ${options.province}`;
+  return await cartoCiudad.geocode(address, options.municipality);
+}
+```
+
+#### Consideraciones
+
+- Requiere transformación WGS84 → UTM30 (usar proj4)
+- Implementar retry con backoff exponencial
+- Cache de resultados por dirección normalizada
+- Validar que coordenadas estén en Andalucía
+
 ---
 
-### 2. CDAU — Callejero Digital Andalucía Unificado
+### 2. CDAU - Callejero Digital de Andalucía Unificado
 
 **Prioridad:** 🔴 CRÍTICA  
-**Esfuerzo:** 2-3 horas  
+**Tiempo estimado:** 2-3 horas  
 **Impacto:** +10-15% precisión en Andalucía  
-**ROI:** ⭐⭐⭐⭐
+**Rol:** Geocodificación de alta precisión para direcciones andaluzas
 
-#### Descripción
-Callejero oficial de los 786 municipios andaluces con precisión a nivel de portal/edificio. Mejor precisión que CartoCiudad para direcciones andaluzas.
+#### Especificaciones Técnicas
 
-#### Endpoints
+| Parámetro | Valor |
+|-----------|-------|
+| **Portal Dataset** | `https://www.juntadeandalucia.es/datosabiertos/portal/dataset/cdau` |
+| **API Base** | `http://www.callejerodeandalucia.es/geocoderv2/api/` |
+| **Formato** | JSON |
+| **Sistema Coordenadas** | ETRS89 UTM30 (EPSG:25830) |
+| **Cobertura** | 786 municipios andaluces |
+| **Precisión** | Nivel de portal/edificio |
+| **CORS** | ⚠️ Puede requerir proxy |
 
-| Servicio | URL |
-|----------|-----|
-| Portal web | `http://www.callejerodeandalucia.es` |
-| Dataset abierto | `https://www.juntadeandalucia.es/datosabiertos/portal/dataset/callejero-digital-de-andalucia-unificado-cdau` |
-| WFS | `https://www.callejerodeandalucia.es/servicios/cdau/wfs` |
-
-#### Ejemplo Consulta WFS
+#### Endpoints Disponibles
 
 ```
-https://www.callejerodeandalucia.es/servicios/cdau/wfs?
-  service=WFS
-  &version=2.0.0
-  &request=GetFeature
-  &typeName=cdau:Portal
-  &outputFormat=application/json
-  &CQL_FILTER=municipio='Granada' AND tipo_via='CALLE' AND nombre_via ILIKE '%Gran Vía%'
+# Geocodificación
+GET http://www.callejerodeandalucia.es/geocoderv2/api/geocoder/findJsonp?q={dirección}
+
+# Búsqueda por municipio
+GET http://www.callejerodeandalucia.es/geocoderv2/api/geocoder/findJsonp?q={dirección}&cod_mun={código_ine}
+
+# Portal específico
+GET http://www.callejerodeandalucia.es/geocoderv2/api/geocoder/portal?via={id_via}&numero={num}
 ```
 
-#### Campos Disponibles
+#### Estructura de Respuesta
 
-- `id_portal`: Identificador único
-- `tipo_via`: Tipo de vía (CALLE, AVENIDA, PLAZA...)
-- `nombre_via`: Nombre de la vía
-- `numero`: Número de portal
-- `municipio`: Municipio
-- `provincia`: Provincia
-- `codigo_postal`: Código postal
-- `geometry`: Punto (EPSG:25830)
+```json
+{
+  "id": "18087001234",
+  "type": "portal",
+  "address": "CALLE REAL 45",
+  "muni_name": "Granada",
+  "muni_code": "18087",
+  "prov_name": "Granada",
+  "postal_code": "18009",
+  "x": 447856.23,
+  "y": 4114567.89,
+  "srs": "EPSG:25830"
+}
+```
 
-#### Notas de Implementación
+#### Implementación Propuesta
 
-- Sistema de coordenadas: **UTM30 ETRS89 (EPSG:25830)** → Nativo, sin conversión
-- Precisión: Nivel portal/edificio (~2-5m)
-- CORS: ⚠️ Puede requerir proxy
-- Licencia: CC BY 4.0
+**Archivo:** `src/services/geocoding/generic/CDAUGeocoder.ts`
+
+```typescript
+export class CDAUGeocoder {
+  private readonly BASE_URL = 'http://www.callejerodeandalucia.es/geocoderv2/api/geocoder';
+  
+  async geocode(address: string, municipalityCode?: string): Promise<GeocodingResult | null>;
+  async geocodePortal(streetId: string, number: number): Promise<GeocodingResult | null>;
+  async findStreet(streetName: string, municipality: string): Promise<Street[]>;
+}
+```
+
+#### Códigos INE Municipios
+
+Incluir lookup table de códigos INE para los 786 municipios andaluces:
+
+```typescript
+const MUNICIPALITY_CODES: Record<string, string> = {
+  'Granada': '18087',
+  'Almería': '04013',
+  'Málaga': '29067',
+  // ... 783 más
+};
+```
+
+#### Consideraciones
+
+- Ya devuelve UTM30 (no requiere transformación)
+- Mayor precisión que CartoCiudad para Andalucía
+- Usar como primera opción antes de CartoCiudad
+- Puede tener problemas CORS → preparar proxy opcional
 
 ---
 
 ### 3. REDIAM Infraestructuras Hidráulicas
 
 **Prioridad:** 🟠 ALTA  
-**Esfuerzo:** 3-4 horas  
+**Tiempo estimado:** 3-4 horas  
 **Impacto:** +3-5% registros PTEL  
-**ROI:** ⭐⭐⭐⭐
+**Rol:** Geocodificación de EDAR, captaciones, embalses, depósitos
 
-#### Descripción
-Infraestructuras hidráulicas de Andalucía: EDAR, captaciones, embalses, depósitos. Críticas para emergencias de contaminación, sequía, inundaciones.
+#### Especificaciones Técnicas
 
-#### Endpoints
-
-| Servicio | URL | Contenido |
-|----------|-----|-----------|
-| WFS Hidráulicas | `https://www.juntadeandalucia.es/medioambiente/mapwms/REDIAM_WFS_SP_Infraestructuras_Hidraulicas` | EDAR, captaciones |
-| WMS Embalses | `https://www.juntadeandalucia.es/medioambiente/mapwms/REDIAM_Embalses_Andalucia` | Presas, embalses |
+| Parámetro | Valor |
+|-----------|-------|
+| **Endpoint WFS** | `https://www.juntadeandalucia.es/medioambiente/mapwms/REDIAM_WFS_SP_Infraestructuras_Hidraulicas` |
+| **Versión WFS** | 1.1.0 / 2.0.0 |
+| **Formato Salida** | GeoJSON, GML |
+| **Sistema Coordenadas** | ETRS89 UTM30 (EPSG:25830) |
+| **Autenticación** | No requerida |
+| **CORS** | ✅ Soportado |
 
 #### Capas Disponibles
 
@@ -179,71 +266,116 @@ Infraestructuras hidráulicas de Andalucía: EDAR, captaciones, embalses, depós
 |------|-----------|------------------|
 | `EDAR` | Estaciones depuradoras | ~800 |
 | `Captaciones` | Puntos de captación agua | ~2,000 |
+| `Embalses` | Embalses y presas | ~100 |
 | `Depositos` | Depósitos de agua | ~1,500 |
-| `Embalses` | Presas y embalses | ~80 |
+| `Conducciones` | Tuberías principales | Líneas |
 
 #### Ejemplo Consulta WFS
 
 ```
 https://www.juntadeandalucia.es/medioambiente/mapwms/REDIAM_WFS_SP_Infraestructuras_Hidraulicas?
   service=WFS
-  &version=1.1.0
+  &version=2.0.0
   &request=GetFeature
   &typeName=EDAR
   &outputFormat=application/json
-  &CQL_FILTER=provincia='Granada'
+  &CQL_FILTER=MUNICIPIO='Granada'
 ```
 
-#### Campos EDAR
+#### Estructura de Respuesta
 
-```typescript
-interface EDAREsult {
-  denominacion: string;      // Nombre EDAR
-  municipio: string;
-  provincia: string;
-  capacidad_he: number;      // Habitantes equivalentes
-  tipo_tratamiento: string;  // Primario, secundario, terciario
-  punto_vertido: string;     // Río, mar, etc.
-  estado: string;            // En servicio, en construcción
-  geometry: Point;           // EPSG:25830
+```json
+{
+  "type": "Feature",
+  "geometry": {
+    "type": "Point",
+    "coordinates": [447123.45, 4112345.67]
+  },
+  "properties": {
+    "NOMBRE": "EDAR Granada Sur",
+    "MUNICIPIO": "Granada",
+    "PROVINCIA": "Granada",
+    "CAPACIDAD_HE": 250000,
+    "ESTADO": "En servicio",
+    "TITULAR": "Emasagra"
+  }
 }
 ```
 
-#### Notas de Implementación
+#### Implementación Propuesta
 
-- Sistema de coordenadas: UTM30 ETRS89
-- CORS: ⚠️ Puede requerir proxy
-- Actualización: Anual
+**Archivo:** `src/services/geocoding/specialized/WFSHydraulicGeocoder.ts`
+
+```typescript
+export enum HydraulicFacilityType {
+  EDAR = 'EDAR',
+  CAPTACION = 'CAPTACION',
+  EMBALSE = 'EMBALSE',
+  DEPOSITO = 'DEPOSITO'
+}
+
+export class WFSHydraulicGeocoder extends WFSBaseGeocoder {
+  protected getDefaultConfig(): SpecializedGeocoderConfig {
+    return {
+      wfsEndpoint: 'https://www.juntadeandalucia.es/medioambiente/mapwms/REDIAM_WFS_SP_Infraestructuras_Hidraulicas',
+      layerName: 'EDAR',
+      fuzzyThreshold: 0.3,
+      timeout: 15000,
+      outputSRS: 'EPSG:25830'
+    };
+  }
+  
+  async geocodeWithAutoLayer(options: HydraulicSearchOptions): Promise<GeocodingResult | null>;
+}
+```
+
+#### Integración con Clasificador
+
+Añadir tipos al `InfrastructureClassifier`:
+
+```typescript
+// Patrones para infraestructuras hidráulicas
+const HYDRAULIC_PATTERNS = [
+  /\bEDAR\b/i,
+  /\bdepuradora\b/i,
+  /\bembalse\b/i,
+  /\bpresa\b/i,
+  /\bdep[oó]sito\s*(de\s*)?agua\b/i,
+  /\bcaptaci[oó]n\b/i,
+  /\bpotabilizadora\b/i
+];
+```
 
 ---
 
-### 4. Agencia Andaluza de la Energía — WFS
+### 4. Agencia Andaluza de la Energía WFS
 
 **Prioridad:** 🟠 ALTA  
-**Esfuerzo:** 3-4 horas  
+**Tiempo estimado:** 3-4 horas  
 **Impacto:** +2-4% registros PTEL  
-**ROI:** ⭐⭐⭐
+**Rol:** Geocodificación de subestaciones, líneas AT, centrales
 
-#### Descripción
-Infraestructuras energéticas de Andalucía: subestaciones eléctricas, líneas de alta tensión, centros de transformación, infraestructura gasista.
+#### Especificaciones Técnicas
 
-#### Endpoints
+| Parámetro | Valor |
+|-----------|-------|
+| **Endpoint WFS** | `https://www.agenciaandaluzadelaenergia.es/mapwms/wfs` |
+| **Versión WFS** | 1.1.0 |
+| **Capas** | 19 disponibles |
+| **Sistema Coordenadas** | ETRS89 UTM30 (EPSG:25830) |
+| **Cumplimiento** | INSPIRE Annex III Energy Resources |
+| **Actualización** | Junio 2025 |
 
-| Servicio | URL |
-|----------|-----|
-| WFS Energía | `https://www.agenciaandaluzadelaenergia.es/mapwms/wfs` |
-| Visor cartográfico | `https://www.agenciaandaluzadelaenergia.es/cartografia/` |
+#### Capas Principales
 
-#### Capas Disponibles (19 total)
-
-| Capa | Contenido |
-|------|-----------|
-| `Subestaciones` | Subestaciones eléctricas |
-| `LineasAT` | Líneas alta tensión (>45kV) |
-| `CentrosTransformacion` | Centros de transformación |
-| `Gasoductos` | Red de gasoductos |
-| `EstacionesRegulacion` | Estaciones regulación gas |
-| `CentralesGeneracion` | Centrales eléctricas |
+| Capa | Contenido | Geometría |
+|------|-----------|-----------|
+| `Subestaciones` | Subestaciones eléctricas | Punto |
+| `CentrosTransformacion` | Centros de transformación | Punto |
+| `LineasAltaTension` | Líneas de alta tensión | Línea |
+| `Gasoductos` | Red de gas natural | Línea |
+| `EstacionesRegulacion` | Estaciones regulación gas | Punto |
+| `CentralesGeneracion` | Centrales eléctricas | Punto |
 
 #### Ejemplo Consulta WFS
 
@@ -254,36 +386,67 @@ https://www.agenciaandaluzadelaenergia.es/mapwms/wfs?
   &request=GetFeature
   &typeName=Subestaciones
   &outputFormat=application/json
-  &CQL_FILTER=provincia='Granada'
+  &BBOX=430000,4100000,460000,4130000,EPSG:25830
 ```
 
-#### Notas de Implementación
+#### Implementación Propuesta
 
-- Sistema de coordenadas: UTM30 ETRS89
-- Cumplimiento: INSPIRE Annex III Energy Resources
-- Actualización: Junio 2025
-- CORS: ⚠️ Verificar
+**Archivo:** `src/services/geocoding/specialized/WFSEnergyGeocoder.ts`
+
+```typescript
+export enum EnergyFacilityType {
+  SUBSTATION = 'SUBESTACION',
+  TRANSFORMER = 'CENTRO_TRANSFORMACION',
+  POWER_LINE = 'LINEA_AT',
+  GAS_STATION = 'ESTACION_GAS',
+  POWER_PLANT = 'CENTRAL'
+}
+
+export class WFSEnergyGeocoder extends WFSBaseGeocoder {
+  protected getDefaultConfig(): SpecializedGeocoderConfig {
+    return {
+      wfsEndpoint: 'https://www.agenciaandaluzadelaenergia.es/mapwms/wfs',
+      layerName: 'Subestaciones',
+      fuzzyThreshold: 0.35,
+      timeout: 15000,
+      outputSRS: 'EPSG:25830'
+    };
+  }
+}
+```
+
+#### Integración con Clasificador
+
+```typescript
+const ENERGY_PATTERNS = [
+  /\bsubestaci[oó]n\b/i,
+  /\bcentro\s*(de\s*)?transformaci[oó]n\b/i,
+  /\bl[ií]nea\s*(de\s*)?(alta\s*)?tensi[oó]n\b/i,
+  /\bcentral\s*(el[eé]ctrica|t[eé]rmica|solar|e[oó]lica)\b/i,
+  /\bparque\s*(e[oó]lico|solar|fotovoltaico)\b/i,
+  /\bgasoducto\b/i
+];
+```
 
 ---
 
-## PRIORIDAD MEDIA
+## FASE B: MEDIA PRIORIDAD
 
-### 5. OpenRTA — Registro de Turismo de Andalucía
+### 5. OpenRTA - Registro de Turismo de Andalucía
 
 **Prioridad:** 🟡 MEDIA  
-**Esfuerzo:** 2-3 horas  
-**Impacto:** +3-5% registros PTEL  
-**ROI:** ⭐⭐⭐
+**Tiempo estimado:** 2-3 horas  
+**Impacto:** +3-5% registros PTEL (centros acogida emergencias)
 
-#### Descripción
-Alojamientos turísticos oficiales: hoteles, albergues, campings, oficinas de turismo. Útil para identificar **centros de acogida** en emergencias.
+#### Especificaciones Técnicas
 
-#### Endpoints
-
-| Servicio | URL |
-|----------|-----|
-| Dataset OpenRTA | `https://www.juntadeandalucia.es/datosabiertos/portal/dataset/openrta` |
-| Buscador web | `https://www.juntadeandalucia.es/turismoydeporte/opencms/areas/turismo/registro-turismo/` |
+| Parámetro | Valor |
+|-----------|-------|
+| **Portal Dataset** | `https://www.juntadeandalucia.es/datosabiertos/portal/dataset/openrta` |
+| **Formato** | CSV, JSON |
+| **Sistema Coordenadas** | WGS84 / ETRS89 |
+| **Cobertura** | Hoteles, campings, albergues, oficinas turismo |
+| **Actualización** | Continua (registro oficial) |
 
 #### Tipologías con Coordenadas
 
@@ -292,332 +455,351 @@ Alojamientos turísticos oficiales: hoteles, albergues, campings, oficinas de tu
 - ✅ Albergues
 - ✅ Oficinas de turismo
 - ⚠️ Casas rurales (incorporación progresiva)
-- ⚠️ VFTs (Viviendas fines turísticos)
+- ⚠️ VFTs (parcial)
 
-#### Campos Disponibles
+#### Implementación Propuesta
+
+**Archivo:** `src/services/geocoding/specialized/OpenRTAGeocoder.ts`
 
 ```typescript
-interface OpenRTAResult {
-  denominacion: string;
-  tipo_establecimiento: string;
-  categoria: string;        // Estrellas, etc.
-  direccion: string;
-  municipio: string;
-  provincia: string;
-  codigo_postal: string;
-  telefono: string;
-  plazas: number;           // Capacidad
-  coordenada_x: number;     // ETRS89
-  coordenada_y: number;
+export class OpenRTAGeocoder {
+  private readonly DATASET_URL = 'https://www.juntadeandalucia.es/datosabiertos/portal/dataset/openrta';
+  
+  async geocodeAccommodation(name: string, municipality: string): Promise<GeocodingResult | null>;
+  async findLargeCapacityVenues(municipality: string, minCapacity: number): Promise<Venue[]>;
 }
 ```
+
+#### Utilidad PTEL
+
+Identificar establecimientos con capacidad de acogida masiva para evacuaciones:
+- Hoteles >100 habitaciones
+- Albergues juveniles
+- Campings con instalaciones cubiertas
+- Pabellones deportivos (si incluidos)
 
 ---
 
 ### 6. REDIAM Equipamientos Uso Público
 
 **Prioridad:** 🟡 MEDIA  
-**Esfuerzo:** 2-3 horas  
-**Impacto:** +3-5% registros PTEL  
-**ROI:** ⭐⭐
+**Tiempo estimado:** 2-3 horas  
+**Impacto:** +3-5% registros PTEL
 
-#### Descripción
-Equipamientos de uso público en espacios naturales: centros de visitantes, áreas recreativas, miradores, senderos.
+#### Especificaciones Técnicas
 
-#### Endpoints
+| Parámetro | Valor |
+|-----------|-------|
+| **Endpoint WMS/WFS** | `https://www.juntadeandalucia.es/medioambiente/mapwms/REDIAM_Equipamientos_Uso_Publico_Andalucia` |
+| **Contenido** | Centros visitantes, miradores, áreas recreativas, senderos |
+| **Sistema Coordenadas** | ETRS89 UTM30 |
 
-| Servicio | URL |
-|----------|-----|
-| WMS Equipamientos | `https://www.juntadeandalucia.es/medioambiente/mapwms/REDIAM_Equipamientos_Uso_Publico_Andalucia` |
-| WMS Espacios Naturales | `http://www.juntadeandalucia.es/medioambiente/mapwms/REDIAM_Espacios_Naturales_Protegidos` |
+#### Capas Principales
 
-#### Capas Disponibles
+| Capa | Contenido |
+|------|-----------|
+| `CentrosVisitantes` | Centros de interpretación |
+| `AreasRecreativas` | Merenderos, zonas picnic |
+| `Miradores` | Puntos panorámicos |
+| `Senderos` | Rutas señalizadas (líneas) |
+| `Campamentos` | Zonas acampada controlada |
 
-- `CentrosVisitantes`: Centros de interpretación
-- `AreasRecreativas`: Merenderos, zonas picnic
-- `Miradores`: Puntos panorámicos
-- `Senderos`: Rutas señalizadas
-- `Campamentos`: Campamentos juveniles
-- `RefugiosMontana`: Refugios de montaña
+#### Implementación Propuesta
+
+**Archivo:** `src/services/geocoding/specialized/WFSPublicUseGeocoder.ts`
 
 ---
 
-### 7. Catastro INSPIRE — WFS
+### 7. Catastro INSPIRE
 
 **Prioridad:** 🟡 MEDIA  
-**Esfuerzo:** 4-5 horas  
-**Impacto:** Validación cruzada  
-**ROI:** ⭐⭐
+**Tiempo estimado:** 4-5 horas  
+**Impacto:** Validación cruzada de coordenadas
 
-#### Descripción
-Servicio oficial de Catastro para validación de direcciones y parcelas. No para geocodificación primaria, sino para **validación cruzada** de resultados.
+#### Especificaciones Técnicas
 
-#### Endpoints
+| Parámetro | Valor |
+|-----------|-------|
+| **WFS Direcciones** | `https://ovc.catastro.meh.es/INSPIRE/wfsAD.aspx` |
+| **WFS Edificios** | `https://ovc.catastro.meh.es/INSPIRE/wfsBU.aspx` |
+| **API Coordenadas RC** | `https://ovc.catastro.meh.es/ovcservweb/OVCSWLocalizacionRC/OVCCoordenadas.asmx` |
+| **Sistema** | ETRS89 |
 
-| Servicio | URL | Uso |
-|----------|-----|-----|
-| WFS Direcciones | `https://ovc.catastro.meh.es/INSPIRE/wfsAD.aspx` | Direcciones postales |
-| WFS Edificios | `https://ovc.catastro.meh.es/INSPIRE/wfsBU.aspx` | Geometría edificios |
-| WFS Parcelas | `https://ovc.catastro.meh.es/INSPIRE/wfsCP.aspx` | Parcelas catastrales |
-| API Coordenadas | `https://ovc.catastro.meh.es/ovcservweb/OVCSWLocalizacionRC/OVCCoordenadas.asmx` | Ref. catastral → coords |
+#### Uso Principal
 
-#### Ejemplo: Referencia Catastral → Coordenadas
+- Validación cruzada de coordenadas obtenidas por otros métodos
+- Obtención de geometría de parcelas/edificios
+- Referencia catastral → coordenadas
 
-```xml
-POST https://ovc.catastro.meh.es/ovcservweb/OVCSWLocalizacionRC/OVCCoordenadas.asmx
+#### Implementación Propuesta
 
-<Consulta_CPMRC>
-  <Provincia>18</Provincia>
-  <Municipio>087</Municipio>
-  <RC>1234567VG1234A</RC>
-</Consulta_CPMRC>
+**Archivo:** `src/services/validation/CatastroValidator.ts`
+
+```typescript
+export class CatastroValidator {
+  async validateCoordinates(x: number, y: number): Promise<ValidationResult>;
+  async getParcelGeometry(refCatastral: string): Promise<Geometry | null>;
+  async coordinatesToRefCatastral(x: number, y: number): Promise<string | null>;
+}
 ```
 
 ---
 
-### 8. DERA G11 Patrimonio Histórico
+### 8. DERA G11 Patrimonio
 
 **Prioridad:** 🟡 MEDIA  
-**Esfuerzo:** 2-3 horas  
-**Impacto:** +1-2% registros PTEL  
-**ROI:** ⭐⭐
+**Tiempo estimado:** 2-3 horas  
+**Impacto:** +1-2% registros PTEL
 
-#### Descripción
-Complementa el geocodificador cultural (DERA G09) con capas adicionales de patrimonio histórico: BIC, zonas arqueológicas, conjuntos históricos.
+#### Especificaciones Técnicas
 
-#### Endpoints
+| Parámetro | Valor |
+|-----------|-------|
+| **Endpoint WFS** | `https://www.ideandalucia.es/services/DERA_g11_patrimonio/wfs` |
+| **Capas** | BIC, zonas arqueológicas, conjuntos históricos |
+| **Solapamiento** | Parcial con DERA G09 (ya implementado) |
 
-| Servicio | URL |
-|----------|-----|
-| WFS DERA G11 | `https://www.ideandalucia.es/services/DERA_g11_patrimonio/wfs` |
+#### Capas Adicionales (no cubiertas por G09)
 
-#### Capas Disponibles
+| Capa | Contenido |
+|------|-----------|
+| `g11_01_BIC` | Bienes de Interés Cultural (oficial) |
+| `g11_02_ZonaArqueologica` | Zonas protección arqueológica |
+| `g11_03_ConjuntoHistorico` | Cascos históricos protegidos |
 
-- `g11_01_BIC`: Bienes de Interés Cultural
-- `g11_02_ZonaArqueologica`: Zonas arqueológicas
-- `g11_03_ConjuntoHistorico`: Conjuntos históricos
-- `g11_04_JardinHistorico`: Jardines históricos
+#### Decisión de Implementación
 
-#### Nota
-Ya existe `WFSCulturalGeocoder` usando DERA G09. Este recurso añadiría capas complementarias al mismo geocodificador.
+Evaluar si las capas de G11 aportan registros no cubiertos por G09. Si el solapamiento es >80%, puede omitirse.
 
 ---
 
-## PRIORIDAD BAJA
+## FASE C: BAJA PRIORIDAD
 
 ### 9. MITECO Gasolineras
 
 **Prioridad:** 🟢 BAJA  
-**Esfuerzo:** 2 horas  
-**Impacto:** +1% registros PTEL  
-**ROI:** ⭐
+**Tiempo estimado:** 2 horas  
+**Impacto:** +1% registros PTEL
 
-#### Descripción
-Geoportal de gasolineras del Ministerio de Transición Ecológica. Las gasolineras rara vez aparecen en documentos PTEL.
+#### Especificaciones
 
-#### Endpoints
+| Parámetro | Valor |
+|-----------|-------|
+| **Portal** | `https://geoportalgasolineras.es/` |
+| **API** | REST JSON |
+| **Cobertura** | Todas las estaciones de servicio España |
 
-| Servicio | URL |
-|----------|-----|
-| Geoportal | `https://geoportalgasolineras.es/` |
-| API REST | `https://geoportalgasolineras.es/rest/busqueda/` |
+#### Implementación
 
-#### Ejemplo API
-
-```javascript
-fetch('https://geoportalgasolineras.es/rest/busqueda/', {
-  method: 'POST',
-  body: JSON.stringify({
-    provincia: 'GRANADA',
-    municipio: 'GRANADA'
-  })
-})
-```
+Solo si aparecen gasolineras en documentos PTEL (poco común).
 
 ---
 
-### 10. IDEADIF — Red Ferroviaria
+### 10. IDEADIF - Red Ferroviaria
 
 **Prioridad:** 🟢 BAJA  
-**Esfuerzo:** 2-3 horas  
-**Impacto:** +0.5-1% registros PTEL  
-**ROI:** ⭐
+**Tiempo estimado:** 2-3 horas  
+**Impacto:** +0.5-1% registros PTEL
 
-#### Descripción
-Infraestructura ferroviaria de ADIF: estaciones, apeaderos, líneas. Andalucía tiene ~30-40 estaciones principales.
+#### Especificaciones
 
-#### Endpoints
+| Parámetro | Valor |
+|-----------|-------|
+| **Portal** | `https://ideadif.adif.es/` |
+| **Contenido** | Estaciones, apeaderos, trazado vías |
+| **Formato** | WMS INSPIRE Transport Networks |
 
-| Servicio | URL |
-|----------|-----|
-| Portal IDEADIF | `https://ideadif.adif.es/` |
-| WMS INSPIRE | `https://ideadif.adif.es/geoserver/wms` |
+#### Registros en Andalucía
 
-#### Capas
-
-- `Estaciones`: Estaciones de pasajeros
-- `Apeaderos`: Paradas secundarias
-- `LineasFerreas`: Trazado de vías
+- ~60 estaciones principales
+- ~40 apeaderos
+- Infraestructura muy específica
 
 ---
 
-### 11. ENAIRE AIP — Helipuertos
+### 11. ENAIRE AIP - Helipuertos
 
 **Prioridad:** 🟢 BAJA  
-**Esfuerzo:** 3-4 horas  
-**Impacto:** +0.2% registros PTEL  
-**ROI:** ⭐
+**Tiempo estimado:** 3-4 horas  
+**Impacto:** +0.2% registros PTEL
 
-#### Descripción
-Información aeronáutica oficial de ENAIRE. Andalucía tiene ~15 helipuertos. Formato complejo (ciclo AIRAC 28 días).
+#### Especificaciones
 
-#### Endpoints
+| Parámetro | Valor |
+|-----------|-------|
+| **Portal** | `https://aip.enaire.es/` |
+| **Formato** | OACI, ciclo AIRAC (28 días) |
+| **Registros Andalucía** | ~15 helipuertos |
 
-| Servicio | URL |
-|----------|-----|
-| Portal AIP | `https://aip.enaire.es/` |
-| eAIP España | `https://aip.enaire.es/AIP/` |
+#### Consideraciones
 
-#### Nota
-Los datos AIP requieren parsing de documentos PDF/XML en formato OACI. Implementación compleja para muy pocos registros.
+- Formato muy específico (aviación)
+- Pocos registros pero críticos para emergencias
+- Requiere parser especializado AIRAC
 
 ---
 
 ### 12. Patronatos Provinciales
 
 **Prioridad:** 🟢 BAJA  
-**Esfuerzo:** 4-6 horas  
-**Impacto:** Variable  
-**ROI:** ⭐
+**Tiempo estimado:** 4-6 horas  
+**Impacto:** Variable
 
-#### Descripción
-8 APIs diferentes (una por provincia) con datos turísticos. Alto esfuerzo de mantenimiento, datos frecuentemente duplicados con OpenRTA y REDIAM.
+#### APIs por Provincia
 
-#### Matriz de Madurez
+| Provincia | Portal | Madurez | API |
+|-----------|--------|---------|-----|
+| Málaga | `https://idemap.es` | ⭐⭐⭐⭐⭐ | REST completa |
+| Granada | `http://siggra.dipgra.es` | ⭐⭐⭐⭐ | WMS/WFS |
+| Cádiz | `https://www.dipucadiz.es/idecadiz/` | ⭐⭐⭐⭐ | SPARQL |
+| Jaén | `https://ide.dipujaen.es/geoportal/` | ⭐⭐⭐ | WMS |
+| Sevilla | `https://www.dipusevilla.es/ideasevilla/` | ⭐⭐⭐ | WMS |
+| Córdoba | EPRINSA | ⭐⭐⭐ | OpenData |
+| Almería | Dipalme | ⭐⭐ | Básico |
+| Huelva | — | ⭐ | Sin API |
 
-| Provincia | Portal | Madurez |
-|-----------|--------|---------|
-| Málaga | `https://idemap.es` | ⭐⭐⭐⭐⭐ |
-| Granada | `http://siggra.dipgra.es` | ⭐⭐⭐⭐ |
-| Cádiz | `https://www.dipucadiz.es/idecadiz/` | ⭐⭐⭐⭐ |
-| Jaén | `https://ide.dipujaen.es/geoportal/` | ⭐⭐⭐ |
-| Sevilla | `https://www.dipusevilla.es/ideasevilla/` | ⭐⭐⭐ |
-| Córdoba | EPRINSA OpenData | ⭐⭐⭐ |
-| Almería | Geoportal Dipalme | ⭐⭐ |
-| Huelva | turismohuelva.org | ⭐ |
+#### Consideraciones
 
-#### Recomendación
-Solo implementar IDEMAP Málaga si se necesita cobertura específica de Costa del Sol.
+- 8 implementaciones diferentes
+- Alto coste de mantenimiento
+- Datos frecuentemente duplicados con fuentes autonómicas
+- Implementar solo si hay gaps específicos provinciales
 
 ---
 
 ## Arquitectura de Integración
 
-### Estructura de Directorios Propuesta
+### Estructura de Carpetas Propuesta
 
 ```
 src/services/geocoding/
-├── GeocodingOrchestrator.ts      # Ya existe
 ├── index.ts
-├── specialized/                   # Ya existe
-│   ├── WFSBaseGeocoder.ts
-│   ├── WFSHealthGeocoder.ts      # ✅ Implementado
-│   ├── WFSEducationGeocoder.ts   # ✅ Implementado
-│   ├── WFSCulturalGeocoder.ts    # ✅ Implementado
-│   ├── WFSSecurityGeocoder.ts    # ⚠️ API no pública
-│   ├── WFSHydraulicGeocoder.ts   # 🔴 Por implementar
-│   └── WFSEnergyGeocoder.ts      # 🔴 Por implementar
-├── fallback/                      # 🔴 Nueva carpeta
-│   ├── CartoCiudadGeocoder.ts    # 🔴 Por implementar
-│   └── CDAUGeocoder.ts           # 🔴 Por implementar
-└── complementary/                 # 🟡 Futura
-    ├── OpenRTAGeocoder.ts
-    ├── REDIAMEquipGeocoder.ts
-    └── CatastroValidator.ts
+├── GeocodingOrchestrator.ts          # Ya existe
+├── generic/
+│   ├── CartoCiudadGeocoder.ts        # NUEVO - Fase A
+│   ├── CDAUGeocoder.ts               # NUEVO - Fase A
+│   └── index.ts
+├── specialized/
+│   ├── WFSBaseGeocoder.ts            # Ya existe
+│   ├── WFSHealthGeocoder.ts          # Ya existe
+│   ├── WFSEducationGeocoder.ts       # Ya existe
+│   ├── WFSCulturalGeocoder.ts        # Ya existe
+│   ├── WFSSecurityGeocoder.ts        # Ya existe
+│   ├── WFSHydraulicGeocoder.ts       # NUEVO - Fase A
+│   ├── WFSEnergyGeocoder.ts          # NUEVO - Fase A
+│   ├── OpenRTAGeocoder.ts            # NUEVO - Fase B
+│   ├── WFSPublicUseGeocoder.ts       # NUEVO - Fase B
+│   └── index.ts
+└── validation/
+    ├── CatastroValidator.ts          # NUEVO - Fase B
+    └── index.ts
 ```
 
 ### Flujo de Geocodificación Actualizado
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                 ENTRADA: Registro PTEL                       │
-└─────────────────────────────────────────────────────────────┘
-                            │
-                            ▼
-┌─────────────────────────────────────────────────────────────┐
-│          PASO 1: Clasificar tipología (existente)           │
-└─────────────────────────────────────────────────────────────┘
-                            │
-              ┌─────────────┼─────────────┐
-              ▼             ▼             ▼
-┌──────────────────┐ ┌──────────────┐ ┌──────────────┐
-│   Sanitario      │ │  Educativo   │ │   EDAR       │
-│ WFSHealthGeocoder│ │WFSEducation  │ │WFSHydraulic  │
-└────────┬─────────┘ └──────┬───────┘ └──────┬───────┘
-         │                  │                │
-         └─────────────────┼────────────────┘
-                           │
-                           ▼ Sin match
-┌─────────────────────────────────────────────────────────────┐
-│          PASO 2: Fallback CDAU (Andalucía)                  │
-│                    🔴 POR IMPLEMENTAR                        │
-└─────────────────────────────────────────────────────────────┘
-                           │
-                           ▼ Sin match
-┌─────────────────────────────────────────────────────────────┐
-│          PASO 3: Fallback CartoCiudad (Nacional)            │
-│                    🔴 POR IMPLEMENTAR                        │
-└─────────────────────────────────────────────────────────────┘
-                           │
-                           ▼ Sin match
-┌─────────────────────────────────────────────────────────────┐
-│          PASO 4: Flag GEOCODING_NEEDED                      │
-│                    Visor Leaflet manual                     │
-└─────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────┐
+│                    ENTRADA: Registro PTEL                       │
+└─────────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────────┐
+│              PASO 1: Clasificar tipología                       │
+│    Sanitario │ Educativo │ Cultural │ Hidráulico │ Energía │...│
+└─────────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────────┐
+│           PASO 2: Geocodificador especializado                  │
+│   WFSHealth │ WFSEducation │ WFSHydraulic │ WFSEnergy │ ...    │
+│             → Si match >70% → Coordenadas oficiales ✓           │
+└─────────────────────────────────────────────────────────────────┘
+                              │
+                              │ Sin match
+                              ▼
+┌─────────────────────────────────────────────────────────────────┐
+│           PASO 3: Fallback CDAU (Andalucía)                     │
+│   → Dirección → Coordenadas UTM30                               │
+│   → Si match → Confianza MEDIA-ALTA                             │
+└─────────────────────────────────────────────────────────────────┘
+                              │
+                              │ Sin resultado
+                              ▼
+┌─────────────────────────────────────────────────────────────────┐
+│           PASO 4: Fallback CartoCiudad (Nacional)               │
+│   → Dirección → Coordenadas WGS84 → Transformar UTM30          │
+│   → Si match → Confianza MEDIA                                  │
+└─────────────────────────────────────────────────────────────────┘
+                              │
+                              │ Sin resultado
+                              ▼
+┌─────────────────────────────────────────────────────────────────┐
+│           PASO 5: Flag para revisión manual                     │
+│   → GEOCODING_NEEDED = true                                     │
+│   → Visor Leaflet para corrección                               │
+└─────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## Cronograma de Implementación
+## Checklist de Implementación
 
-### Fase 1: Alta Prioridad (Semana 1-2)
+### Fase A - Alta Prioridad
 
-| Día | Tarea | Horas |
-|-----|-------|-------|
-| 1 | CartoCiudadGeocoder + tests | 3h |
-| 2 | CDAUGeocoder + tests | 3h |
-| 3 | WFSHydraulicGeocoder + tests | 4h |
-| 4 | WFSEnergyGeocoder + tests | 4h |
-| 5 | Integración en Orchestrator + validación | 3h |
+- [ ] **CartoCiudad API**
+  - [ ] Crear `CartoCiudadGeocoder.ts`
+  - [ ] Implementar geocodificación directa
+  - [ ] Implementar geocodificación inversa
+  - [ ] Añadir transformación WGS84 → UTM30
+  - [ ] Integrar como fallback en orquestador
+  - [ ] Tests unitarios
+  
+- [ ] **CDAU**
+  - [ ] Crear `CDAUGeocoder.ts`
+  - [ ] Implementar lookup códigos INE
+  - [ ] Implementar geocodificación
+  - [ ] Evaluar necesidad proxy CORS
+  - [ ] Integrar antes de CartoCiudad en fallback
+  - [ ] Tests unitarios
 
-**Total Fase 1:** 17h (incluye testing)
+- [ ] **REDIAM Hidráulicas**
+  - [ ] Crear `WFSHydraulicGeocoder.ts`
+  - [ ] Implementar capas EDAR, Captaciones, Embalses
+  - [ ] Añadir patrones al clasificador
+  - [ ] Integrar en orquestador
+  - [ ] Tests unitarios
 
-### Fase 2: Media Prioridad (Semana 3-4)
+- [ ] **Agencia Energía WFS**
+  - [ ] Crear `WFSEnergyGeocoder.ts`
+  - [ ] Implementar capas Subestaciones, Centrales
+  - [ ] Añadir patrones al clasificador
+  - [ ] Integrar en orquestador
+  - [ ] Tests unitarios
 
-| Día | Tarea | Horas |
-|-----|-------|-------|
-| 1 | OpenRTAGeocoder | 3h |
-| 2 | REDIAMEquipGeocoder | 3h |
-| 3 | CatastroValidator | 5h |
-| 4 | Extensión WFSCulturalGeocoder (DERA G11) | 3h |
-| 5 | Integración + validación | 3h |
+### Fase B - Media Prioridad
 
-**Total Fase 2:** 17h
+- [ ] OpenRTA
+- [ ] REDIAM Equipamientos
+- [ ] Catastro INSPIRE
+- [ ] DERA G11 Patrimonio
 
-### Fase 3: Baja Prioridad (Opcional)
+### Fase C - Baja Prioridad
 
-Solo si hay necesidad específica documentada.
+- [ ] MITECO Gasolineras
+- [ ] IDEADIF
+- [ ] ENAIRE AIP
+- [ ] Patronatos Provinciales
 
 ---
 
 ## Métricas de Éxito
 
-| Métrica | Actual | Objetivo Fase 1 | Objetivo Fase 2 |
-|---------|--------|-----------------|-----------------|
-| Cobertura geocodificación | ~45% | ~75-80% | ~85-90% |
-| Tasa de fallback exitoso | 0% | ~60-70% | ~70-80% |
-| Tiempo medio geocodificación | N/A | <500ms | <500ms |
-| Registros sin coordenadas | ~55% | ~20-25% | ~10-15% |
+| Métrica | Actual | Objetivo Fase A | Objetivo Final |
+|---------|--------|-----------------|----------------|
+| Cobertura geocodificación | ~45% | ~85% | ~90% |
+| Precisión media | ~15m | ~10m | ~8m |
+| Tiempo medio por registro | ~500ms | ~400ms | ~350ms |
+| Tasa fallback exitoso | 0% | 70% | 80% |
 
 ---
 
@@ -625,7 +807,7 @@ Solo si hay necesidad específica documentada.
 
 | Versión | Fecha | Cambios |
 |---------|-------|---------|
-| 1.0 | Nov 2025 | Documento inicial con 12 recursos |
+| 1.0 | Nov 2025 | Documento inicial |
 
 ---
 
