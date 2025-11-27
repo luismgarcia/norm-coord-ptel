@@ -7,9 +7,9 @@ interface StepIndicatorProps {
 }
 
 const steps = [
-  { number: 1, label: 'Subir archivos', icon: UploadSimple },
-  { number: 2, label: 'Analizar y validar', icon: MagnifyingGlass },
-  { number: 3, label: 'Descarga de resultados', icon: DownloadSimple },
+  { number: 1, label: 'Subida', icon: UploadSimple },
+  { number: 2, label: 'Análisis', icon: MagnifyingGlass },
+  { number: 3, label: 'Descarga', icon: DownloadSimple },
 ]
 
 export default function StepIndicator({ currentStep, completedSteps, onStepClick }: StepIndicatorProps) {
@@ -17,7 +17,7 @@ export default function StepIndicator({ currentStep, completedSteps, onStepClick
   const isStepCompleted = (stepNumber: number) => completedSteps.includes(stepNumber)
 
   return (
-    <div className="flex justify-center items-start gap-4 md:gap-6">
+    <div className="flex justify-center items-center">
       {steps.map((step, index) => {
         const isActive = currentStep === step.number
         const isCompleted = isStepCompleted(step.number)
@@ -31,7 +31,7 @@ export default function StepIndicator({ currentStep, completedSteps, onStepClick
         }
 
         const getCircleClasses = () => {
-          if (isActive) return 'bg-primary/15 border-primary shadow-[0_0_24px_rgba(6,182,212,0.4)]'
+          if (isActive) return 'bg-primary/15 border-primary shadow-[0_0_20px_rgba(6,182,212,0.35)]'
           if (isCompleted) return 'bg-green-500/15 border-green-500'
           if (isAccessible) return 'bg-muted/30 border-muted-foreground/30 hover:border-primary/50'
           return 'bg-muted/30 border-muted-foreground/30'
@@ -44,28 +44,48 @@ export default function StepIndicator({ currentStep, completedSteps, onStepClick
         }
 
         return (
-          <div key={step.number} className="flex items-start">
+          <div key={step.number} className="flex items-center">
+            {/* Step button */}
             <button
               onClick={() => isAccessible && onStepClick(step.number)}
-              className={`flex flex-col items-center gap-2 ${isAccessible ? 'cursor-pointer' : 'cursor-not-allowed'}`}
+              className={`flex flex-col items-center gap-1.5 ${isAccessible ? 'cursor-pointer' : 'cursor-not-allowed'}`}
               disabled={!isAccessible}
             >
-              <span className={`text-3xl font-extrabold ${getNumberColor()}`}
-                style={{ textShadow: isActive ? '0 0 20px rgba(6,182,212,0.5)' : 'none' }}>
+              {/* Number */}
+              <span 
+                className={`text-2xl font-bold ${getNumberColor()}`}
+                style={{ textShadow: isActive ? '0 0 16px rgba(6,182,212,0.4)' : 'none' }}
+              >
                 {step.number}
               </span>
-              <div className={`w-14 h-14 rounded-full flex items-center justify-center border-2 transition-colors ${getCircleClasses()}`}>
-                {isCompleted ? <Check size={24} weight="bold" className="text-green-500" /> : <Icon size={24} weight="duotone" className={getIconColor()} />}
+              
+              {/* Circle with icon */}
+              <div className={`w-12 h-12 rounded-full flex items-center justify-center border-2 transition-all duration-300 ${getCircleClasses()}`}>
+                {isCompleted ? (
+                  <Check size={22} weight="bold" className="text-green-500" />
+                ) : (
+                  <Icon size={22} weight="duotone" className={getIconColor()} />
+                )}
               </div>
-              <span className={`text-sm font-medium text-center max-w-[100px] ${isActive ? 'text-foreground' : 'text-muted-foreground/60'}`}>
+              
+              {/* Label */}
+              <span className={`text-xs font-medium ${isActive ? 'text-foreground' : 'text-muted-foreground/60'}`}>
                 {step.label}
               </span>
             </button>
+            
+            {/* Connector line - centered with circle */}
             {index < steps.length - 1 && (
-              <div className="flex items-center" style={{ marginTop: '56px' }}>
-                <div className="relative w-16 md:w-20 h-0.5 mx-2">
+              <div className="flex items-center h-12 mx-3 md:mx-5" style={{ marginTop: '-18px' }}>
+                <div className="relative w-14 md:w-20 h-[3px]">
+                  {/* Background line */}
                   <div className="absolute inset-0 bg-muted-foreground/20 rounded-full" />
-                  <div className={`absolute inset-y-0 left-0 bg-green-500 rounded-full transition-all duration-500 ${isCompleted ? 'w-full' : 'w-0'}`} />
+                  {/* Progress line */}
+                  <div 
+                    className={`absolute inset-y-0 left-0 rounded-full transition-all duration-500 ease-out ${
+                      isCompleted ? 'w-full bg-green-500' : 'w-0'
+                    }`} 
+                  />
                 </div>
               </div>
             )}

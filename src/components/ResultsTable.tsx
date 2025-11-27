@@ -2,7 +2,8 @@
  * ResultsTable - Tabla de resultados con filas expandibles y cascada de geolocalización
  * 
  * Características:
- * - Altura fija de filas (56px) con overflow hidden
+ * - Altura fija de filas con overflow hidden
+ * - Línea izquierda coloreada para scores < 100
  * - Filas expandibles al hacer clic
  * - Detalle de cascada de geolocalización
  * - Score con punto de color alineado
@@ -11,14 +12,14 @@
 
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { CaretDown, CaretUp, Table as TableIcon } from '@phosphor-icons/react'
+import { CaretDown, Table as TableIcon } from '@phosphor-icons/react'
 import ScoreIndicator, { getScoreColor } from './ScoreIndicator'
 import StatusIcon, { getStatusFromResult, CoordStatus } from './StatusIcon'
-import CascadeDetail, { CascadeStep, generateMockCascadeSteps } from './CascadeDetail'
+import CascadeDetail, { generateMockCascadeSteps } from './CascadeDetail'
 import { cn } from '../lib/utils'
 import { NormalizationResult } from '../lib/coordinateNormalizer'
 
-interface ResultRow {
+export interface ResultRow {
   index: number
   result: NormalizationResult
   tableName?: string
@@ -29,49 +30,47 @@ interface ResultRow {
 
 interface ResultsTableProps {
   rows: ResultRow[]
-  maxVisible?: number
+  showScoreBorder?: boolean
   className?: string
 }
 
 export default function ResultsTable({ 
   rows, 
-  maxVisible = 10,
+  showScoreBorder = true,
   className 
 }: ResultsTableProps) {
   const [expandedRow, setExpandedRow] = useState<number | null>(null)
-  const visibleRows = rows.slice(0, maxVisible)
-  const hasMore = rows.length > maxVisible
   
   const toggleRow = (index: number) => {
     setExpandedRow(expandedRow === index ? null : index)
   }
   
   return (
-    <div className={cn('border border-border rounded-xl overflow-hidden', className)}>
+    <div className={cn('overflow-hidden', className)}>
       {/* Header */}
-      <div className="p-3 bg-muted/30 border-b border-border flex items-center gap-2">
-        <TableIcon size={18} className="text-muted-foreground" />
-        <span className="text-sm font-medium">Vista previa de coordenadas normalizadas</span>
+      <div className="px-3 py-2 bg-slate-800/50 border-b border-slate-700/50 flex items-center gap-2">
+        <TableIcon size={16} className="text-gray-500" />
+        <span className="text-xs font-medium text-gray-400">Vista previa de coordenadas normalizadas</span>
       </div>
       
       {/* Table */}
       <div className="overflow-x-auto">
-        <table className="w-full text-sm">
-          <thead className="bg-muted/20 sticky top-0">
+        <table className="w-full text-xs">
+          <thead className="bg-slate-800/30">
             <tr>
-              <th className="px-3 py-2 text-left font-medium text-muted-foreground w-10">#</th>
-              <th className="px-3 py-2 text-left font-medium text-muted-foreground">Nombre</th>
-              <th className="px-3 py-2 text-left font-medium text-muted-foreground">X Original</th>
-              <th className="px-3 py-2 text-left font-medium text-muted-foreground">Y Original</th>
-              <th className="px-3 py-2 text-left font-medium text-muted-foreground">X Normalizado</th>
-              <th className="px-3 py-2 text-left font-medium text-muted-foreground">Y Normalizado</th>
-              <th className="px-3 py-2 text-right font-medium text-muted-foreground w-24">Score</th>
-              <th className="px-3 py-2 text-center font-medium text-muted-foreground w-16">Estado</th>
-              <th className="px-3 py-2 w-10"></th>
+              <th className="px-2 py-2 text-left font-medium text-gray-500 w-8">#</th>
+              <th className="px-2 py-2 text-left font-medium text-gray-500 min-w-[200px]">Nombre</th>
+              <th className="px-2 py-2 text-right font-medium text-gray-500 w-24">X Original</th>
+              <th className="px-2 py-2 text-right font-medium text-gray-500 w-24">Y Original</th>
+              <th className="px-2 py-2 text-right font-medium text-gray-500 w-24">X Norm.</th>
+              <th className="px-2 py-2 text-right font-medium text-gray-500 w-24">Y Norm.</th>
+              <th className="px-2 py-2 text-right font-medium text-gray-500 w-16">Score</th>
+              <th className="px-2 py-2 text-center font-medium text-gray-500 w-12">Est.</th>
+              <th className="px-2 py-2 w-8"></th>
             </tr>
           </thead>
           <tbody>
-            {visibleRows.map((row, idx) => {
+            {rows.map((row) => {
               const isExpanded = expandedRow === row.index
               const status = getStatusFromResult({
                 isValid: row.result.isValid,
@@ -85,6 +84,7 @@ export default function ResultsTable({
                   row={row}
                   status={status}
                   isExpanded={isExpanded}
+                  showScoreBorder={showScoreBorder}
                   onToggle={() => toggleRow(row.index)}
                 />
               )
@@ -92,13 +92,6 @@ export default function ResultsTable({
           </tbody>
         </table>
       </div>
-      
-      {/* Footer */}
-      {hasMore && (
-        <div className="p-3 bg-muted/20 border-t border-border text-center text-xs text-muted-foreground">
-          Mostrando {maxVisible} de {rows.length} filas
-        </div>
-      )}
     </div>
   )
 }
@@ -108,104 +101,101 @@ interface TableRowProps {
   row: ResultRow
   status: CoordStatus
   isExpanded: boolean
+  showScoreBorder: boolean
   onToggle: () => void
 }
 
-function TableRow({ row, status, isExpanded, onToggle }: TableRowProps) {
+function TableRow({ row, status, isExpanded, showScoreBorder, onToggle }: TableRowProps) {
   const { result, index, name } = row
   const cascadeSteps = generateMockCascadeSteps(result.score)
+  const scoreColor = getScoreColor(result.score)
+  const needsScoreBorder = showScoreBorder && result.score < 100
   
   return (
     <>
       {/* Fila principal */}
       <tr 
         className={cn(
-          'border-t border-border row-expandable',
+          'border-t border-slate-700/30 cursor-pointer transition-colors',
+          'hover:bg-slate-800/50',
           isExpanded && 'bg-purple-500/5'
         )}
         onClick={onToggle}
+        style={{
+          // Línea izquierda coloreada para scores < 100
+          borderLeft: needsScoreBorder ? `3px solid ${scoreColor}` : '3px solid transparent'
+        }}
       >
         {/* # */}
-        <td className="fixed-height-cell px-3">
-          <div className="cell-content">
-            <span className="text-muted-foreground">{index + 1}</span>
-          </div>
+        <td className="px-2 py-2 align-middle">
+          <span className="text-gray-500 text-xs">{index + 1}</span>
         </td>
         
-        {/* Nombre */}
-        <td className="fixed-height-cell px-3">
-          <div className="cell-content">
-            <span className="truncate max-w-[200px]" title={name || '-'}>
-              {name?.substring(0, 30) || '-'}
-              {name && name.length > 30 && '...'}
-            </span>
-          </div>
+        {/* Nombre - más ancho, fuente ajustada */}
+        <td className="px-2 py-2 align-middle max-w-[250px]">
+          <span 
+            className="block truncate text-xs text-gray-200" 
+            title={name || '-'}
+          >
+            {name || '-'}
+          </span>
         </td>
         
         {/* X Original */}
-        <td className="fixed-height-cell px-3">
-          <div className="cell-content">
-            <span className="font-mono text-xs text-gray-400">
-              {String(result.original.x || '-').substring(0, 12)}
-            </span>
-          </div>
+        <td className="px-2 py-2 align-middle text-right">
+          <span className="font-mono text-[11px] text-gray-500">
+            {formatCoord(result.original.x)}
+          </span>
         </td>
         
         {/* Y Original */}
-        <td className="fixed-height-cell px-3">
-          <div className="cell-content">
-            <span className="font-mono text-xs text-gray-400">
-              {String(result.original.y || '-').substring(0, 12)}
-            </span>
-          </div>
+        <td className="px-2 py-2 align-middle text-right">
+          <span className="font-mono text-[11px] text-gray-500">
+            {formatCoord(result.original.y)}
+          </span>
         </td>
         
         {/* X Normalizado */}
-        <td className="fixed-height-cell px-3">
-          <div className="cell-content">
-            <span className="font-mono text-xs text-primary">
-              {result.x?.toFixed(2) || '-'}
-            </span>
-          </div>
+        <td className="px-2 py-2 align-middle text-right">
+          <span className="font-mono text-[11px] text-cyan-400">
+            {result.x?.toFixed(2) || '-'}
+          </span>
         </td>
         
         {/* Y Normalizado */}
-        <td className="fixed-height-cell px-3">
-          <div className="cell-content">
-            <span className="font-mono text-xs text-primary">
-              {result.y?.toFixed(2) || '-'}
-            </span>
-          </div>
+        <td className="px-2 py-2 align-middle text-right">
+          <span className="font-mono text-[11px] text-cyan-400">
+            {result.y?.toFixed(2) || '-'}
+          </span>
         </td>
         
         {/* Score */}
-        <td className="fixed-height-cell px-3">
-          <ScoreIndicator score={result.score} size="sm" />
+        <td className="px-2 py-2 align-middle">
+          <div className="flex justify-end">
+            <ScoreIndicator score={result.score} size="sm" />
+          </div>
         </td>
         
         {/* Estado */}
-        <td className="fixed-height-cell px-3">
-          <div className="cell-content justify-center">
-            <StatusIcon status={status} size={18} />
-          </div>
+        <td className="px-2 py-2 align-middle text-center">
+          <StatusIcon status={status} size={16} />
         </td>
         
         {/* Expandir */}
-        <td className="fixed-height-cell px-3">
-          <div className="cell-content justify-center">
-            <motion.div
-              animate={{ rotate: isExpanded ? 180 : 0 }}
-              transition={{ duration: 0.2 }}
-            >
-              <CaretDown 
-                size={16} 
-                className={cn(
-                  'text-gray-500 transition-colors',
-                  isExpanded && 'text-purple-400'
-                )}
-              />
-            </motion.div>
-          </div>
+        <td className="px-2 py-2 align-middle">
+          <motion.div
+            animate={{ rotate: isExpanded ? 180 : 0 }}
+            transition={{ duration: 0.2 }}
+            className="flex justify-center"
+          >
+            <CaretDown 
+              size={14} 
+              className={cn(
+                'text-gray-600 transition-colors',
+                isExpanded && 'text-purple-400'
+              )}
+            />
+          </motion.div>
         </td>
       </tr>
       
@@ -213,7 +203,7 @@ function TableRow({ row, status, isExpanded, onToggle }: TableRowProps) {
       <AnimatePresence>
         {isExpanded && (
           <tr>
-            <td colSpan={9} className="p-0">
+            <td colSpan={9} className="p-0 border-t border-slate-700/30">
               <CascadeDetail
                 steps={cascadeSteps}
                 finalScore={result.score}
@@ -226,6 +216,13 @@ function TableRow({ row, status, isExpanded, onToggle }: TableRowProps) {
       </AnimatePresence>
     </>
   )
+}
+
+// Helper para formatear coordenadas
+function formatCoord(value: any): string {
+  if (value === null || value === undefined || value === '') return '-'
+  const str = String(value)
+  return str.length > 12 ? str.substring(0, 12) + '…' : str
 }
 
 // Helper para crear filas desde datos procesados

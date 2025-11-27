@@ -28,87 +28,98 @@ import {
 
 export type TypologyCode = 'IND' | 'PAT' | 'VUL' | 'ALB' | 'SAN' | 'EDU' | 'SEG' | 'SUM' | 'OTR'
 
-interface TypologyConfig {
+interface TypologyConfigItem {
   code: TypologyCode
   name: string
   icon: typeof Factory
-  color: string
-  bgColor: string
-  borderColor: string
+  color: string        // Hex color for inline styles
+  textClass: string    // Tailwind class
+  bgClass: string
+  borderClass: string
 }
 
-const typologyConfigs: Record<TypologyCode, TypologyConfig> = {
+// Configuración exportable para uso en filtros y otros componentes
+export const TYPOLOGY_CONFIG: Record<TypologyCode, TypologyConfigItem> = {
   IND: {
     code: 'IND',
     name: 'Industrial',
     icon: Factory,
-    color: 'text-red-400',
-    bgColor: 'bg-red-500/10',
-    borderColor: 'border-red-500/30'
+    color: '#f87171',
+    textClass: 'text-red-400',
+    bgClass: 'bg-red-500/10',
+    borderClass: 'border-red-500/30'
   },
   PAT: {
     code: 'PAT',
     name: 'Patrimonio',
     icon: Church,
-    color: 'text-purple-400',
-    bgColor: 'bg-purple-500/10',
-    borderColor: 'border-purple-500/30'
+    color: '#c084fc',
+    textClass: 'text-purple-400',
+    bgClass: 'bg-purple-500/10',
+    borderClass: 'border-purple-500/30'
   },
   VUL: {
     code: 'VUL',
     name: 'Vulnerable',
     icon: FirstAid,
-    color: 'text-blue-400',
-    bgColor: 'bg-blue-500/10',
-    borderColor: 'border-blue-500/30'
+    color: '#60a5fa',
+    textClass: 'text-blue-400',
+    bgClass: 'bg-blue-500/10',
+    borderClass: 'border-blue-500/30'
   },
   ALB: {
     code: 'ALB',
     name: 'Albergue',
     icon: HouseLine,
-    color: 'text-green-400',
-    bgColor: 'bg-green-500/10',
-    borderColor: 'border-green-500/30'
+    color: '#4ade80',
+    textClass: 'text-green-400',
+    bgClass: 'bg-green-500/10',
+    borderClass: 'border-green-500/30'
   },
   SAN: {
     code: 'SAN',
     name: 'Sanitario',
     icon: Hospital,
-    color: 'text-pink-400',
-    bgColor: 'bg-pink-500/10',
-    borderColor: 'border-pink-500/30'
+    color: '#f472b6',
+    textClass: 'text-pink-400',
+    bgClass: 'bg-pink-500/10',
+    borderClass: 'border-pink-500/30'
   },
   EDU: {
     code: 'EDU',
     name: 'Educativo',
     icon: GraduationCap,
-    color: 'text-amber-400',
-    bgColor: 'bg-amber-500/10',
-    borderColor: 'border-amber-500/30'
+    color: '#fbbf24',
+    textClass: 'text-amber-400',
+    bgClass: 'bg-amber-500/10',
+    borderClass: 'border-amber-500/30'
   },
   SEG: {
     code: 'SEG',
     name: 'Seguridad',
     icon: ShieldCheck,
-    color: 'text-indigo-400',
-    bgColor: 'bg-indigo-500/10',
-    borderColor: 'border-indigo-500/30'
+    color: '#818cf8',
+    textClass: 'text-indigo-400',
+    bgClass: 'bg-indigo-500/10',
+    borderClass: 'border-indigo-500/30'
   },
   SUM: {
     code: 'SUM',
     name: 'Suministros',
     icon: Lightning,
-    color: 'text-cyan-400',
-    bgColor: 'bg-cyan-500/10',
-    borderColor: 'border-cyan-500/30'
+    color: '#22d3ee',
+    textClass: 'text-cyan-400',
+    bgClass: 'bg-cyan-500/10',
+    borderClass: 'border-cyan-500/30'
   },
   OTR: {
     code: 'OTR',
     name: 'Otros',
     icon: DotsThree,
-    color: 'text-gray-400',
-    bgColor: 'bg-gray-500/10',
-    borderColor: 'border-gray-500/30'
+    color: '#9ca3af',
+    textClass: 'text-gray-400',
+    bgClass: 'bg-gray-500/10',
+    borderClass: 'border-gray-500/30'
   }
 }
 
@@ -123,22 +134,22 @@ interface TypologyBadgeProps {
 
 const sizeClasses = {
   sm: {
+    container: 'px-2 py-1 gap-1',
+    icon: 12,
+    text: 'text-[10px]',
+    count: 'text-xs'
+  },
+  md: {
     container: 'px-2 py-1 gap-1.5',
     icon: 14,
     text: 'text-xs',
     count: 'text-sm'
   },
-  md: {
-    container: 'px-3 py-2 gap-2',
+  lg: {
+    container: 'px-3 py-1.5 gap-2',
     icon: 16,
     text: 'text-sm',
-    count: 'text-lg'
-  },
-  lg: {
-    container: 'px-4 py-3 gap-2.5',
-    icon: 18,
-    text: 'text-base',
-    count: 'text-xl'
+    count: 'text-base'
   }
 }
 
@@ -150,16 +161,16 @@ export default function TypologyBadge({
   onClick,
   className 
 }: TypologyBadgeProps) {
-  const config = typologyConfigs[code]
+  const config = TYPOLOGY_CONFIG[code]
   const sizes = sizeClasses[size]
   const Icon = config.icon
   
   return (
     <div
       className={cn(
-        'inline-flex items-center rounded-lg border transition-colors',
-        config.bgColor,
-        config.borderColor,
+        'inline-flex items-center rounded-md border transition-colors',
+        config.bgClass,
+        config.borderClass,
         onClick && 'cursor-pointer hover:brightness-110',
         sizes.container,
         className
@@ -167,8 +178,8 @@ export default function TypologyBadge({
       onClick={onClick}
       role={onClick ? 'button' : undefined}
     >
-      <Icon size={sizes.icon} weight="duotone" className={config.color} />
-      <span className={cn('font-semibold', config.color, sizes.text)}>
+      <Icon size={sizes.icon} weight="duotone" className={config.textClass} />
+      <span className={cn('font-semibold', config.textClass, sizes.text)}>
         {config.code}
       </span>
       {showName && (
@@ -225,9 +236,9 @@ export function TypologyGrid({ data, size = 'md', onSelect }: TypologyGridProps)
 export function detectTypology(text: string): TypologyCode {
   const t = text.toLowerCase()
   
-  if (/industr|riesgo|seveso|quim|gasolinera|fabrica|contam/i.test(t)) return 'IND'
+  if (/industr|riesgo|seveso|quim|gasolinera|fabrica|contam|almacen/i.test(t)) return 'IND'
   if (/patrimonio|monument|iglesia|castillo|yacimiento|bic|museo|histor/i.test(t)) return 'PAT'
-  if (/vulnerable|residencia|mayores|ancian|discapac|asilo|depend/i.test(t)) return 'VUL'
+  if (/vulnerable|residencia|mayores|ancian|discapac|asilo|depend|tercera.*edad/i.test(t)) return 'VUL'
   if (/albergue|refugio|evacuac|acogida|polideport|pabellon/i.test(t)) return 'ALB'
   if (/sanitar|hospital|centro.*salud|consul|clinic|ambulat|farmacia/i.test(t)) return 'SAN'
   if (/educa|colegio|instituto|escuela|guarderia|universidad|ceip|ies/i.test(t)) return 'EDU'

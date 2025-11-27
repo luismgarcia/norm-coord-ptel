@@ -11,9 +11,9 @@ const Step3 = lazy(() => import('./components/Step3'))
 // Componente de carga
 function StepLoading() {
   return (
-    <div className="flex items-center justify-center py-20">
-      <SpinnerGap size={32} className="animate-spin text-primary" />
-      <span className="ml-3 text-muted-foreground">Cargando...</span>
+    <div className="flex items-center justify-center py-16">
+      <SpinnerGap size={28} className="animate-spin text-primary" />
+      <span className="ml-3 text-muted-foreground text-sm">Cargando...</span>
     </div>
   )
 }
@@ -48,76 +48,71 @@ function App() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background via-background to-secondary/20">
-      <div className="container mx-auto px-4 py-8 max-w-5xl">
-        {/* Header */}
-        <header className="text-center mb-12">
-          {/* Logo con glow */}
-          <div className="flex justify-center mb-6">
+    <div className="min-h-screen bg-gradient-to-b from-background via-background to-secondary/10">
+      <div className="container mx-auto px-4 py-6 max-w-5xl">
+        {/* Header compacto */}
+        <header className="text-center mb-8">
+          {/* Logo + Título en línea */}
+          <div className="flex items-center justify-center gap-3 mb-3">
             <motion.div 
-              className="relative"
-              initial={{ scale: 0.8, opacity: 0 }}
+              className="p-2.5 bg-primary/10 border border-primary/30 rounded-xl"
+              initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
-              transition={{ duration: 0.5 }}
+              transition={{ duration: 0.3 }}
             >
-              <div className="absolute inset-0 bg-primary/30 blur-2xl rounded-full scale-150" />
-              <div className="relative p-4 bg-card border border-border rounded-2xl glow-primary">
-                <MapPin size={40} weight="duotone" className="text-primary" />
-              </div>
+              <MapPin size={28} weight="duotone" className="text-primary" />
             </motion.div>
+            <motion.h1 
+              className="text-2xl md:text-3xl font-bold"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.1 }}
+            >
+              <span className="text-primary">Normalizador-Geolocalizador</span>
+              <span className="text-foreground"> PTEL</span>
+            </motion.h1>
           </div>
 
-          {/* Título */}
-          <motion.h1 
-            className="text-4xl font-bold mb-2"
-            initial={{ y: 20, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: 0.2 }}
-          >
-            <span className="text-gradient">Normalizador-Geolocalizador</span>
-            <span className="text-foreground"> PTEL</span>
-          </motion.h1>
-
           <motion.p 
-            className="text-muted-foreground text-lg mb-6"
-            initial={{ y: 20, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: 0.3 }}
+            className="text-muted-foreground text-sm mb-4"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.15 }}
           >
             Planes Territoriales de Emergencias Locales — Andalucía
           </motion.p>
 
-          {/* Badges con separación 24px */}
+          {/* Badges compactos */}
           <motion.div 
-            className="flex flex-wrap justify-center gap-6"
-            initial={{ y: 20, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: 0.4 }}
+            className="flex flex-wrap justify-center gap-3"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.2 }}
           >
-            <div className="flex items-center gap-2 px-4 py-2 bg-card border border-border rounded-full text-sm">
-              <svg className="w-4 h-4 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <span className="flex items-center gap-1.5 px-3 py-1 bg-card border border-border rounded-full text-xs text-muted-foreground">
+              <svg className="w-3.5 h-3.5 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M3 7V5a2 2 0 0 1 2-2h2"/>
                 <path d="M17 3h2a2 2 0 0 1 2 2v2"/>
                 <path d="M21 17v2a2 2 0 0 1-2 2h-2"/>
                 <path d="M7 21H5a2 2 0 0 1-2-2v-2"/>
                 <rect x="7" y="7" width="10" height="10" rx="1"/>
               </svg>
-              <span className="text-muted-foreground">Detección automática</span>
-            </div>
-            <div className="flex items-center gap-2 px-4 py-2 bg-card border border-border rounded-full text-sm">
-              <svg className="w-4 h-4 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              Detección automática
+            </span>
+            <span className="flex items-center gap-1.5 px-3 py-1 bg-card border border-border rounded-full text-xs text-muted-foreground">
+              <svg className="w-3.5 h-3.5 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <ellipse cx="12" cy="5" rx="9" ry="3"/>
                 <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/>
               </svg>
-              <span className="text-muted-foreground">785 municipios</span>
-            </div>
-            <div className="flex items-center gap-2 px-4 py-2 bg-card border border-border rounded-full text-sm">
-              <svg className="w-4 h-4 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              785 municipios
+            </span>
+            <span className="flex items-center gap-1.5 px-3 py-1 bg-card border border-border rounded-full text-xs text-muted-foreground">
+              <svg className="w-3.5 h-3.5 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <circle cx="12" cy="12" r="10"/>
                 <path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
               </svg>
-              <span className="text-muted-foreground">ETRS89 / UTM30N</span>
-            </div>
+              ETRS89 / UTM30N
+            </span>
           </motion.div>
         </header>
 
@@ -129,7 +124,7 @@ function App() {
         />
 
         {/* Content con Suspense para lazy loading */}
-        <main className="mt-8">
+        <main className="mt-6">
           {currentStep === 1 && (
             <Step1 onComplete={(data) => handleStepComplete(1, data)} />
           )}
@@ -152,15 +147,13 @@ function App() {
           )}
         </main>
 
-        {/* Footer */}
-        <footer className="text-center mt-12 text-sm text-muted-foreground">
-          <p>
-            Compatible con{' '}
-            <a href="https://qgis.org" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
-              QGIS
-            </a>
-            {' '}· Salida en formato ETRS89 / UTM30N
-          </p>
+        {/* Footer compacto */}
+        <footer className="text-center mt-8 text-xs text-muted-foreground">
+          Compatible con{' '}
+          <a href="https://qgis.org" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+            QGIS
+          </a>
+          {' '}· Salida ETRS89 / UTM30N
         </footer>
       </div>
     </div>
