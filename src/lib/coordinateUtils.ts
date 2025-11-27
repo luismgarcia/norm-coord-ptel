@@ -177,17 +177,50 @@ export function detectCoordinateSystem(data: any[]): DetectionResult | null {
 function findCoordinateColumns(headers: string[], data: any[]): Array<{ xCol: string; yCol: string; score: number }> {
   const pairs: Array<{ xCol: string; yCol: string; score: number }> = []
 
+  // Normalizar headers: eliminar saltos de línea y espacios extra
+  const normalizedHeaders = headers.map(h => h.replace(/[\r\n]+/g, ' ').trim())
+  const headerMap = Object.fromEntries(normalizedHeaders.map((nh, i) => [nh, headers[i]]))
+
+  // Patrones ampliados para detectar más variantes de nombres de columna
   const xPatterns = /^(x|lon|long|longitude|longitud|este|easting|coord_?x|east)$/i
   const yPatterns = /^(y|lat|latitude|latitud|norte|northing|coord_?y|north)$/i
+  
+  // Patrones extendidos para ODT españoles con nombres complejos
+  const xPatternsExtended = /(coordenadas?|utm)[\s\S]*(x|lon|longitud|este)/i
+  const yPatternsExtended = /(coordenadas?|utm)[\s\S]*(y|lat|latitud|norte)/i
+  
+  // También detectar columnas que contienen "X" o "longitud" en cualquier parte
+  const xContains = /(^x$|^x\s|longitud|este|easting)/i
+  const yContains = /(^y$|^y\s|latitud|norte|northing)/i
 
-  const xCandidates = headers.filter(h => xPatterns.test(h.trim()))
-  const yCandidates = headers.filter(h => yPatterns.test(h.trim()))
+  const xCandidates = normalizedHeaders.filter(h => 
+    xPatterns.test(h) || xPatternsExtended.test(h) || xContains.test(h)
+  ).map(h => headerMap[h])
+  
+  const yCandidates = normalizedHeaders.filter(h => 
+    yPatterns.test(h) || yPatternsExtended.test(h) || yContains.test(h)
+  ).map(h => headerMap[h])
 
   for (const xCol of xCandidates) {
     for (const yCol of yCandidates) {
       const score = calculatePairScore(xCol, yCol, data)
       if (score > 0) {
         pairs.push({ xCol, yCol, score })
+      }
+    }
+  }
+
+  // Estrategia adicional: buscar columnas "Coordenadas" seguidas de "__EMPTY" 
+  for (let i = 0; i < headers.length - 1; i++) {
+    const currentNorm = normalizedHeaders[i].toLowerCase()
+    const nextNorm = normalizedHeaders[i + 1].toLowerCase()
+    
+    // Si la columna actual contiene "coordenadas" o "utm" y la siguiente es __EMPTY
+    if ((currentNorm.includes('coordenadas') || currentNorm.includes('utm')) && 
+        (nextNorm.includes('__empty') || nextNorm === '')) {
+      const score = calculatePairScore(headers[i], headers[i + 1], data)
+      if (score > 0) {
+        pairs.push({ xCol: headers[i], yCol: headers[i + 1], score: score + 0.2 })
       }
     }
   }
