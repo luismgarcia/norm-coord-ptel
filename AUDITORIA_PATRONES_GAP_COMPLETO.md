@@ -20,7 +20,20 @@
 | H: Libre/narrativo | 2 | **2** | 0 | ✅ |
 | **TOTAL** | **52** | **52** | **0** | ✅ |
 
-**Cobertura actual: 100%** (52 de 52 patrones) ✅ COMPLETADO v4.1
+**Cobertura actual: 100% + EXTENSIÓN** (52 base + 8 nuevos = 60 patrones) ✅ v4.2
+
+### Patrones v4.2 (Investigación Fases 1-2)
+
+| Patrón | Función | Impacto |
+|--------|---------|--------|
+| OCR_FIXED | fixOCRErrors() | +2-4% casos |
+| LOCAL_SYSTEM | mightBeLocalSystem() | Detección DXF |
+| KML_SWAP | detectKMLLonLatSwap() | +0.5-1% casos |
+| MGRS | parseMGRS() | Coords militares |
+| DMS_OVERFLOW | fixDMSOverflow() | +0.1-0.3% casos |
+| SCIENTIFIC | parseScientificNotation() | Notación científica |
+| LOW_PRECISION | detectLowPrecisionGPS() | Warning calidad |
+| sourceFile | isDXFSource(), isKMLSource() | Contexto archivo |
 
 ---
 
