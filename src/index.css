@@ -400,3 +400,299 @@ button:hover:not(:disabled)::before, .btn:hover:not(:disabled)::before {
 .card-elevated {
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.25);
 }
+
+/* ===== CASCADA DE GEOLOCALIZACIÓN ===== */
+
+/* Variables de colores por score */
+:root {
+  --score-green: 34 197 94;      /* #22c55e - 95-100 */
+  --score-lime: 132 204 22;      /* #84cc16 - 80-94 */
+  --score-yellow: 234 179 8;     /* #eab308 - 60-79 */
+  --score-orange: 249 115 22;    /* #f97316 - 45-59 */
+  --score-red: 239 68 68;        /* #ef4444 - <45 */
+}
+
+/* Altura fija para celdas de tabla (solución Safari) */
+.fixed-height-cell {
+  height: 56px;
+  max-height: 56px;
+  overflow: hidden;
+  vertical-align: middle;
+}
+
+.cell-content {
+  display: flex;
+  align-items: center;
+  height: 100%;
+}
+
+/* Score alineado: punto + número */
+.score-cell-content {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  height: 100%;
+}
+
+.score-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.score-number {
+  font-family: ui-monospace, monospace;
+  font-weight: 700;
+  width: 2.5rem;
+  text-align: right;
+}
+
+/* Clases de colores por score con fallbacks para Safari < 16.2 */
+.score-95-100 {
+  --step-color: rgb(var(--score-green));
+  --step-color-rgb: var(--score-green);
+}
+
+.score-80-94 {
+  --step-color: rgb(var(--score-lime));
+  --step-color-rgb: var(--score-lime);
+}
+
+.score-60-79 {
+  --step-color: rgb(var(--score-yellow));
+  --step-color-rgb: var(--score-yellow);
+}
+
+.score-45-59 {
+  --step-color: rgb(var(--score-orange));
+  --step-color-rgb: var(--score-orange);
+}
+
+.score-below-45 {
+  --step-color: rgb(var(--score-red));
+  --step-color-rgb: var(--score-red);
+}
+
+/* Tarjeta de paso de cascada con fallback */
+.cascade-step-card {
+  border-width: 1px;
+  border-style: solid;
+  border-color: var(--step-color);
+  border-radius: 0.75rem;
+  padding: 0.75rem;
+  /* Fallback para Safari < 16.2 */
+  background: rgba(var(--step-color-rgb), 0.05);
+}
+
+/* Navegadores modernos con color-mix */
+@supports (background: color-mix(in srgb, red 50%, blue)) {
+  .cascade-step-card {
+    background: color-mix(in srgb, var(--step-color) 5%, transparent);
+  }
+}
+
+/* Anillo numerado de paso */
+.cascade-step-ring {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  border-width: 2px;
+  border-style: solid;
+  border-color: var(--step-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--step-color);
+  /* Fallback */
+  background: rgba(var(--step-color-rgb), 0.15);
+}
+
+@supports (background: color-mix(in srgb, red 50%, blue)) {
+  .cascade-step-ring {
+    background: color-mix(in srgb, var(--step-color) 15%, rgb(var(--card)));
+  }
+}
+
+/* Badge de estado del paso */
+.cascade-step-badge {
+  padding: 0.125rem 0.5rem;
+  border-radius: 9999px;
+  font-size: 0.625rem;
+  font-weight: 600;
+  color: var(--step-color);
+  /* Fallback */
+  background: rgba(var(--step-color-rgb), 0.2);
+}
+
+@supports (background: color-mix(in srgb, red 50%, blue)) {
+  .cascade-step-badge {
+    background: color-mix(in srgb, var(--step-color) 20%, transparent);
+  }
+}
+
+/* Conector vertical entre pasos */
+.cascade-connector {
+  width: 2px;
+  flex: 1;
+  margin: 0.25rem 0;
+  opacity: 0.4;
+  background: var(--step-color);
+}
+
+/* Fila expandible de tabla */
+.row-expandable {
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.row-expandable:hover {
+  background: rgba(139, 92, 246, 0.08);
+}
+
+/* Separador sutil entre fila y desplegable */
+.cascade-separator {
+  height: 1px;
+  background: linear-gradient(90deg, transparent 0%, rgba(139, 92, 246, 0.3) 50%, transparent 100%);
+}
+
+/* Tipología badges con colores específicos */
+.typology-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1rem;
+  border-radius: 0.5rem;
+  border-width: 1px;
+  border-style: solid;
+  transition: background-color 0.15s ease;
+  cursor: pointer;
+}
+
+.typology-badge:hover {
+  filter: brightness(1.1);
+}
+
+/* Colores de tipologías PTEL */
+.typology-ind { --typ-color: 239 68 68; }    /* Rojo - Industrial */
+.typology-pat { --typ-color: 168 85 247; }   /* Púrpura - Patrimonio */
+.typology-vul { --typ-color: 59 130 246; }   /* Azul - Vulnerable */
+.typology-alb { --typ-color: 34 197 94; }    /* Verde - Albergue */
+.typology-san { --typ-color: 236 72 153; }   /* Rosa - Sanitario */
+.typology-edu { --typ-color: 251 191 36; }   /* Amarillo - Educativo */
+.typology-seg { --typ-color: 99 102 241; }   /* Indigo - Seguridad */
+.typology-sum { --typ-color: 6 182 212; }    /* Cyan - Suministros */
+.typology-otr { --typ-color: 107 114 128; }  /* Gris - Otros */
+
+.typology-badge[data-type] {
+  border-color: rgba(var(--typ-color), 0.2);
+  background: rgba(var(--typ-color), 0.05);
+}
+
+.typology-badge[data-type]:hover {
+  background: rgba(var(--typ-color), 0.1);
+}
+
+/* Icono de engranaje para geolocalización */
+.gear-icon {
+  transition: transform 0.3s ease;
+}
+
+.gear-spinning {
+  animation: gear-spin 3s linear infinite;
+}
+
+@keyframes gear-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* ===== MEJORAS ADICIONALES DE UI ===== */
+
+/* Texto gradiente para títulos */
+.text-gradient {
+  background: linear-gradient(135deg, rgb(var(--primary)) 0%, rgb(var(--secondary)) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Glow para elementos destacados */
+.glow-primary {
+  box-shadow: 0 0 20px rgba(6, 182, 212, 0.3), 0 0 40px rgba(6, 182, 212, 0.1);
+}
+
+/* Transición suave para hover en filas de tabla */
+.table-row-hover {
+  transition: background-color 0.15s ease, transform 0.15s ease;
+}
+
+.table-row-hover:hover {
+  background-color: rgba(139, 92, 246, 0.08);
+  transform: translateX(2px);
+}
+
+/* Mejora de legibilidad en celdas truncadas */
+.cell-truncate {
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Animación de aparición escalonada */
+.stagger-fade-in > * {
+  opacity: 0;
+  animation: staggerFadeIn 0.3s ease forwards;
+}
+
+.stagger-fade-in > *:nth-child(1) { animation-delay: 0.05s; }
+.stagger-fade-in > *:nth-child(2) { animation-delay: 0.1s; }
+.stagger-fade-in > *:nth-child(3) { animation-delay: 0.15s; }
+.stagger-fade-in > *:nth-child(4) { animation-delay: 0.2s; }
+.stagger-fade-in > *:nth-child(5) { animation-delay: 0.25s; }
+
+@keyframes staggerFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Hover para badges de tipología */
+.typology-hover:hover {
+  transform: scale(1.03);
+  filter: brightness(1.1);
+}
+
+/* Focus visible mejorado */
+.focus-ring:focus-visible {
+  outline: 2px solid rgb(var(--primary));
+  outline-offset: 2px;
+}
+
+/* Soporte para prefers-reduced-motion */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Safari flexbox fix para celdas de tabla */
+@supports (-webkit-touch-callout: none) {
+  .fixed-height-cell {
+    display: flex;
+    align-items: center;
+  }
+}

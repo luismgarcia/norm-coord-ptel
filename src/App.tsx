@@ -1,10 +1,22 @@
-import { useState } from 'react'
-import { MapPin } from '@phosphor-icons/react'
+import { useState, lazy, Suspense } from 'react'
+import { MapPin, SpinnerGap } from '@phosphor-icons/react'
 import { motion } from 'framer-motion'
 import StepIndicator from './components/StepIndicator'
 import Step1 from './components/Step1'
-import Step2 from './components/Step2'
-import Step3 from './components/Step3'
+
+// Lazy loading de Step2 y Step3 para reducir bundle inicial
+const Step2 = lazy(() => import('./components/Step2'))
+const Step3 = lazy(() => import('./components/Step3'))
+
+// Componente de carga
+function StepLoading() {
+  return (
+    <div className="flex items-center justify-center py-20">
+      <SpinnerGap size={32} className="animate-spin text-primary" />
+      <span className="ml-3 text-muted-foreground">Cargando...</span>
+    </div>
+  )
+}
 
 function App() {
   const [currentStep, setCurrentStep] = useState(1)
@@ -116,23 +128,27 @@ function App() {
           onStepClick={handleStepClick}
         />
 
-        {/* Content */}
+        {/* Content con Suspense para lazy loading */}
         <main className="mt-8">
           {currentStep === 1 && (
             <Step1 onComplete={(data) => handleStepComplete(1, data)} />
           )}
           {currentStep === 2 && (
-            <Step2 
-              data={processedData} 
-              onComplete={(data) => handleStepComplete(2, data)} 
-              onBack={() => setCurrentStep(1)}
-            />
+            <Suspense fallback={<StepLoading />}>
+              <Step2 
+                data={processedData} 
+                onComplete={(data) => handleStepComplete(2, data)} 
+                onBack={() => setCurrentStep(1)}
+              />
+            </Suspense>
           )}
           {currentStep === 3 && (
-            <Step3 
-              data={processedData} 
-              onReset={handleReset}
-            />
+            <Suspense fallback={<StepLoading />}>
+              <Step3 
+                data={processedData} 
+                onReset={handleReset}
+              />
+            </Suspense>
           )}
         </main>
 
