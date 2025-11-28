@@ -47,6 +47,13 @@ import {
   CDAUGeocoder 
 } from './generic';
 
+// Validación por código INE (previene errores Colomera/Colomers)
+import { 
+  validarResultadoCartoCiudad, 
+  esAndalucia 
+} from './ineValidator';
+import { getCodigoINE } from '../../data/codigosINE';
+
 /**
  * Opciones para geocodificación orquestada
  */
@@ -337,7 +344,7 @@ export class GeocodingOrchestrator {
         }
       }
 
-      // ===== NIVEL 6: CARTOCIUDAD (Fallback universal) =====
+      // ===== NIVEL 6: CARTOCIUDAD (Fallback universal) + VALIDACIÓN INE =====
       if (!geocodingResult && options.useGenericFallback !== false) {
         attempts.push('cartociudad');
         try {
@@ -352,11 +359,38 @@ export class GeocodingOrchestrator {
           });
 
           if (cartoCiudadResult) {
-            geocodingResult = cartoCiudadResult;
-            geocoderUsed = 'generic:cartociudad';
+            // ===== VALIDACIÓN POR CÓDIGO INE =====
+            // Obtener código INE esperado para el municipio
+            const codigoINEEsperado = getCodigoINE(options.municipality, options.province);
             
-            if (cartoCiudadResult.confidence < 70) {
-              errors.push('CartoCiudad: match de baja confianza');
+            // Validar que el resultado corresponde al municipio correcto
+            // Esto previene errores como Colomera(Granada) vs Colomers(Girona)
+            const validacionINE = validarResultadoCartoCiudad(
+              {
+                muni: cartoCiudadResult.municipality,
+                muniCode: cartoCiudadResult.muniCode,
+                province: cartoCiudadResult.province,
+                lat: cartoCiudadResult.y,
+                lng: cartoCiudadResult.x
+              },
+              options.municipality,
+              options.province,
+              codigoINEEsperado || undefined,
+              true // logearRechazos
+            );
+            
+            if (validacionINE.valido) {
+              geocodingResult = cartoCiudadResult;
+              geocoderUsed = 'generic:cartociudad';
+              
+              if (cartoCiudadResult.confidence < 70) {
+                errors.push('CartoCiudad: match de baja confianza');
+              }
+            } else {
+              // Resultado rechazado por validación INE
+              errors.push(`CartoCiudad: ${validacionINE.error}`);
+              console.warn(`[GeocodingOrchestrator] Resultado CartoCiudad rechazado por validación INE: ${validacionINE.error}`);
+              // El resultado NO se acepta, continuará al siguiente nivel (Nominatim)
             }
           }
         } catch (err) {

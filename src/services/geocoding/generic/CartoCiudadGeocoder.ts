@@ -48,7 +48,9 @@ export enum CartoCiudadMatchType {
 interface CartoCiudadResponse {
   id?: string;
   province?: string;
+  provinceCode?: string;
   muni?: string;
+  muniCode?: string;  // Código INE del municipio (para validación)
   type?: string;
   address?: string;
   portalNumber?: number;
@@ -285,12 +287,14 @@ export class CartoCiudadGeocoder {
         matchType: data.type || 'unknown',
         address: data.address ? `${data.tip_via || ''} ${data.address} ${data.portalNumber || ''}`.trim() : undefined,
         municipality: data.muni,
+        muniCode: data.muniCode,  // Código INE para validación
         province: data.province,
         metadata: {
           state: data.state,
           stateMsg: data.stateMsg,
           portalNumber: data.portalNumber,
-          postalCode: data.postalCode
+          postalCode: data.postalCode,
+          provinceCode: data.provinceCode
         }
       };
 

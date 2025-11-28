@@ -134,6 +134,9 @@ export interface GeocodingResult {
   /** Municipio geocodificado */
   municipality?: string;
   
+  /** Código INE del municipio (para validación) */
+  muniCode?: string;
+  
   /** Provincia geocodificada */
   province?: string;
   
