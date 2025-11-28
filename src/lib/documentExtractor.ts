@@ -1,5 +1,10 @@
 /**
- * Extractor de Infraestructuras PTEL v3.0
+ * Extractor de Infraestructuras PTEL v3.2
+ * 
+ * CHANGELOG v3.2 (28-Nov-2025):
+ * - FIX: Mejorada detección de sub-headers con "Longitud/Latitud" (tablas Hornos)
+ * - FIX: Eliminado falso positivo de "y" española en patrones coordY
+ * - FIX: Ampliado límite de celdas no vacías para sub-headers de 3 a 4
  * 
  * Estrategia ESCALONADA para identificar infraestructuras:
  * 1. Detección por ESTRUCTURA de tabla (columnas Nombre/Dirección/Coordenadas)
@@ -35,15 +40,38 @@ interface TableStructure {
   confidence: number; // 0-100
 }
 
-/** Patrones para detectar columnas */
+/** 
+ * Patrones para detectar columnas - v3.1 AMPLIADOS
+ * 
+ * CAMBIOS v3.1:
+ * - Eliminados anchors ^...$ para permitir texto adicional
+ * - Añadidos patrones para "X - Longitud", "y- Latitud"
+ * - Soporte para headers con saltos de línea "Coordenadas\n(UTM)"
+ * - Soporte para columnas __EMPTY adyacentes a coordenadas
+ */
 const COLUMN_PATTERNS = {
-  name: /^(nombre|denominaci[oó]n|descripci[oó]n|elemento|infraestructura|instalaci[oó]n)$/i,
-  address: /^(direcci[oó]n|ubicaci[oó]n|localizaci[oó]n|domicilio|emplazamiento)$/i,
-  type: /^(tipo|tipolog[ií]a|categor[ií]a|clase|naturaleza)$/i,
-  coordX: /^(x|x[-_\s]?(utm|coord)?|longitud|este|easting|coord[-_\s]?x)$/i,
-  coordY: /^(y|y[-_\s]?(utm|coord)?|latitud|norte|northing|coord[-_\s]?y)$/i,
-  coordCombined: /^coordenadas?(\s*\(?utm\)?)?$/i,
-  owner: /^(titular|propietario|entidad|organismo|responsable)$/i,
+  // Nombres de infraestructura - permite texto adicional
+  name: /\b(nombre|denominaci[oó]n|descripci[oó]n|elemento|infraestructura|instalaci[oó]n)\b/i,
+  
+  // Direcciones - permite texto adicional  
+  address: /\b(direcci[oó]n|ubicaci[oó]n|localizaci[oó]n|domicilio|emplazamiento)\b/i,
+  
+  // Tipo/categoría
+  type: /\b(tipo|tipolog[ií]a|categor[ií]a|clase|naturaleza)\b/i,
+  
+  // Coordenada X - AMPLIADO para "X - Longitud", "x-", "X_UTM", etc.
+  // v3.2: Solo detectar "x" si está sola o en contexto de coordenadas
+  coordX: /\b(longitud|este|easting)\b|coord[^y]*x|^x\s*[-_]|^x$/i,
+  
+  // Coordenada Y - v3.2: Evitar falso positivo con conjunción "y" española
+  // Solo detectar "y" si está sola, seguida de guión, o es latitud/norte/northing
+  coordY: /\b(latitud|norte|northing)\b|coord[^x]*y|^y\s*[-_]|^y$/i,
+  
+  // Coordenadas combinadas - "Coordenadas", "Coordenadas (UTM)", "Coordenadas\n(UTM- Geográficas)"
+  coordCombined: /coordenadas?/i,
+  
+  // Propietario/titular
+  owner: /\b(titular|propietario|entidad|organismo|responsable)\b/i,
 };
 
 /** Secciones PTEL conocidas que contienen infraestructuras */
@@ -328,16 +356,35 @@ function analyzeTableStructure(rows: string[][]): TableStructure {
     if (result.hasNameColumn || result.hasAddressColumn || result.hasCoordColumns) {
       result.dataStartRow = headerRow + 1;
       
-      // Verificar si siguiente fila es sub-header (X/Y solos)
+      // Verificar si siguiente fila es sub-header de coordenadas (X/Y, Longitud/Latitud)
+      // v3.2: Mejorado para detectar sub-headers con texto adicional
       if (result.dataStartRow < rows.length) {
         const nextRow = rows[result.dataStartRow];
-        const nextText = nextRow.join(' ').toLowerCase().trim();
-        if (/^[xy\s\-]+$/i.test(nextText) || (nextRow.filter(c => c.trim()).length <= 3 && /\bx\b.*\by\b/i.test(nextText))) {
-          // Es sub-header, buscar índices X/Y aquí
+        const nonEmptyCells = nextRow.filter(c => c.trim());
+        const nextText = nonEmptyCells.join(' ').toLowerCase().trim();
+        
+        // Detectar sub-header si:
+        // 1. Solo contiene X, Y, espacios, guiones
+        // 2. O tiene ≤4 celdas no vacías y contiene X e Y (incluyendo "X - Longitud", "y- Latitud")
+        // 3. O contiene palabras clave de coordenadas como "longitud", "latitud", "utm"
+        const isCoordSubHeader = 
+          /^[xy\s\-_]+$/i.test(nextText) || 
+          (nonEmptyCells.length <= 4 && /\bx\b.*\by\b/i.test(nextText)) ||
+          (nonEmptyCells.length <= 4 && /(longitud|latitud|utm)/i.test(nextText));
+        
+        if (isCoordSubHeader) {
+          // Es sub-header, buscar índices X/Y aquí usando patrones más flexibles
           for (let i = 0; i < nextRow.length; i++) {
             const c = nextRow[i].toLowerCase().trim();
-            if (c === 'x' && result.xColIdx === -1) result.xColIdx = i;
-            if (c === 'y' && result.yColIdx === -1) result.yColIdx = i;
+            if (!c) continue;
+            // Detectar X: "x", "x-", "x - longitud", "longitud", etc.
+            if (result.xColIdx === -1 && (c === 'x' || /^x\s*[-_]/.test(c) || /\blongitud\b/.test(c) || /\beste\b/.test(c))) {
+              result.xColIdx = i;
+            }
+            // Detectar Y: "y", "y-", "y - latitud", "latitud", etc.
+            if (result.yColIdx === -1 && (c === 'y' || /^y\s*[-_]/.test(c) || /\blatitud\b/.test(c) || /\bnorte\b/.test(c))) {
+              result.yColIdx = i;
+            }
           }
           result.dataStartRow++;
         }
