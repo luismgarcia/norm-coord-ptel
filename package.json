@@ -9,7 +9,9 @@
         "build": "tsc -b --noCheck && vite build",
         "lint": "eslint .",
         "optimize": "vite optimize",
-        "preview": "vite preview"
+        "preview": "vite preview",
+        "test": "node src/lib/__tests__/runTests.mjs",
+        "test:watch": "nodemon --exec 'node src/lib/__tests__/runTests.mjs' --watch src/lib"
     },
     "dependencies": {
         "@github/spark": "^0.39.0",
@@ -87,6 +89,7 @@
         "@types/react-dom": "^19.0.4",
         "@vitejs/plugin-react": "^4.3.4",
         "@vitejs/plugin-react-swc": "^3.10.1",
+        "@vitest/ui": "^4.0.14",
         "eslint": "^9.28.0",
         "eslint-plugin-react-hooks": "^5.2.0",
         "eslint-plugin-react-refresh": "^0.4.19",
@@ -94,7 +97,8 @@
         "tailwindcss": "^4.1.11",
         "typescript": "~5.7.2",
         "typescript-eslint": "^8.38.0",
-        "vite": "^6.3.5"
+        "vite": "^6.3.5",
+        "vitest": "^4.0.14"
     },
     "workspaces": {
         "packages": [
