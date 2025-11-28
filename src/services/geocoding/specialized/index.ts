@@ -73,6 +73,14 @@ export {
   type IAIDSearchOptions
 } from './IAIDGeocoder';
 
+// Geocodificador WFS DERA G12 Deportes (capas 12_24, 12_25)
+// Alternativa verificada para equipamientos deportivos + campos golf
+export {
+  WFSSportsGeocoder,
+  DERASportsFacilityType,
+  type SportsSearchOptions
+} from './WFSSportsGeocoder';
+
 // Geocodificador Overpass/OSM - OpenStreetMap
 // CRÍTICO para: antenas telecomunicaciones, industrias, equipamientos varios
 export {
