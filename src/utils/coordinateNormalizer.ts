@@ -205,7 +205,7 @@ export function detectarPatron(valor: string): PatronDetectado {
   }
   
   // P2-3/P2-4: Comillas tipográficas o apóstrofe
-  if (/['']/.test(v) && /\d+['\']\d+/.test(v)) {
+  if (/['']/.test(v) && /\d+['\'']\d+/.test(v)) {
     return 'COMILLAS_TIPOGRAFICAS';
   }
   
