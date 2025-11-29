@@ -111,7 +111,7 @@ function normalizarCoordenada(input) {
   }
 
   // FASE 5: Limpieza y parsing
-  valor = valor.replace(/\.+/g, '.').replace(/^\.|\.$/g, '');
+  valor = valor.replace(/\.+/g, '.').replace(/^\.|\\.$/g, '');
   const numero = parseFloat(valor);
 
   if (isNaN(numero)) {
