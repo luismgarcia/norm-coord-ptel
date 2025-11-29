@@ -1,2017 +1,807 @@
 /**
- * PTEL Coordinate Normalizer v4.2
+ * PTEL Andalucía - Normalizador de Coordenadas v2.0
  * 
- * Sistema de normalización de coordenadas para documentos PTEL Andalucía.
- * Implementa pipeline de 16 fases con cobertura extendida: 52 patrones base + 8 nuevos.
+ * Implementa la taxonomía completa de 52 patrones de coordenadas
+ * identificados en documentos municipales andaluces.
  * 
- * NOVEDADES v4.2 (Fases 1-2 investigación):
- * - Corrección errores OCR (0↔O, 1↔l, 5↔S, etc.)
- * - Detección sistema local/DXF sin CRS
- * - Detección y corrección swap lon/lat en KML
- * - Parser MGRS militar (30TVK4041 → UTM)
- * - Validación overflow minutos/segundos ≥60
- * - Soporte notación científica
- * - Detección baja precisión GPS (<4 decimales)
+ * Sistema objetivo: EPSG:25830 (UTM Zona 30N, ETRS89)
  * 
- * @author PTEL Development Team
- * @version 4.2.0
- * @license MIT
+ * @version 2.0.0
+ * @date Noviembre 2025
  */
 
-import proj4 from 'proj4';
-
 // ============================================================================
-// CONFIGURACIÓN PROJ4 - SISTEMAS DE REFERENCIA
+// TIPOS E INTERFACES
 // ============================================================================
 
-proj4.defs('EPSG:25830', '+proj=utm +zone=30 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs');
-proj4.defs('EPSG:23030', '+proj=utm +zone=30 +ellps=intl +towgs84=-87,-98,-121,0,0,0,0 +units=m +no_defs');
-proj4.defs('EPSG:4326', '+proj=longlat +datum=WGS84 +no_defs');
-proj4.defs('EPSG:4258', '+proj=longlat +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +no_defs');
-proj4.defs('EPSG:2062', '+proj=lcc +lat_1=40 +lat_0=40 +lon_0=-3.68775 +k_0=0.9988085293 +x_0=600000 +y_0=600000 +ellps=intl +towgs84=-87,-98,-121,0,0,0,0 +units=m +no_defs');
-proj4.defs('EPSG:4903', '+proj=longlat +ellps=struve_1860 +towgs84=-87,-98,-121,0,0,0,0 +no_defs');
+export type TipoCoordenda = 'X' | 'Y' | 'GEOGRAFICA_LAT' | 'GEOGRAFICA_LON' | 'DESCONOCIDO';
+export type NivelConfianza = 'ALTA' | 'MEDIA' | 'BAJA' | 'CRITICA';
+export type PatronDetectado = 
+  | 'LIMPIO'
+  | 'COMA_DECIMAL'
+  | 'EUROPEO_COMPLETO'
+  | 'PUNTO_MILES'
+  | 'ESPACIO_DOBLE_TILDE'
+  | 'ESPACIO_SIN_DECIMAL'
+  | 'ESPACIO_DECIMAL_IMPLICITO'
+  | 'TILDE_SIMPLE'
+  | 'MOJIBAKE'
+  | 'COMILLAS_TIPOGRAFICAS'
+  | 'PLACEHOLDER'
+  | 'DESCONOCIDO';
 
-// Zonas UTM adicionales para MGRS
-proj4.defs('EPSG:25829', '+proj=utm +zone=29 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs');
-proj4.defs('EPSG:25831', '+proj=utm +zone=31 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs');
-
-// ============================================================================
-// TIPOS Y INTERFACES
-// ============================================================================
-
-export interface CoordinateInput {
-  x: string | number;
-  y: string | number;
-  municipality?: string;
-  province?: Province;
-  documentYear?: number;
-  rawText?: string;
-  sourceFile?: string; // Para detectar KML/DXF
+export interface ResultadoNormalizacion {
+  valorOriginal: string;
+  valorNormalizado: number | null;
+  exito: boolean;
+  patronDetectado: PatronDetectado;
+  fasesAplicadas: string[];
+  warnings: string[];
+  errores: string[];
 }
 
-export interface NormalizationResult {
+export interface ResultadoValidacion {
+  valido: boolean;
+  tipo: TipoCoordenda;
+  confianza: NivelConfianza;
+  warnings: string[];
+  correccionAplicada?: string;
+  valorCorregido?: number;
+}
+
+export interface ParCoordenadas {
   x: number | null;
   y: number | null;
-  original: { x: string | number; y: string | number };
-  corrections: Correction[];
-  flags: Flag[];
-  score: number;
-  confidence: ConfidenceLevel;
-  isValid: boolean;
-  heuristicApplied?: HeuristicResult;
-  sourceFormat?: SourceFormat;
-  sourceCRS?: string;
-  cadastralRef?: string;
-  toponym?: string;
-  mgrsRef?: string;
+  xOriginal: string;
+  yOriginal: string;
+  normalizacionX: ResultadoNormalizacion;
+  normalizacionY: ResultadoNormalizacion;
+  validacionX: ResultadoValidacion | null;
+  validacionY: ResultadoValidacion | null;
+  intercambioAplicado: boolean;
+  confianzaGlobal: NivelConfianza;
+  epsg: number;
 }
-
-export interface Correction {
-  type: CorrectionType;
-  field: 'x' | 'y' | 'both';
-  from: string;
-  to: string;
-  pattern: string;
-  priority: 'P0' | 'P1' | 'P2' | 'P3';
-}
-
-export interface Flag {
-  type: FlagType;
-  severity: 'info' | 'warning' | 'error';
-  message: string;
-  data?: Record<string, unknown>;
-}
-
-export interface HeuristicResult {
-  originalValue: string;
-  correctedValue: number;
-  hypothesis: string;
-  confidence: number;
-  field: 'x' | 'y';
-  method: string;
-}
-
-export interface CadastralReference {
-  reference: string;
-  province?: string;
-  municipality?: string;
-  isValid: boolean;
-}
-
-export interface ToponymDetection {
-  toponym: string;
-  type: 'municipio' | 'poblacion' | 'paraje' | 'via' | 'unknown';
-  confidence: number;
-}
-
-export interface MGRSCoordinate {
-  zone: number;
-  band: string;
-  squareId: string;
-  easting: number;
-  northing: number;
-  precision: number;
-}
-
-export type Province = 
-  | 'Almería' | 'Cádiz' | 'Córdoba' | 'Granada' 
-  | 'Huelva' | 'Jaén' | 'Málaga' | 'Sevilla';
-
-export type ConfidenceLevel = 'CRITICAL' | 'LOW' | 'MEDIUM' | 'HIGH';
-
-export type CorrectionType = 
-  | 'Y_TRUNCATED' | 'X_TRUNCATED' | 'XY_SWAPPED' | 'PLACEHOLDER_DETECTED' 
-  | 'ENCODING_FIXED' | 'SEPARATOR_FIXED' | 'THOUSANDS_REMOVED' | 'DECIMAL_FIXED' 
-  | 'WHITESPACE_CLEANED' | 'KM_TO_METERS' | 'HEURISTIC_RESCUE'
-  | 'DMS_CONVERTED' | 'NMEA_CONVERTED' | 'WKT_PARSED' | 'GEOJSON_PARSED'
-  | 'COORDS_SEPARATED' | 'ED50_TRANSFORMED' | 'WGS84_TO_UTM'
-  | 'LAMBERT_TRANSFORMED' | 'MADRID_DATUM_TRANSFORMED'
-  | 'NARRATIVE_EXTRACTED' | 'CARDINAL_EXTRACTED'
-  // v4.2 nuevos
-  | 'OCR_FIXED' | 'KML_LONLAT_SWAPPED' | 'MGRS_CONVERTED'
-  | 'SCIENTIFIC_NOTATION_PARSED' | 'DMS_OVERFLOW_FIXED';
-
-export type FlagType = 
-  | 'OUT_OF_RANGE' | 'MISSING_DECIMALS' | 'SUSPICIOUS_VALUE' 
-  | 'GEOCODING_NEEDED' | 'MANUAL_REVIEW' | 'HEURISTIC_APPLIED'
-  | 'ED50_DETECTED' | 'GEOGRAPHIC_COORDS' | 'FORMAT_DETECTED'
-  | 'LAMBERT_DETECTED' | 'MADRID_DATUM_DETECTED'
-  | 'CADASTRAL_REFERENCE' | 'TOPONYM_DETECTED'
-  // v4.2 nuevos
-  | 'OCR_ERRORS_DETECTED' | 'LOCAL_SYSTEM_DETECTED' | 'KML_FORMAT_DETECTED'
-  | 'MGRS_DETECTED' | 'LOW_PRECISION_GPS' | 'DMS_OVERFLOW_DETECTED';
-
-export type SourceFormat = 
-  | 'UTM' | 'DMS' | 'DD' | 'NMEA' | 'WKT' | 'GEOJSON' | 'PEGADA' 
-  | 'LAMBERT' | 'MADRID_DATUM' | 'CADASTRAL' | 'TOPONYM' | 'NARRATIVE'
-  | 'MGRS' | 'LOCAL_SYSTEM' | 'UNKNOWN';
 
 // ============================================================================
-// CONFIGURACIÓN Y CONSTANTES
-// ============================================================================
-
-export const ANDALUSIA_BOUNDS = {
-  x: { min: 100_000, max: 800_000 },
-  y: { min: 3_980_000, max: 4_320_000 }
-};
-
-export const ANDALUSIA_GEOGRAPHIC_BOUNDS = {
-  lat: { min: 36.0, max: 38.75 },
-  lon: { min: -7.55, max: -1.60 }
-};
-
-export const SPAIN_GEOGRAPHIC_BOUNDS = {
-  lat: { min: 35.0, max: 44.0 },
-  lon: { min: -10.0, max: 5.0 }
-};
-
-export const LAMBERT_BOUNDS = {
-  x: { min: 0, max: 1_200_000 },
-  y: { min: 0, max: 1_200_000 }
-};
-
-export const PROVINCE_Y_PREFIXES: Record<Province, string[]> = {
-  'Almería': ['40', '41'],
-  'Cádiz': ['40', '41'],
-  'Córdoba': ['41', '42'],
-  'Granada': ['40', '41'],
-  'Huelva': ['41', '42'],
-  'Jaén': ['41', '42', '42'],
-  'Málaga': ['40', '41'],
-  'Sevilla': ['41', '42']
-};
-
-// ============================================================================
-// v4.2: DICCIONARIO OCR - Corrección de errores de escaneo
+// CONSTANTES Y CONFIGURACIÓN
 // ============================================================================
 
 /**
- * Diccionario de correcciones OCR: letra confundida → dígito correcto
- * Basado en confusiones típicas de reconocimiento óptico de caracteres
+ * Rangos válidos para coordenadas UTM en Andalucía (EPSG:25830)
  */
-const OCR_CORRECTIONS: Record<string, string> = {
-  'O': '0', 'o': '0',           // O mayúscula/minúscula → 0
-  'l': '1', 'I': '1', 'i': '1', // l, I, i → 1
-  'S': '5', 's': '5',           // S → 5
-  'G': '6',                      // G → 6 (menos común)
-  'B': '8', 'b': '8',           // B → 8
-  'Z': '2', 'z': '2',           // Z → 2 (en algunos fonts)
-  'q': '9',                      // q → 9 (confusión de cola)
-  'D': '0',                      // D → 0
-  '°': '',                       // Símbolo grado residual
-  'º': '',                       // Ordinal masculino
-  'ª': '',                       // Ordinal femenino
-};
+export const RANGOS_ANDALUCIA = {
+  UTM: {
+    X_MIN: 100000,
+    X_MAX: 620000,
+    Y_MIN: 3980000,
+    Y_MAX: 4290000,
+  },
+  GEOGRAFICAS: {
+    LAT_MIN: 36.0,
+    LAT_MAX: 38.75,
+    LON_MIN: -7.55,
+    LON_MAX: -1.60,
+  },
+  // Rangos para detectar Y truncada (sin el "4" inicial)
+  Y_TRUNCADA: {
+    MIN: 40000,
+    MAX: 300000,
+  },
+} as const;
 
 /**
- * Regex para detectar letras mezcladas con dígitos (indicador de error OCR)
+ * Placeholders textuales que indican ausencia de datos
  */
-const OCR_ERROR_PATTERN = /\d+[OolIiSsGgBbZzDqª°º]+\d*|\d*[OolIiSsGgBbZzDqª°º]+\d+/;
-
-// ============================================================================
-// v4.2: CUADRÍCULA MGRS - Military Grid Reference System
-// ============================================================================
+const PLACEHOLDERS_TEXTO = new Set([
+  'indicar',
+  'pendiente',
+  'sin datos',
+  'sin data',
+  'n/a',
+  'na',
+  'n.a.',
+  'n.d.',
+  'nd',
+  'por definir',
+  'desconocido',
+  'ninguno',
+  'xxx',
+  'tbd',
+  'todo',
+  'ver plano',
+  'consultar',
+  'a determinar',
+  'sin información',
+  'sin informacion',
+  'no especificada',
+  'no especificado',
+  'inexistente',
+  'inexistentes',
+  '-',
+  '--',
+  '---',
+]);
 
 /**
- * Letras de banda MGRS para España (latitudes 36°N - 44°N)
+ * Placeholders numéricos que indican ausencia de datos
  */
-const MGRS_BANDS_SPAIN = ['S', 'T', 'U']; // S: 32-40°N, T: 40-48°N
-
-/**
- * Cuadrículas de 100km para zonas UTM 29, 30, 31 en España
- */
-const MGRS_GRID_LETTERS = 'ABCDEFGHJKLMNPQRSTUVWXYZ'; // Sin I y O
-
-// ============================================================================
-// PATRONES DE DETECCIÓN
-// ============================================================================
-
-const PLACEHOLDER_PATTERNS = [
-  /^[Nn]\/[DdAa]$/,
-  /^[Nn][Dd]$/,
-  /^[Nn][Aa]$/,
-  /^[Ss]in\s*datos?$/i,
-  /^[Ii]ndicar$/,
-  /^[Pp]endiente$/,
-  /^[Nn][Oo]$/i,
-  /^[-_]+$/,
-  /^[Xx]+$/,
-  /^0+(\.0+)?$/,
-  /^9{4,}$/,
-  /^\s*$/
-];
-
-const MOJIBAKE_PATTERNS: [RegExp, string][] = [
-  [/Ã³/g, 'ó'], [/Ã¡/g, 'á'], [/Ã©/g, 'é'], [/Ã­/g, 'í'], [/Ãº/g, 'ú'],
-  [/Ã"/g, 'Ó'], [/Ã/g, 'Á'], [/Ã‰/g, 'É'], [/Ã/g, 'Í'], [/Ãš/g, 'Ú'],
-  [/Ã±/g, 'ñ'], [/Ã'/g, 'Ñ'],
-  [/Ã¼/g, 'ü'], [/Ãœ/g, 'Ü'],
-  [/Â¿/g, '¿'], [/Â¡/g, '¡'], [/â‚¬/g, '€'],
-  [/â€œ/g, '"'], [/â€/g, '"'], [/â€™/g, "'"], [/â€"/g, '–'], [/â€"/g, '—'],
-  [/Â/g, ''], [/\u00A0/g, ' ']
-];
-
-const SEPARATOR_PATTERNS: [RegExp, string, string][] = [
-  [/(\d+)\.\.(\d+)/g, '$1.$2', 'DOUBLE_DOT'],
-  [/(\d+)\s*´´\s*(\d+)/g, '$1.$2', 'DOUBLE_TILDE'],
-  [/(\d+)\s*´\s*(\d+)/g, '$1.$2', 'SINGLE_TILDE'],
-  [/(\d+)\s*['`']\s*(\d+)/g, '$1.$2', 'QUOTE_DECIMAL'],
-  [/(\d{1,3})\.(\d{3})\.(\d{3}),(\d+)/g, '$1$2$3.$4', 'SPANISH_LONG'],
-  [/(\d{3})\.(\d{3}),(\d+)/g, '$1$2.$3', 'SPANISH_SHORT'],
-  [/(\d{1,3})\s+(\d{3})\s+(\d{3})[,.]?(\d*)/g, '$1$2$3.$4', 'SPACE_THOUSANDS_3'],
-  [/(\d{1,3})\s+(\d{3})[,.]?(\d*)/g, '$1$2.$3', 'SPACE_THOUSANDS_2'],
-  [/(\d{1,3})\.(\d{3})\.(\d{3})$/g, '$1$2$3', 'DOT_THOUSANDS_3_NODEC'],
-  [/(\d{1,3})\.(\d{3})$/g, '$1$2', 'DOT_THOUSANDS_2_NODEC'],
-  [/(\d+),(\d+)/g, '$1.$2', 'COMMA_DECIMAL'],
-];
+const PLACEHOLDERS_NUMERICOS = new Set([
+  0,
+  1,
+  -1,
+  99999,
+  999999,
+  9999999,
+  -9999,
+  -99999,
+  -999999,
+  12345,
+  123456,
+]);
 
 // ============================================================================
-// FUNCIONES v4.2: CORRECCIÓN OCR
+// FUNCIONES DE DETECCIÓN DE PATRONES
 // ============================================================================
 
 /**
- * v4.2: Detecta si una cadena tiene posibles errores OCR
+ * Detecta si el valor es un placeholder (texto o numérico)
  */
-export function hasOCRErrors(value: string): boolean {
-  return OCR_ERROR_PATTERN.test(value);
-}
-
-/**
- * v4.2: Corrige errores OCR en una cadena numérica
- * @returns Objeto con valor corregido y lista de correcciones aplicadas
- */
-export function fixOCRErrors(value: string): { fixed: string; corrections: string[] } {
-  const corrections: string[] = [];
-  let fixed = value;
+export function esPlaceholder(valor: string): boolean {
+  const valorLimpio = valor.trim().toLowerCase();
   
-  for (const [letter, digit] of Object.entries(OCR_CORRECTIONS)) {
-    if (fixed.includes(letter)) {
-      const count = (fixed.match(new RegExp(letter, 'g')) || []).length;
-      fixed = fixed.split(letter).join(digit);
-      corrections.push(`${letter}→${digit} (×${count})`);
-    }
+  // Placeholder texto
+  if (PLACEHOLDERS_TEXTO.has(valorLimpio)) {
+    return true;
   }
   
-  return { fixed, corrections };
-}
-
-// ============================================================================
-// FUNCIONES v4.2: DETECCIÓN SISTEMA LOCAL (DXF/CAD)
-// ============================================================================
-
-/**
- * v4.2: Detecta si las coordenadas parecen ser de un sistema local (sin CRS)
- * Típico en ficheros DXF/AutoCAD donde el origen es arbitrario
- */
-export function mightBeLocalSystem(x: number, y: number): boolean {
-  // Sistema local típico: valores pequeños (<10.000) para ambas coordenadas
-  // O valores negativos (origen desplazado)
-  const isSmallX = Math.abs(x) < 10000;
-  const isSmallY = Math.abs(y) < 10000;
-  const isNegative = x < 0 || y < 0;
+  // Vacío
+  if (valorLimpio === '' || valorLimpio === 'null' || valorLimpio === 'undefined') {
+    return true;
+  }
   
-  // Si ambas son pequeñas o hay negativos sospechosos, probablemente es local
-  return (isSmallX && isSmallY) || (isNegative && Math.abs(x) < 100000);
-}
-
-/**
- * v4.2: Detecta si el archivo fuente es DXF/DWG
- */
-export function isDXFSource(sourceFile?: string): boolean {
-  if (!sourceFile) return false;
-  const ext = sourceFile.toLowerCase();
-  return ext.endsWith('.dxf') || ext.endsWith('.dwg') || ext.endsWith('.dgn');
-}
-
-// ============================================================================
-// FUNCIONES v4.2: DETECCIÓN KML Y SWAP LON/LAT
-// ============================================================================
-
-/**
- * v4.2: Detecta si las coordenadas vienen de KML y necesitan swap
- * KML usa orden [lon, lat], opuesto a la convención habitual [lat, lon]
- */
-export function detectKMLLonLatSwap(x: number, y: number): boolean {
-  // Si X está en rango de longitud de España (-10 a +5) y
-  // Y está en rango de latitud de España (35 a 44) → están en orden correcto (lon, lat)
-  // Pero si están al revés, necesitamos swap
+  // Placeholder numérico
+  const numero = parseFloat(valorLimpio);
+  if (!isNaN(numero) && PLACEHOLDERS_NUMERICOS.has(numero)) {
+    return true;
+  }
   
-  const xIsLongitude = x >= -10 && x <= 5;
-  const yIsLatitude = y >= 35 && y <= 44;
-  
-  const xIsLatitude = x >= 35 && x <= 44;
-  const yIsLongitude = y >= -10 && y <= 5;
-  
-  // Si X parece latitud y Y parece longitud → necesita swap
-  return xIsLatitude && yIsLongitude;
+  return false;
 }
 
 /**
- * v4.2: Detecta si el archivo fuente es KML/KMZ
+ * Detecta el patrón de formato de la coordenada
  */
-export function isKMLSource(sourceFile?: string): boolean {
-  if (!sourceFile) return false;
-  const ext = sourceFile.toLowerCase();
-  return ext.endsWith('.kml') || ext.endsWith('.kmz');
+export function detectarPatron(valor: string): PatronDetectado {
+  const v = valor.trim();
+  
+  if (esPlaceholder(v)) {
+    return 'PLACEHOLDER';
+  }
+  
+  // P2-1: Mojibake (Â´, Âº)
+  if (/Â[´º]/.test(v)) {
+    return 'MOJIBAKE';
+  }
+  
+  // P1-1: Espacio + Doble tilde: "504 750´´92"
+  if (/^\d{1,3}\s+\d{3}´´\d{1,2}$/.test(v) || /^\d\s+\d{3}\s+\d{3}´´\d{1,2}$/.test(v)) {
+    return 'ESPACIO_DOBLE_TILDE';
+  }
+  
+  // P1-3: Espacio + decimales implícitos: "506 527 28"
+  if (/^\d{3}\s+\d{3}\s+\d{1,2}$/.test(v) || /^\d\s+\d{3}\s+\d{3}\s+\d{1,2}$/.test(v)) {
+    return 'ESPACIO_DECIMAL_IMPLICITO';
+  }
+  
+  // P1-2: Espacio separador sin decimal: "504 489" o "4 076 367"
+  if (/^\d{1,3}(\s+\d{3})+$/.test(v)) {
+    return 'ESPACIO_SIN_DECIMAL';
+  }
+  
+  // P1-4: Tilde simple como decimal: "503693´77"
+  if (/^\d+´\d+$/.test(v)) {
+    return 'TILDE_SIMPLE';
+  }
+  
+  // P2-3/P2-4: Comillas tipográficas o apóstrofe
+  if (/['']/.test(v) && /\d+['\']\d+/.test(v)) {
+    return 'COMILLAS_TIPOGRAFICAS';
+  }
+  
+  // P1-5: Formato europeo completo: "4.077.905,68"
+  if (/^\d{1,3}(?:\.\d{3})+,\d+$/.test(v)) {
+    return 'EUROPEO_COMPLETO';
+  }
+  
+  // P1-6: Solo coma decimal: "436780,0"
+  if (/^\d+,\d+$/.test(v)) {
+    return 'COMA_DECIMAL';
+  }
+  
+  // P1-7: Solo punto miles sin decimal: "4.230.105"
+  if (/^\d{1,3}(?:\.\d{3})+$/.test(v)) {
+    return 'PUNTO_MILES';
+  }
+  
+  // Formato limpio: "521581.88" o "504750"
+  if (/^-?\d+\.?\d*$/.test(v)) {
+    return 'LIMPIO';
+  }
+  
+  return 'DESCONOCIDO';
 }
 
 // ============================================================================
-// FUNCIONES v4.2: PARSER MGRS (Military Grid Reference System)
+// FUNCIONES DE NORMALIZACIÓN
 // ============================================================================
 
 /**
- * v4.2: Parser de coordenadas MGRS
- * Formato: GGBKKEEEEENNNNN donde:
- * - GG: Zona UTM (29, 30, 31 para España)
- * - B: Banda de latitud (S, T para España peninsular)
- * - KK: Identificador de cuadrícula 100km
- * - EEEEE/NNNNN: Easting/Northing (precisión variable)
+ * Normaliza una coordenada aplicando el pipeline completo de transformaciones.
  * 
- * Ejemplos: 30TVK4041 (1km), 30TVK40854123 (10m)
+ * Pipeline:
+ * 1. Limpieza inicial y detección placeholder
+ * 2. Corrección mojibake UTF-8/Windows-1252
+ * 3. Normalización caracteres especiales (tildes, comillas)
+ * 4. Eliminación espacios entre dígitos
+ * 5. Normalización formato europeo
+ * 6. Parsing numérico
  */
-export function parseMGRS(value: string): MGRSCoordinate | null {
-  const v = value.trim().toUpperCase().replace(/\s+/g, '');
+export function normalizarCoordenada(input: string): ResultadoNormalizacion {
+  const resultado: ResultadoNormalizacion = {
+    valorOriginal: input,
+    valorNormalizado: null,
+    exito: false,
+    patronDetectado: 'DESCONOCIDO',
+    fasesAplicadas: [],
+    warnings: [],
+    errores: [],
+  };
   
-  // Regex: zona(2) + banda(1) + cuadrícula(2) + coordenadas(2-10 pares)
-  const mgrsMatch = v.match(/^(\d{1,2})([C-X])([A-HJ-NP-Z]{2})(\d{2,10})$/);
+  let valor = input;
   
-  if (!mgrsMatch) return null;
+  // ══════════════════════════════════════════════════════════════════════════
+  // FASE 0: Limpieza inicial
+  // ══════════════════════════════════════════════════════════════════════════
+  valor = valor.trim();
+  resultado.fasesAplicadas.push('FASE_0_TRIM');
   
-  const zone = parseInt(mgrsMatch[1]);
-  const band = mgrsMatch[2];
-  const squareId = mgrsMatch[3];
-  const coords = mgrsMatch[4];
+  // Detectar placeholder
+  if (esPlaceholder(valor)) {
+    resultado.patronDetectado = 'PLACEHOLDER';
+    resultado.fasesAplicadas.push('FASE_0_PLACEHOLDER');
+    resultado.warnings.push('Valor placeholder detectado');
+    return resultado;
+  }
   
-  // Validar zona para España
-  if (zone < 29 || zone > 31) return null;
+  // Detectar patrón original
+  resultado.patronDetectado = detectarPatron(valor);
   
-  // Validar banda para España peninsular
-  if (!MGRS_BANDS_SPAIN.includes(band)) return null;
+  // ══════════════════════════════════════════════════════════════════════════
+  // FASE 1: Corrección Mojibake UTF-8 → Windows-1252
+  // ══════════════════════════════════════════════════════════════════════════
+  if (/Â/.test(valor)) {
+    const valorAntes = valor;
+    valor = valor
+      .replace(/Â´/g, '´')
+      .replace(/Âº/g, 'º')
+      .replace(/Â°/g, '°')
+      .replace(/Â±/g, '±')
+      .replace(/Ã±/g, 'ñ')
+      .replace(/Ã¡/g, 'á')
+      .replace(/Ã©/g, 'é')
+      .replace(/Ã­/g, 'í')
+      .replace(/Ã³/g, 'ó')
+      .replace(/Ãº/g, 'ú');
+    
+    if (valor !== valorAntes) {
+      resultado.fasesAplicadas.push('FASE_1_MOJIBAKE');
+      resultado.warnings.push(`Mojibake corregido: "${valorAntes}" → "${valor}"`);
+    }
+  }
   
-  // Coordenadas deben ser pares (mitad easting, mitad northing)
-  if (coords.length % 2 !== 0) return null;
+  // ══════════════════════════════════════════════════════════════════════════
+  // FASE 2: Normalización caracteres especiales como separador decimal
+  // ══════════════════════════════════════════════════════════════════════════
+  const valorAntesFase2 = valor;
   
-  const halfLen = coords.length / 2;
-  const eastingStr = coords.slice(0, halfLen);
-  const northingStr = coords.slice(halfLen);
+  // Doble tilde → punto (CRÍTICO para patrón Berja)
+  valor = valor.replace(/´´/g, '.');
   
-  // Calcular precisión basada en dígitos
-  // 2 dígitos = 10km, 4 = 1km, 6 = 100m, 8 = 10m, 10 = 1m
-  const precision = Math.pow(10, 5 - halfLen);
+  // Tilde simple → punto
+  valor = valor.replace(/´/g, '.');
   
-  // Expandir a coordenadas completas de cuadrícula
-  const easting = parseInt(eastingStr) * precision;
-  const northing = parseInt(northingStr) * precision;
+  // Comillas tipográficas → punto
+  valor = valor.replace(/['']/g, '.');
   
+  // Apóstrofe recto → punto
+  valor = valor.replace(/'/g, '.');
+  
+  // Comillas dobles tipográficas → punto (raro pero posible)
+  valor = valor.replace(/[""]/g, '.');
+  
+  if (valor !== valorAntesFase2) {
+    resultado.fasesAplicadas.push('FASE_2_CARACTERES_ESPECIALES');
+  }
+  
+  // ══════════════════════════════════════════════════════════════════════════
+  // FASE 3: Eliminación de espacios entre dígitos
+  // ══════════════════════════════════════════════════════════════════════════
+  const valorAntesFase3 = valor;
+  
+  // Eliminar todos los espacios entre dígitos
+  // Pero primero: detectar si hay patrón "dígitos espacio dígitos punto dígitos"
+  // que indica decimales implícitos: "506 527 28" → "506527.28"
+  
+  // Patrón: 3 dígitos + espacio + 3 dígitos + espacio + 1-2 dígitos (sin punto)
+  const matchDecimalImplicito = valor.match(/^(\d{1,3}(?:\s+\d{3})*)\s+(\d{1,2})$/);
+  if (matchDecimalImplicito && !valor.includes('.')) {
+    const parteEntera = matchDecimalImplicito[1].replace(/\s+/g, '');
+    const parteDecimal = matchDecimalImplicito[2];
+    valor = `${parteEntera}.${parteDecimal}`;
+    resultado.fasesAplicadas.push('FASE_3_DECIMAL_IMPLICITO');
+    resultado.warnings.push(`Decimales implícitos detectados: "${valorAntesFase3}" → "${valor}"`);
+  } else {
+    // Eliminar espacios normalmente
+    valor = valor.replace(/\s+/g, '');
+    if (valor !== valorAntesFase3.replace(/\s+/g, '')) {
+      resultado.fasesAplicadas.push('FASE_3_ESPACIOS');
+    }
+  }
+  
+  // ══════════════════════════════════════════════════════════════════════════
+  // FASE 4: Normalización formato europeo (punto miles, coma decimal)
+  // ══════════════════════════════════════════════════════════════════════════
+  const valorAntesFase4 = valor;
+  
+  // Caso 4a: Punto miles + coma decimal: "4.077.905,68" → "4077905.68"
+  if (/^\d{1,3}(?:\.\d{3})+,\d+$/.test(valor)) {
+    valor = valor.replace(/\./g, '').replace(',', '.');
+    resultado.fasesAplicadas.push('FASE_4_EUROPEO_COMPLETO');
+  }
+  // Caso 4b: Solo coma decimal: "436780,0" → "436780.0"
+  else if (/^\d+,\d+$/.test(valor)) {
+    valor = valor.replace(',', '.');
+    resultado.fasesAplicadas.push('FASE_4_COMA_DECIMAL');
+  }
+  // Caso 4c: Solo punto miles sin decimal: "4.230.105" → "4230105"
+  else if (/^\d{1,3}(?:\.\d{3})+$/.test(valor)) {
+    valor = valor.replace(/\./g, '');
+    resultado.fasesAplicadas.push('FASE_4_PUNTO_MILES');
+  }
+  
+  // ══════════════════════════════════════════════════════════════════════════
+  // FASE 5: Limpieza final y parsing
+  // ══════════════════════════════════════════════════════════════════════════
+  
+  // Eliminar puntos múltiples consecutivos (error de transcripción)
+  valor = valor.replace(/\.+/g, '.');
+  
+  // Eliminar punto al final
+  valor = valor.replace(/\.$/, '');
+  
+  // Eliminar punto al inicio
+  valor = valor.replace(/^\./, '');
+  
+  // Parsing
+  const numero = parseFloat(valor);
+  
+  if (isNaN(numero)) {
+    resultado.errores.push(`No se pudo convertir a número: "${valor}"`);
+    return resultado;
+  }
+  
+  resultado.valorNormalizado = numero;
+  resultado.exito = true;
+  resultado.fasesAplicadas.push('FASE_5_PARSING');
+  
+  return resultado;
+}
+
+// ============================================================================
+// FUNCIONES DE VALIDACIÓN
+// ============================================================================
+
+/**
+ * Valida una coordenada normalizada y determina su tipo (X, Y, geográfica).
+ * Aplica correcciones automáticas para errores P0 (Y truncada).
+ */
+export function validarCoordenada(valor: number): ResultadoValidacion {
+  const warnings: string[] = [];
+  
+  // ══════════════════════════════════════════════════════════════════════════
+  // CHECK 1: ¿Es coordenada X válida?
+  // ══════════════════════════════════════════════════════════════════════════
+  if (valor >= RANGOS_ANDALUCIA.UTM.X_MIN && valor <= RANGOS_ANDALUCIA.UTM.X_MAX) {
+    return {
+      valido: true,
+      tipo: 'X',
+      confianza: 'ALTA',
+      warnings,
+    };
+  }
+  
+  // ══════════════════════════════════════════════════════════════════════════
+  // CHECK 2: ¿Es coordenada Y válida?
+  // ══════════════════════════════════════════════════════════════════════════
+  if (valor >= RANGOS_ANDALUCIA.UTM.Y_MIN && valor <= RANGOS_ANDALUCIA.UTM.Y_MAX) {
+    return {
+      valido: true,
+      tipo: 'Y',
+      confianza: 'ALTA',
+      warnings,
+    };
+  }
+  
+  // ══════════════════════════════════════════════════════════════════════════
+  // CHECK 3: ¿Es Y truncada (falta el "4" inicial)?
+  // ══════════════════════════════════════════════════════════════════════════
+  if (valor >= RANGOS_ANDALUCIA.Y_TRUNCADA.MIN && valor <= RANGOS_ANDALUCIA.Y_TRUNCADA.MAX) {
+    const valorCorregido = valor + 4000000;
+    
+    // Verificar que el valor corregido está en rango válido
+    if (valorCorregido >= RANGOS_ANDALUCIA.UTM.Y_MIN && 
+        valorCorregido <= RANGOS_ANDALUCIA.UTM.Y_MAX) {
+      warnings.push(`ERROR P0-1: Y truncada detectada. Valor ${valor} → ${valorCorregido}`);
+      return {
+        valido: true,
+        tipo: 'Y',
+        confianza: 'MEDIA',
+        warnings,
+        correccionAplicada: '+4000000',
+        valorCorregido,
+      };
+    }
+  }
+  
+  // ══════════════════════════════════════════════════════════════════════════
+  // CHECK 4: ¿Es coordenada geográfica (latitud)?
+  // ══════════════════════════════════════════════════════════════════════════
+  if (valor >= RANGOS_ANDALUCIA.GEOGRAFICAS.LAT_MIN && 
+      valor <= RANGOS_ANDALUCIA.GEOGRAFICAS.LAT_MAX) {
+    warnings.push('Coordenada geográfica detectada (latitud). Requiere conversión a UTM.');
+    return {
+      valido: true,
+      tipo: 'GEOGRAFICA_LAT',
+      confianza: 'ALTA',
+      warnings,
+    };
+  }
+  
+  // ══════════════════════════════════════════════════════════════════════════
+  // CHECK 5: ¿Es coordenada geográfica (longitud)?
+  // ══════════════════════════════════════════════════════════════════════════
+  if (valor >= RANGOS_ANDALUCIA.GEOGRAFICAS.LON_MIN && 
+      valor <= RANGOS_ANDALUCIA.GEOGRAFICAS.LON_MAX) {
+    warnings.push('Coordenada geográfica detectada (longitud). Requiere conversión a UTM.');
+    return {
+      valido: true,
+      tipo: 'GEOGRAFICA_LON',
+      confianza: 'ALTA',
+      warnings,
+    };
+  }
+  
+  // ══════════════════════════════════════════════════════════════════════════
+  // FUERA DE RANGO
+  // ══════════════════════════════════════════════════════════════════════════
+  warnings.push(`Valor ${valor} fuera de rangos válidos para Andalucía`);
   return {
-    zone,
-    band,
-    squareId,
-    easting,
-    northing,
-    precision
+    valido: false,
+    tipo: 'DESCONOCIDO',
+    confianza: 'BAJA',
+    warnings,
   };
 }
 
 /**
- * v4.2: Convierte MGRS a UTM
- * Nota: Conversión simplificada para España peninsular
+ * Detecta y corrige intercambio X↔Y (Error P0-2)
  */
-export function convertMGRStoUTM(mgrs: MGRSCoordinate): { x: number; y: number; zone: number } {
-  // Obtener offset de la cuadrícula 100km
-  // Esta es una implementación simplificada
-  const col = MGRS_GRID_LETTERS.indexOf(mgrs.squareId[0]);
-  const row = MGRS_GRID_LETTERS.indexOf(mgrs.squareId[1]);
-  
-  // Calcular easting base (columna * 100km + offset de zona)
-  // Para zona 30 en España, el falso easting es 500km
-  const eastingBase = ((col % 8) + 1) * 100000;
-  
-  // Calcular northing base (más complejo, depende de banda)
-  // Para banda S (36-40°N), el northing base aproximado es 4.000.000
-  // Para banda T (40-48°N), incrementa en ~900km por banda
-  let northingBase = 0;
-  if (mgrs.band === 'S') northingBase = 4000000;
-  else if (mgrs.band === 'T') northingBase = 4400000;
-  else if (mgrs.band === 'U') northingBase = 4800000;
-  
-  // Ajustar por fila dentro de la banda
-  northingBase += (row % 20) * 100000;
-  
-  const x = eastingBase + mgrs.easting;
-  const y = northingBase + mgrs.northing;
-  
-  return { x, y, zone: mgrs.zone };
-}
-
-// ============================================================================
-// FUNCIONES v4.2: VALIDACIÓN DMS OVERFLOW
-// ============================================================================
-
-/**
- * v4.2: Detecta si los minutos o segundos DMS son ≥60 (error de conversión)
- */
-export function detectDMSOverflow(value: string): { hasOverflow: boolean; type: 'minutes' | 'seconds' | null } {
-  // Buscar minutos ≥60
-  const minutesMatch = value.match(/[°º]\s*(\d+)[''′]/);
-  if (minutesMatch) {
-    const minutes = parseInt(minutesMatch[1]);
-    if (minutes >= 60) {
-      return { hasOverflow: true, type: 'minutes' };
-    }
-  }
-  
-  // Buscar segundos ≥60
-  const secondsMatch = value.match(/[''′]\s*(\d+(?:\.\d+)?)[""″]/);
-  if (secondsMatch) {
-    const seconds = parseFloat(secondsMatch[1]);
-    if (seconds >= 60) {
-      return { hasOverflow: true, type: 'seconds' };
-    }
-  }
-  
-  return { hasOverflow: false, type: null };
-}
-
-/**
- * v4.2: Corrige overflow de minutos/segundos DMS
- */
-export function fixDMSOverflow(degrees: number, minutes: number, seconds: number): {
-  degrees: number;
-  minutes: number;
-  seconds: number;
-  wasFixed: boolean;
+export function detectarIntercambioXY(x: number, y: number): {
+  intercambiado: boolean;
+  xCorregida: number;
+  yCorregida: number;
+  mensaje?: string;
 } {
-  let d = degrees;
-  let m = minutes;
-  let s = seconds;
-  let wasFixed = false;
+  // Patrón típico de intercambio: X tiene valor de Y (>2M) y Y tiene valor de X (<1M)
+  const xPareceSiendoY = x >= 2000000 && x <= 5000000;
+  const yPareceSiendoX = y >= 100000 && y <= 700000;
   
-  // Corregir segundos ≥60
-  if (s >= 60) {
-    const extraMinutes = Math.floor(s / 60);
-    s = s % 60;
-    m += extraMinutes;
-    wasFixed = true;
-  }
-  
-  // Corregir minutos ≥60
-  if (m >= 60) {
-    const extraDegrees = Math.floor(m / 60);
-    m = m % 60;
-    d += extraDegrees;
-    wasFixed = true;
-  }
-  
-  return { degrees: d, minutes: m, seconds: s, wasFixed };
-}
-
-// ============================================================================
-// FUNCIONES v4.2: NOTACIÓN CIENTÍFICA
-// ============================================================================
-
-/**
- * v4.2: Detecta y parsea notación científica
- * Ejemplo: 3.888889E-02 = 0.0388889
- */
-export function parseScientificNotation(value: string): number | null {
-  const v = value.trim();
-  
-  // Patrón: número con exponente
-  const sciMatch = v.match(/^(-?\d+\.?\d*)[eE]([+-]?\d+)$/);
-  
-  if (sciMatch) {
-    const mantissa = parseFloat(sciMatch[1]);
-    const exponent = parseInt(sciMatch[2]);
-    return mantissa * Math.pow(10, exponent);
-  }
-  
-  return null;
-}
-
-/**
- * v4.2: Detecta si el valor está en notación científica
- */
-export function isScientificNotation(value: string): boolean {
-  return /^-?\d+\.?\d*[eE][+-]?\d+$/.test(value.trim());
-}
-
-// ============================================================================
-// FUNCIONES v4.2: PRECISIÓN GPS
-// ============================================================================
-
-/**
- * v4.2: Detecta coordenadas geográficas con baja precisión (<4 decimales)
- * Menos de 4 decimales = precisión >11m (insuficiente para emergencias)
- */
-export function detectLowPrecisionGPS(value: number, originalStr: string): boolean {
-  // Si es coordenada geográfica (entre -180 y 180)
-  if (Math.abs(value) > 180) return false;
-  
-  // Contar decimales en string original
-  const decimalMatch = originalStr.match(/\.(\d+)/);
-  if (!decimalMatch) return true; // Sin decimales = muy baja precisión
-  
-  const decimals = decimalMatch[1].length;
-  return decimals < 4;
-}
-
-// ============================================================================
-// PARSERS EXISTENTES (v4.1)
-// ============================================================================
-
-export function parseDMS(value: string): { decimal: number; direction: string } | null {
-  const v = value.trim();
-  
-  // Primero verificar overflow
-  const overflow = detectDMSOverflow(v);
-  
-  const ddMatch = v.match(/^(-?\d{1,3}\.\d+)[°º]?\s*([NSEW])?$/i);
-  if (ddMatch) {
-    let decimal = parseFloat(ddMatch[1]);
-    const dir = ddMatch[2]?.toUpperCase() || '';
-    if (dir === 'S' || dir === 'W') decimal = -Math.abs(decimal);
-    return { decimal, direction: dir };
-  }
-  
-  const dmMatch = v.match(/^(-?\d{1,3})[°º]\s*(\d{1,2}\.\d+)[''′]\s*([NSEW])?$/i);
-  if (dmMatch) {
-    const deg = parseFloat(dmMatch[1]);
-    let min = parseFloat(dmMatch[2]);
-    const dir = dmMatch[3]?.toUpperCase() || '';
-    
-    // Corregir overflow de minutos
-    if (min >= 60) {
-      const fixed = fixDMSOverflow(Math.abs(deg), min, 0);
-      const decimal = fixed.degrees + (fixed.minutes / 60);
-      return { decimal: deg < 0 || dir === 'S' || dir === 'W' ? -decimal : decimal, direction: dir };
-    }
-    
-    let decimal = Math.abs(deg) + (min / 60);
-    if (deg < 0 || dir === 'S' || dir === 'W') decimal = -decimal;
-    return { decimal, direction: dir };
-  }
-  
-  const dmsSymbolMatch = v.match(/^(-?\d{1,3})[°º]\s*(\d{1,2})[''′]\s*(\d{1,2}(?:\.\d+)?)[""″\\"]?\s*([NSEW])?$/i);
-  if (dmsSymbolMatch) {
-    const deg = parseFloat(dmsSymbolMatch[1]);
-    let min = parseFloat(dmsSymbolMatch[2]);
-    let sec = parseFloat(dmsSymbolMatch[3]);
-    const dir = dmsSymbolMatch[4]?.toUpperCase() || '';
-    
-    // Corregir overflow
-    if (min >= 60 || sec >= 60) {
-      const fixed = fixDMSOverflow(Math.abs(deg), min, sec);
-      const decimal = fixed.degrees + (fixed.minutes / 60) + (fixed.seconds / 3600);
-      return { decimal: deg < 0 || dir === 'S' || dir === 'W' ? -decimal : decimal, direction: dir };
-    }
-    
-    let decimal = Math.abs(deg) + (min / 60) + (sec / 3600);
-    if (deg < 0 || dir === 'S' || dir === 'W') decimal = -decimal;
-    return { decimal, direction: dir };
-  }
-  
-  const dmsSpaceMatch = v.match(/^(-?\d{1,3})\s+(\d{1,2})\s+(\d{1,2}(?:\.\d+)?)\s*([NSEW])?$/i);
-  if (dmsSpaceMatch) {
-    const deg = parseFloat(dmsSpaceMatch[1]);
-    let min = parseFloat(dmsSpaceMatch[2]);
-    let sec = parseFloat(dmsSpaceMatch[3]);
-    const dir = dmsSpaceMatch[4]?.toUpperCase() || '';
-    
-    if (min >= 60 || sec >= 60) {
-      const fixed = fixDMSOverflow(Math.abs(deg), min, sec);
-      const decimal = fixed.degrees + (fixed.minutes / 60) + (fixed.seconds / 3600);
-      return { decimal: deg < 0 || dir === 'S' || dir === 'W' ? -decimal : decimal, direction: dir };
-    }
-    
-    let decimal = Math.abs(deg) + (min / 60) + (sec / 3600);
-    if (deg < 0 || dir === 'S' || dir === 'W') decimal = -decimal;
-    return { decimal, direction: dir };
-  }
-  
-  const dmsHyphenMatch = v.match(/^(-?\d{1,3})-(\d{1,2})-(\d{1,2}(?:\.\d+)?)\s*([NSEW])?$/i);
-  if (dmsHyphenMatch) {
-    const deg = parseFloat(dmsHyphenMatch[1]);
-    let min = parseFloat(dmsHyphenMatch[2]);
-    let sec = parseFloat(dmsHyphenMatch[3]);
-    const dir = dmsHyphenMatch[4]?.toUpperCase() || '';
-    
-    if (min >= 60 || sec >= 60) {
-      const fixed = fixDMSOverflow(Math.abs(deg), min, sec);
-      const decimal = fixed.degrees + (fixed.minutes / 60) + (fixed.seconds / 3600);
-      return { decimal: deg < 0 || dir === 'S' || dir === 'W' ? -decimal : decimal, direction: dir };
-    }
-    
-    let decimal = Math.abs(deg) + (min / 60) + (sec / 3600);
-    if (deg < 0 || dir === 'S' || dir === 'W') decimal = -decimal;
-    return { decimal, direction: dir };
-  }
-  
-  const dmsCompactMatch = v.match(/^(\d{2})(\d{2})(\d{2})([NSEW])$/i);
-  if (dmsCompactMatch) {
-    const deg = parseFloat(dmsCompactMatch[1]);
-    const min = parseFloat(dmsCompactMatch[2]);
-    const sec = parseFloat(dmsCompactMatch[3]);
-    const dir = dmsCompactMatch[4].toUpperCase();
-    let decimal = deg + (min / 60) + (sec / 3600);
-    if (dir === 'S' || dir === 'W') decimal = -decimal;
-    return { decimal, direction: dir };
-  }
-  
-  return null;
-}
-
-export function parseNMEA(value: string): number | null {
-  const v = value.trim();
-  
-  if (v.startsWith('$GPGGA')) {
-    const parts = v.split(',');
-    if (parts.length >= 5) {
-      return parseNMEACoord(parts[2], parts[3]);
-    }
-  }
-  
-  const nmeaMatch = v.match(/^(\d{2,3})(\d{2}\.\d+),?\s*([NSEW])$/i);
-  if (nmeaMatch) {
-    const degrees = parseFloat(nmeaMatch[1]);
-    const minutes = parseFloat(nmeaMatch[2]);
-    const direction = nmeaMatch[3].toUpperCase();
-    let decimal = degrees + (minutes / 60);
-    if (direction === 'S' || direction === 'W') decimal = -decimal;
-    return decimal;
-  }
-  
-  return null;
-}
-
-function parseNMEACoord(coord: string, direction: string): number | null {
-  if (!coord || !direction) return null;
-  const match = coord.match(/^(\d{2,3})(\d{2}\.\d+)$/);
-  if (!match) return null;
-  const degrees = parseFloat(match[1]);
-  const minutes = parseFloat(match[2]);
-  let decimal = degrees + (minutes / 60);
-  if (direction.toUpperCase() === 'S' || direction.toUpperCase() === 'W') {
-    decimal = -decimal;
-  }
-  return decimal;
-}
-
-export function parseWKT(value: string): { x: number; y: number } | null {
-  const v = value.trim();
-  const pointMatch = v.match(/POINT\s*\(\s*(-?\d+\.?\d*)\s+(-?\d+\.?\d*)\s*\)/i);
-  if (pointMatch) {
-    return { x: parseFloat(pointMatch[1]), y: parseFloat(pointMatch[2]) };
-  }
-  return null;
-}
-
-export function parseGeoJSON(value: string): { x: number; y: number } | null {
-  try {
-    const obj = JSON.parse(value);
-    if (obj.type === 'Point' && Array.isArray(obj.coordinates) && obj.coordinates.length >= 2) {
-      return { x: obj.coordinates[0], y: obj.coordinates[1] };
-    }
-    if (obj.type === 'Feature' && obj.geometry?.type === 'Point') {
-      return { x: obj.geometry.coordinates[0], y: obj.geometry.coordinates[1] };
-    }
-  } catch { /* No es JSON válido */ }
-  return null;
-}
-
-export function parseGluedCoordinates(value: string): { x: number; y: number } | null {
-  const digits = value.replace(/[^\d]/g, '');
-  
-  if (digits.length === 13) {
-    const y = parseInt(digits.slice(0, 7));
-    const x = parseInt(digits.slice(7, 13));
-    if (y >= 3900000 && y <= 4400000 && x >= 100000 && x <= 800000) {
-      return { x, y };
-    }
-  }
-  
-  if (digits.length === 14) {
-    const y = parseInt(digits.slice(0, 8)) / 10;
-    const x = parseInt(digits.slice(8, 14));
-    if (y >= 3900000 && y <= 4400000 && x >= 100000 && x <= 800000) {
-      return { x, y };
-    }
-  }
-  
-  if (digits.length === 12) {
-    const yTrunc = parseInt(digits.slice(0, 6));
-    const x = parseInt(digits.slice(6, 12));
-    const y = 4000000 + yTrunc;
-    if (y >= 3900000 && y <= 4400000 && x >= 100000 && x <= 800000) {
-      return { x, y };
-    }
-  }
-  
-  return null;
-}
-
-export function parseLabeledCoordinates(value: string): { x: number; y: number } | null {
-  const v = value.trim();
-  
-  const labeledMatch = v.match(/X\s*[=:]\s*(-?\d+\.?\d*)\s*[,;]?\s*Y\s*[=:]\s*(-?\d+\.?\d*)/i);
-  if (labeledMatch) {
-    return { x: parseFloat(labeledMatch[1]), y: parseFloat(labeledMatch[2]) };
-  }
-  
-  const labeledMatchReverse = v.match(/Y\s*[=:]\s*(-?\d+\.?\d*)\s*[,;]?\s*X\s*[=:]\s*(-?\d+\.?\d*)/i);
-  if (labeledMatchReverse) {
-    return { x: parseFloat(labeledMatchReverse[2]), y: parseFloat(labeledMatchReverse[1]) };
-  }
-  
-  const cardinalMatch = v.match(/Este\s*[=:]\s*(-?\d+\.?\d*)\s*[\/,;]\s*Norte\s*[=:]\s*(-?\d+\.?\d*)/i);
-  if (cardinalMatch) {
-    return { x: parseFloat(cardinalMatch[1]), y: parseFloat(cardinalMatch[2]) };
-  }
-  
-  return null;
-}
-
-export function parseCadastralReference(value: string): CadastralReference | null {
-  const v = value.trim().toUpperCase();
-  const cadastralMatch = v.match(/^(\d{7})([A-Z]{2})(\d{4})([A-Z])(\d{4})?([A-Z]{2})?$/);
-  if (cadastralMatch) {
-    return { reference: v, isValid: true };
-  }
-  const flexMatch = v.match(/^\d{5,7}[A-Z]{1,2}\d{3,5}[A-Z]?/);
-  if (flexMatch) {
-    return { reference: flexMatch[0], isValid: true };
-  }
-  return null;
-}
-
-export function detectToponym(value: string): ToponymDetection | null {
-  const v = value.trim();
-  if (/^[\d\s.,´'-]+$/.test(v)) return null;
-  if (/^[NSEW\d°'"]+$/i.test(v)) return null;
-  
-  const patterns = [
-    { regex: /^(C\/|Calle|Avda\.?|Avenida|Plaza|Pza\.?|Paseo|Camino|Ctra\.?|Carretera)\s+.+/i, type: 'via' as const, confidence: 95 },
-    { regex: /^(Barrio|Barriada|Urbanización|Urb\.?|Polígono|Pol\.?)\s+.+/i, type: 'poblacion' as const, confidence: 90 },
-    { regex: /^(Paraje|Cortijo|Finca|Hacienda|Venta|Molino|Ermita)\s+.+/i, type: 'paraje' as const, confidence: 85 },
-    { regex: /^[A-ZÁÉÍÓÚÑ][a-záéíóúñ]+(\s+[A-ZÁÉÍÓÚÑ]?[a-záéíóúñ]+)*$/u, type: 'municipio' as const, confidence: 60 }
-  ];
-  
-  for (const p of patterns) {
-    if (p.regex.test(v)) {
-      return { toponym: v, type: p.type, confidence: p.confidence };
-    }
-  }
-  
-  if (v.length > 3 && /^[A-Za-záéíóúñÁÉÍÓÚÑ\s]+$/.test(v)) {
-    return { toponym: v, type: 'unknown', confidence: 40 };
-  }
-  
-  return null;
-}
-
-export function parseNarrativeCoordinates(value: string): { x: number; y: number } | null {
-  const v = value.trim();
-  
-  const pattern1 = v.match(/X\s*[=:]\s*(\d+[\d.,]*)\s*m?\s*[,;/y]\s*Y\s*[=:]\s*(\d+[\d.,]*)\s*m?/i);
-  if (pattern1) {
-    const x = parseFloat(pattern1[1].replace(/\./g, '').replace(',', '.'));
-    const y = parseFloat(pattern1[2].replace(/\./g, '').replace(',', '.'));
-    if (!isNaN(x) && !isNaN(y)) return { x, y };
-  }
-  
-  const pattern2 = v.match(/Y\s*[=:]\s*(\d+[\d.,]*)\s*m?\s*[,;/y]\s*X\s*[=:]\s*(\d+[\d.,]*)\s*m?/i);
-  if (pattern2) {
-    const y = parseFloat(pattern2[1].replace(/\./g, '').replace(',', '.'));
-    const x = parseFloat(pattern2[2].replace(/\./g, '').replace(',', '.'));
-    if (!isNaN(x) && !isNaN(y)) return { x, y };
-  }
-  
-  const pattern3 = v.match(/UTM\s+X\s*[=:]?\s*(\d+[\d.,]*)\s+Y\s*[=:]?\s*(\d+[\d.,]*)/i);
-  if (pattern3) {
-    const x = parseFloat(pattern3[1].replace(/\./g, '').replace(',', '.'));
-    const y = parseFloat(pattern3[2].replace(/\./g, '').replace(',', '.'));
-    if (!isNaN(x) && !isNaN(y)) return { x, y };
-  }
-  
-  const pattern4 = v.match(/[\[(]\s*(\d+[\d.,]*)\s*[,;]\s*(\d+[\d.,]*)\s*[\])]/);
-  if (pattern4) {
-    const first = parseFloat(pattern4[1].replace(/\./g, '').replace(',', '.'));
-    const second = parseFloat(pattern4[2].replace(/\./g, '').replace(',', '.'));
-    if (!isNaN(first) && !isNaN(second)) {
-      if (first > 1000000) return { x: second, y: first };
-      return { x: first, y: second };
-    }
-  }
-  
-  return null;
-}
-
-export function parseCardinalCoordinates(value: string): { x: number; y: number } | null {
-  const v = value.trim();
-  
-  const pattern1 = v.match(/Este\s*[=:]\s*([\d.,\s]+)\s*[\/,;]\s*Norte\s*[=:]\s*([\d.,\s]+)/i);
-  if (pattern1) {
-    const x = parseFloat(pattern1[1].replace(/[\s.]/g, '').replace(',', '.'));
-    const y = parseFloat(pattern1[2].replace(/[\s.]/g, '').replace(',', '.'));
-    if (!isNaN(x) && !isNaN(y)) return { x, y };
-  }
-  
-  const pattern2 = v.match(/Norte\s*[=:]\s*([\d.,\s]+)\s*[\/,;]\s*Este\s*[=:]\s*([\d.,\s]+)/i);
-  if (pattern2) {
-    const y = parseFloat(pattern2[1].replace(/[\s.]/g, '').replace(',', '.'));
-    const x = parseFloat(pattern2[2].replace(/[\s.]/g, '').replace(',', '.'));
-    if (!isNaN(x) && !isNaN(y)) return { x, y };
-  }
-  
-  const pattern3 = v.match(/E\s*[=:]\s*([\d.,\s]+)\s*[,;/]\s*N\s*[=:]\s*([\d.,\s]+)/i);
-  if (pattern3) {
-    const x = parseFloat(pattern3[1].replace(/[\s.]/g, '').replace(',', '.'));
-    const y = parseFloat(pattern3[2].replace(/[\s.]/g, '').replace(',', '.'));
-    if (!isNaN(x) && !isNaN(y)) return { x, y };
-  }
-  
-  const pattern4 = v.match(/Easting\s*[=:]\s*([\d.,\s]+)\s*[,;/]\s*Northing\s*[=:]\s*([\d.,\s]+)/i);
-  if (pattern4) {
-    const x = parseFloat(pattern4[1].replace(/[\s.]/g, '').replace(',', '.'));
-    const y = parseFloat(pattern4[2].replace(/[\s.]/g, '').replace(',', '.'));
-    if (!isNaN(x) && !isNaN(y)) return { x, y };
-  }
-  
-  return null;
-}
-
-// ============================================================================
-// TRANSFORMACIONES DE SISTEMA DE REFERENCIA
-// ============================================================================
-
-export function transformED50toETRS89(x: number, y: number): { x: number; y: number } {
-  try {
-    const result = proj4('EPSG:23030', 'EPSG:25830', [x, y]);
-    return { x: result[0], y: result[1] };
-  } catch {
-    return { x: x - 110, y: y - 208 };
-  }
-}
-
-export function transformWGS84toUTM30(lon: number, lat: number): { x: number; y: number } {
-  try {
-    const result = proj4('EPSG:4326', 'EPSG:25830', [lon, lat]);
-    return { x: result[0], y: result[1] };
-  } catch {
-    throw new Error(`Error transformando WGS84 (${lon}, ${lat}) a UTM30`);
-  }
-}
-
-export function transformLambertToETRS89(x: number, y: number): { x: number; y: number } {
-  try {
-    const result = proj4('EPSG:2062', 'EPSG:25830', [x, y]);
-    return { x: result[0], y: result[1] };
-  } catch {
-    return { x: x - 200000, y: y + 3400000 };
-  }
-}
-
-export function transformMadridDatumToETRS89(x: number, y: number): { x: number; y: number } {
-  try {
-    const result = proj4('EPSG:23030', 'EPSG:25830', [x, y]);
-    return { x: result[0] - 50, y: result[1] - 50 };
-  } catch {
-    return { x: x - 160, y: y - 258 };
-  }
-}
-
-export function isGeographic(x: number, y: number): boolean {
-  const isLat = y >= 35 && y <= 40;
-  const isLon = x >= -8 && x <= 0;
-  return isLat && isLon;
-}
-
-export function mightBeLambert(x: number, y: number): boolean {
-  return x >= 0 && x <= 1200000 && y >= 0 && y <= 1200000 &&
-         !(x >= 100000 && x <= 800000 && y >= 3900000);
-}
-
-export function mightBeMadridDatum(documentYear?: number): boolean {
-  if (!documentYear) return false;
-  return documentYear < 1970;
-}
-
-export function mightBeED50(documentYear?: number): boolean {
-  if (!documentYear) return false;
-  return documentYear >= 1970 && documentYear < 2007;
-}
-
-// ============================================================================
-// FUNCIÓN PRINCIPAL DE NORMALIZACIÓN v4.2
-// ============================================================================
-
-export function normalizeCoordinate(input: CoordinateInput): NormalizationResult {
-  const corrections: Correction[] = [];
-  const flags: Flag[] = [];
-  const original = { x: input.x, y: input.y };
-  let sourceFormat: SourceFormat = 'UNKNOWN';
-  let sourceCRS: string | undefined;
-  let cadastralRef: string | undefined;
-  let toponym: string | undefined;
-  let mgrsRef: string | undefined;
-  
-  // ═══════════════════════════════════════════════════════════════════════════
-  // FASE -1 (v4.2): Corrección de errores OCR
-  // ═══════════════════════════════════════════════════════════════════════════
-  let xStr = String(input.x).trim();
-  let yStr = String(input.y).trim();
-  
-  if (hasOCRErrors(xStr)) {
-    const ocrFix = fixOCRErrors(xStr);
-    if (ocrFix.corrections.length > 0) {
-      corrections.push({
-        type: 'OCR_FIXED', field: 'x',
-        from: xStr, to: ocrFix.fixed,
-        pattern: `OCR: ${ocrFix.corrections.join(', ')}`, priority: 'P0'
-      });
-      flags.push({
-        type: 'OCR_ERRORS_DETECTED', severity: 'warning',
-        message: `Errores OCR corregidos en X: ${ocrFix.corrections.join(', ')}`
-      });
-      input.x = ocrFix.fixed;
-      xStr = ocrFix.fixed;
-    }
-  }
-  
-  if (hasOCRErrors(yStr)) {
-    const ocrFix = fixOCRErrors(yStr);
-    if (ocrFix.corrections.length > 0) {
-      corrections.push({
-        type: 'OCR_FIXED', field: 'y',
-        from: yStr, to: ocrFix.fixed,
-        pattern: `OCR: ${ocrFix.corrections.join(', ')}`, priority: 'P0'
-      });
-      flags.push({
-        type: 'OCR_ERRORS_DETECTED', severity: 'warning',
-        message: `Errores OCR corregidos en Y: ${ocrFix.corrections.join(', ')}`
-      });
-      input.y = ocrFix.fixed;
-      yStr = ocrFix.fixed;
-    }
-  }
-  
-  // ═══════════════════════════════════════════════════════════════════════════
-  // FASE 0: Detectar formatos especiales en rawText
-  // ═══════════════════════════════════════════════════════════════════════════
-  if (input.rawText) {
-    // v4.2: Intentar MGRS
-    const mgrsResult = parseMGRS(input.rawText);
-    if (mgrsResult) {
-      sourceFormat = 'MGRS';
-      mgrsRef = input.rawText.trim().toUpperCase();
-      const utm = convertMGRStoUTM(mgrsResult);
-      corrections.push({
-        type: 'MGRS_CONVERTED', field: 'both',
-        from: input.rawText, to: `X=${utm.x}, Y=${utm.y} (zona ${utm.zone})`,
-        pattern: 'MGRS_TO_UTM', priority: 'P1'
-      });
-      flags.push({
-        type: 'MGRS_DETECTED', severity: 'info',
-        message: `Coordenada MGRS detectada: ${mgrsRef} (precisión ${mgrsResult.precision}m)`,
-        data: { mgrs: mgrsRef, precision: mgrsResult.precision }
-      });
-      input.x = utm.x;
-      input.y = utm.y;
-    }
-    
-    // Intentar WKT
-    if (sourceFormat === 'UNKNOWN') {
-      const wktResult = parseWKT(input.rawText);
-      if (wktResult) {
-        sourceFormat = 'WKT';
-        corrections.push({
-          type: 'WKT_PARSED', field: 'both',
-          from: input.rawText, to: `X=${wktResult.x}, Y=${wktResult.y}`,
-          pattern: 'WKT_POINT', priority: 'P1'
-        });
-        input.x = wktResult.x;
-        input.y = wktResult.y;
-      }
-    }
-    
-    // Intentar GeoJSON
-    if (sourceFormat === 'UNKNOWN') {
-      const geoJsonResult = parseGeoJSON(input.rawText);
-      if (geoJsonResult) {
-        sourceFormat = 'GEOJSON';
-        const utm = transformWGS84toUTM30(geoJsonResult.x, geoJsonResult.y);
-        corrections.push({
-          type: 'GEOJSON_PARSED', field: 'both',
-          from: input.rawText, to: `X=${utm.x.toFixed(2)}, Y=${utm.y.toFixed(2)}`,
-          pattern: 'GEOJSON_POINT', priority: 'P1'
-        });
-        input.x = utm.x;
-        input.y = utm.y;
-        sourceCRS = 'EPSG:4326';
-      }
-    }
-    
-    // H1: Intentar texto narrativo
-    if (sourceFormat === 'UNKNOWN') {
-      const narrativeResult = parseNarrativeCoordinates(input.rawText);
-      if (narrativeResult) {
-        sourceFormat = 'NARRATIVE';
-        corrections.push({
-          type: 'NARRATIVE_EXTRACTED', field: 'both',
-          from: input.rawText, to: `X=${narrativeResult.x}, Y=${narrativeResult.y}`,
-          pattern: 'NARRATIVE_COORDS', priority: 'P1'
-        });
-        input.x = narrativeResult.x;
-        input.y = narrativeResult.y;
-      }
-    }
-    
-    // H2: Intentar texto cardinal
-    if (sourceFormat === 'UNKNOWN') {
-      const cardinalResult = parseCardinalCoordinates(input.rawText);
-      if (cardinalResult) {
-        sourceFormat = 'NARRATIVE';
-        corrections.push({
-          type: 'CARDINAL_EXTRACTED', field: 'both',
-          from: input.rawText, to: `X=${cardinalResult.x}, Y=${cardinalResult.y}`,
-          pattern: 'CARDINAL_COORDS', priority: 'P1'
-        });
-        input.x = cardinalResult.x;
-        input.y = cardinalResult.y;
-      }
-    }
-    
-    // Intentar coordenadas etiquetadas
-    if (sourceFormat === 'UNKNOWN') {
-      const labeledResult = parseLabeledCoordinates(input.rawText);
-      if (labeledResult) {
-        sourceFormat = 'UTM';
-        input.x = labeledResult.x;
-        input.y = labeledResult.y;
-      }
-    }
-    
-    // Intentar coordenadas pegadas
-    if (sourceFormat === 'UNKNOWN') {
-      const gluedResult = parseGluedCoordinates(input.rawText);
-      if (gluedResult) {
-        sourceFormat = 'PEGADA';
-        corrections.push({
-          type: 'COORDS_SEPARATED', field: 'both',
-          from: input.rawText, to: `X=${gluedResult.x}, Y=${gluedResult.y}`,
-          pattern: 'GLUED_COORDS', priority: 'P0'
-        });
-        input.x = gluedResult.x;
-        input.y = gluedResult.y;
-      }
-    }
-    
-    // E5: Detectar referencia catastral
-    if (sourceFormat === 'UNKNOWN') {
-      const cadastralResult = parseCadastralReference(input.rawText);
-      if (cadastralResult) {
-        sourceFormat = 'CADASTRAL';
-        cadastralRef = cadastralResult.reference;
-        flags.push({
-          type: 'CADASTRAL_REFERENCE', severity: 'warning',
-          message: `Referencia catastral detectada: ${cadastralResult.reference}. Requiere API Catastro.`,
-          data: { reference: cadastralResult.reference }
-        });
-        flags.push({
-          type: 'GEOCODING_NEEDED', severity: 'warning',
-          message: 'Usar API Catastro: https://ovc.catastro.meh.es/ovcservweb/OVCSWLocalizacionRC/OVCCoordenadas.asmx'
-        });
-        return {
-          x: null, y: null, original, corrections, flags,
-          score: 0, confidence: 'CRITICAL', isValid: false,
-          sourceFormat, cadastralRef
-        };
-      }
-    }
-    
-    // E6: Detectar topónimo
-    if (sourceFormat === 'UNKNOWN') {
-      const toponymResult = detectToponym(input.rawText);
-      if (toponymResult && toponymResult.confidence >= 60) {
-        sourceFormat = 'TOPONYM';
-        toponym = toponymResult.toponym;
-        flags.push({
-          type: 'TOPONYM_DETECTED', severity: 'warning',
-          message: `Topónimo detectado (${toponymResult.type}): "${toponymResult.toponym}". Requiere geocodificación.`,
-          data: { toponym: toponymResult.toponym, type: toponymResult.type }
-        });
-        flags.push({
-          type: 'GEOCODING_NEEDED', severity: 'warning',
-          message: 'Usar servicio de geocodificación: CartoCiudad, Nominatim o CDAU'
-        });
-        return {
-          x: null, y: null, original, corrections, flags,
-          score: 0, confidence: 'CRITICAL', isValid: false,
-          sourceFormat, toponym
-        };
-      }
-    }
-  }
-  
-  // ═══════════════════════════════════════════════════════════════════════════
-  // FASE 0b (v4.2): Notación científica
-  // ═══════════════════════════════════════════════════════════════════════════
-  if (isScientificNotation(xStr)) {
-    const sciValue = parseScientificNotation(xStr);
-    if (sciValue !== null) {
-      corrections.push({
-        type: 'SCIENTIFIC_NOTATION_PARSED', field: 'x',
-        from: xStr, to: String(sciValue),
-        pattern: 'SCIENTIFIC', priority: 'P1'
-      });
-      input.x = sciValue;
-      xStr = String(sciValue);
-    }
-  }
-  
-  if (isScientificNotation(yStr)) {
-    const sciValue = parseScientificNotation(yStr);
-    if (sciValue !== null) {
-      corrections.push({
-        type: 'SCIENTIFIC_NOTATION_PARSED', field: 'y',
-        from: yStr, to: String(sciValue),
-        pattern: 'SCIENTIFIC', priority: 'P1'
-      });
-      input.y = sciValue;
-      yStr = String(sciValue);
-    }
-  }
-  
-  // ═══════════════════════════════════════════════════════════════════════════
-  // FASE 1: Detectar placeholders
-  // ═══════════════════════════════════════════════════════════════════════════
-  const xPlaceholder = isPlaceholder(input.x);
-  const yPlaceholder = isPlaceholder(input.y);
-  
-  if (xPlaceholder || yPlaceholder) {
-    if (xPlaceholder) {
-      corrections.push({
-        type: 'PLACEHOLDER_DETECTED', field: 'x',
-        from: String(input.x), to: 'null',
-        pattern: 'PLACEHOLDER', priority: 'P0'
-      });
-    }
-    if (yPlaceholder) {
-      corrections.push({
-        type: 'PLACEHOLDER_DETECTED', field: 'y',
-        from: String(input.y), to: 'null',
-        pattern: 'PLACEHOLDER', priority: 'P0'
-      });
-    }
-    
-    flags.push({
-      type: 'GEOCODING_NEEDED', severity: 'warning',
-      message: 'Coordenadas vacías o placeholder detectado'
-    });
-    
+  if (xPareceSiendoY && yPareceSiendoX) {
     return {
-      x: null, y: null, original, corrections, flags,
-      score: 0, confidence: 'CRITICAL', isValid: false,
-      sourceFormat
+      intercambiado: true,
+      xCorregida: y,
+      yCorregida: x,
+      mensaje: `ERROR P0-2: Intercambio X↔Y detectado. (${x}, ${y}) → (${y}, ${x})`,
     };
   }
   
-  // ═══════════════════════════════════════════════════════════════════════════
-  // FASE 2: Intentar parsear como DMS (con corrección overflow v4.2)
-  // ═══════════════════════════════════════════════════════════════════════════
-  const xDMS = parseDMS(xStr);
-  const yDMS = parseDMS(yStr);
+  return {
+    intercambiado: false,
+    xCorregida: x,
+    yCorregida: y,
+  };
+}
+
+// ============================================================================
+// FUNCIÓN PRINCIPAL: PROCESAR PAR DE COORDENADAS
+// ============================================================================
+
+/**
+ * Procesa un par de coordenadas X,Y aplicando normalización completa,
+ * validación, y corrección de errores P0.
+ */
+export function procesarParCoordenadas(
+  xInput: string,
+  yInput: string,
+  opciones: {
+    aplicarCorreccionP0?: boolean;
+    detectarIntercambio?: boolean;
+    epsgAsumido?: number;
+  } = {}
+): ParCoordenadas {
+  const {
+    aplicarCorreccionP0 = true,
+    detectarIntercambio = true,
+    epsgAsumido = 25830,
+  } = opciones;
   
-  if (xDMS && yDMS) {
-    sourceFormat = 'DMS';
-    
-    // Verificar overflow
-    const xOverflow = detectDMSOverflow(xStr);
-    const yOverflow = detectDMSOverflow(yStr);
-    if (xOverflow.hasOverflow || yOverflow.hasOverflow) {
-      flags.push({
-        type: 'DMS_OVERFLOW_DETECTED', severity: 'warning',
-        message: `Overflow DMS detectado y corregido (${xOverflow.type || yOverflow.type} ≥60)`
-      });
-    }
-    
-    const utm = transformWGS84toUTM30(xDMS.decimal, yDMS.decimal);
-    corrections.push({
-      type: 'DMS_CONVERTED', field: 'both',
-      from: `${xStr}, ${yStr}`,
-      to: `X=${utm.x.toFixed(2)}, Y=${utm.y.toFixed(2)}`,
-      pattern: 'DMS_TO_UTM', priority: 'P1'
-    });
-    input.x = utm.x;
-    input.y = utm.y;
-    sourceCRS = 'EPSG:4326';
-    
-    flags.push({
-      type: 'FORMAT_DETECTED', severity: 'info',
-      message: 'Coordenadas DMS detectadas y convertidas a UTM'
-    });
-  }
+  // Normalizar ambas coordenadas
+  const normX = normalizarCoordenada(xInput);
+  const normY = normalizarCoordenada(yInput);
   
-  // ═══════════════════════════════════════════════════════════════════════════
-  // FASE 3: Intentar parsear como NMEA
-  // ═══════════════════════════════════════════════════════════════════════════
-  if (sourceFormat === 'UNKNOWN') {
-    const xNMEA = parseNMEA(xStr);
-    const yNMEA = parseNMEA(yStr);
+  let x = normX.valorNormalizado;
+  let y = normY.valorNormalizado;
+  let validX: ResultadoValidacion | null = null;
+  let validY: ResultadoValidacion | null = null;
+  let intercambioAplicado = false;
+  
+  // Validar si tenemos valores numéricos
+  if (x !== null) {
+    validX = validarCoordenada(x);
     
-    if (xNMEA !== null && yNMEA !== null) {
-      sourceFormat = 'NMEA';
-      const utm = transformWGS84toUTM30(xNMEA, yNMEA);
-      corrections.push({
-        type: 'NMEA_CONVERTED', field: 'both',
-        from: `${xStr}, ${yStr}`,
-        to: `X=${utm.x.toFixed(2)}, Y=${utm.y.toFixed(2)}`,
-        pattern: 'NMEA_TO_UTM', priority: 'P1'
-      });
-      input.x = utm.x;
-      input.y = utm.y;
-      sourceCRS = 'EPSG:4326';
+    // Aplicar corrección P0-1 (Y truncada) si aplica a X
+    if (aplicarCorreccionP0 && validX.valorCorregido !== undefined) {
+      x = validX.valorCorregido;
     }
   }
   
-  // ═══════════════════════════════════════════════════════════════════════════
-  // FASE 4: Normalizar formato numérico (separadores)
-  // ═══════════════════════════════════════════════════════════════════════════
-  let x = normalizeNumber(input.x, corrections, 'x');
-  let y = normalizeNumber(input.y, corrections, 'y');
+  if (y !== null) {
+    validY = validarCoordenada(y);
+    
+    // Aplicar corrección P0-1 (Y truncada)
+    if (aplicarCorreccionP0 && validY.valorCorregido !== undefined) {
+      y = validY.valorCorregido;
+    }
+  }
   
+  // Detectar y corregir intercambio X↔Y (P0-2)
+  if (detectarIntercambio && x !== null && y !== null) {
+    const resultadoIntercambio = detectarIntercambioXY(x, y);
+    if (resultadoIntercambio.intercambiado) {
+      x = resultadoIntercambio.xCorregida;
+      y = resultadoIntercambio.yCorregida;
+      intercambioAplicado = true;
+      
+      // Re-validar tras intercambio
+      validX = validarCoordenada(x);
+      validY = validarCoordenada(y);
+      
+      if (validX) validX.warnings.push(resultadoIntercambio.mensaje!);
+    }
+  }
+  
+  // Determinar confianza global
+  let confianzaGlobal: NivelConfianza = 'ALTA';
   if (x === null || y === null) {
-    const xToponym = detectToponym(xStr);
-    const yToponym = detectToponym(yStr);
-    
-    if (xToponym || yToponym) {
-      const detected = xToponym || yToponym;
-      toponym = detected?.toponym;
-      flags.push({
-        type: 'TOPONYM_DETECTED', severity: 'warning',
-        message: `Posible topónimo: "${toponym}". Requiere geocodificación.`
-      });
-    }
-    
-    flags.push({
-      type: 'SUSPICIOUS_VALUE', severity: 'error',
-      message: 'No se pudo parsear la coordenada como número'
-    });
-    return {
-      x, y, original, corrections, flags,
-      score: 0, confidence: 'CRITICAL', isValid: false,
-      sourceFormat, toponym
-    };
+    confianzaGlobal = 'CRITICA';
+  } else if (intercambioAplicado || validX?.confianza === 'MEDIA' || validY?.confianza === 'MEDIA') {
+    confianzaGlobal = 'MEDIA';
+  } else if (validX?.confianza === 'BAJA' || validY?.confianza === 'BAJA') {
+    confianzaGlobal = 'BAJA';
   }
-  
-  // ═══════════════════════════════════════════════════════════════════════════
-  // FASE 4b (v4.2): Detectar sistema local (DXF/CAD)
-  // ═══════════════════════════════════════════════════════════════════════════
-  if (mightBeLocalSystem(x, y)) {
-    sourceFormat = 'LOCAL_SYSTEM';
-    flags.push({
-      type: 'LOCAL_SYSTEM_DETECTED', severity: 'error',
-      message: `Coordenadas parecen ser de sistema local (X=${x}, Y=${y}). Sin CRS definido.`,
-      data: { x, y, possibleSource: isDXFSource(input.sourceFile) ? 'DXF/CAD' : 'desconocido' }
-    });
-    
-    if (isDXFSource(input.sourceFile)) {
-      flags.push({
-        type: 'MANUAL_REVIEW', severity: 'error',
-        message: 'Archivo DXF detectado sin información de CRS. Requiere georreferenciación manual.'
-      });
-    }
-    
-    return {
-      x: null, y: null, original, corrections, flags,
-      score: 0, confidence: 'CRITICAL', isValid: false,
-      sourceFormat
-    };
-  }
-  
-  // ═══════════════════════════════════════════════════════════════════════════
-  // FASE 5: Detectar coordenadas geográficas y convertir
-  // ═══════════════════════════════════════════════════════════════════════════
-  if (isGeographic(x, y)) {
-    sourceFormat = 'DD';
-    
-    // v4.2: Verificar baja precisión GPS
-    const xLowPrec = detectLowPrecisionGPS(x, String(original.x));
-    const yLowPrec = detectLowPrecisionGPS(y, String(original.y));
-    if (xLowPrec || yLowPrec) {
-      flags.push({
-        type: 'LOW_PRECISION_GPS', severity: 'warning',
-        message: 'Coordenadas GPS con baja precisión (<4 decimales = >11m de error)'
-      });
-    }
-    
-    flags.push({
-      type: 'GEOGRAPHIC_COORDS', severity: 'info',
-      message: 'Coordenadas geográficas detectadas (WGS84/ETRS89)'
-    });
-    
-    const utm = transformWGS84toUTM30(x, y);
-    corrections.push({
-      type: 'WGS84_TO_UTM', field: 'both',
-      from: `lon=${x}, lat=${y}`,
-      to: `X=${utm.x.toFixed(2)}, Y=${utm.y.toFixed(2)}`,
-      pattern: 'GEO_TO_UTM', priority: 'P1'
-    });
-    x = utm.x;
-    y = utm.y;
-    sourceCRS = 'EPSG:4326';
-  }
-  
-  // ═══════════════════════════════════════════════════════════════════════════
-  // FASE 5b (v4.2): Detectar swap KML lon/lat
-  // ═══════════════════════════════════════════════════════════════════════════
-  if (isKMLSource(input.sourceFile) || detectKMLLonLatSwap(x, y)) {
-    // Si parece que están intercambiadas (lat en X, lon en Y)
-    if (detectKMLLonLatSwap(x, y)) {
-      const temp = x;
-      x = y;
-      y = temp;
-      
-      corrections.push({
-        type: 'KML_LONLAT_SWAPPED', field: 'both',
-        from: `X=${original.x}, Y=${original.y}`,
-        to: `X=${x}, Y=${y}`,
-        pattern: 'KML_SWAP', priority: 'P0'
-      });
-      flags.push({
-        type: 'KML_FORMAT_DETECTED', severity: 'warning',
-        message: 'Coordenadas KML con orden lat/lon intercambiado detectado y corregido'
-      });
-      
-      // Ahora transformar a UTM
-      if (isGeographic(x, y)) {
-        const utm = transformWGS84toUTM30(x, y);
-        corrections.push({
-          type: 'WGS84_TO_UTM', field: 'both',
-          from: `lon=${x}, lat=${y}`,
-          to: `X=${utm.x.toFixed(2)}, Y=${utm.y.toFixed(2)}`,
-          pattern: 'GEO_TO_UTM', priority: 'P1'
-        });
-        x = utm.x;
-        y = utm.y;
-        sourceCRS = 'EPSG:4326';
-      }
-    }
-  }
-  
-  // ═══════════════════════════════════════════════════════════════════════════
-  // FASE 5c: Detectar Lambert y convertir
-  // ═══════════════════════════════════════════════════════════════════════════
-  if (mightBeLambert(x, y) && !isInRange(x, 'x')) {
-    sourceFormat = 'LAMBERT';
-    flags.push({
-      type: 'LAMBERT_DETECTED', severity: 'warning',
-      message: 'Posibles coordenadas Lambert Conforme Cónica detectadas'
-    });
-    
-    const utm = transformLambertToETRS89(x, y);
-    corrections.push({
-      type: 'LAMBERT_TRANSFORMED', field: 'both',
-      from: `X=${x}, Y=${y}`,
-      to: `X=${utm.x.toFixed(2)}, Y=${utm.y.toFixed(2)}`,
-      pattern: 'LAMBERT_TO_ETRS89', priority: 'P2'
-    });
-    x = utm.x;
-    y = utm.y;
-    sourceCRS = 'EPSG:2062';
-  }
-  
-  // ═══════════════════════════════════════════════════════════════════════════
-  // FASE 6: Detectar intercambio X↔Y
-  // ═══════════════════════════════════════════════════════════════════════════
-  if (detectXYSwap(x, y)) {
-    const temp = x;
-    x = y;
-    y = temp;
-    corrections.push({
-      type: 'XY_SWAPPED', field: 'both',
-      from: `X=${original.x}, Y=${original.y}`,
-      to: `X=${x}, Y=${y}`,
-      pattern: 'XY_SWAP', priority: 'P0'
-    });
-  }
-  
-  // ═══════════════════════════════════════════════════════════════════════════
-  // FASE 7: Detectar Y truncada
-  // ═══════════════════════════════════════════════════════════════════════════
-  const yTruncResult = detectAndFixYTruncation(y, input.province);
-  if (yTruncResult.wasFixed) {
-    corrections.push({
-      type: 'Y_TRUNCATED', field: 'y',
-      from: String(y), to: String(yTruncResult.fixed),
-      pattern: `Y_TRUNC_${yTruncResult.method}`, priority: 'P0'
-    });
-    y = yTruncResult.fixed;
-  }
-  
-  // ═══════════════════════════════════════════════════════════════════════════
-  // FASE 8: Detectar coordenadas en kilómetros
-  // ═══════════════════════════════════════════════════════════════════════════
-  const xKmResult = detectAndFixKilometers(x, 'x', String(input.x));
-  if (xKmResult.wasFixed) {
-    corrections.push({
-      type: 'KM_TO_METERS', field: 'x',
-      from: String(x), to: String(xKmResult.fixed),
-      pattern: `KM_${xKmResult.method}`, priority: 'P0'
-    });
-    x = xKmResult.fixed;
-  }
-  
-  const yKmResult = detectAndFixKilometers(y, 'y', String(input.y));
-  if (yKmResult.wasFixed) {
-    corrections.push({
-      type: 'KM_TO_METERS', field: 'y',
-      from: String(y), to: String(yKmResult.fixed),
-      pattern: `KM_${yKmResult.method}`, priority: 'P0'
-    });
-    y = yKmResult.fixed;
-  }
-  
-  // ═══════════════════════════════════════════════════════════════════════════
-  // FASE 9: Detectar X truncada
-  // ═══════════════════════════════════════════════════════════════════════════
-  const xTruncResult = detectAndFixXTruncation(x);
-  if (xTruncResult.wasFixed) {
-    corrections.push({
-      type: 'X_TRUNCATED', field: 'x',
-      from: String(x), to: String(xTruncResult.fixed),
-      pattern: `X_TRUNC_${xTruncResult.method}`, priority: 'P0'
-    });
-    x = xTruncResult.fixed;
-  }
-  
-  // ═══════════════════════════════════════════════════════════════════════════
-  // FASE 10: Detectar y transformar Datum Madrid (pre-1970)
-  // ═══════════════════════════════════════════════════════════════════════════
-  if (mightBeMadridDatum(input.documentYear)) {
-    sourceFormat = 'MADRID_DATUM';
-    flags.push({
-      type: 'MADRID_DATUM_DETECTED', severity: 'warning',
-      message: `Documento de ${input.documentYear}: posiblemente Datum Madrid. Transformación aplicada (~260m).`
-    });
-    
-    const transformed = transformMadridDatumToETRS89(x, y);
-    corrections.push({
-      type: 'MADRID_DATUM_TRANSFORMED', field: 'both',
-      from: `X=${x.toFixed(2)}, Y=${y.toFixed(2)}`,
-      to: `X=${transformed.x.toFixed(2)}, Y=${transformed.y.toFixed(2)}`,
-      pattern: 'MADRID_TO_ETRS89', priority: 'P2'
-    });
-    x = transformed.x;
-    y = transformed.y;
-    sourceCRS = 'DATUM_MADRID';
-  }
-  // ═══════════════════════════════════════════════════════════════════════════
-  // FASE 11: Detectar y transformar ED50 (1970-2007)
-  // ═══════════════════════════════════════════════════════════════════════════
-  else if (mightBeED50(input.documentYear)) {
-    flags.push({
-      type: 'ED50_DETECTED', severity: 'warning',
-      message: `Documento de ${input.documentYear}: posiblemente ED50. Transformación aplicada (~230m).`
-    });
-    
-    const transformed = transformED50toETRS89(x, y);
-    corrections.push({
-      type: 'ED50_TRANSFORMED', field: 'both',
-      from: `X=${x.toFixed(2)}, Y=${y.toFixed(2)}`,
-      to: `X=${transformed.x.toFixed(2)}, Y=${transformed.y.toFixed(2)}`,
-      pattern: 'ED50_TO_ETRS89', priority: 'P2'
-    });
-    x = transformed.x;
-    y = transformed.y;
-    sourceCRS = 'EPSG:23030';
-  }
-  
-  // ═══════════════════════════════════════════════════════════════════════════
-  // FASE 12: Motor de heurísticas de rescate
-  // ═══════════════════════════════════════════════════════════════════════════
-  let heuristicApplied: HeuristicResult | undefined;
-  
-  if (!isInRange(x, 'x') || !isInRange(y, 'y')) {
-    if (!isInRange(x, 'x')) {
-      const rescue = runHeuristicRescue(String(input.x), x, 'x');
-      if (rescue) {
-        corrections.push({
-          type: 'HEURISTIC_RESCUE', field: 'x',
-          from: String(x), to: String(rescue.correctedValue),
-          pattern: rescue.method, priority: 'P1'
-        });
-        x = rescue.correctedValue;
-        heuristicApplied = rescue;
-        flags.push({
-          type: 'HEURISTIC_APPLIED', severity: 'info',
-          message: `Heurística aplicada: ${rescue.hypothesis}`
-        });
-      }
-    }
-    
-    if (!isInRange(y, 'y')) {
-      const rescue = runHeuristicRescue(String(input.y), y, 'y');
-      if (rescue) {
-        corrections.push({
-          type: 'HEURISTIC_RESCUE', field: 'y',
-          from: String(y), to: String(rescue.correctedValue),
-          pattern: rescue.method, priority: 'P1'
-        });
-        y = rescue.correctedValue;
-        heuristicApplied = rescue;
-        flags.push({
-          type: 'HEURISTIC_APPLIED', severity: 'info',
-          message: `Heurística aplicada: ${rescue.hypothesis}`
-        });
-      }
-    }
-  }
-  
-  // ═══════════════════════════════════════════════════════════════════════════
-  // FASE 13: Validar rangos finales y calcular score
-  // ═══════════════════════════════════════════════════════════════════════════
-  const rangeValid = validateRange(x, y, flags);
-  const score = calculateScore(x, y, corrections, flags);
-  const confidence = scoreToConfidence(score);
   
   return {
-    x, y, original, corrections, flags, score, confidence,
-    isValid: rangeValid && score >= 50,
-    heuristicApplied,
-    sourceFormat: sourceFormat !== 'UNKNOWN' ? sourceFormat : 'UTM',
-    sourceCRS,
-    cadastralRef,
-    toponym,
-    mgrsRef
+    x,
+    y,
+    xOriginal: xInput,
+    yOriginal: yInput,
+    normalizacionX: normX,
+    normalizacionY: normY,
+    validacionX: validX,
+    validacionY: validY,
+    intercambioAplicado,
+    confianzaGlobal,
+    epsg: epsgAsumido,
   };
 }
 
 // ============================================================================
-// FUNCIONES AUXILIARES
+// UTILIDADES DE EXPORTACIÓN
 // ============================================================================
 
-function normalizeNumber(
-  value: string | number, 
-  corrections: Correction[], 
-  field: 'x' | 'y'
-): number | null {
-  if (typeof value === 'number') {
-    return isNaN(value) ? null : value;
+/**
+ * Formatea una coordenada normalizada para exportación
+ */
+export function formatearCoordenada(valor: number | null, decimales: number = 2): string {
+  if (valor === null) {
+    return '';
   }
-  
-  let str = String(value).trim();
-  
-  for (const [pattern, replacement, patternName] of SEPARATOR_PATTERNS) {
-    const newStr = str.replace(pattern, replacement);
-    if (newStr !== str) {
-      corrections.push({
-        type: 'SEPARATOR_FIXED', field,
-        from: str, to: newStr,
-        pattern: patternName, priority: 'P1'
-      });
-      str = newStr;
-    }
-  }
-  
-  str = str.replace(/[^\d.-]/g, '');
-  
-  const dots = str.match(/\./g);
-  if (dots && dots.length > 1) {
-    const parts = str.split('.');
-    const decimal = parts.pop();
-    str = parts.join('') + '.' + decimal;
-  }
-  
-  const num = parseFloat(str);
-  return isNaN(num) ? null : num;
+  return valor.toFixed(decimales);
 }
 
-function isPlaceholder(value: string | number): boolean {
-  if (typeof value === 'number') {
-    return value === 0 || isNaN(value);
-  }
-  const str = String(value).trim();
-  return PLACEHOLDER_PATTERNS.some(pattern => pattern.test(str));
-}
-
-function detectXYSwap(x: number, y: number): boolean {
-  const xInYRange = x >= 1_000_000 && x <= 5_000_000;
-  const yInXRange = y >= 100_000 && y <= 900_000;
-  return xInYRange && yInXRange;
-}
-
-function detectAndFixYTruncation(
-  y: number, 
-  province?: Province
-): { wasFixed: boolean; fixed: number; method: string } {
-  const yStr = Math.floor(Math.abs(y)).toString();
-  
-  if (yStr.length >= 7 && yStr.startsWith('4')) {
-    return { wasFixed: false, fixed: y, method: 'NONE' };
-  }
-  
-  if (yStr.length === 6 && !yStr.startsWith('4')) {
-    if (/^[0-3]/.test(yStr)) {
-      const fixed = parseFloat('4' + yStr);
-      if (isInRange(fixed, 'y')) {
-        return { wasFixed: true, fixed, method: 'ADD_4_PREFIX' };
-      }
-    }
-  }
-  
-  if (yStr.length === 6 && yStr.startsWith('4')) {
-    if (!isInRange(y, 'y')) {
-      const fixed = y * 10;
-      if (isInRange(fixed, 'y')) {
-        return { wasFixed: true, fixed, method: 'MULTIPLY_10_Y' };
-      }
-    }
-  }
-  
-  if (yStr.length === 5) {
-    let prefix = '40';
-    if (province && PROVINCE_Y_PREFIXES[province]) {
-      prefix = PROVINCE_Y_PREFIXES[province][0];
-    }
-    const fixed = parseFloat(prefix + yStr);
-    if (isInRange(fixed, 'y')) {
-      return { wasFixed: true, fixed, method: 'ADD_40_PREFIX' };
-    }
-  }
-  
-  return { wasFixed: false, fixed: y, method: 'NONE' };
-}
-
-function detectAndFixKilometers(
-  value: number,
-  field: 'x' | 'y',
-  originalStr: string
-): { wasFixed: boolean; fixed: number; method: string; confidence: number } {
-  
-  if (field === 'x' && value > 0 && value < 1000) {
-    const hasDecimals = originalStr.includes('.') || originalStr.includes(',');
-    
-    if (hasDecimals) {
-      const fixed = Math.round(value * 1000);
-      if (isInRange(fixed, 'x')) {
-        return { wasFixed: true, fixed, method: 'KM_DECIMAL_TO_M', confidence: 95 };
-      }
-    } else {
-      const fixed = value * 1000;
-      if (isInRange(fixed, 'x')) {
-        return { wasFixed: true, fixed, method: 'KM_INT_TO_M', confidence: 85 };
-      }
-    }
-  }
-  
-  if (field === 'y' && value > 3900 && value < 4400) {
-    const fixed = value * 1000;
-    if (isInRange(fixed, 'y')) {
-      return { wasFixed: true, fixed, method: 'Y_KM_TO_M', confidence: 90 };
-    }
-  }
-  
-  return { wasFixed: false, fixed: value, method: 'NONE', confidence: 100 };
-}
-
-function detectAndFixXTruncation(
-  x: number
-): { wasFixed: boolean; fixed: number; method: string } {
-  const xStr = Math.floor(Math.abs(x)).toString();
-  
-  if (xStr.length >= 6) {
-    return { wasFixed: false, fixed: x, method: 'NONE' };
-  }
-  
-  if (xStr.length === 5) {
-    const fixed = x * 10;
-    if (isInRange(fixed, 'x')) {
-      return { wasFixed: true, fixed, method: 'MULTIPLY_10' };
-    }
-  }
-  
-  if (xStr.length === 4) {
-    const fixed = x * 100;
-    if (isInRange(fixed, 'x')) {
-      return { wasFixed: true, fixed, method: 'MULTIPLY_100' };
-    }
-  }
-  
-  return { wasFixed: false, fixed: x, method: 'NONE' };
-}
-
-function runHeuristicRescue(
-  originalValue: string,
-  parsedValue: number,
-  field: 'x' | 'y'
-): HeuristicResult | null {
-  
-  const heuristics = [
-    {
-      condition: (v: number, f: 'x' | 'y') => f === 'x' && v > 0 && v < 1000,
-      transform: (v: number) => Math.round(v * 1000),
-      hypothesis: 'Coordenada X parece estar en kilómetros',
-      method: 'HEUR_KM_X',
-      confidence: 90
-    },
-    {
-      condition: (_v: number, _f: 'x' | 'y', orig: string) => /^\d{3},\d{3}/.test(orig),
-      transform: (_v: number, orig: string) => parseFloat(orig.replace(/,/g, '')),
-      hypothesis: 'Coma usada como separador de miles',
-      method: 'HEUR_COMMA_THOUSANDS',
-      confidence: 88
-    },
-    {
-      condition: (v: number, f: 'x' | 'y') => f === 'x' && v >= 10000 && v < 100000,
-      transform: (v: number) => v * 10,
-      hypothesis: 'Coordenada X truncada (falta 1 dígito)',
-      method: 'HEUR_X_TRUNC',
-      confidence: 85
-    },
-    {
-      condition: (v: number, f: 'x' | 'y') => 
-        f === 'y' && v >= 100000 && v < 1000000 && !String(Math.floor(v)).startsWith('4'),
-      transform: (v: number) => v + 4000000,
-      hypothesis: 'Coordenada Y truncada (falta "4" inicial)',
-      method: 'HEUR_Y_ADD_4M',
-      confidence: 90
-    },
-    {
-      condition: (_v: number, _f: 'x' | 'y', orig: string) => /^\d{3}\.\d{3}$/.test(orig.trim()),
-      transform: (_v: number, orig: string) => parseFloat(orig.replace(/\./g, '')),
-      hypothesis: 'Punto usado como separador de miles',
-      method: 'HEUR_DOT_THOUSANDS',
-      confidence: 87
-    }
+/**
+ * Genera un resumen de diagnóstico para un par de coordenadas
+ */
+export function generarDiagnostico(par: ParCoordenadas): string {
+  const lineas: string[] = [
+    `═══════════════════════════════════════════════════════`,
+    `DIAGNÓSTICO DE COORDENADAS`,
+    `═══════════════════════════════════════════════════════`,
+    ``,
+    `ENTRADA:`,
+    `  X original: "${par.xOriginal}"`,
+    `  Y original: "${par.yOriginal}"`,
+    ``,
+    `PATRONES DETECTADOS:`,
+    `  X: ${par.normalizacionX.patronDetectado}`,
+    `  Y: ${par.normalizacionY.patronDetectado}`,
+    ``,
+    `NORMALIZACIÓN:`,
+    `  X: ${par.x !== null ? par.x.toFixed(2) : 'NULL'} (${par.normalizacionX.exito ? '✓' : '✗'})`,
+    `  Y: ${par.y !== null ? par.y.toFixed(2) : 'NULL'} (${par.normalizacionY.exito ? '✓' : '✗'})`,
+    ``,
+    `FASES APLICADAS:`,
+    `  X: ${par.normalizacionX.fasesAplicadas.join(' → ')}`,
+    `  Y: ${par.normalizacionY.fasesAplicadas.join(' → ')}`,
   ];
-
-  for (const h of heuristics) {
-    if (h.condition(parsedValue, field, originalValue)) {
-      const corrected = h.transform(parsedValue, originalValue);
-      if (isInRange(corrected, field)) {
-        return {
-          originalValue,
-          correctedValue: corrected,
-          hypothesis: h.hypothesis,
-          confidence: h.confidence,
-          field,
-          method: h.method
-        };
-      }
-    }
+  
+  if (par.intercambioAplicado) {
+    lineas.push(``, `⚠️  CORRECCIÓN P0-2: Intercambio X↔Y aplicado`);
   }
   
-  return null;
-}
-
-function isInRange(value: number, field: 'x' | 'y'): boolean {
-  const bounds = field === 'x' ? ANDALUSIA_BOUNDS.x : ANDALUSIA_BOUNDS.y;
-  return value >= bounds.min && value <= bounds.max;
-}
-
-function validateRange(x: number, y: number, flags: Flag[]): boolean {
-  let valid = true;
-  
-  if (!isInRange(x, 'x')) {
-    flags.push({
-      type: 'OUT_OF_RANGE', severity: 'error',
-      message: `X=${x.toFixed(2)} fuera de rango (${ANDALUSIA_BOUNDS.x.min}-${ANDALUSIA_BOUNDS.x.max})`
-    });
-    valid = false;
+  if (par.validacionY?.correccionAplicada) {
+    lineas.push(``, `⚠️  CORRECCIÓN P0-1: ${par.validacionY.correccionAplicada}`);
   }
   
-  if (!isInRange(y, 'y')) {
-    flags.push({
-      type: 'OUT_OF_RANGE', severity: 'error',
-      message: `Y=${y.toFixed(2)} fuera de rango (${ANDALUSIA_BOUNDS.y.min}-${ANDALUSIA_BOUNDS.y.max})`
-    });
-    valid = false;
+  lineas.push(
+    ``,
+    `VALIDACIÓN:`,
+    `  X: ${par.validacionX?.tipo || 'N/A'} - ${par.validacionX?.confianza || 'N/A'}`,
+    `  Y: ${par.validacionY?.tipo || 'N/A'} - ${par.validacionY?.confianza || 'N/A'}`,
+    ``,
+    `CONFIANZA GLOBAL: ${par.confianzaGlobal}`,
+    `EPSG: ${par.epsg}`,
+  );
+  
+  // Warnings
+  const allWarnings = [
+    ...par.normalizacionX.warnings,
+    ...par.normalizacionY.warnings,
+    ...(par.validacionX?.warnings || []),
+    ...(par.validacionY?.warnings || []),
+  ];
+  
+  if (allWarnings.length > 0) {
+    lineas.push(``, `WARNINGS:`);
+    allWarnings.forEach(w => lineas.push(`  ⚠ ${w}`));
   }
   
-  return valid;
-}
-
-function calculateScore(
-  x: number, 
-  y: number, 
-  corrections: Correction[], 
-  flags: Flag[]
-): number {
-  let score = 100;
+  // Errores
+  const allErrores = [
+    ...par.normalizacionX.errores,
+    ...par.normalizacionY.errores,
+  ];
   
-  const p0Corrections = corrections.filter(c => c.priority === 'P0').length;
-  const p1Corrections = corrections.filter(c => c.priority === 'P1').length;
-  const p2Corrections = corrections.filter(c => c.priority === 'P2').length;
+  if (allErrores.length > 0) {
+    lineas.push(``, `ERRORES:`);
+    allErrores.forEach(e => lineas.push(`  ✗ ${e}`));
+  }
   
-  score -= p0Corrections * 10;
-  score -= p1Corrections * 5;
-  score -= p2Corrections * 3;
+  lineas.push(`═══════════════════════════════════════════════════════`);
   
-  const errors = flags.filter(f => f.severity === 'error').length;
-  const warnings = flags.filter(f => f.severity === 'warning').length;
-  
-  score -= errors * 25;
-  score -= warnings * 10;
-  
-  if (x % 1 === 0) score -= 3;
-  if (y % 1 === 0) score -= 3;
-  
-  return Math.max(0, Math.min(100, score));
-}
-
-function scoreToConfidence(score: number): ConfidenceLevel {
-  if (score >= 76) return 'HIGH';
-  if (score >= 51) return 'MEDIUM';
-  if (score >= 26) return 'LOW';
-  return 'CRITICAL';
+  return lineas.join('\n');
 }
 
 // ============================================================================
-// FUNCIONES DE UTILIDAD
+// TESTS INTEGRADOS
 // ============================================================================
 
-export function normalizeEncoding(text: string): string {
-  let result = text;
-  for (const [pattern, replacement] of MOJIBAKE_PATTERNS) {
-    result = result.replace(pattern, replacement);
-  }
-  return result;
-}
-
-export function normalizeCoordinateBatch(
-  inputs: CoordinateInput[],
-  onProgress?: (current: number, total: number) => void
-): NormalizationResult[] {
-  const results: NormalizationResult[] = [];
+/**
+ * Ejecuta batería de tests con casos reales de municipios andaluces
+ */
+export function ejecutarTests(): void {
+  const casos = [
+    // Berja - Espacio + doble tilde
+    { x: '504 750´´92', y: '4 077 153´´36', esperadoX: 504750.92, esperadoY: 4077153.36 },
+    { x: '506 320´´45', y: '4 076 622´´96', esperadoX: 506320.45, esperadoY: 4076622.96 },
+    
+    // Berja DOCX - Espacio + decimales implícitos
+    { x: '506 527 28', y: '4 076 367 83', esperadoX: 506527.28, esperadoY: 4076367.83 },
+    
+    // Berja - Europeo completo
+    { x: '505.438,13', y: '4.078.875,09', esperadoX: 505438.13, esperadoY: 4078875.09 },
+    
+    // Colomera - Coma decimal
+    { x: '436780,0', y: '4136578,2', esperadoX: 436780.0, esperadoY: 4136578.2 },
+    { x: '437301,8', y: '4136940,5', esperadoX: 437301.8, esperadoY: 4136940.5 },
+    
+    // Quéntar - Mixto (coma y punto en mismo doc)
+    { x: '458271,51', y: '4116357.05', esperadoX: 458271.51, esperadoY: 4116357.05 },
+    
+    // Hornos - Punto miles
+    { x: '524.891', y: '4.230.105', esperadoX: 524891, esperadoY: 4230105 },
+    
+    // Castril - Limpio
+    { x: '521581.88', y: '4185653.05', esperadoX: 521581.88, esperadoY: 4185653.05 },
+    
+    // Error P0-1: Y truncada
+    { x: '504750', y: '77905', esperadoX: 504750, esperadoY: 4077905 },
+    
+    // Error P0-2: Intercambio X↔Y
+    { x: '4077905', y: '504750', esperadoX: 504750, esperadoY: 4077905 },
+    
+    // Placeholders
+    { x: 'Indicar', y: 'Pendiente', esperadoX: null, esperadoY: null },
+    { x: 'N/A', y: '0', esperadoX: null, esperadoY: null },
+    
+    // Mojibake
+    { x: '504750Â´25', y: '4077905Â´68', esperadoX: 504750.25, esperadoY: 4077905.68 },
+  ];
   
-  for (let i = 0; i < inputs.length; i++) {
-    results.push(normalizeCoordinate(inputs[i]));
-    onProgress?.(i + 1, inputs.length);
-  }
+  console.log('\n🧪 EJECUTANDO TESTS DE NORMALIZACIÓN\n');
+  console.log('═'.repeat(70));
   
-  return results;
-}
-
-export function getBatchStats(results: NormalizationResult[]): {
-  total: number;
-  valid: number;
-  invalid: number;
-  avgScore: number;
-  correctionsByType: Record<string, number>;
-  confidenceDistribution: Record<ConfidenceLevel, number>;
-  heuristicsApplied: number;
-  formatDistribution: Record<SourceFormat, number>;
-  cadastralRefs: number;
-  toponyms: number;
-  mgrsRefs: number;
-  ocrErrors: number;
-  localSystemErrors: number;
-} {
-  const correctionsByType: Record<string, number> = {};
-  const confidenceDistribution: Record<ConfidenceLevel, number> = {
-    CRITICAL: 0, LOW: 0, MEDIUM: 0, HIGH: 0
-  };
-  const formatDistribution: Record<SourceFormat, number> = {
-    UTM: 0, DMS: 0, DD: 0, NMEA: 0, WKT: 0, GEOJSON: 0, PEGADA: 0,
-    LAMBERT: 0, MADRID_DATUM: 0, CADASTRAL: 0, TOPONYM: 0, NARRATIVE: 0,
-    MGRS: 0, LOCAL_SYSTEM: 0, UNKNOWN: 0
-  };
+  let pasados = 0;
+  let fallidos = 0;
   
-  let totalScore = 0;
-  let validCount = 0;
-  let heuristicsCount = 0;
-  let cadastralCount = 0;
-  let toponymCount = 0;
-  let mgrsCount = 0;
-  let ocrCount = 0;
-  let localSystemCount = 0;
-  
-  for (const result of results) {
-    totalScore += result.score;
-    if (result.isValid) validCount++;
-    if (result.heuristicApplied) heuristicsCount++;
-    if (result.cadastralRef) cadastralCount++;
-    if (result.toponym) toponymCount++;
-    if (result.mgrsRef) mgrsCount++;
-    if (result.flags.some(f => f.type === 'OCR_ERRORS_DETECTED')) ocrCount++;
-    if (result.sourceFormat === 'LOCAL_SYSTEM') localSystemCount++;
-    confidenceDistribution[result.confidence]++;
-    if (result.sourceFormat) {
-      formatDistribution[result.sourceFormat]++;
+  casos.forEach((caso, i) => {
+    const resultado = procesarParCoordenadas(caso.x, caso.y);
+    
+    const xOk = resultado.x === caso.esperadoX || 
+                (resultado.x !== null && caso.esperadoX !== null && 
+                 Math.abs(resultado.x - caso.esperadoX) < 0.01);
+    const yOk = resultado.y === caso.esperadoY || 
+                (resultado.y !== null && caso.esperadoY !== null && 
+                 Math.abs(resultado.y - caso.esperadoY) < 0.01);
+    
+    const estado = xOk && yOk ? '✓' : '✗';
+    
+    if (xOk && yOk) {
+      pasados++;
+    } else {
+      fallidos++;
     }
     
-    for (const correction of result.corrections) {
-      correctionsByType[correction.type] = (correctionsByType[correction.type] || 0) + 1;
+    console.log(`${estado} Test ${i + 1}: "${caso.x}", "${caso.y}"`);
+    console.log(`  Esperado: X=${caso.esperadoX}, Y=${caso.esperadoY}`);
+    console.log(`  Obtenido: X=${resultado.x}, Y=${resultado.y}`);
+    console.log(`  Patrones: X=${resultado.normalizacionX.patronDetectado}, Y=${resultado.normalizacionY.patronDetectado}`);
+    
+    if (!xOk || !yOk) {
+      console.log(`  ⚠ FALLO: X ${xOk ? 'OK' : 'FAIL'}, Y ${yOk ? 'OK' : 'FAIL'}`);
     }
-  }
+    
+    console.log('');
+  });
   
-  return {
-    total: results.length,
-    valid: validCount,
-    invalid: results.length - validCount,
-    avgScore: results.length > 0 ? totalScore / results.length : 0,
-    correctionsByType,
-    confidenceDistribution,
-    heuristicsApplied: heuristicsCount,
-    formatDistribution,
-    cadastralRefs: cadastralCount,
-    toponyms: toponymCount,
-    mgrsRefs: mgrsCount,
-    ocrErrors: ocrCount,
-    localSystemErrors: localSystemCount
-  };
+  console.log('═'.repeat(70));
+  console.log(`\n📊 RESUMEN: ${pasados} pasados, ${fallidos} fallidos de ${casos.length} tests\n`);
 }
 
 // ============================================================================
-// EXPORTS
+// EXPORTACIÓN POR DEFECTO
 // ============================================================================
 
 export default {
-  normalizeCoordinate,
-  normalizeCoordinateBatch,
-  normalizeEncoding,
-  getBatchStats,
-  // Parsers v4.0
-  parseDMS,
-  parseNMEA,
-  parseWKT,
-  parseGeoJSON,
-  parseGluedCoordinates,
-  parseLabeledCoordinates,
-  // Parsers v4.1
-  parseCadastralReference,
-  detectToponym,
-  parseNarrativeCoordinates,
-  parseCardinalCoordinates,
-  // Parsers v4.2
-  parseMGRS,
-  convertMGRStoUTM,
-  parseScientificNotation,
-  isScientificNotation,
-  // Funciones v4.2
-  hasOCRErrors,
-  fixOCRErrors,
-  mightBeLocalSystem,
-  isDXFSource,
-  isKMLSource,
-  detectKMLLonLatSwap,
-  detectDMSOverflow,
-  fixDMSOverflow,
-  detectLowPrecisionGPS,
-  // Transformaciones
-  transformED50toETRS89,
-  transformWGS84toUTM30,
-  transformLambertToETRS89,
-  transformMadridDatumToETRS89,
-  isGeographic,
-  mightBeED50,
-  mightBeMadridDatum,
-  mightBeLambert,
-  // Constantes
-  ANDALUSIA_BOUNDS,
-  ANDALUSIA_GEOGRAPHIC_BOUNDS,
-  SPAIN_GEOGRAPHIC_BOUNDS,
-  LAMBERT_BOUNDS,
-  PROVINCE_Y_PREFIXES
+  normalizarCoordenada,
+  validarCoordenada,
+  procesarParCoordenadas,
+  detectarPatron,
+  esPlaceholder,
+  detectarIntercambioXY,
+  formatearCoordenada,
+  generarDiagnostico,
+  ejecutarTests,
+  RANGOS_ANDALUCIA,
 };
