@@ -43,3 +43,37 @@
 - Comenzar trabajo técnico con protocolos nuevos
 
 ---
+
+[2025-11-29] [DataMaster] - Auditoría código vs documentación
+
+## Problema detectado
+PTEL_FEATURES.json mostraba 0/8 features completadas, cuando el código
+real tiene 13/15 features implementadas. Grave inconsistencia que
+impedía tracking correcto del progreso.
+
+## Auditoría realizada
+Revisión archivo por archivo de:
+- src/services/classification/InfrastructureClassifier.ts ✅
+- src/services/geocoding/GeocodingOrchestrator.ts (739 líneas) ✅
+- 10 geocodificadores especializados en src/services/geocoding/specialized/ ✅
+- 2 geocodificadores genéricos en src/services/geocoding/generic/ ✅
+- src/services/geocoding/ineValidator.ts ✅
+- 12 archivos de tests en src/lib/__tests__/ ✅
+
+## Estado real del código
+- InfrastructureClassifier: 16 categorías PTEL (no 12)
+- Cascada geocodificación: 7 niveles (L1-L7) funcionando
+- Geocodificadores implementados: 13/13 (100%)
+- Tests: 59/59 pasando (documentExtractor)
+- Pendiente: CacheManager multinivel, ProgressPanel UI
+
+## Archivos actualizados
+1. .ptel/PTEL_FEATURES.json → 15 features (13 completadas, 2 pendientes)
+2. .ptel/PTEL_ESTADO_SESION.json → Métricas y estado corregidos
+3. .ptel/claude-progress.txt → Este registro
+
+## Conclusión
+El proyecto está mucho más avanzado de lo que la documentación reflejaba.
+Progreso real: 87% (13/15 features). Solo faltan CacheManager y ProgressPanel.
+
+---

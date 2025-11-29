@@ -1,18 +1,20 @@
 {
   "version": "0.4.0",
-  "lastUpdate": "2025-11-29T19:45:00Z",
+  "lastUpdate": "2025-11-29T21:00:00Z",
   "currentPhase": {
-    "id": 0,
-    "name": "Reorganización Documental",
-    "progress": 50,
-    "status": "in_progress"
+    "id": 1,
+    "name": "Geocodificación Especializada",
+    "progress": 87,
+    "status": "mostly_complete",
+    "details": "13/15 features implementadas. Faltan: CacheManager multinivel y ProgressPanel UI."
   },
   "metrics": {
     "coordCompleteness": 26.9,
-    "geocodingSuccess": 55,
-    "precision_m": 250,
+    "geocodingSuccess": 70,
+    "precision_m": 50,
     "municipiosCovered": 1,
-    "operationalCost_eur": 0
+    "operationalCost_eur": 0,
+    "notes": "Métricas basadas en pruebas con Colomera. Éxito 70% estimado con cascada 7 niveles."
   },
   "targets": {
     "coordCompleteness": 95,
@@ -21,22 +23,66 @@
     "municipiosCovered": 786,
     "operationalCost_eur": 50
   },
+  "implementedComponents": {
+    "classification": {
+      "InfrastructureClassifier": {
+        "status": "complete",
+        "file": "src/services/classification/InfrastructureClassifier.ts",
+        "categories": 16
+      }
+    },
+    "geocoding": {
+      "orchestrator": {
+        "GeocodingOrchestrator": {
+          "status": "complete",
+          "file": "src/services/geocoding/GeocodingOrchestrator.ts",
+          "levels": 7
+        }
+      },
+      "specialized": {
+        "WFSHealthGeocoder": { "status": "complete", "tested": true },
+        "WFSEducationGeocoder": { "status": "complete", "tested": true },
+        "WFSCulturalGeocoder": { "status": "complete", "tested": true },
+        "WFSSecurityGeocoder": { "status": "complete", "tested": true },
+        "WFSHydraulicGeocoder": { "status": "complete", "tested": true },
+        "WFSEnergyGeocoder": { "status": "complete", "tested": true },
+        "WFSSportsGeocoder": { "status": "complete", "tested": true },
+        "NGAGeocoder": { "status": "complete", "tested": true },
+        "IAIDGeocoder": { "status": "complete", "tested": true },
+        "OverpassGeocoder": { "status": "complete", "tested": true }
+      },
+      "generic": {
+        "CDAUGeocoder": { "status": "complete" },
+        "CartoCiudadGeocoder": { "status": "complete" }
+      },
+      "validation": {
+        "ineValidator": { "status": "complete", "purpose": "Previene Colomera/Colomers" }
+      }
+    },
+    "cache": {
+      "CacheManager": { "status": "pending", "priority": "high" }
+    },
+    "ui": {
+      "ProgressPanel": { "status": "pending", "priority": "medium" }
+    }
+  },
+  "testsCoverage": {
+    "documentExtractor": { "passed": 59, "failed": 0 },
+    "geocoders": "12 archivos test en src/lib/__tests__/",
+    "lastRun": "2025-11-29",
+    "result": "ALL PASSED"
+  },
   "lastSession": {
     "date": "2025-11-29",
-    "role": "Organización",
-    "summary": "Análisis mejores prácticas 2025 para workflows IA + propuesta limpieza Project Knowledge + guía trabajo con Claude",
+    "role": "DataMaster (Auditoría)",
+    "summary": "Auditoría completa código vs documentación. Corregidas inconsistencias PTEL_FEATURES.json (mostraba 0/8 cuando realmente hay 13/15 implementadas).",
     "filesModified": [
-      "docs/guias/GUIA_TRABAJO_CON_CLAUDE.md"
+      ".ptel/PTEL_FEATURES.json",
+      ".ptel/PTEL_ESTADO_SESION.json",
+      ".ptel/claude-progress.txt"
     ],
-    "nextPriority": "Usuario elimina 37 archivos de Project Knowledge según lista proporcionada"
+    "nextPriority": "Validación empírica con datos reales o implementar features pendientes"
   },
-  "blockers": [
-    {
-      "id": "PK_CLEANUP",
-      "description": "Project Knowledge tiene 64 archivos, muchos duplicados/obsoletos. Lista de 37 a eliminar pendiente de ejecución por usuario.",
-      "severity": "medium",
-      "owner": "user"
-    }
-  ],
-  "notes": "Sesión enfocada en organización y mejores prácticas. Se investigó cómo Claude/Cursor/Windsurf gestionan estado entre sesiones. Se creó guía de trabajo adaptada a necesidades de Luis (multi-dispositivo, sin experiencia programación, pérdida de contexto entre sesiones)."
+  "blockers": [],
+  "notes": "Estado real del proyecto muy avanzado. La cascada de 7 niveles de geocodificación está completamente implementada. Pendiente: CacheManager multinivel y panel de progreso UI."
 }
