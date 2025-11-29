@@ -1,0 +1,12 @@
+# PTEL Progress Log
+# Formato: [FECHA] [ROL] - Resumen cambios
+# Este archivo es append-only (solo agregar al final)
+
+[2024-11-29] [Setup] - Inicializacion estructura .ptel/
+- Creado PTEL_ESTADO_SESION.json con metricas actuales
+- Creado PTEL_FEATURES.json con 8 features del Plan Maestro
+- Creado CLAUDE.md para contexto rapido
+- MCP GitHub configurado y funcionando
+- Sistema listo para protocolo de sesiones
+
+---
