@@ -77,3 +77,71 @@ El proyecto está mucho más avanzado de lo que la documentación reflejaba.
 Progreso real: 87% (13/15 features). Solo faltan CacheManager y ProgressPanel.
 
 ---
+
+[2025-11-29] [DataMaster] - Investigación geocodificadores adicionales
+
+## Análisis del corpus
+- 6 documentos PTEL analizados (Colomera, Quéntar, Hornos, Castril, Tíjola, Berja)
+- 517 infraestructuras totales
+- 70% éxito actual, 30% fallidos/pendientes
+
+## Gaps identificados en geocodificación
+1. **Cauces hidrográficos (12 registros)** - Ríos, ramblas, barrancos
+   - Servicio: DERA g01_hidrografia WFS
+   - Propuesta: WFSHydrographyGeocoder (2-3h)
+
+2. **Red viaria (13 registros)** - Carreteras, tramos, cruces
+   - Servicio: DERA g09_vias WFS
+   - Propuesta: WFSRoadNetworkGeocoder (2-3h)
+
+3. **Referencias catastrales** - Validación cruzada
+   - Servicio: Catastro INSPIRE WFS
+   - Propuesta: CatastroGeocoder (3-4h)
+
+## Hallazgo crítico
+El problema principal NO es la geocodificación (funciona bien).
+El cuello de botella es el **parser ODT** que concatena texto (72.5% de issues).
+
+## Decisión
+Pausar geocodificación. Cambiar a área UI para evaluar librerías frontend.
+
+## Estado al pausar
+- Geocodificadores: 13/13 implementados
+- Cascada: 7 niveles funcionando
+- Pendiente técnico: Hidrografía, Red viaria, CacheManager
+- Pendiente pruebas: Validación empírica con datos reales
+
+---
+
+
+## 2025-11-30 - Sesión Diseño Home v3 (DesignCraft)
+
+### Objetivo
+Definir logo e iconografía para Home PTEL v3
+
+### Trabajo realizado
+1. **Alternativas de icono** - Revisadas 16+ variantes (letras, símbolos, gradientes)
+2. **Alternativas de título** - 15 opciones propuestas
+3. **Recreación Home** - Archivo perdido por error I/O, recreado completo
+
+### Decisiones tomadas
+| Elemento | Decisión |
+|----------|----------|
+| Icono logo | Gradiente azul→cyan (P sobre cuadrado) |
+| Título Hero | "Normalizador de Coordenadas PTEL" |
+| Municipios | 785 (dato oficial corregido) |
+
+### Pendiente
+- Validar logo texto 1 línea vs 2 líneas
+- Revisar mockup completo antes de React
+
+### Archivos generados
+- `/Users/lm/Desktop/ptel-home-mantine-v3.html` (589 líneas)
+- `/Users/lm/Desktop/ptel-logo-comparativa.html`
+
+### Próxima sesión
+1. Abrir mockup en navegador y validar
+2. Decidir formato texto logo
+3. Si OK → iniciar implementación React
+
+---

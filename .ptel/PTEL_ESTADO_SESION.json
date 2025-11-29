@@ -1,88 +1,91 @@
 {
   "version": "0.4.0",
-  "lastUpdate": "2025-11-29T21:00:00Z",
+  "lastUpdate": "2025-11-30T00:20:00Z",
   "currentPhase": {
     "id": 1,
     "name": "Geocodificación Especializada",
     "progress": 87,
-    "status": "mostly_complete",
-    "details": "13/15 features implementadas. Faltan: CacheManager multinivel y ProgressPanel UI."
+    "status": "paused",
+    "details": "13/15 features implementadas. Pausado para trabajar en UI."
   },
+  "activeWorkArea": "ui",
   "metrics": {
     "coordCompleteness": 26.9,
     "geocodingSuccess": 70,
     "precision_m": 50,
-    "municipiosCovered": 1,
+    "municipiosCovered": 6,
     "operationalCost_eur": 0,
-    "notes": "Métricas basadas en pruebas con Colomera. Éxito 70% estimado con cascada 7 niveles."
+    "notes": "Métricas basadas en análisis de 6 documentos PTEL (517 infraestructuras). Éxito 70% estimado."
   },
   "targets": {
     "coordCompleteness": 95,
     "geocodingSuccess": 95,
     "precision_m": 25,
-    "municipiosCovered": 786,
+    "municipiosCovered": 785,
     "operationalCost_eur": 50
   },
-  "implementedComponents": {
-    "classification": {
-      "InfrastructureClassifier": {
-        "status": "complete",
-        "file": "src/services/classification/InfrastructureClassifier.ts",
-        "categories": 16
-      }
-    },
+  "areaStatus": {
     "geocoding": {
-      "orchestrator": {
-        "GeocodingOrchestrator": {
-          "status": "complete",
-          "file": "src/services/geocoding/GeocodingOrchestrator.ts",
-          "levels": 7
-        }
-      },
-      "specialized": {
-        "WFSHealthGeocoder": { "status": "complete", "tested": true },
-        "WFSEducationGeocoder": { "status": "complete", "tested": true },
-        "WFSCulturalGeocoder": { "status": "complete", "tested": true },
-        "WFSSecurityGeocoder": { "status": "complete", "tested": true },
-        "WFSHydraulicGeocoder": { "status": "complete", "tested": true },
-        "WFSEnergyGeocoder": { "status": "complete", "tested": true },
-        "WFSSportsGeocoder": { "status": "complete", "tested": true },
-        "NGAGeocoder": { "status": "complete", "tested": true },
-        "IAIDGeocoder": { "status": "complete", "tested": true },
-        "OverpassGeocoder": { "status": "complete", "tested": true }
-      },
-      "generic": {
-        "CDAUGeocoder": { "status": "complete" },
-        "CartoCiudadGeocoder": { "status": "complete" }
-      },
-      "validation": {
-        "ineValidator": { "status": "complete", "purpose": "Previene Colomera/Colomers" }
-      }
-    },
-    "cache": {
-      "CacheManager": { "status": "pending", "priority": "high" }
+      "status": "paused",
+      "progress": 87,
+      "lastWorked": "2025-11-29",
+      "pendingTasks": [
+        "Pruebas empíricas con datos reales",
+        "WFSHydrographyGeocoder (cauces: ríos, ramblas)",
+        "WFSRoadNetworkGeocoder (carreteras, tramos)",
+        "CacheManager multinivel",
+        "ProgressPanel UI"
+      ]
     },
     "ui": {
-      "ProgressPanel": { "status": "pending", "priority": "medium" }
+      "status": "in_progress",
+      "progress": 40,
+      "lastWorked": "2025-11-30",
+      "pendingTasks": [
+        "Validar mockup Home v3 completo",
+        "Decisión logo texto 1 vs 2 líneas",
+        "Implementar Home en React con Mantine"
+      ],
+      "artifacts": [
+        "/Users/lm/Desktop/ptel-home-mantine-v3.html",
+        "/Users/lm/Desktop/ptel-logo-comparativa.html"
+      ]
+    },
+    "normalization": {
+      "status": "stable",
+      "progress": 95,
+      "lastWorked": "2025-11-27"
+    },
+    "parsing": {
+      "status": "needs_improvement",
+      "progress": 70,
+      "lastWorked": "2025-11-27"
     }
   },
-  "testsCoverage": {
-    "documentExtractor": { "passed": 59, "failed": 0 },
-    "geocoders": "12 archivos test en src/lib/__tests__/",
-    "lastRun": "2025-11-29",
-    "result": "ALL PASSED"
-  },
   "lastSession": {
-    "date": "2025-11-29",
-    "role": "DataMaster (Auditoría)",
-    "summary": "Auditoría completa código vs documentación. Corregidas inconsistencias PTEL_FEATURES.json (mostraba 0/8 cuando realmente hay 13/15 implementadas).",
+    "date": "2025-11-30",
+    "role": "DesignCraft",
+    "area": "ui",
+    "summary": "Diseño Home v3. Decisiones: icono gradiente azul→cyan, título 'Normalizador de Coordenadas PTEL'. Recreada Home completa tras pérdida por error I/O.",
     "filesModified": [
-      ".ptel/PTEL_FEATURES.json",
-      ".ptel/PTEL_ESTADO_SESION.json",
-      ".ptel/claude-progress.txt"
+      "ptel-home-mantine-v3.html (recreado)",
+      "ptel-logo-comparativa.html (nuevo)"
     ],
-    "nextPriority": "Validación empírica con datos reales o implementar features pendientes"
+    "nextArea": "ui"
+  },
+  "designDecisions": {
+    "home_v3": {
+      "logo_icon": "Gradiente azul (#228BE6) → cyan (#22B8CF)",
+      "main_title": "Normalizador de Coordenadas PTEL",
+      "header_text": "Normalizador PTEL (1 línea)",
+      "municipalities": 785,
+      "gdpr_badge": true,
+      "completeness_pipeline": "5 etapas (26.9% → 95%)",
+      "precision_card": "Diana + métricas + fuentes + tiempo",
+      "patterns_cards": "5 items por card equilibrados",
+      "pending": "Validar logo texto 1 vs 2 líneas"
+    }
   },
   "blockers": [],
-  "notes": "Estado real del proyecto muy avanzado. La cascada de 7 niveles de geocodificación está completamente implementada. Pendiente: CacheManager multinivel y panel de progreso UI."
+  "notes": "Mockup Home v3 completo en Desktop. Próximo: validar diseño y pasar a implementación React."
 }
