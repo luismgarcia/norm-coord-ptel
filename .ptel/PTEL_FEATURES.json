@@ -1,0 +1,137 @@
+{
+  "features": [
+    {
+      "id": "F001",
+      "category": "infrastructure",
+      "description": "Clasificador tipologico 12 categorias PTEL",
+      "priority": "critical",
+      "estimatedHours": 3,
+      "steps": [
+        "Definir interfaces TypeScript para 12 tipos",
+        "Implementar funcion clasificadora por keywords",
+        "Mapear tipos a servicios WFS especificos",
+        "Tests unitarios con datos Colomera"
+      ],
+      "passes": false,
+      "completedDate": null,
+      "assignedRole": "DataMaster"
+    },
+    {
+      "id": "F002",
+      "category": "geocoding",
+      "description": "Cliente WFS SICESS para centros sanitarios",
+      "priority": "critical",
+      "estimatedHours": 4,
+      "steps": [
+        "Configurar cliente WFS con parametros SICESS",
+        "Implementar busqueda por nombre/municipio",
+        "Parsear respuesta GML a coordenadas UTM",
+        "Validacion cruzada con datos reales"
+      ],
+      "passes": false,
+      "completedDate": null,
+      "assignedRole": "MapWizard"
+    },
+    {
+      "id": "F003",
+      "category": "geocoding",
+      "description": "Cliente WFS centros educativos ISE",
+      "priority": "high",
+      "estimatedHours": 3,
+      "steps": [
+        "Adaptar cliente WFS generico para ISE",
+        "Mapear campos especificos educacion",
+        "Implementar filtro por municipio INE",
+        "Tests con colegios Colomera"
+      ],
+      "passes": false,
+      "completedDate": null,
+      "assignedRole": "MapWizard"
+    },
+    {
+      "id": "F004",
+      "category": "geocoding",
+      "description": "Cliente WFS patrimonio cultural IAPH",
+      "priority": "high",
+      "estimatedHours": 3,
+      "steps": [
+        "Configurar endpoint IAPH",
+        "Implementar busqueda BIC/patrimonio",
+        "Extraer coordenadas de geometrias",
+        "Validar con patrimonio Granada"
+      ],
+      "passes": false,
+      "completedDate": null,
+      "assignedRole": "MapWizard"
+    },
+    {
+      "id": "F005",
+      "category": "cache",
+      "description": "CacheManager multinivel (localStorage + IndexedDB)",
+      "priority": "high",
+      "estimatedHours": 4,
+      "steps": [
+        "Implementar interfaz ICacheManager",
+        "Capa localStorage para menos de 5MB",
+        "Capa IndexedDB con Dexie.js para mas de 5MB",
+        "Switching automatico por tamano",
+        "Compresion LZ-String"
+      ],
+      "passes": false,
+      "completedDate": null,
+      "assignedRole": "MapWizard"
+    },
+    {
+      "id": "F006",
+      "category": "cascade",
+      "description": "CascadeOrchestrator 6 niveles geocodificacion",
+      "priority": "medium",
+      "estimatedHours": 5,
+      "steps": [
+        "Definir jerarquia L0-L5",
+        "Implementar circuit breaker por servicio",
+        "Sistema puntuacion confianza",
+        "Fallback inteligente entre niveles",
+        "Metricas rendimiento por nivel"
+      ],
+      "passes": false,
+      "completedDate": null,
+      "assignedRole": "MapWizard"
+    },
+    {
+      "id": "F007",
+      "category": "validation",
+      "description": "Validacion INE para desambiguacion municipal",
+      "priority": "medium",
+      "estimatedHours": 2,
+      "steps": [
+        "Cargar catalogo INE 786 municipios",
+        "Implementar matching fuzzy nombre a codigo",
+        "Integrar en flujo geocodificacion",
+        "Tests municipios homonimos"
+      ],
+      "passes": false,
+      "completedDate": null,
+      "assignedRole": "DataMaster"
+    },
+    {
+      "id": "F008",
+      "category": "ui",
+      "description": "Panel progreso geocodificacion en tiempo real",
+      "priority": "medium",
+      "estimatedHours": 2,
+      "steps": [
+        "Componente ProgressPanel React",
+        "Integrar con eventos geocodificacion",
+        "Mostrar nivel actual cascada",
+        "Indicadores exito/fallo por registro"
+      ],
+      "passes": false,
+      "completedDate": null,
+      "assignedRole": "DesignCraft"
+    }
+  ],
+  "completedCount": 0,
+  "totalCount": 8,
+  "lastUpdated": "2024-11-29T12:00:00Z"
+}
