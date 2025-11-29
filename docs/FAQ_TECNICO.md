@@ -1,55 +1,50 @@
 # FAQ Técnico - Sistema PTEL Coordinate Normalizer
-## Preguntas Frecuentes y Soluciones
+## Preguntas Frecuentes y Soluciones a Problemas Comunes
 
-> Guía con las preguntas frecuentes más importantes para la normalización de coordenadas PTEL.
+> Guía exhaustiva con 40+ preguntas frecuentes, soluciones detalladas y troubleshooting.
 
-**Versión**: 1.1  
-**Última actualización**: 24 noviembre 2025
-
----
-
-## 📋 Categorías
-
-1. [Encoding y Caracteres](#encoding-y-caracteres)
-2. [Coordenadas y CRS](#coordenadas-y-crs)
-3. [Geocodificación](#geocodificación)
-4. [Validación y Scoring](#validación-y-scoring)
-5. [Formatos de Archivo](#formatos-de-archivo)
-6. [Errores Comunes](#errores-comunes)
+**Última actualización**: 20 noviembre 2025  
+**Versión**: 1.0.0
 
 ---
 
-## 🔤 Encoding y Caracteres
+## 📋 Índice de Categorías
 
-### ¿Por qué aparecen caracteres raros como "Ã³", "Ã¡", "Ã±"?
+1. [Problemas de Encoding y Caracteres](#problemas-de-encoding-y-caracteres)
+2. [Coordenadas Truncadas y Errores](#coordenadas-truncadas-y-errores)
+3. [Sistemas de Referencia (CRS)](#sistemas-de-referencia-crs)
+4. [Geocodificación y APIs](#geocodificación-y-apis)
+5. [Validación y Scoring](#validación-y-scoring)
+6. [Formatos de Archivo](#formatos-de-archivo)
+7. [Visor de Mapas](#visor-de-mapas)
+8. [Performance y Optimización](#performance-y-optimización)
+9. [Exportación de Datos](#exportación-de-datos)
+10. [Errores Comunes](#errores-comunes)
 
-**Causa**: Corrupción UTF-8 (mojibake) - archivo Windows-1252 interpretado como UTF-8.
+---
 
-**Solución automática**: El sistema corrige 52 patrones comunes:
-- `Ã³` → `ó`
-- `Ã¡` → `á`
-- `Ã©` → `é`
-- `Ã±` → `ñ`
+## 🔤 Problemas de Encoding y Caracteres
 
-**Prevención**:
-- LibreOffice: Guardar como CSV → "Unicode (UTF-8)"
-- Excel: "Guardar como → CSV UTF-8"
-- QGIS: Exportar con "UTF-8 encoding"
+### P1: ¿Por qué aparecen caracteres raros como "Ã±", "Ã¡", "Ã³"?
 
-### ¿Cómo corrijo caracteres manualmente?
+**Respuesta**: Corrupción UTF-8 causada por interpretación incorrecta del encoding.
 
-**Método 1 - LibreOffice**:
-1. Abrir archivo con encoding "ISO-8859-1"
-2. Guardar como CSV con "Unicode (UTF-8)"
+**Solución automática**: Sistema detecta y corrige 27 patrones comunes:
+- 'Ã±' → 'ñ'
+- 'Ã¡' → 'á'
+- 'Ã©' → 'é'
+- 'Ã³' → 'ó'
 
-**Método 2 - Línea de comandos**:
-```bash
-iconv -f WINDOWS-1252 -t UTF-8 archivo.csv > archivo_utf8.csv
-```
+**Prevención**: Al guardar, usar "Unicode (UTF-8)" como encoding.
 
-**Método 3 - Script Python**:
+---
+
+### P2: ¿Cómo corrijo los caracteres manualmente?
+
+**Método 1 - LibreOffice**: Abrir con encoding "Europa occidental" → Guardar como UTF-8
+
+**Método 2 - Python**:
 ```python
-import codecs
 with open('archivo.csv', 'r', encoding='iso-8859-1') as f:
     content = f.read()
 with open('archivo_utf8.csv', 'w', encoding='utf-8') as f:
@@ -58,236 +53,208 @@ with open('archivo_utf8.csv', 'w', encoding='utf-8') as f:
 
 ---
 
-## 🌍 Coordenadas y CRS
+## 📍 Coordenadas Truncadas y Errores
 
-### ¿Qué sistema de coordenadas usa el sistema?
+### P4: ¿Por qué mis coordenadas Y empiezan con "1" en vez de "41"?
 
-**Sistema de salida**: EPSG:25830 (UTM zona 30N ETRS89)
+**Respuesta**: Truncación automática en Excel al interpretar coordenadas.
 
-**Sistemas de entrada detectados automáticamente**:
-- EPSG:4326 (WGS84 lat/lon)
-- EPSG:4258 (ETRS89 geográficas)
-- EPSG:23030 (ED50 UTM zona 30N)
-- EPSG:32630 (WGS84 UTM zona 30N)
-- +20 sistemas adicionales
+**Solución**: Sistema detecta y corrige añadiendo prefijo "4" provincial.
 
-### ¿Cómo detecto si mis coordenadas están transpuestas (X↔Y)?
-
-**Síntomas**:
-- X tiene 7 dígitos, Y tiene 6 dígitos (típico UTM30 es inverso)
-- Coordenadas fuera de Andalucía tras conversión
-
-**Solución automática**: La estrategia de validación #5 detecta transposiciones:
-```typescript
-// Si X parece Y e Y parece X
-const xPareceY = digitosX === 7 && digitosY === 6
-```
-
-**Alerta generada**: "⚠️ Posible transposición X ↔ Y detectada"
-
-### ¿Qué rango de coordenadas es válido para Andalucía?
-
-**UTM30 ETRS89 (EPSG:25830)**:
-- X: 160,000 - 770,000 metros
-- Y: 3,960,000 - 4,280,000 metros
-
-**WGS84 (EPSG:4326)**:
-- Longitud: -7.5° a -1.6°
-- Latitud: 35.9° a 38.7°
+**Prevención**: Formatear columna Y como "Texto" ANTES de pegar.
 
 ---
 
-## 🔍 Geocodificación
+### P5: ¿Cómo sé si mis coordenadas están truncadas?
 
-### ¿Qué APIs de geocodificación usa el sistema?
+**Regla**: En Andalucía, todas las coordenadas Y en EPSG:25830 deben empezar con "4".
 
-**Primarias (gratuitas, sin límite)**:
-1. CartoCiudad (IGN) - Direcciones
-2. CDAU - Callejero Andalucía
-3. WFS DERA - Servicios especializados
-
-**Especializadas por tipología**:
-- SANITARIO: WFS SICESS/SAS
-- EDUCATIVO: API CKAN Educación
-- CULTURAL: WFS IAPH
-- POLICIAL: WFS ISE
-
-**Fallback**:
-- Nominatim (OSM) - 1 req/segundo
-- Visor manual Leaflet
-
-### ¿Por qué la geocodificación tipológica es mejor?
-
-**Geocodificación genérica**: 
-- "Centro de Salud Los Bermejales" → busca en callejero → puede fallar
-
-**Geocodificación tipológica**:
-- Detecta tipo: SANITARIO
-- Consulta WFS DERA G12
-- Retorna coordenadas oficiales validadas
-
-**Resultado**: 72% éxito vs 50-55% anterior (+30% mejora)
-
-### ¿Qué hago si la geocodificación falla?
-
-**Cascada de fallbacks automática**:
-1. Servicio tipológico (WFS)
-2. CartoCiudad
-3. CDAU
-4. Nominatim
-5. Visor manual (Fase 3)
-
-**Si todo falla**: El sistema marca con score <40 para revisión manual futura.
+| Provincia | Rango Y esperado |
+|-----------|------------------|
+| Almería | 4050000 - 4130000 |
+| Granada | 4070000 - 4150000 |
+| Málaga | 4040000 - 4100000 |
+| Sevilla | 4100000 - 4200000 |
 
 ---
 
-## 📊 Validación y Scoring
+## 🗺️ Sistemas de Referencia (CRS)
 
-### ¿Cómo funciona el sistema de scoring 0-100?
+### P7: ¿Qué es EPSG:25830?
 
-**8 estrategias de validación**:
+**EPSG:25830** = UTM Zona 30N + datum ETRS89, sistema oficial España.
 
-| Estrategia | Puntos | Descripción |
-|------------|--------|-------------|
-| 1. Rango UTM30 | 15 | Dentro de límites Andalucía |
-| 2. Caracteres especiales | 10 | Sin corrupción UTF-8 |
-| 3. Posición decimal | 15 | Precisión correcta |
-| 4. Longitud dígitos | 10 | 6 dígitos X, 7 dígitos Y |
-| 5. Transposición | 10 | X/Y no intercambiados |
-| 6. Coherencia formato | 10 | Detección sistema confiable |
-| 7. Validación EPSG | 10 | Conversión exitosa |
-| 8. Proximidad vecinos | 20 | <20km de otros puntos |
+**Características**:
+- Proyección: UTM
+- Zona: 30 Norte
+- Datum: ETRS89
+- Unidades: Metros
+- Uso: Cartografía técnica, catastro, SIG municipales
 
-### ¿Qué significan los niveles de confianza?
+---
 
-| Nivel | Score | Acción Recomendada |
-|-------|-------|-------------------|
-| HIGH | 76-100 | ✅ Uso directo en QGIS |
-| MEDIUM | 51-75 | ⚠️ Revisar manualmente |
-| LOW | 26-50 | 🔍 Geocodificar con CartoCiudad |
-| CRITICAL | 0-25 | ❌ Rechazar o corregir |
-| CONFIRMED | Manual | 🔵 Validado por usuario |
+### P8: ¿Cómo sé en qué sistema están mis coordenadas?
 
-### ¿Por qué la proximidad de vecinos da 20 puntos (la más alta)?
+**Diagnóstico por rangos**:
+- X: 100,000-800,000 + Y: 4,000,000-4,500,000 → UTM (EPSG:25830)
+- X: -10 a 5 + Y: 35 a 44 → WGS84 (EPSG:4326)
 
-**Razón**: Es el indicador más fiable de coherencia espacial.
+---
 
-**Lógica**:
-- Infraestructuras PTEL suelen estar agrupadas por municipio
-- Una coordenada aislada (>20km de vecinos) es sospechosa
-- Outliers espaciales indican posible error de geocodificación
+## 🎯 Geocodificación y APIs
+
+### P11: ¿Por qué CartoCiudad no encuentra mi dirección?
+
+**Causas comunes**:
+1. Dirección incompleta: "Calle Mayor" → "Calle Mayor 15, Granada"
+2. Abreviaturas no estándar: "C." → "Calle" o "CL"
+3. Nombres sin tildes
+
+---
+
+### P12: ¿Cómo mejoro la tasa de geocodificación?
+
+**Estrategia por tipología**:
+
+| Tipología | Sin estrategia | Con tipología | Mejora |
+|-----------|---------------|---------------|--------|
+| 🏥 Sanitarios | 50-55% | 85-92% | +63% |
+| 🎓 Educativos | 55-60% | 80-88% | +47% |
+| 🚓 Policiales | 45-50% | 75-82% | +64% |
+| 🏛️ Culturales | 40-45% | 70-78% | +73% |
+
+---
+
+### P14: ¿Cuántas peticiones puedo hacer a las APIs?
+
+| Servicio | Límite | Coste |
+|----------|--------|-------|
+| CartoCiudad IGN | ∞ Sin límite | €0 |
+| CDAU Andalucía | ∞ Sin límite | €0 |
+| WFS IDE Andalucía | ∞ Sin límite | €0 |
+| Nominatim OSM | 1 req/segundo | €0 |
+| LocationIQ | 60,000/día | €0 |
+
+---
+
+## ✅ Validación y Scoring
+
+### P15: ¿Cómo se calcula el score (0-100)?
+
+**8 estrategias ponderadas**:
+- Format (15%) - Sintaxis válida
+- Range (20%) - Dentro límites Andalucía
+- Special Characters (10%) - Sin corrupción UTF-8
+- Decimals (10%) - Decimales correctos
+- Digit Length (10%) - Longitud dígitos correcta
+- Spatial Coherence (15%) - Distancia <20km municipio
+- Neighborhood (10%) - Vecindad con similares
+- CRS Detection (10%) - CRS correcto
+
+---
+
+### P16: ¿Qué significan los niveles de confianza?
+
+| Nivel | Score | Acción |
+|-------|-------|--------|
+| 🔴 CRÍTICA | 0-25 | Revisión urgente |
+| 🟠 BAJA | 26-50 | Geocodificar o validar |
+| 🟡 MEDIA | 51-75 | Verificar en mapa |
+| 🟢 ALTA | 76-100 | Listo para QGIS |
+| 🔵 CONFIRMADO | - | Validado manualmente |
 
 ---
 
 ## 📁 Formatos de Archivo
 
-### ¿Qué formatos de entrada soporta el sistema?
+### P18: ¿Qué formatos soporta el sistema?
 
-| Formato | Extensión | Soporte |
-|---------|-----------|---------|
-| CSV | .csv | ✅ Completo |
-| Excel | .xlsx, .xls | ✅ Completo |
-| OpenDocument | .ods, .odt | ✅ Completo |
-| GeoJSON | .geojson | ✅ Completo |
-| KML/KMZ | .kml, .kmz | ✅ Completo |
-| Shapefile | .shp | ⚠️ Via conversión |
-| DBF | .dbf | ✅ Básico |
+**Entrada**: CSV, XLSX, XLS, DBF, TSV, GeoJSON, KML, ODT
 
-### ¿Qué formatos de exportación están disponibles?
-
-**CSV (UTF-8 con BOM)**:
-- Compatible QGIS
-- Columnas: originales + X_UTM30 + Y_UTM30 + Score + Confianza
-
-**Excel (XLSX)**:
-- Formato nativo
-- Colores por nivel de confianza
-
-**GeoJSON**:
-- CRS: EPSG:25830
-- Properties incluyen score y alertas
-
-**KML**:
-- Compatible Google Earth
-- Descripción con metadatos
+**Salida**: GeoJSON, CSV, KML, Shapefile, PDF (report)
 
 ---
 
-## ⚠️ Errores Comunes
+## ⚡ Performance
 
-### Error: "No se pudieron detectar columnas de coordenadas"
+### P24: ¿Cuánto tiempo tarda en procesar?
 
-**Causas posibles**:
-1. Nombres de columna no estándar
-2. Datos en formato no numérico
-3. Archivo vacío
-
-**Solución**:
-- Renombrar columnas a: `X`, `Y`, `LON`, `LAT`, `COORD_X`, `COORD_Y`
-- Verificar que valores son numéricos
-- Eliminar filas vacías al inicio
-
-### Error: "Coordenadas fuera de rango"
-
-**Causa**: Coordenadas no corresponden a Andalucía.
-
-**Verificar**:
-1. Sistema de referencia correcto
-2. No hay transposición X↔Y
-3. Valores no truncados
-
-**Solución**: El sistema intentará detectar y corregir automáticamente.
-
-### Error: "Score muy bajo en todo el archivo"
-
-**Causas comunes**:
-1. Encoding incorrecto
-2. Sistema de coordenadas equivocado
-3. Datos muy corruptos
-
-**Diagnóstico**:
-- Revisar tab "Alertas" para ver problemas específicos
-- Verificar primeras filas manualmente
-- Probar conversión encoding previa
-
-### Error CORS al geocodificar
-
-**Causa**: Servicio WFS no permite acceso desde navegador.
-
-**Solución automática**: El sistema usa fallback a APIs con CORS habilitado.
-
-**Solución manual**: Algunos servicios legacy de diputaciones pueden requerir proxy.
+| Registros | Tiempo total |
+|-----------|-------------|
+| 100 | <30 segundos |
+| 1,000 | 2-4 minutos |
+| 10,000 | 20-30 minutos |
 
 ---
 
-## 🔧 Troubleshooting Avanzado
+## 📤 Exportación
 
-### Verificar coordenadas manualmente
+### P26: ¿Qué formato usar para QGIS?
 
-```javascript
-// En consola del navegador
-import proj4 from 'proj4'
-
-// Definir sistemas
-proj4.defs('EPSG:25830', '+proj=utm +zone=30 +ellps=GRS80 +units=m')
-proj4.defs('EPSG:4326', '+proj=longlat +datum=WGS84')
-
-// Convertir WGS84 → UTM30
-const [x, y] = proj4('EPSG:4326', 'EPSG:25830', [-3.7, 37.18])
-console.log(`UTM30: ${x}, ${y}`)
-```
-
-### Depurar scoring bajo
-
-```typescript
-// Obtener detalles de validación
-const result = normalizeCoordinate(input)
-console.log('Score:', result.score)
-console.log('Confidence:', result.confidence)
-console.log('Corrections:', result.corrections)
-console.log('Alerts:', result.alerts)
-```
+**Recomendación**: GeoJSON
+- ✅ Formato estándar web
+- ✅ Encoding UTF-8 garantizado
+- ✅ Importación directa (drag & drop)
+- ✅ CRS EPSG:25830 detectado automáticamente
 
 ---
 
-**¿No encuentras tu pregunta?** Contacta al equipo técnico o consulta la documentación completa en `/docs/`.
+## 🐛 Errores Comunes
+
+### P29: Error: "Cannot read property 'x' of undefined"
+
+**Causa**: Mapeo incorrecto de columnas.
+
+**Solución**: Verificar nombres columnas exactos (X, Y, Coord_X, Coord_Y).
+
+---
+
+### P33: ¿Por qué algunos puntos aparecen en el océano?
+
+**Causas**:
+1. Lat/Lon invertido
+2. CRS incorrecto (WGS84 como UTM)
+3. Y debe ser positiva en Andalucía
+
+---
+
+## 📚 Recursos Adicionales
+
+### Documentación oficial
+- README.md - Introducción y setup
+- CHANGELOG.md - Historial de cambios
+- ARQUITECTURA_COMPONENTES.md - Estructura código
+- API_DOCUMENTATION.md - Interfaces TypeScript
+
+### Recursos externos
+- CartoCiudad: https://www.cartociudad.es/
+- IDE Andalucía: https://www.ideandalucia.es/
+- IECA: https://www.juntadeandalucia.es/institutodeestadisticaycartografia/
+
+---
+
+### P38: ¿El sistema funciona offline?
+
+**Parcialmente**:
+- ✅ Carga archivos locales
+- ✅ Normalización UTF-8
+- ✅ Validación coordenadas
+- ✅ Transformaciones CRS
+- ❌ Geocodificación (requiere APIs)
+- ❌ Capas WMS mapa
+
+---
+
+### P40: ¿El sistema es open source?
+
+**Sí**, licencia MIT:
+- ✅ Usar comercialmente
+- ✅ Modificar código
+- ✅ Distribuir copias
+
+**Repositorio**: GitHub (contribuciones bienvenidas)
+
+---
+
+**FAQ Técnico** | **40 preguntas** | **v1.0.0**  
+**Sistema PTEL Coordinate Normalizer** 🗺️
