@@ -1,10 +1,10 @@
 {
   "version": "0.4.0",
-  "lastUpdate": "2025-11-29T13:20:00Z",
+  "lastUpdate": "2025-11-29T19:45:00Z",
   "currentPhase": {
-    "id": 1,
-    "name": "Geocodificacion por Tipologia",
-    "progress": 35,
+    "id": 0,
+    "name": "Reorganización Documental",
+    "progress": 50,
     "status": "in_progress"
   },
   "metrics": {
@@ -23,16 +23,20 @@
   },
   "lastSession": {
     "date": "2025-11-29",
-    "role": "Setup",
-    "summary": "Sincronizacion documentacion local a GitHub - 4 docs criticos subidos",
+    "role": "Organización",
+    "summary": "Análisis mejores prácticas 2025 para workflows IA + propuesta limpieza Project Knowledge + guía trabajo con Claude",
     "filesModified": [
-      "docs/PLAN_MAESTRO_PTEL_DESARROLLO_2025.md",
-      "ROADMAP_EJECUTIVO_PTEL_2025.md",
-      "docs/DIAGNOSTICO_COMPLETO_PTEL_27NOV2025.md",
-      "docs/TAXONOMIA_PATRONES_COORDENADAS_PTEL_v2.md"
+      "docs/guias/GUIA_TRABAJO_CON_CLAUDE.md"
     ],
-    "nextPriority": "Completar sincronizacion resto documentos locales"
+    "nextPriority": "Usuario elimina 37 archivos de Project Knowledge según lista proporcionada"
   },
-  "blockers": [],
-  "notes": "Sincronizacion parcial completada. ARQUITECTURA_COMPONENTES.md tiene contenido divergente (local vs GitHub) que requiere fusion manual."
+  "blockers": [
+    {
+      "id": "PK_CLEANUP",
+      "description": "Project Knowledge tiene 64 archivos, muchos duplicados/obsoletos. Lista de 37 a eliminar pendiente de ejecución por usuario.",
+      "severity": "medium",
+      "owner": "user"
+    }
+  ],
+  "notes": "Sesión enfocada en organización y mejores prácticas. Se investigó cómo Claude/Cursor/Windsurf gestionan estado entre sesiones. Se creó guía de trabajo adaptada a necesidades de Luis (multi-dispositivo, sin experiencia programación, pérdida de contexto entre sesiones)."
 }

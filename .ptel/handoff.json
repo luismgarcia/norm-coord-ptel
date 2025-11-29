@@ -1,27 +1,35 @@
 {
-  "lastHandoff": {
-    "timestamp": "2024-11-29T12:19:00Z",
-    "fromRole": "Setup",
-    "toRole": "MapWizard",
-    "sessionSummary": "Configuracion inicial sistema protocolo sesiones PTEL",
-    "completed": [
-      "Estructura .ptel/ creada en repositorio",
-      "PTEL_FEATURES.json poblado con 8 tareas prioritarias",
-      "MCP GitHub configurado y funcionando",
-      "CLAUDE.md para contexto rapido",
-      "Sistema 4 roles definido"
-    ],
-    "filesModified": [
-      "CLAUDE.md",
-      ".ptel/PTEL_ESTADO_SESION.json",
-      ".ptel/PTEL_FEATURES.json",
-      ".ptel/claude-progress.txt",
-      ".ptel/PTEL_ROLES.md"
-    ],
-    "nextPriority": "Configurar MCPs Filesystem y Memory para acceso local",
-    "pendingDecisions": [
-      "Decidir si usar MCP Memory o confiar en Project Knowledge"
-    ],
-    "blockers": []
-  }
+  "timestamp": "2025-11-29T19:45:00Z",
+  "sessionSummary": "Análisis mejores prácticas organización proyectos IA + propuesta limpieza documental + guía trabajo con Claude",
+  "completedTasks": [
+    "Investigación workflows IA 2025 (Claude, Cursor, Windsurf)",
+    "Diagnóstico completo Project Knowledge (64 archivos)",
+    "Lista de 37 archivos a eliminar categorizada",
+    "Guía trabajo con Claude subida a GitHub"
+  ],
+  "pendingUserActions": [
+    {
+      "action": "Eliminar 37 archivos de Project Knowledge",
+      "priority": "high",
+      "instructions": "Ver archivo LIMPIEZA_PROJECT_KNOWLEDGE.md descargado o lista en chat",
+      "estimatedTime": "10-15 minutos"
+    }
+  ],
+  "nextSessionPriorities": [
+    "Verificar que limpieza Project Knowledge se completó",
+    "Fase 2: Consolidar documentos similares en maestros",
+    "Aplicar protocolo inicio sesión de la nueva guía",
+    "Retomar trabajo técnico (geocodificación o validación)"
+  ],
+  "contextToPreserve": {
+    "projectKnowledgeTarget": "Reducir de 64 a ~27 archivos tras limpieza, luego consolidar a 10-12",
+    "guideLocation": "docs/guias/GUIA_TRABAJO_CON_CLAUDE.md",
+    "cleanupListProvided": true
+  },
+  "blockers": [
+    {
+      "type": "user_action_required",
+      "description": "Limpieza Project Knowledge solo puede hacerla el usuario desde interfaz Claude"
+    }
+  ]
 }

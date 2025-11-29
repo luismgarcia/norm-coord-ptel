@@ -10,3 +10,36 @@
 - Sistema listo para protocolo de sesiones
 
 ---
+
+[2025-11-29] [Organización] - Análisis y reorganización documental
+
+## Investigación realizada
+- Mejores prácticas 2025 para workflows con IA de larga duración
+- Comparativa archivos estado: Claude vs Cursor vs Windsurf
+- Protocolos inicio/cierre sesión (Anthropic Engineering)
+- Workflows multi-dispositivo sin entorno local
+
+## Diagnóstico Project Knowledge
+- 64 archivos actuales, muchos duplicados y obsoletos
+- 6 archivos código que ya están en GitHub
+- 5 duplicados con diferente encoding de nombre
+- 7 archivos PATCH fragmentados
+- 5 análisis de opciones descartadas (AWS, Mantine, MCP)
+
+## Entregables sesión
+1. Lista limpieza: 37 archivos a eliminar de Project Knowledge
+2. Guía trabajo con Claude: docs/guias/GUIA_TRABAJO_CON_CLAUDE.md
+   - Protocolos inicio/cierre/cambio área
+   - Plantillas de mensajes
+   - Sistema roles especializados
+   - Checklist de sesión
+
+## Pendiente para usuario
+- Eliminar 37 archivos de Project Knowledge (Claude no puede)
+
+## Próxima sesión
+- Verificar limpieza completada
+- Fase 2: Consolidar documentos restantes
+- Comenzar trabajo técnico con protocolos nuevos
+
+---
