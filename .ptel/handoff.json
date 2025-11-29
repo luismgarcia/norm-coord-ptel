@@ -1,0 +1,27 @@
+{
+  "lastHandoff": {
+    "timestamp": "2024-11-29T12:19:00Z",
+    "fromRole": "Setup",
+    "toRole": "MapWizard",
+    "sessionSummary": "Configuracion inicial sistema protocolo sesiones PTEL",
+    "completed": [
+      "Estructura .ptel/ creada en repositorio",
+      "PTEL_FEATURES.json poblado con 8 tareas prioritarias",
+      "MCP GitHub configurado y funcionando",
+      "CLAUDE.md para contexto rapido",
+      "Sistema 4 roles definido"
+    ],
+    "filesModified": [
+      "CLAUDE.md",
+      ".ptel/PTEL_ESTADO_SESION.json",
+      ".ptel/PTEL_FEATURES.json",
+      ".ptel/claude-progress.txt",
+      ".ptel/PTEL_ROLES.md"
+    ],
+    "nextPriority": "Configurar MCPs Filesystem y Memory para acceso local",
+    "pendingDecisions": [
+      "Decidir si usar MCP Memory o confiar en Project Knowledge"
+    ],
+    "blockers": []
+  }
+}
