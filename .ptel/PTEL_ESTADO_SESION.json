@@ -1,0 +1,33 @@
+{
+  "version": "0.4.0",
+  "lastUpdate": "2024-11-29T12:00:00Z",
+  "currentPhase": {
+    "id": 1,
+    "name": "Geocodificacion por Tipologia",
+    "progress": 35,
+    "status": "in_progress"
+  },
+  "metrics": {
+    "coordCompleteness": 26.9,
+    "geocodingSuccess": 55,
+    "precision_m": 250,
+    "municipiosCovered": 1,
+    "operationalCost_eur": 0
+  },
+  "targets": {
+    "coordCompleteness": 95,
+    "geocodingSuccess": 95,
+    "precision_m": 25,
+    "municipiosCovered": 786,
+    "operationalCost_eur": 50
+  },
+  "lastSession": {
+    "date": "2024-11-29",
+    "role": "MapWizard",
+    "summary": "Configuracion MCP GitHub, implementacion protocolo sesiones",
+    "filesModified": ["CLAUDE.md"],
+    "nextPriority": "Configurar MCPs Filesystem y Memory"
+  },
+  "blockers": [],
+  "notes": "Sistema funcional en GitHub Pages. Fase 2 (cache multinivel) pendiente de integracion."
+}
