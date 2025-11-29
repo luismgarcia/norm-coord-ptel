@@ -17,7 +17,7 @@ Este paquete implementa la corrección del **problema de texto concatenado** det
 ### Alta Confianza (corrigen automáticamente)
 
 | Patrón | Ejemplo | Resultado |
-|--------|---------|-----------||
+|--------|---------|----------|
 | `mayúscula+abreviatura` | `FARMACIAM.ª` | `FARMACIA M.ª` |
 | `camelCase` | `SánchezCarpintería` | `Sánchez Carpintería` |
 | `número+mayúscula` | `60822Sevillana` | `60822 Sevillana` |

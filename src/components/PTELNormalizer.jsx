@@ -46,7 +46,7 @@ function detectarPatron(valor) {
   if (/^\d{3}\s+\d{3}\s+\d{1,2}$/.test(v) || /^\d\s+\d{3}\s+\d{3}\s+\d{1,2}$/.test(v)) return 'ESPACIO_DECIMAL_IMPLICITO';
   if (/^\d{1,3}(\s+\d{3})+$/.test(v)) return 'ESPACIO_SIN_DECIMAL';
   if (/^\d+´\d+$/.test(v)) return 'TILDE_SIMPLE';
-  if (/[''']/.test(v) && /\d+['\']\d+/.test(v)) return 'COMILLAS_TIPOGRAFICAS';
+  if (/['']/.test(v) && /\d+['\']\d+/.test(v)) return 'COMILLAS_TIPOGRAFICAS';
   if (/^\d{1,3}(?:\.\d{3})+,\d+$/.test(v)) return 'EUROPEO_COMPLETO';
   if (/^\d+,\d+$/.test(v)) return 'COMA_DECIMAL';
   if (/^\d{1,3}(?:\.\d{3})+$/.test(v)) return 'PUNTO_MILES';
