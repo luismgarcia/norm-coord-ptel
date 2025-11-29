@@ -17,6 +17,18 @@ El sistema de geocodificación del Normalizador PTEL utiliza una **arquitectura 
 
 ## Arquitectura de Cascada (L0-L5)
 
+### Principio de Funcionamiento
+
+> **IMPORTANTE:** La cascada funciona de forma **secuencial con salida temprana**, 
+> NO de forma simultánea. El sistema se detiene en el **primer nivel que encuentra 
+> un resultado válido**, sin consultar los niveles inferiores.
+
+**¿Por qué este diseño?**
+1. **Eficiencia**: Si L1 encuentra el hospital en SICESS, no tiene sentido consultar OSM
+2. **Rate limits**: Servicios como Nominatim limitan a 1 petición/segundo
+3. **Jerarquía de calidad**: L1 siempre es mejor fuente que L5 por definición
+4. **Coste**: Menos peticiones = menos latencia y recursos
+
 ```
 ┌─────────────────────────────────────────────────────────────────┐
 │                    INFRAESTRUCTURA DETECTADA                    │
