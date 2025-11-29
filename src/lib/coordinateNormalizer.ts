@@ -790,6 +790,13 @@ export function ejecutarTests(): void {
 }
 
 // ============================================================================
+// ALIASES PARA COMPATIBILIDAD CON IMPORTS EN INGLÉS
+// ============================================================================
+
+export { normalizarCoordenada as normalizeCoordinate };
+export { ResultadoNormalizacion as NormalizationResult };
+
+// ============================================================================
 // EXPORTACIÓN POR DEFECTO
 // ============================================================================
 
