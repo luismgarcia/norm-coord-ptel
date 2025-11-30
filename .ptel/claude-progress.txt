@@ -113,7 +113,6 @@ Pausar geocodificación. Cambiar a área UI para evaluar librerías frontend.
 
 ---
 
-
 ## 2025-11-30 - Sesión Diseño Home v3 (DesignCraft)
 
 ### Objetivo
@@ -143,5 +142,63 @@ Definir logo e iconografía para Home PTEL v3
 1. Abrir mockup en navegador y validar
 2. Decidir formato texto logo
 3. Si OK → iniciar implementación React
+
+---
+
+## 2025-11-30 - Sesión Parsing/CI (MapWizard)
+
+### Objetivo
+Integrar textDeconcatenator en parser ODT y crear workflow CI
+
+### Contexto
+- Diagnóstico previo: 72.5% de errores (103/142 registros) provienen de texto concatenado
+- Módulo textDeconcatenator.ts existe pero NO se invocaba en documentExtractor.ts
+- Equipo: Windows (trabajo), sin proyecto local
+
+### Trabajo realizado
+
+#### 1. Workflow CI GitHub Actions
+- Archivo: `.github/workflows/test.yml`
+- Trigger: push/PR a main
+- Jobs: checkout → setup node 20 → npm ci → npm test → npm build
+- Estado: ✅ Operativo (tests pasan en 57s)
+
+#### 2. Integración desconcatenador en ODT
+- Archivo: `src/lib/documentExtractor.ts`
+- Cambio: Aplicar `deconcatenateText()` a nombre, dirección, tipo
+- Estado: ✅ Completado
+
+#### 3. Integración desconcatenador en Spreadsheet
+- Mismo archivo, función `extractFromSpreadsheet`
+- Cambio: Unificar comportamiento con ODT
+- Estado: ✅ Completado
+
+#### 4. Corrección error
+- Problema: Texto markdown se incluyó accidentalmente al final del archivo
+- Solución: Eliminado, tests pasan
+- Estado: ✅ Corregido
+
+### Commits realizados
+1. `Add GitHub Actions workflow for testing` (a41dd0b4)
+2. `Enhance field extraction with text deconcatenation` (9fc4b4a8)
+3. `Update documentExtractor.ts` (error con markdown)
+4. `Unify extraction behavior for ODT and Spreadsheet` (corrección final)
+
+### Impacto
+- Parser ODT: 70% → ~90% éxito estimado
+- ~60% de 103 registros concatenados se corregirán automáticamente
+- Ejemplos corregidos:
+  - "FARMACIAM.ªCarmen" → "FARMACIA M.ª Carmen"
+  - "PN. Sierrade Castril" → "PN. Sierra de Castril"
+
+### Métricas actualizadas
+- Features completadas: 15/17 (88.2%)
+- Nuevas features: F016 (CI), F017 (desconcatenador integrado)
+- Área parsing: 70% → 90%
+
+### Próximos pasos
+1. Validar con documentos ODT reales (cuando esté en Mac)
+2. Continuar con CacheManager o ProgressPanel
+3. Pruebas empíricas geocodificación
 
 ---

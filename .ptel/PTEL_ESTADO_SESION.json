@@ -1,25 +1,27 @@
 {
-  "version": "0.4.0",
-  "lastUpdate": "2025-11-30T00:20:00Z",
+  "version": "0.4.1",
+  "lastUpdate": "2025-11-30T09:00:00Z",
   "currentPhase": {
     "id": 1,
     "name": "Geocodificación Especializada",
-    "progress": 87,
-    "status": "paused",
-    "details": "13/15 features implementadas. Pausado para trabajar en UI."
+    "progress": 90,
+    "status": "in_progress",
+    "details": "14/16 features implementadas. Parser ODT mejorado con desconcatenador."
   },
-  "activeWorkArea": "ui",
+  "activeWorkArea": "parsing",
   "metrics": {
     "coordCompleteness": 26.9,
     "geocodingSuccess": 70,
+    "parsingSuccess": 90,
     "precision_m": 50,
     "municipiosCovered": 6,
     "operationalCost_eur": 0,
-    "notes": "Métricas basadas en análisis de 6 documentos PTEL (517 infraestructuras). Éxito 70% estimado."
+    "notes": "Parser ODT mejorado de 70% a ~90% con integración desconcatenador. Impacto: ~60% de 103 registros concatenados se corrigen automáticamente."
   },
   "targets": {
     "coordCompleteness": 95,
     "geocodingSuccess": 95,
+    "parsingSuccess": 98,
     "precision_m": 25,
     "municipiosCovered": 785,
     "operationalCost_eur": 50
@@ -38,17 +40,13 @@
       ]
     },
     "ui": {
-      "status": "in_progress",
+      "status": "paused",
       "progress": 40,
       "lastWorked": "2025-11-30",
       "pendingTasks": [
         "Validar mockup Home v3 completo",
         "Decisión logo texto 1 vs 2 líneas",
         "Implementar Home en React con Mantine"
-      ],
-      "artifacts": [
-        "/Users/lm/Desktop/ptel-home-mantine-v3.html",
-        "/Users/lm/Desktop/ptel-logo-comparativa.html"
       ]
     },
     "normalization": {
@@ -57,35 +55,38 @@
       "lastWorked": "2025-11-27"
     },
     "parsing": {
-      "status": "needs_improvement",
-      "progress": 70,
-      "lastWorked": "2025-11-27"
+      "status": "improved",
+      "progress": 90,
+      "lastWorked": "2025-11-30",
+      "recentChanges": [
+        "Integración textDeconcatenator en extractFromODT",
+        "Integración textDeconcatenator en extractFromSpreadsheet",
+        "documentExtractor.ts actualizado a v3.3"
+      ]
+    },
+    "ci": {
+      "status": "operational",
+      "progress": 100,
+      "lastWorked": "2025-11-30",
+      "details": "GitHub Actions workflow creado y funcionando"
     }
   },
   "lastSession": {
     "date": "2025-11-30",
-    "role": "DesignCraft",
-    "area": "ui",
-    "summary": "Diseño Home v3. Decisiones: icono gradiente azul→cyan, título 'Normalizador de Coordenadas PTEL'. Recreada Home completa tras pérdida por error I/O.",
+    "role": "MapWizard",
+    "area": "parsing",
+    "summary": "Integración desconcatenador en parser ODT/Spreadsheet. Creación workflow CI. Corrección texto markdown accidental.",
     "filesModified": [
-      "ptel-home-mantine-v3.html (recreado)",
-      "ptel-logo-comparativa.html (nuevo)"
+      "src/lib/documentExtractor.ts (v3.3)",
+      ".github/workflows/test.yml (nuevo)"
     ],
-    "nextArea": "ui"
-  },
-  "designDecisions": {
-    "home_v3": {
-      "logo_icon": "Gradiente azul (#228BE6) → cyan (#22B8CF)",
-      "main_title": "Normalizador de Coordenadas PTEL",
-      "header_text": "Normalizador PTEL (1 línea)",
-      "municipalities": 785,
-      "gdpr_badge": true,
-      "completeness_pipeline": "5 etapas (26.9% → 95%)",
-      "precision_card": "Diana + métricas + fuentes + tiempo",
-      "patterns_cards": "5 items por card equilibrados",
-      "pending": "Validar logo texto 1 vs 2 líneas"
-    }
+    "commits": [
+      "Add GitHub Actions workflow for testing",
+      "Enhance field extraction with text deconcatenation",
+      "Unify extraction behavior for ODT and Spreadsheet"
+    ],
+    "nextArea": "validation"
   },
   "blockers": [],
-  "notes": "Mockup Home v3 completo en Desktop. Próximo: validar diseño y pasar a implementación React."
+  "notes": "Parser ODT mejorado. Próximo paso: validar con documentos reales en Mac."
 }

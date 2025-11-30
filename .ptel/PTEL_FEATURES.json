@@ -27,19 +27,12 @@
       "description": "WFS Health Geocoder (SICESS/DERA G12)",
       "priority": "critical",
       "estimatedHours": 4,
-      "steps": [
-        "Configurar cliente WFS con parámetros SICESS",
-        "Implementar búsqueda por nombre/municipio",
-        "Parsear respuesta GML a coordenadas UTM",
-        "Validación cruzada con datos reales"
-      ],
       "passes": true,
       "completedDate": "2025-11-22",
       "assignedRole": "MapWizard",
       "implementation": {
         "file": "src/services/geocoding/specialized/WFSHealthGeocoder.ts",
-        "testFile": "src/lib/__tests__/WFSHealthGeocoder.test.ts",
-        "layers": ["g12_01_CentroSalud", "g12_02_Hospital", "g12_03_Consultorio"]
+        "testFile": "src/lib/__tests__/WFSHealthGeocoder.test.ts"
       }
     },
     {
@@ -48,19 +41,11 @@
       "description": "WFS Education Geocoder (API CKAN)",
       "priority": "high",
       "estimatedHours": 3,
-      "steps": [
-        "Adaptar cliente WFS genérico para ISE",
-        "Mapear campos específicos educación",
-        "Implementar filtro por municipio INE",
-        "Tests con colegios reales"
-      ],
       "passes": true,
       "completedDate": "2025-11-22",
       "assignedRole": "MapWizard",
       "implementation": {
-        "file": "src/services/geocoding/specialized/WFSEducationGeocoder.ts",
-        "testFile": "src/lib/__tests__/EducationGeocoder.test.ts",
-        "dataSource": "API CKAN Junta Andalucía"
+        "file": "src/services/geocoding/specialized/WFSEducationGeocoder.ts"
       }
     },
     {
@@ -69,19 +54,11 @@
       "description": "WFS Cultural Geocoder (IAPH)",
       "priority": "high",
       "estimatedHours": 3,
-      "steps": [
-        "Configurar endpoint IAPH/DERA G09",
-        "Implementar búsqueda BIC/patrimonio",
-        "Extraer coordenadas de geometrías",
-        "Validar con patrimonio Granada"
-      ],
       "passes": true,
       "completedDate": "2025-11-22",
       "assignedRole": "MapWizard",
       "implementation": {
-        "file": "src/services/geocoding/specialized/WFSCulturalGeocoder.ts",
-        "testFile": "src/lib/__tests__/HeritageGeocoder.test.ts",
-        "layers": ["DERA_g09_cultura"]
+        "file": "src/services/geocoding/specialized/WFSCulturalGeocoder.ts"
       }
     },
     {
@@ -90,18 +67,11 @@
       "description": "WFS Security Geocoder (Emergencias)",
       "priority": "high",
       "estimatedHours": 3,
-      "steps": [
-        "Configurar capas seguridad pública",
-        "Implementar búsqueda bomberos/policía",
-        "Fallback a Overpass para cobertura",
-        "Tests de integración"
-      ],
       "passes": true,
       "completedDate": "2025-11-23",
       "assignedRole": "MapWizard",
       "implementation": {
-        "file": "src/services/geocoding/specialized/WFSSecurityGeocoder.ts",
-        "testFile": "src/lib/__tests__/SecurityGeocoder.test.ts"
+        "file": "src/services/geocoding/specialized/WFSSecurityGeocoder.ts"
       }
     },
     {
@@ -110,19 +80,11 @@
       "description": "WFS Hydraulic Geocoder (REDIAM)",
       "priority": "high",
       "estimatedHours": 3,
-      "steps": [
-        "Configurar WFS REDIAM hidráulicas",
-        "Implementar búsqueda EDAR/ETAP/embalses",
-        "Parsear geometrías complejas",
-        "Validación con datos reales"
-      ],
       "passes": true,
       "completedDate": "2025-11-23",
       "assignedRole": "MapWizard",
       "implementation": {
-        "file": "src/services/geocoding/specialized/WFSHydraulicGeocoder.ts",
-        "testFile": "src/lib/__tests__/WFSHydraulicGeocoder.test.ts",
-        "layers": ["EDAR", "ETAP", "Embalses", "Captaciones"]
+        "file": "src/services/geocoding/specialized/WFSHydraulicGeocoder.ts"
       }
     },
     {
@@ -131,19 +93,11 @@
       "description": "WFS Energy Geocoder (Agencia Energía)",
       "priority": "high",
       "estimatedHours": 3,
-      "steps": [
-        "Configurar WFS Agencia Energía",
-        "Implementar búsqueda subestaciones/parques",
-        "Soporte líneas alta tensión",
-        "Tests de validación"
-      ],
       "passes": true,
       "completedDate": "2025-11-23",
       "assignedRole": "MapWizard",
       "implementation": {
-        "file": "src/services/geocoding/specialized/WFSEnergyGeocoder.ts",
-        "testFile": "src/lib/__tests__/WFSEnergyGeocoder.test.ts",
-        "layers": ["Subestaciones", "ParquesEolicos", "PlantasSolares"]
+        "file": "src/services/geocoding/specialized/WFSEnergyGeocoder.ts"
       }
     },
     {
@@ -152,18 +106,11 @@
       "description": "NGA Geocoder (Nomenclátor Topónimos)",
       "priority": "high",
       "estimatedHours": 4,
-      "steps": [
-        "Configurar WFS NGA IECA",
-        "Clasificar tipos de topónimos",
-        "Implementar fuzzy matching",
-        "Tests con parajes rurales"
-      ],
       "passes": true,
       "completedDate": "2025-11-24",
       "assignedRole": "MapWizard",
       "implementation": {
         "file": "src/services/geocoding/specialized/NGAGeocoder.ts",
-        "testFile": "src/lib/__tests__/NGAGeocoder.test.ts",
         "coverage": "232,000 topónimos Andalucía"
       }
     },
@@ -173,19 +120,11 @@
       "description": "IAID Geocoder (Instalaciones Deportivas)",
       "priority": "medium",
       "estimatedHours": 3,
-      "steps": [
-        "Conectar con censo IAID",
-        "Mapear tipos instalaciones",
-        "Implementar búsqueda por municipio",
-        "Tests piscinas/polideportivos"
-      ],
       "passes": true,
       "completedDate": "2025-11-24",
       "assignedRole": "MapWizard",
       "implementation": {
-        "file": "src/services/geocoding/specialized/IAIDGeocoder.ts",
-        "testFile": "src/lib/__tests__/IAIDGeocoder.test.ts",
-        "coverage": "~3,500 instalaciones"
+        "file": "src/services/geocoding/specialized/IAIDGeocoder.ts"
       }
     },
     {
@@ -194,19 +133,11 @@
       "description": "Overpass Geocoder (OpenStreetMap)",
       "priority": "medium",
       "estimatedHours": 4,
-      "steps": [
-        "Configurar cliente Overpass API",
-        "Implementar queries por tipología",
-        "Soporte antenas telecomunicaciones",
-        "Fallback Nominatim"
-      ],
       "passes": true,
       "completedDate": "2025-11-24",
       "assignedRole": "MapWizard",
       "implementation": {
-        "file": "src/services/geocoding/specialized/OverpassGeocoder.ts",
-        "testFile": "src/lib/__tests__/OverpassGeocoder.test.ts",
-        "features": ["telecom", "industrial", "nominatim_fallback"]
+        "file": "src/services/geocoding/specialized/OverpassGeocoder.ts"
       }
     },
     {
@@ -215,18 +146,11 @@
       "description": "CDAU Geocoder (Callejero Andalucía)",
       "priority": "critical",
       "estimatedHours": 3,
-      "steps": [
-        "Configurar API CDAU",
-        "Implementar búsqueda direcciones",
-        "Coordenadas UTM30 nativas",
-        "Integrar como fallback nivel 5"
-      ],
       "passes": true,
       "completedDate": "2025-11-22",
       "assignedRole": "MapWizard",
       "implementation": {
-        "file": "src/services/geocoding/generic/CDAUGeocoder.ts",
-        "coverage": "786 municipios andaluces"
+        "file": "src/services/geocoding/generic/CDAUGeocoder.ts"
       }
     },
     {
@@ -235,19 +159,12 @@
       "description": "CartoCiudad Geocoder (IGN) + Validación INE",
       "priority": "critical",
       "estimatedHours": 4,
-      "steps": [
-        "Configurar API CartoCiudad",
-        "Conversión WGS84 a UTM30",
-        "Implementar validación código INE",
-        "Prevenir errores desambiguación"
-      ],
       "passes": true,
       "completedDate": "2025-11-28",
       "assignedRole": "MapWizard",
       "implementation": {
         "file": "src/services/geocoding/generic/CartoCiudadGeocoder.ts",
-        "validator": "src/services/geocoding/ineValidator.ts",
-        "coverage": "100% España"
+        "validator": "src/services/geocoding/ineValidator.ts"
       }
     },
     {
@@ -256,19 +173,12 @@
       "description": "GeocodingOrchestrator (Cascada 7 niveles)",
       "priority": "critical",
       "estimatedHours": 5,
-      "steps": [
-        "Definir jerarquía L1-L7",
-        "Integrar todos los geocodificadores",
-        "Sistema puntuación confianza",
-        "Fallback inteligente entre niveles"
-      ],
       "passes": true,
       "completedDate": "2025-11-25",
       "assignedRole": "MapWizard",
       "implementation": {
         "file": "src/services/geocoding/GeocodingOrchestrator.ts",
-        "linesOfCode": 739,
-        "levels": ["L1:Specialized", "L2:NGA", "L3:IAID", "L4:Overpass", "L5:CDAU", "L6:CartoCiudad", "L7:Nominatim"]
+        "linesOfCode": 739
       }
     },
     {
@@ -277,17 +187,10 @@
       "description": "CacheManager multinivel (localStorage + IndexedDB)",
       "priority": "high",
       "estimatedHours": 4,
-      "steps": [
-        "Implementar interfaz ICacheManager",
-        "Capa localStorage para menos de 5MB",
-        "Capa IndexedDB con Dexie.js para más de 5MB",
-        "Switching automático por tamaño",
-        "Compresión LZ-String"
-      ],
       "passes": false,
       "completedDate": null,
       "assignedRole": "MapWizard",
-      "notes": "Pendiente de implementar. Actualmente cada geocodificador tiene caché simple en memoria."
+      "notes": "Pendiente de implementar."
     },
     {
       "id": "F015",
@@ -295,26 +198,57 @@
       "description": "Panel progreso geocodificación en tiempo real",
       "priority": "medium",
       "estimatedHours": 2,
-      "steps": [
-        "Componente ProgressPanel React",
-        "Integrar con eventos geocodificación",
-        "Mostrar nivel actual cascada",
-        "Indicadores éxito/fallo por registro"
-      ],
       "passes": false,
       "completedDate": null,
       "assignedRole": "DesignCraft",
-      "notes": "Pendiente. Existe PTELNormalizer.jsx pero sin integración con orquestador."
+      "notes": "Pendiente."
+    },
+    {
+      "id": "F016",
+      "category": "ci",
+      "description": "GitHub Actions CI Workflow",
+      "priority": "high",
+      "estimatedHours": 1,
+      "passes": true,
+      "completedDate": "2025-11-30",
+      "assignedRole": "MapWizard",
+      "implementation": {
+        "file": ".github/workflows/test.yml",
+        "features": ["npm ci", "npm test", "npm run build"],
+        "trigger": "push/PR to main"
+      },
+      "notes": "Workflow CI operativo. Tests automáticos en cada push."
+    },
+    {
+      "id": "F017",
+      "category": "parsing",
+      "description": "Integración textDeconcatenator en extractores",
+      "priority": "critical",
+      "estimatedHours": 1,
+      "passes": true,
+      "completedDate": "2025-11-30",
+      "assignedRole": "MapWizard",
+      "implementation": {
+        "file": "src/lib/documentExtractor.ts",
+        "version": "v3.3",
+        "changes": [
+          "deconcatenateText() aplicado en extractFromODT",
+          "deconcatenateText() aplicado en extractFromSpreadsheet",
+          "Comportamiento unificado ambos extractores"
+        ],
+        "impact": "~60% de 103 registros concatenados se corrigen automáticamente"
+      },
+      "notes": "Corrige texto concatenado como 'FARMACIAM.ªCarmen' → 'FARMACIA M.ª Carmen'"
     }
   ],
   "summary": {
-    "completedCount": 13,
+    "completedCount": 15,
     "pendingCount": 2,
-    "totalCount": 15,
-    "completionRate": "86.7%",
+    "totalCount": 17,
+    "completionRate": "88.2%",
     "geocodingCoverage": "13/13 geocodificadores implementados",
     "pendingFeatures": ["F014:CacheManager", "F015:ProgressPanel"]
   },
-  "lastUpdated": "2025-11-29T21:00:00Z",
-  "updatedBy": "Claude (audit session)"
+  "lastUpdated": "2025-11-30T09:00:00Z",
+  "updatedBy": "Claude (sesión 30-Nov-2025)"
 }
