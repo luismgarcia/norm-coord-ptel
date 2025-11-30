@@ -16,10 +16,10 @@
  * 
  * @module lib/documentExtractor
  */
-
 import JSZip from 'jszip';
 import * as XLSX from 'xlsx';
 import { ExtractedInfrastructure, ExtractionStats, DocumentMetadata, AddressType } from '../types/processing';
+import { deconcatenateText } from './textDeconcatenator';
 
 // ============================================================================
 // TIPOS Y CONSTANTES
@@ -547,10 +547,15 @@ export async function extractFromODT(
       
       if (!isValidInfrastructureRow(cells, structure)) continue;
       
-      // Extraer campos
-      const nombre = (cells[structure.nameColIdx] || cells[0] || '').trim();
-      const direccion = structure.addressColIdx >= 0 ? (cells[structure.addressColIdx] || '').trim() : '';
-      const tipo = structure.typeColIdx >= 0 ? (cells[structure.typeColIdx] || '').trim() : '';
+ // Extraer campos con desconcatenación
+   const nombreRaw = (cells[structure.nameColIdx] || cells[0] || '').trim();
+   const direccionRaw = structure.addressColIdx >= 0 ? (cells[structure.addressColIdx] || '').trim() : '';
+   const tipoRaw = structure.typeColIdx >= 0 ? (cells[structure.typeColIdx] || '').trim() : '';
+   
+   // Aplicar desconcatenación para corregir texto pegado del parser ODT
+   const nombre = deconcatenateText(nombreRaw).corrected;
+   const direccion = deconcatenateText(direccionRaw).corrected;
+   const tipo = deconcatenateText(tipoRaw).corrected;
       
       // Coordenadas
       let rawX = structure.xColIdx >= 0 && structure.xColIdx < cells.length ? cells[structure.xColIdx] : '';
