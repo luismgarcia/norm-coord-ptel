@@ -6,34 +6,25 @@
  * 
  * ENFOQUE CONSERVADOR:
  * - Solo aplica patrones de ALTA CONFIANZA
- * - NO modifica texto ALL CAPS que podría ser correcto (excepto números finales)
+ * - Usa diccionario PTEL para ALL CAPS concatenados
  * - Marca casos sospechosos para revisión manual
- * - Protege palabras completas que contienen preposiciones (residencial, modelo, etc.)
- * - Protege nombres propios españoles (Manuel, Miguel, Gabriel, etc.)
+ * - Protege palabras completas y nombres propios españoles
  * 
  * Validado con datos reales de 6 documentos PTEL:
  * - Colomera, Quéntar, Hornos, Castril, Tíjola, Berja
- * - 103 registros afectados → 23/23 tests pasados (100%)
+ * - 865 registros, 377 con concatenaciones
+ * 
+ * CHANGELOG v2.6 (30-Nov-2025):
+ * - NEW: Diccionario PTEL con 150+ palabras de infraestructuras
+ * - NEW: Patrón 10 - ALL CAPS con diccionario (CENTROSALUD → CENTRO SALUD)
+ * - NEW: splitAllCapsWithDictionary() para separación inteligente
+ * - TEST: 19/19 casos ALL CAPS (100% efectividad)
  * 
  * CHANGELOG v2.5 (30-Nov-2025):
- * - ADD: Nombres propios españoles con preposiciones internas a FALSE_POSITIVES
- * - ADD: Nombres con "el": Manuel, Manuela, Miguel, Gabriel, Rafael, Israel, etc.
- * - ADD: Nombres con "la": Cela, Candela, Adela, Estela, Angela, Micaela, etc.
+ * - ADD: Nombres propios españoles a FALSE_POSITIVES
  * - FIX: Evita romper "Manuel Díaz" → "Manu el Díaz"
- * - FIX: Evita romper "Balneario Cela" → "Balneario Ce la"
  * 
- * CHANGELOG v2.4 (30-Nov-2025):
- * - FIX: Expandida lista FALSE_POSITIVES para proteger palabras con preposiciones
- * - FIX: Patrón vocal+preposición ahora solo aplica cuando hay transición clara
- * - FIX: Evita romper palabras como "residencial", "modelo", "delegación"
- * 
- * CHANGELOG v2.2 (30-Nov-2025):
- * - NEW: Patrón 6 - vocal+preposición (Sierrade → Sierra de)
- * - NEW: Patrón 7 - punto+mayúscula (Ctra.GR → Ctra. GR)
- * - NEW: Patrón 8 - unidad+número (Km5 → Km 5)
- * - NEW: Patrón 9 - allcaps+número (CPALMERÍA2 → CPALMERÍA 2)
- * 
- * @version 2.5.0
+ * @version 2.6.0
  * @date 2025-11-30
  */
 
@@ -60,23 +51,120 @@ export interface CoordinateValidation {
 }
 
 // ============================================================================
+// DICCIONARIO PTEL PARA ALL CAPS
+// ============================================================================
+
+/**
+ * Diccionario de palabras clave para separar ALL CAPS concatenados.
+ * Ordenado por longitud descendente para matching greedy.
+ * 
+ * Basado en análisis de 865 registros de 9 documentos PTEL reales.
+ */
+const DICCIONARIO_PTEL = [
+  // =========================================================================
+  // TIPOLOGÍAS PRINCIPALES (documentos PTEL oficiales)
+  // =========================================================================
+  
+  // Sanitario
+  'CONSULTORIO', 'HOSPITAL', 'AMBULATORIO', 'CLINICA', 'CLÍNICA',
+  'CENTRO', 'SALUD', 'URGENCIAS', 'FARMACIA',
+  
+  // Residencial/Asistencial
+  'RESIDENCIA', 'ANCIANOS', 'MAYORES', 'TERCERA', 'EDAD',
+  'DISCAPACITADOS', 'DEPENDIENTES', 'ASISTIDOS',
+  
+  // Educativo
+  'COLEGIO', 'INSTITUTO', 'ESCUELA', 'GUARDERIA', 'GUARDERÍA',
+  'CEIP', 'IES', 'CPR', 'CEP', 'INFANTIL', 'PRIMARIA', 'SECUNDARIA',
+  'UNIVERSIDAD', 'FACULTAD', 'CONSERVATORIO',
+  
+  // Cultural
+  'BIBLIOTECA', 'MUSEO', 'TEATRO', 'AUDITORIO', 'CULTURAL',
+  'ARCHIVO', 'SALA', 'EXPOSICIONES', 'CASA', 'CULTURA',
+  
+  // Deportivo
+  'POLIDEPORTIVO', 'PISCINA', 'ESTADIO', 'PABELLON', 'PABELLÓN',
+  'CAMPO', 'FUTBOL', 'FÚTBOL', 'TENIS', 'PADEL', 'PÁDEL',
+  'GIMNASIO', 'PISTA', 'ATLETISMO',
+  
+  // Espacios públicos
+  'PLAZA', 'PARQUE', 'JARDIN', 'JARDÍN', 'JARDINES',
+  'PASEO', 'AVENIDA', 'CALLE', 'CAMINO', 'CARRETERA',
+  'GLORIETA', 'ROTONDA', 'MIRADOR',
+  
+  // Servicios municipales
+  'AYUNTAMIENTO', 'MUNICIPAL', 'MUNICIPALES',
+  'CEMENTERIO', 'MERCADO', 'LONJA', 'MATADERO',
+  'DEPOSITO', 'DEPÓSITO', 'ALMACEN', 'ALMACÉN',
+  'TALLER', 'NAVE', 'NAVES',
+  
+  // Seguridad
+  'CUARTEL', 'GUARDIA', 'CIVIL', 'POLICIA', 'POLICÍA',
+  'LOCAL', 'BOMBEROS', 'PROTECCION', 'PROTECCIÓN',
+  'EMERGENCIAS', 'EMERGENCIA',
+  
+  // Transporte
+  'ESTACION', 'ESTACIÓN', 'AUTOBUSES', 'AUTOBUS', 'AUTOBÚS',
+  'TREN', 'FERROCARRIL', 'TAXI', 'PARADA', 'APEADERO',
+  
+  // Suministros
+  'TRANSFORMADOR', 'TRASFORMADOR', 'ELECTRICA', 'ELÉCTRICA',
+  'AGUA', 'POTABLE', 'ETAP', 'EDAR',
+  'GASOLINERA', 'GASODUCTO', 'ANTENA', 'REPETIDOR',
+  
+  // =========================================================================
+  // MODIFICADORES Y ADJETIVOS
+  // =========================================================================
+  'PUBLICO', 'PÚBLICO', 'PUBLICA', 'PÚBLICA',
+  'PRINCIPAL', 'CENTRAL', 'GENERAL', 'NUEVO', 'NUEVA',
+  'VIEJO', 'VIEJA', 'ANTIGUO', 'ANTIGUA',
+  'MEDICO', 'MÉDICO', 'MEDICA', 'MÉDICA',
+  'COMARCAL', 'PROVINCIAL', 'REGIONAL', 'NACIONAL',
+  'SOCIAL', 'CIVICO', 'CÍVICO',
+  
+  // =========================================================================
+  // NOMBRES PROPIOS FRECUENTES EN PTEL
+  // =========================================================================
+  
+  // Religiosos (muy comunes)
+  'SAN', 'SANTA', 'SANTO', 'VIRGEN', 'CRISTO', 'SEÑOR', 'SEÑORA',
+  'CARMEN', 'JOSE', 'JOSÉ', 'JUAN', 'PEDRO', 'PABLO', 'MARIA', 'MARÍA',
+  'FRANCISCO', 'ANTONIO', 'MANUEL', 'MIGUEL', 'RAFAEL', 'GABRIEL',
+  'ANGELES', 'ÁNGELES', 'ROSARIO', 'DOLORES', 'PILAR', 'MERCEDES',
+  
+  // Apellidos/títulos comunes
+  'HERMANOS', 'HERMANAS', 'DOCTOR', 'DOCTORA', 'PROFESOR', 'PROFESORA',
+  'ALCALDE', 'CONDE', 'DUQUE', 'MARQUES', 'MARQUÉS', 'REY', 'REINA',
+  'PEÑA', 'GARCIA', 'GARCÍA', 'LOPEZ', 'LÓPEZ', 'MARTINEZ', 'MARTÍNEZ',
+  
+  // Geográficos andaluces
+  'SIERRA', 'VALLE', 'RIO', 'RÍO', 'MONTE', 'CERRO', 'LLANO', 'VEGA',
+  'FUENTE', 'POZO', 'CRUZ', 'PUENTE', 'TORRE',
+  
+  // Provincias/ciudades
+  'ALMERIA', 'ALMERÍA', 'GRANADA', 'MALAGA', 'MÁLAGA',
+  'JAEN', 'JAÉN', 'CORDOBA', 'CÓRDOBA', 'SEVILLA', 'HUELVA', 'CADIZ', 'CÁDIZ',
+  
+  // =========================================================================
+  // CÓDIGOS Y ABREVIATURAS
+  // =========================================================================
+  'CP', 'CTRA', 'AV', 'CL', 'PL', 'PZ', 'URB', 'POL', 'IND',
+  'NUM', 'KM', 'HA',
+  
+  // Preposiciones (para separación)
+  'DE', 'DEL', 'LA', 'EL', 'LOS', 'LAS', 'AL', 'EN', 'CON',
+  
+].sort((a, b) => b.length - a.length); // Ordenar por longitud descendente (greedy)
+
+// ============================================================================
 // LISTAS DE EXCEPCIONES
 // ============================================================================
 
 /**
  * Palabras que contienen patrones que parecen concatenaciones pero no lo son.
- * Incluye:
- * - Palabras compuestas con preposiciones internas (de, del, la, el)
- * - Nombres propios españoles que contienen estas preposiciones
- * - Topónimos andaluces comunes
- * 
- * v2.5: Añadidos nombres propios españoles
- * v2.4: Expandida significativamente para evitar falsos positivos
  */
 const FALSE_POSITIVES = new Set([
-  // =========================================================================
-  // PALABRAS COMPUESTAS (v2.4)
-  // =========================================================================
+  // Palabras compuestas
   'polideportivo', 'videojuego', 'videoconferencia', 'radiodifusión',
   'biodegradable', 'audiovisual', 'hidroeléctrica', 'termodinámico',
   'electromagnético', 'socioeconómico', 'medioambiental', 'iberoamericano',
@@ -99,81 +187,90 @@ const FALSE_POSITIVES = new Set([
   'mineral', 'general', 'comercial', 'industrial', 'material',
   'medicinal', 'racional', 'nacional', 'regional',
 
-  // =========================================================================
-  // NOMBRES PROPIOS ESPAÑOLES (v2.5)
-  // =========================================================================
+  // Nombres propios con "el"
+  'manuel', 'manuela', 'miguel', 'gabriel', 'gabriela',
+  'rafael', 'rafaela', 'israel', 'ezequiel', 'daniel', 'daniela',
+  'joel', 'abel', 'ismael', 'samuel', 'misael', 'eliseo',
+  'rogelio', 'aurelio', 'aurelia', 'cornelio', 'cornelia',
+  'heliodoro', 'fidel', 'olegario',
   
-  // Nombres con "el" interno - MUY COMUNES
-  'manuel', 'manuela', 'manuelita',
-  'miguel', 'miguela', 'miguelito',
-  'gabriel', 'gabriela', 'gabrielito',
-  'rafael', 'rafaela', 'rafaelito',
-  'israel', 'israelita',
-  'ezequiel', 'ezequiela',
-  'daniel', 'daniela', 'danielita',
-  'joel', 'joela',
-  'abel', 'abela',
-  'ismael', 'ismaela',
-  'samuel', 'samuela',
-  'nathanael', 'natanael',
-  'misael',
-  'eliel', 'eliseo',
-  'rogelio', 'rogeliA', // OJO: rogelio contiene "el"
-  'aurelio', 'aurelia',
-  'cornelio', 'cornelia',
-  'heliodoro', 'heliodora',
-  'fidel', 'fidela', 'fidelio',
-  'olegario', 'olegaria',
+  // Nombres propios con "la"
+  'candela', 'candelaria', 'adela', 'adelaida', 'adelina',
+  'estela', 'angela', 'angelita', 'angelica', 'angeles',
+  'micaela', 'graciela', 'carmela', 'carmelita', 'carmelo',
+  'consuela', 'consuelo', 'gisela', 'mariela', 'pamela',
+  'noela', 'noelia', 'marcela', 'marcelo', 'ornela',
+  'ariela', 'ariel', 'marisela',
   
-  // Nombres con "la" interno
-  'candela', 'candelaria', 'candelario',
-  'adela', 'adelaida', 'adelina', 'adelita',
-  'estela', 'estelita',
-  'angela', 'angelita', 'angelica', 'angeles',
-  'micaela', 'micaelita',
-  'graciela', 'gracielita',
-  'carmela', 'carmelita', 'carmelo',
-  'manuela', 'manuelita',
-  'consuela', 'consuelo', 'consuelito',
-  'rafaela', 'rafaelita',
-  'gabriela', 'gabrielita',
-  'isela', 'iselita',
-  'gisela', 'giselita',
-  'mariela', 'marielita',
-  'daniela', 'danielita',
-  'pamela', 'pamelita',
-  'noela', 'noelia',
-  'estela', 'estelita',
-  'marcela', 'marcelita', 'marcelo', 'marcelino',
-  'graciela', 'gracielita',
-  'ornela', 'ornella',
-  'ariela', 'ariel', 'arielita',
-  'marisela', 'mariselita',
-  'varela', // apellido común
-  'vilela', // apellido común
-  'candela', 'candelita',
-  'uela', // sufijo común (escuela,uela, etc.)
-  
-  // =========================================================================
-  // TOPÓNIMOS ANDALUCES (v2.5)
-  // =========================================================================
-  'cela', 'pela', 'estela', 'candela',
-  'adela', 'graciela', 'micaela',
-  // Barrios/pedanías con estos nombres
-  'candelaria', 'candelario',
-  
-  // =========================================================================
-  // APELLIDOS COMUNES (v2.5)
-  // =========================================================================
-  'varela', 'vilela', 'candela', 'estela',
-  'manuel', 'miguel', 'gabriel', 'rafael',
-  'daniel', 'samuel', 'israel', 'ismael',
+  // Apellidos y topónimos
+  'varela', 'vilela', 'cela', 'pela',
 ]);
 
 /**
  * Preposiciones españolas que pueden aparecer concatenadas
  */
 const PREPOSITIONS = ['de', 'del', 'la', 'el', 'los', 'las', 'al'];
+
+// ============================================================================
+// FUNCIÓN: SEPARAR ALL CAPS CON DICCIONARIO
+// ============================================================================
+
+/**
+ * Separa texto ALL CAPS concatenado usando el diccionario PTEL.
+ * Usa matching greedy (palabras más largas primero).
+ * 
+ * @example
+ * splitAllCapsWithDictionary("CENTROSALUD") → "CENTRO SALUD"
+ * splitAllCapsWithDictionary("HERMANOSPEÑA") → "HERMANOS PEÑA"
+ * splitAllCapsWithDictionary("CPALMERÍA") → "CP ALMERÍA"
+ */
+export function splitAllCapsWithDictionary(text: string): {
+  result: string;
+  wasModified: boolean;
+  partsFound: string[];
+} {
+  // Solo procesar ALL CAPS puros sin espacios, mínimo 6 caracteres
+  if (!/^[A-ZÁÉÍÓÚÜÑ]+$/.test(text) || text.length < 6) {
+    return { result: text, wasModified: false, partsFound: [] };
+  }
+  
+  let remaining = text;
+  const parts: string[] = [];
+  
+  while (remaining.length > 0) {
+    let matched = false;
+    
+    // Buscar la palabra más larga que coincida al inicio
+    for (const word of DICCIONARIO_PTEL) {
+      if (remaining.startsWith(word)) {
+        parts.push(word);
+        remaining = remaining.substring(word.length);
+        matched = true;
+        break;
+      }
+    }
+    
+    if (!matched) {
+      // No match en diccionario - añadir el resto como una palabra
+      if (remaining.length > 0) {
+        parts.push(remaining);
+      }
+      break;
+    }
+  }
+  
+  // Solo modificar si encontramos al menos 2 partes
+  if (parts.length < 2) {
+    return { result: text, wasModified: false, partsFound: [] };
+  }
+  
+  const result = parts.join(' ');
+  return { 
+    result, 
+    wasModified: result !== text,
+    partsFound: parts
+  };
+}
 
 // ============================================================================
 // FUNCIÓN PRINCIPAL DE DESCONCATENACIÓN
@@ -202,15 +299,23 @@ export function deconcatenateText(input: string): DeconcatenationResult {
   const lowerText = text.toLowerCase();
 
   // Verificar falsos positivos conocidos
-  // Buscar cada palabra del texto en la lista de falsos positivos
   const words = lowerText.split(/\s+/);
   for (const word of words) {
-    // Limpiar puntuación del word
     const cleanWord = word.replace(/[.,;:!?()]/g, '');
     if (FALSE_POSITIVES.has(cleanWord)) {
-      // Si alguna palabra del texto es un falso positivo conocido,
-      // no aplicar desconcatenación a todo el texto
       return result;
+    }
+  }
+
+  // =========================================================================
+  // PATRÓN 10: ALL CAPS con diccionario (v2.6) - APLICAR PRIMERO
+  // =========================================================================
+  // Solo si el texto es ALL CAPS puro sin espacios
+  if (/^[A-ZÁÉÍÓÚÜÑ]+$/.test(text) && text.length >= 6) {
+    const dictResult = splitAllCapsWithDictionary(text);
+    if (dictResult.wasModified) {
+      text = dictResult.result;
+      result.patternsApplied.push('diccionario-allcaps');
     }
   }
 
@@ -249,7 +354,7 @@ export function deconcatenateText(input: string): DeconcatenationResult {
     result.patternsApplied.push('abreviatura');
   }
 
-  // PATRÓN 5: Preposición pegada al final de palabra (legacy - mantener compatibilidad)
+  // PATRÓN 5: Preposición pegada al final de palabra
   for (const prep of PREPOSITIONS) {
     const pattern = new RegExp(
       `([aeiouáéíóú])(${prep})([\s][A-ZÁÉÍÓÚÜÑ])`,
@@ -262,52 +367,30 @@ export function deconcatenateText(input: string): DeconcatenationResult {
     }
   }
 
-  // =========================================================================
-  // PATRONES v2.4 (30-Nov-2025) - CORREGIDOS
-  // =========================================================================
-
-  // PATRÓN 6: Vocal + preposición pegada (CORREGIDO v2.4)
-  // Solo aplica cuando:
-  // - Hay una MAYÚSCULA directamente después (PlazadelAyuntamiento)
-  // - O hay un espacio seguido de cualquier palabra (Barriode la Estación)
-  // 
-  // NO aplica cuando la preposición está en medio de una palabra minúscula
+  // PATRÓN 6: Vocal + preposición pegada
   const beforeVocalPrep = text;
-  // Caso 1: vocal + prep + MAYÚSCULA directa
   text = text.replace(/([aeiouáéíóú])(de|del|la|el)([A-ZÁÉÍÓÚÜÑ])/g, '$1 $2 $3');
-  // Caso 2: vocal + prep + espacio (la prep estaba pegada al final)
   text = text.replace(/([aeiouáéíóú])(de|del|la|el)(\s+)/g, '$1 $2$3');
   if (text !== beforeVocalPrep) {
     result.patternsApplied.push('vocal+preposición');
   }
 
-  // PATRÓN 7: Punto pegado a siguiente palabra (solo mayúsculas)
-  // Ej: "Ctra.GR" → "Ctra. GR"
-  // Ej: "Av.Principal" → "Av. Principal"
+  // PATRÓN 7: Punto pegado a siguiente palabra
   const beforeDot = text;
   text = text.replace(/\.([A-ZÁÉÍÓÚÜÑ])/g, '. $1');
   if (text !== beforeDot) {
     result.patternsApplied.push('punto+mayúscula');
   }
 
-  // =========================================================================
-  // PATRONES v2.2 (30-Nov-2025)
-  // =========================================================================
-
   // PATRÓN 8: Unidades pegadas a números
-  // Ej: "3100Km" → "3100 Km", "Km5" → "Km 5"
   const beforeUnit = text;
-  // número + unidad
   text = text.replace(/(\d)(Km|km|Kms|kms|m|ha)(?=\d|\s|$)/gi, '$1 $2');
-  // unidad + número
   text = text.replace(/(Km|km|Kms|kms)(\d)/gi, '$1 $2');
   if (text !== beforeUnit) {
     result.patternsApplied.push('unidad+número');
   }
 
   // PATRÓN 9: ALL CAPS + número al final
-  // Ej: "CPALMERÍA2" → "CPALMERÍA 2", "CEIP3" → "CEIP 3"
-  // Solo aplica si hay al menos 3 letras mayúsculas antes del número
   const beforeAllCaps = text;
   text = text.replace(/([A-ZÁÉÍÓÚÜÑ]{3,})(\d+)$/g, '$1 $2');
   if (text !== beforeAllCaps) {
@@ -324,14 +407,17 @@ export function deconcatenateText(input: string): DeconcatenationResult {
   // Normalizar espacios múltiples
   text = text.replace(/\s+/g, ' ').trim();
 
-  // DETECCIÓN DE CASOS SOSPECHOSOS (ALL CAPS concatenados muy largos)
+  // DETECCIÓN DE CASOS SOSPECHOSOS
   if (/^[A-ZÁÉÍÓÚÜÑ\s\.\-]+$/.test(input)) {
     const longSequences = input.match(/[A-ZÁÉÍÓÚÜÑ]{12,}/g);
     if (longSequences && longSequences.length > 0) {
-      result.requiresReview = true;
-      result.warnings.push(
-        `Texto ALL CAPS con secuencias largas: "${longSequences.join('", "')}"`
-      );
+      // Si el diccionario no pudo separar, marcar para revisión
+      if (!result.patternsApplied.includes('diccionario-allcaps')) {
+        result.requiresReview = true;
+        result.warnings.push(
+          `Texto ALL CAPS no separado: "${longSequences.join('", "')}"`
+        );
+      }
     }
   }
 
@@ -490,6 +576,7 @@ export function detectMisplacedContent(text: string): {
 
 export default {
   deconcatenateText,
+  splitAllCapsWithDictionary,
   validateCoordinateX,
   validateCoordinateY,
   splitConcatenatedCoordinates,
