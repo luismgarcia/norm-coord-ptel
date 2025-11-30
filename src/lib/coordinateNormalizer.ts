@@ -1,10 +1,17 @@
 /**
- * PTEL Andalucía - Normalizador de Coordenadas v2.1
+ * PTEL Andalucía - Normalizador de Coordenadas v2.2
  * 
  * Implementa la taxonomía completa de 52 patrones de coordenadas
  * identificados en documentos municipales andaluces.
  * 
  * Sistema objetivo: EPSG:25830 (UTM Zona 30N, ETRS89)
+ * 
+ * CHANGELOG v2.2 (30-Nov-2025):
+ * - NEW: Parser WKT POINT - detecta POINT(X Y) desde QGIS/PostGIS
+ * - NEW: Parser GeoJSON Point - detecta {"type":"Point","coordinates":[X,Y]}
+ * - NEW: Integración en pipeline normalización (Fase 0.6)
+ * - NEW: Manejo en procesarParCoordenadas() para campos WKT/GeoJSON
+ * - TEST: 5 casos adicionales para formatos espaciales
  * 
  * CHANGELOG v2.1 (30-Nov-2025):
  * - NEW: Detección de coordenadas concatenadas (X+Y fusionadas)
@@ -12,7 +19,7 @@
  * - NEW: Integración en procesarParCoordenadas()
  * - TEST: Casos adicionales para coordenadas concatenadas
  * 
- * @version 2.1.0
+ * @version 2.2.0
  * @date Noviembre 2025
  */
 
@@ -35,6 +42,8 @@ export type PatronDetectado =
   | 'COMILLAS_TIPOGRAFICAS'
   | 'PLACEHOLDER'
   | 'CONCATENADO'
+  | 'WKT_POINT'
+  | 'GEOJSON_POINT'
   | 'DESCONOCIDO';
 
 export interface ResultadoNormalizacion {
@@ -61,6 +70,14 @@ export interface ResultadoConcatenacion {
   valorX: number | null;
   valorY: number | null;
   confianza: NivelConfianza;
+  warning: string | null;
+}
+
+export interface ResultadoFormatoEspacial {
+  esEspacial: boolean;
+  valorX: number | null;
+  valorY: number | null;
+  formato: 'WKT_POINT' | 'GEOJSON_POINT' | null;
   warning: string | null;
 }
 
@@ -193,6 +210,16 @@ export function detectarPatron(valor: string): PatronDetectado {
   
   if (esPlaceholder(v)) {
     return 'PLACEHOLDER';
+  }
+  
+  // G2: WKT POINT format
+  if (/^\s*POINT\s*\(/i.test(v)) {
+    return 'WKT_POINT';
+  }
+  
+  // G3: GeoJSON Point format
+  if (v.startsWith('{') && v.includes('"type"') && v.includes('"Point"')) {
+    return 'GEOJSON_POINT';
   }
   
   // Detectar coordenadas concatenadas (12+ dígitos sin separadores)
@@ -343,6 +370,126 @@ export function separarCoordenadasConcatenadas(valor: string): ResultadoConcaten
 }
 
 // ============================================================================
+// FUNCIONES: PARSERS WKT Y GEOJSON (G2-G3)
+// ============================================================================
+
+/**
+ * Detecta y extrae coordenadas de formato WKT POINT
+ * 
+ * Soporta:
+ * - POINT(X Y)
+ * - POINT (X Y)  
+ * - POINT(X, Y)
+ * - point(x y) - case insensitive
+ * 
+ * @example
+ * parseWKT("POINT(504750 4077905)") // → { x: 504750, y: 4077905 }
+ */
+export function parseWKT(valor: string): { x: number; y: number } | null {
+  // Regex para POINT con variantes
+  const wktRegex = /^\s*POINT\s*\(\s*(-?\d+\.?\d*)\s*[,\s]\s*(-?\d+\.?\d*)\s*\)\s*$/i;
+  
+  const match = valor.match(wktRegex);
+  
+  if (match) {
+    const x = parseFloat(match[1]);
+    const y = parseFloat(match[2]);
+    
+    if (!isNaN(x) && !isNaN(y)) {
+      return { x, y };
+    }
+  }
+  
+  return null;
+}
+
+/**
+ * Detecta y extrae coordenadas de formato GeoJSON Point
+ * 
+ * Soporta:
+ * - {"type":"Point","coordinates":[X,Y]}
+ * - {"coordinates":[X,Y],"type":"Point"} (orden invertido)
+ * - Variantes con espacios
+ * 
+ * @example
+ * parseGeoJSON('{"type":"Point","coordinates":[504750,4077905]}')
+ * // → { x: 504750, y: 4077905 }
+ */
+export function parseGeoJSON(valor: string): { x: number; y: number } | null {
+  try {
+    const jsonStr = valor.trim();
+    
+    // Verificar que parece JSON
+    if (!jsonStr.startsWith('{') || !jsonStr.endsWith('}')) {
+      return null;
+    }
+    
+    const obj = JSON.parse(jsonStr);
+    
+    // Verificar estructura GeoJSON Point
+    if (obj.type?.toLowerCase() === 'point' && 
+        Array.isArray(obj.coordinates) && 
+        obj.coordinates.length >= 2) {
+      
+      const x = parseFloat(obj.coordinates[0]);
+      const y = parseFloat(obj.coordinates[1]);
+      
+      if (!isNaN(x) && !isNaN(y)) {
+        return { x, y };
+      }
+    }
+  } catch {
+    // No es JSON válido
+    return null;
+  }
+  
+  return null;
+}
+
+/**
+ * Detecta si un valor es formato WKT o GeoJSON y extrae coordenadas
+ * 
+ * @returns ResultadoFormatoEspacial con las coordenadas extraídas o null
+ */
+export function detectarFormatoEspacial(valor: string): ResultadoFormatoEspacial {
+  const resultado: ResultadoFormatoEspacial = {
+    esEspacial: false,
+    valorX: null,
+    valorY: null,
+    formato: null,
+    warning: null,
+  };
+  
+  if (typeof valor !== 'string') return resultado;
+  
+  const v = valor.trim();
+  
+  // Intentar WKT primero (más común en contexto QGIS)
+  const wkt = parseWKT(v);
+  if (wkt) {
+    resultado.esEspacial = true;
+    resultado.valorX = wkt.x;
+    resultado.valorY = wkt.y;
+    resultado.formato = 'WKT_POINT';
+    resultado.warning = `WKT POINT detectado: ${v} → X=${wkt.x}, Y=${wkt.y}`;
+    return resultado;
+  }
+  
+  // Intentar GeoJSON
+  const geojson = parseGeoJSON(v);
+  if (geojson) {
+    resultado.esEspacial = true;
+    resultado.valorX = geojson.x;
+    resultado.valorY = geojson.y;
+    resultado.formato = 'GEOJSON_POINT';
+    resultado.warning = `GeoJSON Point detectado → X=${geojson.x}, Y=${geojson.y}`;
+    return resultado;
+  }
+  
+  return resultado;
+}
+
+// ============================================================================
 // FUNCIONES DE NORMALIZACIÓN
 // ============================================================================
 
@@ -404,6 +551,26 @@ export function normalizarCoordenada(input: string): ResultadoNormalizacion {
       // Guardar Y en metadata para recuperación posterior
       (resultado as any)._yExtraida = separacion.valorY;
       (resultado as any)._confianzaConcatenacion = separacion.confianza;
+      
+      return resultado;
+    }
+  }
+  
+  // ══════════════════════════════════════════════════════════════════════════
+  // FASE 0.6: Detección de formatos espaciales (WKT, GeoJSON)
+  // ══════════════════════════════════════════════════════════════════════════
+  if (resultado.patronDetectado === 'WKT_POINT' || resultado.patronDetectado === 'GEOJSON_POINT') {
+    const espacial = detectarFormatoEspacial(valor);
+    if (espacial.esEspacial && espacial.valorX !== null) {
+      // Devolver X, guardar Y para procesarParCoordenadas
+      resultado.valorNormalizado = espacial.valorX;
+      resultado.exito = true;
+      resultado.fasesAplicadas.push('FASE_0.6_FORMATO_ESPACIAL');
+      resultado.warnings.push(espacial.warning || 'Formato espacial detectado');
+      
+      // Guardar Y en metadata
+      (resultado as any)._yExtraida = espacial.valorY;
+      (resultado as any)._formatoEspacial = espacial.formato;
       
       return resultado;
     }
@@ -722,6 +889,49 @@ export function procesarParCoordenadas(
     }
   }
   
+  // ══════════════════════════════════════════════════════════════════════════
+  // NUEVO v2.2: Detectar formatos espaciales (WKT, GeoJSON)
+  // ══════════════════════════════════════════════════════════════════════════
+  const esFormatoEspacialX = normX.patronDetectado === 'WKT_POINT' || normX.patronDetectado === 'GEOJSON_POINT';
+  const esFormatoEspacialY = normY.patronDetectado === 'WKT_POINT' || normY.patronDetectado === 'GEOJSON_POINT';
+  
+  // Caso: Campo X contiene WKT o GeoJSON con ambas coordenadas
+  if (esFormatoEspacialX && (normY.patronDetectado === 'PLACEHOLDER' || yInput.trim() === '')) {
+    const yExtraida = (normX as any)._yExtraida;
+    if (yExtraida !== undefined) {
+      y = yExtraida;
+      normY.valorNormalizado = yExtraida;
+      normY.exito = true;
+      normY.patronDetectado = normX.patronDetectado;
+      normY.warnings.push(`Y extraída de formato ${normX.patronDetectado} en campo X`);
+    }
+  }
+  
+  // Caso: Campo Y contiene WKT o GeoJSON con ambas coordenadas
+  if (esFormatoEspacialY && (normX.patronDetectado === 'PLACEHOLDER' || xInput.trim() === '')) {
+    const espacial = detectarFormatoEspacial(yInput);
+    if (espacial.esEspacial) {
+      x = espacial.valorX;
+      y = espacial.valorY;
+      normX.valorNormalizado = espacial.valorX;
+      normX.exito = true;
+      normX.patronDetectado = espacial.formato!;
+      normX.warnings.push(`X extraída de formato ${espacial.formato} en campo Y`);
+    }
+  }
+  
+  // Caso: Ambos campos tienen el mismo valor WKT/GeoJSON
+  if (xInput.trim() === yInput.trim() && esFormatoEspacialX) {
+    const espacial = detectarFormatoEspacial(xInput);
+    if (espacial.esEspacial) {
+      x = espacial.valorX;
+      y = espacial.valorY;
+      normX.valorNormalizado = espacial.valorX;
+      normY.valorNormalizado = espacial.valorY;
+      normX.warnings.push(`Campos idénticos con formato ${espacial.formato} - separados`);
+    }
+  }
+  
   // Validar si tenemos valores numéricos
   if (x !== null) {
     validX = validarCoordenada(x);
@@ -925,9 +1135,18 @@ export function ejecutarTests(): void {
     { x: '5234004120000', y: '', esperadoX: 523400, esperadoY: 4120000 },
     { x: '4367804136578', y: 'Pendiente', esperadoX: 436780, esperadoY: 4136578 },
     { x: '5047504077153', y: '5047504077153', esperadoX: 504750, esperadoY: 4077153 },
+    
+    // NUEVO v2.2: Formatos espaciales WKT
+    { x: 'POINT(504750 4077905)', y: '', esperadoX: 504750, esperadoY: 4077905 },
+    { x: 'POINT(504750.92 4077905.36)', y: 'Pendiente', esperadoX: 504750.92, esperadoY: 4077905.36 },
+    { x: 'point(436780, 4136578)', y: '', esperadoX: 436780, esperadoY: 4136578 },
+    
+    // NUEVO v2.2: Formatos espaciales GeoJSON
+    { x: '{"type":"Point","coordinates":[504750,4077905]}', y: '', esperadoX: 504750, esperadoY: 4077905 },
+    { x: '{"type":"Point","coordinates":[505438.13,4078875.09]}', y: 'N/A', esperadoX: 505438.13, esperadoY: 4078875.09 },
   ];
   
-  console.log('\n🧪 EJECUTANDO TESTS DE NORMALIZACIÓN v2.1\n');
+  console.log('\n🧪 EJECUTANDO TESTS DE NORMALIZACIÓN v2.2\n');
   console.log('═'.repeat(70));
   
   let pasados = 0;
@@ -978,6 +1197,8 @@ export function ejecutarTests(): void {
 export { normalizarCoordenada as normalizeCoordinate };
 export { ResultadoNormalizacion as NormalizationResult };
 export { separarCoordenadasConcatenadas as splitConcatenatedCoordinates };
+export { parseWKT as parseWKTPoint };
+export { parseGeoJSON as parseGeoJSONPoint };
 
 // ============================================================================
 // EXPORTACIÓN POR DEFECTO
@@ -988,6 +1209,9 @@ export default {
   validarCoordenada,
   procesarParCoordenadas,
   separarCoordenadasConcatenadas,
+  parseWKT,
+  parseGeoJSON,
+  detectarFormatoEspacial,
   detectarPatron,
   esPlaceholder,
   detectarIntercambioXY,
