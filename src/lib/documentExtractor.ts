@@ -757,22 +757,3 @@ export async function extractInfrastructures(
     }
   };
 }
-```
-
----
-
-## Resumen de cambios v3.3:
-
-| Ubicación | Cambio |
-|-----------|--------|
-| Línea 3-5 | Añadido CHANGELOG v3.3 |
-| `extractFromODT` | Eliminado código duplicado, dejando solo 1 bloque de desconcatenación |
-| `extractFromSpreadsheet` | Añadida desconcatenación (igual que ODT) |
-
-**Mensaje de commit sugerido:**
-```
-feat(v3.3): integrar desconcatenación en ODT y Spreadsheet
-
-- Unifica comportamiento de ambos extractores
-- Corrige texto concatenado: "FARMACIAM.ªCarmen" → "FARMACIA M.ª Carmen"
-- Elimina código duplicado en extractFromODT
