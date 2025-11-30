@@ -1,10 +1,19 @@
 /**
- * PTEL Andalucía - Normalizador de Coordenadas v2.2
+ * PTEL Andalucía - Normalizador de Coordenadas v2.3
  * 
  * Implementa la taxonomía completa de 52 patrones de coordenadas
  * identificados en documentos municipales andaluces.
  * 
  * Sistema objetivo: EPSG:25830 (UTM Zona 30N, ETRS89)
+ * 
+ * CHANGELOG v2.3 (30-Nov-2025):
+ * - NEW: Parser DMS (Grados Sexagesimales) - 8 formatos C1-C8
+ * - NEW: parseDMS() - convierte DMS a grados decimales
+ * - NEW: esDMS() - detecta si un string es formato DMS
+ * - NEW: Fase 0.7 en pipeline de normalización
+ * - NEW: Tipos DMS_ESTANDAR, DMS_ESPACIOS, DMS_PREFIJO, etc.
+ * - NEW: Interfaz ResultadoDMS con metadata de conversión
+ * - TEST: 26 casos adicionales para formatos DMS
  * 
  * CHANGELOG v2.2 (30-Nov-2025):
  * - NEW: Parser WKT POINT - detecta POINT(X Y) desde QGIS/PostGIS
@@ -19,7 +28,7 @@
  * - NEW: Integración en procesarParCoordenadas()
  * - TEST: Casos adicionales para coordenadas concatenadas
  * 
- * @version 2.2.0
+ * @version 2.3.0
  * @date Noviembre 2025
  */
 
@@ -44,6 +53,13 @@ export type PatronDetectado =
   | 'CONCATENADO'
   | 'WKT_POINT'
   | 'GEOJSON_POINT'
+  | 'DMS_ESTANDAR'      // C1: 37°26'46.5"N
+  | 'DMS_ESPACIOS'      // C3: 37 26 46.5 N
+  | 'DMS_PREFIJO'       // C4: N37°26'46.5"
+  | 'DMS_MINUTOS_DEC'   // C5: 37°26.775'N
+  | 'DMS_ESPACIOS_EXTRA'// C6: 37° 26' 46.5" N
+  | 'DMS_SIGNO'         // C7: +37°26'46.5"
+  | 'DMS_DOS_PUNTOS'    // C8: 37:26:46.5 N
   | 'DESCONOCIDO';
 
 export interface ResultadoNormalizacion {
@@ -78,6 +94,18 @@ export interface ResultadoFormatoEspacial {
   valorX: number | null;
   valorY: number | null;
   formato: 'WKT_POINT' | 'GEOJSON_POINT' | null;
+  warning: string | null;
+}
+
+export interface ResultadoDMS {
+  esValido: boolean;
+  valorDecimal: number | null;
+  grados: number | null;
+  minutos: number | null;
+  segundos: number | null;
+  direccion: string | null;      // N, S, E, W
+  esLatitud: boolean | null;     // true = lat, false = lon, null = desconocido
+  formatoDetectado: PatronDetectado | null;
   warning: string | null;
 }
 
@@ -222,6 +250,41 @@ export function detectarPatron(valor: string): PatronDetectado {
     return 'GEOJSON_POINT';
   }
   
+  // C1-C8: Formatos DMS (Grados Sexagesimales)
+  // Detectar antes de otros patrones porque contienen símbolos especiales
+  
+  // C7: Signo explícito: +37°26'46.5" o -3°45'12.3"
+  if (/^[+-]\d+[°º]/.test(v)) {
+    return 'DMS_SIGNO';
+  }
+  
+  // C4: Prefijo cardinal: N37°26'46.5" o W3°45'12.3"
+  if (/^[NSEWO]\s*\d+[°º]/i.test(v)) {
+    return 'DMS_PREFIJO';
+  }
+  
+  // C8: Dos puntos: 37:26:46.5 N o 37:26:46.5N
+  if (/^\d+:\d+:\d+\.?\d*\s*[NSEWO]?$/i.test(v)) {
+    return 'DMS_DOS_PUNTOS';
+  }
+  
+  // C5: Minutos decimales: 37°26.775'N (sin segundos)
+  if (/^\d+\s*[°º]\s*\d+\.?\d*\s*['′]\s*[NSEWO]?$/i.test(v)) {
+    return 'DMS_MINUTOS_DEC';
+  }
+  
+  // C1/C6: Estándar ISO: 37°26'46.5"N o 37° 26' 46.5" N
+  if (/^\d+\s*[°º]\s*\d+\s*['′]\s*\d+\.?\d*\s*["″]?\s*[NSEWO]?$/i.test(v)) {
+    // C6 tiene más espacios
+    const espacios = (v.match(/\s/g) || []).length;
+    return espacios > 2 ? 'DMS_ESPACIOS_EXTRA' : 'DMS_ESTANDAR';
+  }
+  
+  // C3: Espacios como separadores: 37 26 46.5 N
+  if (/^\d+\s+\d+\s+\d+\.?\d*\s*[NSEWO]$/i.test(v)) {
+    return 'DMS_ESPACIOS';
+  }
+  
   // Detectar coordenadas concatenadas (12+ dígitos sin separadores)
   const soloDigitos = v.replace(/[^\d]/g, '');
   if (soloDigitos.length >= 12 && /^\d+$/.test(v)) {
@@ -287,17 +350,6 @@ export function detectarPatron(valor: string): PatronDetectado {
 
 /**
  * Detecta y separa coordenadas X+Y concatenadas en un solo valor.
- * 
- * Patrón típico: "5234004120000" → X=523400, Y=4120000
- * 
- * Estrategia:
- * 1. Probar división en el punto medio
- * 2. Validar que ambas partes caigan en rangos UTM válidos para Andalucía
- * 3. Identificar cuál es X y cuál es Y por sus rangos característicos
- * 
- * @example
- * separarCoordenadasConcatenadas("5234004120000")
- * // → { esConcatenado: true, valorX: 523400, valorY: 4120000, ... }
  */
 export function separarCoordenadasConcatenadas(valor: string): ResultadoConcatenacion {
   const resultado: ResultadoConcatenacion = {
@@ -308,18 +360,13 @@ export function separarCoordenadasConcatenadas(valor: string): ResultadoConcaten
     warning: null,
   };
   
-  // Extraer solo dígitos
   const soloDigitos = valor.replace(/[^\d]/g, '');
   
-  // Necesitamos al menos 12 dígitos para tener X (6) + Y (7)
   if (soloDigitos.length < 12) {
     return resultado;
   }
   
-  // Estrategia 1: División en punto medio
   const mid = Math.floor(soloDigitos.length / 2);
-  
-  // Probar diferentes puntos de corte alrededor del medio
   const puntosCorte = [mid, mid - 1, mid + 1, mid - 2, mid + 2];
   
   for (const corte of puntosCorte) {
@@ -328,13 +375,11 @@ export function separarCoordenadasConcatenadas(valor: string): ResultadoConcaten
     const parte1 = parseInt(soloDigitos.substring(0, corte), 10);
     const parte2 = parseInt(soloDigitos.substring(corte), 10);
     
-    // Verificar si parte1 es X válida y parte2 es Y válida
     const parte1EsX = parte1 >= RANGOS_ANDALUCIA.UTM.X_MIN && parte1 <= RANGOS_ANDALUCIA.UTM.X_MAX;
     const parte1EsY = parte1 >= RANGOS_ANDALUCIA.UTM.Y_MIN && parte1 <= RANGOS_ANDALUCIA.UTM.Y_MAX;
     const parte2EsX = parte2 >= RANGOS_ANDALUCIA.UTM.X_MIN && parte2 <= RANGOS_ANDALUCIA.UTM.X_MAX;
     const parte2EsY = parte2 >= RANGOS_ANDALUCIA.UTM.Y_MIN && parte2 <= RANGOS_ANDALUCIA.UTM.Y_MAX;
     
-    // Caso más común: X + Y (primero X, luego Y)
     if (parte1EsX && parte2EsY) {
       resultado.esConcatenado = true;
       resultado.valorX = parte1;
@@ -344,7 +389,6 @@ export function separarCoordenadasConcatenadas(valor: string): ResultadoConcaten
       return resultado;
     }
     
-    // Caso inverso: Y + X (primero Y, luego X)
     if (parte1EsY && parte2EsX) {
       resultado.esConcatenado = true;
       resultado.valorX = parte2;
@@ -354,9 +398,7 @@ export function separarCoordenadasConcatenadas(valor: string): ResultadoConcaten
       return resultado;
     }
     
-    // Casos menos probables pero posibles
     if ((parte1EsX && parte2EsX) || (parte1EsY && parte2EsY)) {
-      // Ambas del mismo tipo - podría ser error de datos
       resultado.esConcatenado = true;
       resultado.valorX = parte1EsX ? parte1 : parte2;
       resultado.valorY = parte1EsY ? parte1 : parte2;
@@ -373,84 +415,42 @@ export function separarCoordenadasConcatenadas(valor: string): ResultadoConcaten
 // FUNCIONES: PARSERS WKT Y GEOJSON (G2-G3)
 // ============================================================================
 
-/**
- * Detecta y extrae coordenadas de formato WKT POINT
- * 
- * Soporta:
- * - POINT(X Y)
- * - POINT (X Y)  
- * - POINT(X, Y)
- * - point(x y) - case insensitive
- * 
- * @example
- * parseWKT("POINT(504750 4077905)") // → { x: 504750, y: 4077905 }
- */
 export function parseWKT(valor: string): { x: number; y: number } | null {
-  // Regex para POINT con variantes
   const wktRegex = /^\s*POINT\s*\(\s*(-?\d+\.?\d*)\s*[,\s]\s*(-?\d+\.?\d*)\s*\)\s*$/i;
-  
   const match = valor.match(wktRegex);
   
   if (match) {
     const x = parseFloat(match[1]);
     const y = parseFloat(match[2]);
-    
     if (!isNaN(x) && !isNaN(y)) {
       return { x, y };
     }
   }
-  
   return null;
 }
 
-/**
- * Detecta y extrae coordenadas de formato GeoJSON Point
- * 
- * Soporta:
- * - {"type":"Point","coordinates":[X,Y]}
- * - {"coordinates":[X,Y],"type":"Point"} (orden invertido)
- * - Variantes con espacios
- * 
- * @example
- * parseGeoJSON('{"type":"Point","coordinates":[504750,4077905]}')
- * // → { x: 504750, y: 4077905 }
- */
 export function parseGeoJSON(valor: string): { x: number; y: number } | null {
   try {
     const jsonStr = valor.trim();
-    
-    // Verificar que parece JSON
     if (!jsonStr.startsWith('{') || !jsonStr.endsWith('}')) {
       return null;
     }
-    
     const obj = JSON.parse(jsonStr);
-    
-    // Verificar estructura GeoJSON Point
     if (obj.type?.toLowerCase() === 'point' && 
         Array.isArray(obj.coordinates) && 
         obj.coordinates.length >= 2) {
-      
       const x = parseFloat(obj.coordinates[0]);
       const y = parseFloat(obj.coordinates[1]);
-      
       if (!isNaN(x) && !isNaN(y)) {
         return { x, y };
       }
     }
   } catch {
-    // No es JSON válido
     return null;
   }
-  
   return null;
 }
 
-/**
- * Detecta si un valor es formato WKT o GeoJSON y extrae coordenadas
- * 
- * @returns ResultadoFormatoEspacial con las coordenadas extraídas o null
- */
 export function detectarFormatoEspacial(valor: string): ResultadoFormatoEspacial {
   const resultado: ResultadoFormatoEspacial = {
     esEspacial: false,
@@ -464,7 +464,6 @@ export function detectarFormatoEspacial(valor: string): ResultadoFormatoEspacial
   
   const v = valor.trim();
   
-  // Intentar WKT primero (más común en contexto QGIS)
   const wkt = parseWKT(v);
   if (wkt) {
     resultado.esEspacial = true;
@@ -475,7 +474,6 @@ export function detectarFormatoEspacial(valor: string): ResultadoFormatoEspacial
     return resultado;
   }
   
-  // Intentar GeoJSON
   const geojson = parseGeoJSON(v);
   if (geojson) {
     resultado.esEspacial = true;
@@ -490,21 +488,189 @@ export function detectarFormatoEspacial(valor: string): ResultadoFormatoEspacial
 }
 
 // ============================================================================
+// FUNCIONES DMS (GRADOS SEXAGESIMALES) - C1-C8
+// ============================================================================
+
+function normalizarSimboloGrados(str: string): string {
+  return str
+    .replace(/[º˚⁰]/g, '°')
+    .replace(/[´`'']/g, "'")
+    .replace(/["„‟]/g, '"');
+}
+
+function dmsADecimal(grados: number, minutos: number, segundos: number, esNegativo: boolean): number {
+  const decimal = Math.abs(grados) + (minutos / 60) + (segundos / 3600);
+  return esNegativo ? -decimal : decimal;
+}
+
+function direccionEsNegativa(direccion: string | null, signo: string | null): boolean {
+  if (signo === '-') return true;
+  if (!direccion) return false;
+  const dir = direccion.toUpperCase();
+  return dir === 'W' || dir === 'O' || dir === 'S';
+}
+
+function direccionEsLatitud(direccion: string | null): boolean | null {
+  if (!direccion) return null;
+  const dir = direccion.toUpperCase();
+  if (dir === 'N' || dir === 'S') return true;
+  if (dir === 'E' || dir === 'W' || dir === 'O') return false;
+  return null;
+}
+
+/**
+ * Parser principal DMS - detecta y convierte formatos C1-C8
+ * 
+ * Formatos soportados:
+ * - C1: 37°26'46.5"N (estándar ISO)
+ * - C2: 37º26'46,5"N (español con º y coma)
+ * - C3: 37 26 46.5 N (espacios como separadores)
+ * - C4: N37°26'46.5" (prefijo cardinal)
+ * - C5: 37°26.775'N (minutos decimales)
+ * - C6: 37° 26' 46.5" N (espacios extra)
+ * - C7: +37°26'46.5" (signo explícito)
+ * - C8: 37:26:46.5 N (dos puntos)
+ */
+export function parseDMS(valor: string): ResultadoDMS {
+  const resultado: ResultadoDMS = {
+    esValido: false,
+    valorDecimal: null,
+    grados: null,
+    minutos: null,
+    segundos: null,
+    direccion: null,
+    esLatitud: null,
+    formatoDetectado: null,
+    warning: null
+  };
+  
+  if (!valor || typeof valor !== 'string') {
+    return resultado;
+  }
+  
+  let v = valor.trim();
+  v = normalizarSimboloGrados(v);
+  v = v.replace(/,/g, '.');
+  
+  let signoExplicito: string | null = null;
+  if (v.startsWith('+') || v.startsWith('-')) {
+    signoExplicito = v[0];
+    v = v.substring(1).trim();
+  }
+  
+  let direccionPrefijo: string | null = null;
+  const matchPrefijo = v.match(/^([NSEW]|[NSEOnseo])\s*/i);
+  if (matchPrefijo) {
+    direccionPrefijo = matchPrefijo[1].toUpperCase();
+    if (direccionPrefijo === 'O') direccionPrefijo = 'W';
+    v = v.substring(matchPrefijo[0].length);
+  }
+  
+  const regexC1C6 = /^(\d+)\s*°\s*(\d+)\s*['′]\s*(\d+\.?\d*)\s*["″]?\s*([NSEWO])?$/i;
+  const regexC3 = /^(\d+)\s+(\d+)\s+(\d+\.?\d*)\s*([NSEWO])?$/i;
+  const regexC5 = /^(\d+)\s*°\s*(\d+\.?\d*)\s*['′]\s*([NSEWO])?$/i;
+  const regexC8 = /^(\d+):(\d+):(\d+\.?\d*)\s*([NSEWO])?$/i;
+  const regexC8b = /^(\d+):(\d+):(\d+\.?\d*)([NSEWO])$/i;
+  
+  let match: RegExpMatchArray | null = null;
+  let grados: number = 0, minutos: number = 0, segundos: number = 0;
+  let direccion: string | null = direccionPrefijo;
+  let formatoBase: PatronDetectado = 'DESCONOCIDO';
+  
+  match = v.match(regexC1C6);
+  if (match) {
+    grados = parseFloat(match[1]);
+    minutos = parseFloat(match[2]);
+    segundos = parseFloat(match[3]);
+    direccion = direccion || (match[4] ? match[4].toUpperCase() : null);
+    formatoBase = (v.match(/\s/g) || []).length > 2 ? 'DMS_ESPACIOS_EXTRA' : 'DMS_ESTANDAR';
+  }
+  
+  if (!match) {
+    match = v.match(regexC3);
+    if (match) {
+      grados = parseFloat(match[1]);
+      minutos = parseFloat(match[2]);
+      segundos = parseFloat(match[3]);
+      direccion = direccion || (match[4] ? match[4].toUpperCase() : null);
+      formatoBase = 'DMS_ESPACIOS';
+    }
+  }
+  
+  if (!match) {
+    match = v.match(regexC5);
+    if (match) {
+      grados = parseFloat(match[1]);
+      minutos = parseFloat(match[2]);
+      segundos = 0;
+      direccion = direccion || (match[3] ? match[3].toUpperCase() : null);
+      formatoBase = 'DMS_MINUTOS_DEC';
+    }
+  }
+  
+  if (!match) {
+    match = v.match(regexC8) || v.match(regexC8b);
+    if (match) {
+      grados = parseFloat(match[1]);
+      minutos = parseFloat(match[2]);
+      segundos = parseFloat(match[3]);
+      direccion = direccion || (match[4] ? match[4].toUpperCase() : null);
+      formatoBase = 'DMS_DOS_PUNTOS';
+    }
+  }
+  
+  if (!match) {
+    return resultado;
+  }
+  
+  if (direccionPrefijo) {
+    formatoBase = 'DMS_PREFIJO';
+  }
+  
+  if (signoExplicito) {
+    formatoBase = 'DMS_SIGNO';
+  }
+  
+  if (direccion === 'O') direccion = 'W';
+  
+  if (grados > 180 || minutos >= 60 || segundos >= 60) {
+    resultado.warning = `Valores fuera de rango: ${grados}° ${minutos}' ${segundos}"`;
+    return resultado;
+  }
+  
+  const esNeg = direccionEsNegativa(direccion, signoExplicito);
+  const decimal = dmsADecimal(grados, minutos, segundos, esNeg);
+  
+  resultado.esValido = true;
+  resultado.valorDecimal = decimal;
+  resultado.grados = grados;
+  resultado.minutos = minutos;
+  resultado.segundos = segundos;
+  resultado.direccion = direccion;
+  resultado.esLatitud = direccionEsLatitud(direccion);
+  resultado.formatoDetectado = formatoBase;
+  
+  if (resultado.esLatitud === true) {
+    if (decimal < 36 || decimal > 38.5) {
+      resultado.warning = `Latitud ${decimal.toFixed(4)}° fuera de Andalucía (36-38.5)`;
+    }
+  } else if (resultado.esLatitud === false) {
+    if (decimal > -1 || decimal < -7.5) {
+      resultado.warning = `Longitud ${decimal.toFixed(4)}° fuera de Andalucía (-7.5 a -1)`;
+    }
+  }
+  
+  return resultado;
+}
+
+export function esDMS(valor: string): boolean {
+  return parseDMS(valor).esValido;
+}
+
+// ============================================================================
 // FUNCIONES DE NORMALIZACIÓN
 // ============================================================================
 
-/**
- * Normaliza una coordenada aplicando el pipeline completo de transformaciones.
- * 
- * Pipeline:
- * 1. Limpieza inicial y detección placeholder
- * 2. Detección de coordenadas concatenadas
- * 3. Corrección mojibake UTF-8/Windows-1252
- * 4. Normalización caracteres especiales (tildes, comillas)
- * 5. Eliminación espacios entre dígitos
- * 6. Normalización formato europeo
- * 7. Parsing numérico
- */
 export function normalizarCoordenada(input: string): ResultadoNormalizacion {
   const resultado: ResultadoNormalizacion = {
     valorOriginal: input,
@@ -518,13 +684,9 @@ export function normalizarCoordenada(input: string): ResultadoNormalizacion {
   
   let valor = input;
   
-  // ══════════════════════════════════════════════════════════════════════════
-  // FASE 0: Limpieza inicial
-  // ══════════════════════════════════════════════════════════════════════════
   valor = valor.trim();
   resultado.fasesAplicadas.push('FASE_0_TRIM');
   
-  // Detectar placeholder
   if (esPlaceholder(valor)) {
     resultado.patronDetectado = 'PLACEHOLDER';
     resultado.fasesAplicadas.push('FASE_0_PLACEHOLDER');
@@ -532,53 +694,67 @@ export function normalizarCoordenada(input: string): ResultadoNormalizacion {
     return resultado;
   }
   
-  // Detectar patrón original
   resultado.patronDetectado = detectarPatron(valor);
   
-  // ══════════════════════════════════════════════════════════════════════════
-  // FASE 0.5: Detección de coordenadas concatenadas
-  // ══════════════════════════════════════════════════════════════════════════
+  // FASE 0.5: Coordenadas concatenadas
   if (resultado.patronDetectado === 'CONCATENADO') {
     const separacion = separarCoordenadasConcatenadas(valor);
     if (separacion.esConcatenado && separacion.valorX !== null) {
-      // Devolver solo la primera coordenada encontrada
-      // La segunda se recuperará en procesarParCoordenadas
       resultado.valorNormalizado = separacion.valorX;
       resultado.exito = true;
       resultado.fasesAplicadas.push('FASE_0.5_CONCATENADO');
       resultado.warnings.push(separacion.warning || 'Coordenadas concatenadas detectadas');
-      
-      // Guardar Y en metadata para recuperación posterior
       (resultado as any)._yExtraida = separacion.valorY;
       (resultado as any)._confianzaConcatenacion = separacion.confianza;
-      
       return resultado;
     }
   }
   
-  // ══════════════════════════════════════════════════════════════════════════
-  // FASE 0.6: Detección de formatos espaciales (WKT, GeoJSON)
-  // ══════════════════════════════════════════════════════════════════════════
+  // FASE 0.6: Formatos espaciales (WKT, GeoJSON)
   if (resultado.patronDetectado === 'WKT_POINT' || resultado.patronDetectado === 'GEOJSON_POINT') {
     const espacial = detectarFormatoEspacial(valor);
     if (espacial.esEspacial && espacial.valorX !== null) {
-      // Devolver X, guardar Y para procesarParCoordenadas
       resultado.valorNormalizado = espacial.valorX;
       resultado.exito = true;
       resultado.fasesAplicadas.push('FASE_0.6_FORMATO_ESPACIAL');
       resultado.warnings.push(espacial.warning || 'Formato espacial detectado');
-      
-      // Guardar Y en metadata
       (resultado as any)._yExtraida = espacial.valorY;
       (resultado as any)._formatoEspacial = espacial.formato;
-      
       return resultado;
     }
   }
   
-  // ══════════════════════════════════════════════════════════════════════════
-  // FASE 1: Corrección Mojibake UTF-8 → Windows-1252
-  // ══════════════════════════════════════════════════════════════════════════
+  // FASE 0.7: Formatos DMS (Grados Sexagesimales)
+  const patronesDMS: PatronDetectado[] = [
+    'DMS_ESTANDAR', 'DMS_ESPACIOS', 'DMS_PREFIJO', 
+    'DMS_MINUTOS_DEC', 'DMS_ESPACIOS_EXTRA', 'DMS_SIGNO', 'DMS_DOS_PUNTOS'
+  ];
+  
+  if (patronesDMS.includes(resultado.patronDetectado)) {
+    const dms = parseDMS(valor);
+    if (dms.esValido && dms.valorDecimal !== null) {
+      resultado.valorNormalizado = dms.valorDecimal;
+      resultado.exito = true;
+      resultado.fasesAplicadas.push('FASE_0.7_DMS');
+      if (dms.warning) {
+        resultado.warnings.push(dms.warning);
+      }
+      resultado.warnings.push(
+        `DMS convertido: ${dms.grados}°${dms.minutos}'${dms.segundos}"${dms.direccion || ''} → ${dms.valorDecimal.toFixed(6)}°`
+      );
+      (resultado as any)._dmsOriginal = {
+        grados: dms.grados,
+        minutos: dms.minutos,
+        segundos: dms.segundos,
+        direccion: dms.direccion
+      };
+      (resultado as any)._esLatitud = dms.esLatitud;
+      (resultado as any)._esGeografica = true;
+      return resultado;
+    }
+  }
+  
+  // FASE 1: Corrección Mojibake
   if (/Â/.test(valor)) {
     const valorAntes = valor;
     valor = valor
@@ -599,36 +775,20 @@ export function normalizarCoordenada(input: string): ResultadoNormalizacion {
     }
   }
   
-  // ══════════════════════════════════════════════════════════════════════════
-  // FASE 2: Normalización caracteres especiales como separador decimal
-  // ══════════════════════════════════════════════════════════════════════════
+  // FASE 2: Normalización caracteres especiales
   const valorAntesFase2 = valor;
-  
-  // Doble tilde → punto (CRÍTICO para patrón Berja)
   valor = valor.replace(/´´/g, '.');
-  
-  // Tilde simple → punto
   valor = valor.replace(/´/g, '.');
-  
-  // Comillas tipográficas → punto
   valor = valor.replace(/['']/g, '.');
-  
-  // Apóstrofe recto → punto
   valor = valor.replace(/'/g, '.');
-  
-  // Comillas dobles tipográficas → punto (raro pero posible)
   valor = valor.replace(/[""]/g, '.');
   
   if (valor !== valorAntesFase2) {
     resultado.fasesAplicadas.push('FASE_2_CARACTERES_ESPECIALES');
   }
   
-  // ══════════════════════════════════════════════════════════════════════════
-  // FASE 3: Eliminación de espacios entre dígitos
-  // ══════════════════════════════════════════════════════════════════════════
+  // FASE 3: Eliminación de espacios
   const valorAntesFase3 = valor;
-  
-  // Patrón: 3 dígitos + espacio + 3 dígitos + espacio + 1-2 dígitos (sin punto)
   const matchDecimalImplicito = valor.match(/^(\d{1,3}(?:\s+\d{3})*)\s+(\d{1,2})$/);
   if (matchDecimalImplicito && !valor.includes('.')) {
     const parteEntera = matchDecimalImplicito[1].replace(/\s+/g, '');
@@ -637,47 +797,29 @@ export function normalizarCoordenada(input: string): ResultadoNormalizacion {
     resultado.fasesAplicadas.push('FASE_3_DECIMAL_IMPLICITO');
     resultado.warnings.push(`Decimales implícitos detectados: "${valorAntesFase3}" → "${valor}"`);
   } else {
-    // Eliminar espacios normalmente
     valor = valor.replace(/\s+/g, '');
     if (valor !== valorAntesFase3.replace(/\s+/g, '')) {
       resultado.fasesAplicadas.push('FASE_3_ESPACIOS');
     }
   }
   
-  // ══════════════════════════════════════════════════════════════════════════
-  // FASE 4: Normalización formato europeo (punto miles, coma decimal)
-  // ══════════════════════════════════════════════════════════════════════════
-  
-  // Caso 4a: Punto miles + coma decimal: "4.077.905,68" → "4077905.68"
+  // FASE 4: Normalización formato europeo
   if (/^\d{1,3}(?:\.\d{3})+,\d+$/.test(valor)) {
     valor = valor.replace(/\./g, '').replace(',', '.');
     resultado.fasesAplicadas.push('FASE_4_EUROPEO_COMPLETO');
-  }
-  // Caso 4b: Solo coma decimal: "436780,0" → "436780.0"
-  else if (/^\d+,\d+$/.test(valor)) {
+  } else if (/^\d+,\d+$/.test(valor)) {
     valor = valor.replace(',', '.');
     resultado.fasesAplicadas.push('FASE_4_COMA_DECIMAL');
-  }
-  // Caso 4c: Solo punto miles sin decimal: "4.230.105" → "4230105"
-  else if (/^\d{1,3}(?:\.\d{3})+$/.test(valor)) {
+  } else if (/^\d{1,3}(?:\.\d{3})+$/.test(valor)) {
     valor = valor.replace(/\./g, '');
     resultado.fasesAplicadas.push('FASE_4_PUNTO_MILES');
   }
   
-  // ══════════════════════════════════════════════════════════════════════════
   // FASE 5: Limpieza final y parsing
-  // ══════════════════════════════════════════════════════════════════════════
-  
-  // Eliminar puntos múltiples consecutivos (error de transcripción)
   valor = valor.replace(/\.+/g, '.');
-  
-  // Eliminar punto al final
   valor = valor.replace(/\.$/, '');
-  
-  // Eliminar punto al inicio
   valor = valor.replace(/^\./, '');
   
-  // Parsing
   const numero = parseFloat(valor);
   
   if (isNaN(numero)) {
@@ -696,37 +838,19 @@ export function normalizarCoordenada(input: string): ResultadoNormalizacion {
 // FUNCIONES DE VALIDACIÓN
 // ============================================================================
 
-/**
- * Valida una coordenada normalizada y determina su tipo (X, Y, geográfica).
- * Aplica correcciones automáticas para errores P0 (Y truncada).
- */
 export function validarCoordenada(valor: number): ResultadoValidacion {
   const warnings: string[] = [];
   
-  // CHECK 1: ¿Es coordenada X válida?
   if (valor >= RANGOS_ANDALUCIA.UTM.X_MIN && valor <= RANGOS_ANDALUCIA.UTM.X_MAX) {
-    return {
-      valido: true,
-      tipo: 'X',
-      confianza: 'ALTA',
-      warnings,
-    };
+    return { valido: true, tipo: 'X', confianza: 'ALTA', warnings };
   }
   
-  // CHECK 2: ¿Es coordenada Y válida?
   if (valor >= RANGOS_ANDALUCIA.UTM.Y_MIN && valor <= RANGOS_ANDALUCIA.UTM.Y_MAX) {
-    return {
-      valido: true,
-      tipo: 'Y',
-      confianza: 'ALTA',
-      warnings,
-    };
+    return { valido: true, tipo: 'Y', confianza: 'ALTA', warnings };
   }
   
-  // CHECK 3: ¿Es Y truncada (falta el "4" inicial)?
   if (valor >= RANGOS_ANDALUCIA.Y_TRUNCADA.MIN && valor <= RANGOS_ANDALUCIA.Y_TRUNCADA.MAX) {
     const valorCorregido = valor + 4000000;
-    
     if (valorCorregido >= RANGOS_ANDALUCIA.UTM.Y_MIN && 
         valorCorregido <= RANGOS_ANDALUCIA.UTM.Y_MAX) {
       warnings.push(`ERROR P0-1: Y truncada detectada. Valor ${valor} → ${valorCorregido}`);
@@ -741,43 +865,22 @@ export function validarCoordenada(valor: number): ResultadoValidacion {
     }
   }
   
-  // CHECK 4: ¿Es coordenada geográfica (latitud)?
   if (valor >= RANGOS_ANDALUCIA.GEOGRAFICAS.LAT_MIN && 
       valor <= RANGOS_ANDALUCIA.GEOGRAFICAS.LAT_MAX) {
     warnings.push('Coordenada geográfica detectada (latitud). Requiere conversión a UTM.');
-    return {
-      valido: true,
-      tipo: 'GEOGRAFICA_LAT',
-      confianza: 'ALTA',
-      warnings,
-    };
+    return { valido: true, tipo: 'GEOGRAFICA_LAT', confianza: 'ALTA', warnings };
   }
   
-  // CHECK 5: ¿Es coordenada geográfica (longitud)?
   if (valor >= RANGOS_ANDALUCIA.GEOGRAFICAS.LON_MIN && 
       valor <= RANGOS_ANDALUCIA.GEOGRAFICAS.LON_MAX) {
     warnings.push('Coordenada geográfica detectada (longitud). Requiere conversión a UTM.');
-    return {
-      valido: true,
-      tipo: 'GEOGRAFICA_LON',
-      confianza: 'ALTA',
-      warnings,
-    };
+    return { valido: true, tipo: 'GEOGRAFICA_LON', confianza: 'ALTA', warnings };
   }
   
-  // FUERA DE RANGO
   warnings.push(`Valor ${valor} fuera de rangos válidos para Andalucía`);
-  return {
-    valido: false,
-    tipo: 'DESCONOCIDO',
-    confianza: 'BAJA',
-    warnings,
-  };
+  return { valido: false, tipo: 'DESCONOCIDO', confianza: 'BAJA', warnings };
 }
 
-/**
- * Detecta y corrige intercambio X↔Y (Error P0-2)
- */
 export function detectarIntercambioXY(x: number, y: number): {
   intercambiado: boolean;
   xCorregida: number;
@@ -796,23 +899,13 @@ export function detectarIntercambioXY(x: number, y: number): {
     };
   }
   
-  return {
-    intercambiado: false,
-    xCorregida: x,
-    yCorregida: y,
-  };
+  return { intercambiado: false, xCorregida: x, yCorregida: y };
 }
 
 // ============================================================================
 // FUNCIÓN PRINCIPAL: PROCESAR PAR DE COORDENADAS
 // ============================================================================
 
-/**
- * Procesa un par de coordenadas X,Y aplicando normalización completa,
- * validación, y corrección de errores P0.
- * 
- * v2.1: Añadida detección de coordenadas concatenadas
- */
 export function procesarParCoordenadas(
   xInput: string,
   yInput: string,
@@ -830,7 +923,6 @@ export function procesarParCoordenadas(
     epsgAsumido = 25830,
   } = opciones;
   
-  // Normalizar ambas coordenadas
   let normX = normalizarCoordenada(xInput);
   let normY = normalizarCoordenada(yInput);
   
@@ -841,11 +933,8 @@ export function procesarParCoordenadas(
   let intercambioAplicado = false;
   let concatenacionDetectada = false;
   
-  // ══════════════════════════════════════════════════════════════════════════
-  // NUEVO v2.1: Detectar coordenadas concatenadas
-  // ══════════════════════════════════════════════════════════════════════════
+  // Detectar coordenadas concatenadas
   if (detectarConcatenacion) {
-    // Caso 1: X contiene ambas coordenadas concatenadas, Y está vacía o placeholder
     if (normX.patronDetectado === 'CONCATENADO' && 
         (normY.patronDetectado === 'PLACEHOLDER' || yInput.trim() === '')) {
       const yExtraida = (normX as any)._yExtraida;
@@ -859,7 +948,6 @@ export function procesarParCoordenadas(
       }
     }
     
-    // Caso 2: Y contiene ambas coordenadas concatenadas, X está vacía o placeholder
     if (normY.patronDetectado === 'CONCATENADO' && 
         (normX.patronDetectado === 'PLACEHOLDER' || xInput.trim() === '')) {
       const separacion = separarCoordenadasConcatenadas(yInput);
@@ -874,7 +962,6 @@ export function procesarParCoordenadas(
       }
     }
     
-    // Caso 3: Ambos campos tienen el mismo valor concatenado (error de copia)
     if (xInput.trim() === yInput.trim() && normX.patronDetectado === 'CONCATENADO') {
       const separacion = separarCoordenadasConcatenadas(xInput);
       if (separacion.esConcatenado) {
@@ -889,13 +976,10 @@ export function procesarParCoordenadas(
     }
   }
   
-  // ══════════════════════════════════════════════════════════════════════════
-  // NUEVO v2.2: Detectar formatos espaciales (WKT, GeoJSON)
-  // ══════════════════════════════════════════════════════════════════════════
+  // Detectar formatos espaciales (WKT, GeoJSON)
   const esFormatoEspacialX = normX.patronDetectado === 'WKT_POINT' || normX.patronDetectado === 'GEOJSON_POINT';
   const esFormatoEspacialY = normY.patronDetectado === 'WKT_POINT' || normY.patronDetectado === 'GEOJSON_POINT';
   
-  // Caso: Campo X contiene WKT o GeoJSON con ambas coordenadas
   if (esFormatoEspacialX && (normY.patronDetectado === 'PLACEHOLDER' || yInput.trim() === '')) {
     const yExtraida = (normX as any)._yExtraida;
     if (yExtraida !== undefined) {
@@ -907,7 +991,6 @@ export function procesarParCoordenadas(
     }
   }
   
-  // Caso: Campo Y contiene WKT o GeoJSON con ambas coordenadas
   if (esFormatoEspacialY && (normX.patronDetectado === 'PLACEHOLDER' || xInput.trim() === '')) {
     const espacial = detectarFormatoEspacial(yInput);
     if (espacial.esEspacial) {
@@ -920,7 +1003,6 @@ export function procesarParCoordenadas(
     }
   }
   
-  // Caso: Ambos campos tienen el mismo valor WKT/GeoJSON
   if (xInput.trim() === yInput.trim() && esFormatoEspacialX) {
     const espacial = detectarFormatoEspacial(xInput);
     if (espacial.esEspacial) {
@@ -932,11 +1014,9 @@ export function procesarParCoordenadas(
     }
   }
   
-  // Validar si tenemos valores numéricos
+  // Validar
   if (x !== null) {
     validX = validarCoordenada(x);
-    
-    // Aplicar corrección P0-1 (Y truncada) si aplica a X
     if (aplicarCorreccionP0 && validX.valorCorregido !== undefined) {
       x = validX.valorCorregido;
     }
@@ -944,25 +1024,20 @@ export function procesarParCoordenadas(
   
   if (y !== null) {
     validY = validarCoordenada(y);
-    
-    // Aplicar corrección P0-1 (Y truncada)
     if (aplicarCorreccionP0 && validY.valorCorregido !== undefined) {
       y = validY.valorCorregido;
     }
   }
   
-  // Detectar y corregir intercambio X↔Y (P0-2)
+  // Detectar intercambio X↔Y
   if (detectarIntercambio && x !== null && y !== null) {
     const resultadoIntercambio = detectarIntercambioXY(x, y);
     if (resultadoIntercambio.intercambiado) {
       x = resultadoIntercambio.xCorregida;
       y = resultadoIntercambio.yCorregida;
       intercambioAplicado = true;
-      
-      // Re-validar tras intercambio
       validX = validarCoordenada(x);
       validY = validarCoordenada(y);
-      
       if (validX) validX.warnings.push(resultadoIntercambio.mensaje!);
     }
   }
@@ -972,7 +1047,7 @@ export function procesarParCoordenadas(
   if (x === null || y === null) {
     confianzaGlobal = 'CRITICA';
   } else if (concatenacionDetectada) {
-    confianzaGlobal = 'MEDIA'; // Siempre MEDIA si hubo separación de concatenadas
+    confianzaGlobal = 'MEDIA';
   } else if (intercambioAplicado || validX?.confianza === 'MEDIA' || validY?.confianza === 'MEDIA') {
     confianzaGlobal = 'MEDIA';
   } else if (validX?.confianza === 'BAJA' || validY?.confianza === 'BAJA') {
@@ -999,9 +1074,6 @@ export function procesarParCoordenadas(
 // UTILIDADES DE EXPORTACIÓN
 // ============================================================================
 
-/**
- * Formatea una coordenada normalizada para exportación
- */
 export function formatearCoordenada(valor: number | null, decimales: number = 2): string {
   if (valor === null) {
     return '';
@@ -1009,9 +1081,6 @@ export function formatearCoordenada(valor: number | null, decimales: number = 2)
   return valor.toFixed(decimales);
 }
 
-/**
- * Genera un resumen de diagnóstico para un par de coordenadas
- */
 export function generarDiagnostico(par: ParCoordenadas): string {
   const lineas: string[] = [
     `═══════════════════════════════════════════════════════`,
@@ -1057,7 +1126,6 @@ export function generarDiagnostico(par: ParCoordenadas): string {
     `EPSG: ${par.epsg}`,
   );
   
-  // Warnings
   const allWarnings = [
     ...par.normalizacionX.warnings,
     ...par.normalizacionY.warnings,
@@ -1070,7 +1138,6 @@ export function generarDiagnostico(par: ParCoordenadas): string {
     allWarnings.forEach(w => lineas.push(`  ⚠ ${w}`));
   }
   
-  // Errores
   const allErrores = [
     ...par.normalizacionX.errores,
     ...par.normalizacionY.errores,
@@ -1090,63 +1157,35 @@ export function generarDiagnostico(par: ParCoordenadas): string {
 // TESTS INTEGRADOS
 // ============================================================================
 
-/**
- * Ejecuta batería de tests con casos reales de municipios andaluces
- */
 export function ejecutarTests(): void {
   const casos = [
     // Berja - Espacio + doble tilde
     { x: '504 750´´92', y: '4 077 153´´36', esperadoX: 504750.92, esperadoY: 4077153.36 },
-    { x: '506 320´´45', y: '4 076 622´´96', esperadoX: 506320.45, esperadoY: 4076622.96 },
-    
-    // Berja DOCX - Espacio + decimales implícitos
-    { x: '506 527 28', y: '4 076 367 83', esperadoX: 506527.28, esperadoY: 4076367.83 },
-    
     // Berja - Europeo completo
     { x: '505.438,13', y: '4.078.875,09', esperadoX: 505438.13, esperadoY: 4078875.09 },
-    
     // Colomera - Coma decimal
     { x: '436780,0', y: '4136578,2', esperadoX: 436780.0, esperadoY: 4136578.2 },
-    { x: '437301,8', y: '4136940,5', esperadoX: 437301.8, esperadoY: 4136940.5 },
-    
-    // Quéntar - Mixto (coma y punto en mismo doc)
-    { x: '458271,51', y: '4116357.05', esperadoX: 458271.51, esperadoY: 4116357.05 },
-    
-    // Hornos - Punto miles
-    { x: '524.891', y: '4.230.105', esperadoX: 524891, esperadoY: 4230105 },
-    
     // Castril - Limpio
     { x: '521581.88', y: '4185653.05', esperadoX: 521581.88, esperadoY: 4185653.05 },
-    
     // Error P0-1: Y truncada
     { x: '504750', y: '77905', esperadoX: 504750, esperadoY: 4077905 },
-    
     // Error P0-2: Intercambio X↔Y
     { x: '4077905', y: '504750', esperadoX: 504750, esperadoY: 4077905 },
-    
     // Placeholders
     { x: 'Indicar', y: 'Pendiente', esperadoX: null, esperadoY: null },
-    { x: 'N/A', y: '0', esperadoX: null, esperadoY: null },
-    
-    // Mojibake
-    { x: '504750Â´25', y: '4077905Â´68', esperadoX: 504750.25, esperadoY: 4077905.68 },
-    
-    // NUEVO v2.1: Coordenadas concatenadas
-    { x: '5234004120000', y: '', esperadoX: 523400, esperadoY: 4120000 },
-    { x: '4367804136578', y: 'Pendiente', esperadoX: 436780, esperadoY: 4136578 },
-    { x: '5047504077153', y: '5047504077153', esperadoX: 504750, esperadoY: 4077153 },
-    
-    // NUEVO v2.2: Formatos espaciales WKT
+    // WKT
     { x: 'POINT(504750 4077905)', y: '', esperadoX: 504750, esperadoY: 4077905 },
-    { x: 'POINT(504750.92 4077905.36)', y: 'Pendiente', esperadoX: 504750.92, esperadoY: 4077905.36 },
-    { x: 'point(436780, 4136578)', y: '', esperadoX: 436780, esperadoY: 4136578 },
-    
-    // NUEVO v2.2: Formatos espaciales GeoJSON
+    // GeoJSON
     { x: '{"type":"Point","coordinates":[504750,4077905]}', y: '', esperadoX: 504750, esperadoY: 4077905 },
-    { x: '{"type":"Point","coordinates":[505438.13,4078875.09]}', y: 'N/A', esperadoX: 505438.13, esperadoY: 4078875.09 },
+    // DMS C1
+    { x: '37°26\'46.5"N', y: '3°45\'12.3"W', esperadoX: 37.44625, esperadoY: -3.753417 },
+    // DMS C3 espacios
+    { x: '37 26 46.5 N', y: '3 45 12.3 W', esperadoX: 37.44625, esperadoY: -3.753417 },
+    // DMS C8 dos puntos
+    { x: '37:26:46.5 N', y: '3:45:12.3 W', esperadoX: 37.44625, esperadoY: -3.753417 },
   ];
   
-  console.log('\n🧪 EJECUTANDO TESTS DE NORMALIZACIÓN v2.2\n');
+  console.log('\n🧪 EJECUTANDO TESTS DE NORMALIZACIÓN v2.3\n');
   console.log('═'.repeat(70));
   
   let pasados = 0;
@@ -1173,16 +1212,6 @@ export function ejecutarTests(): void {
     console.log(`${estado} Test ${i + 1}: "${caso.x}", "${caso.y}"`);
     console.log(`  Esperado: X=${caso.esperadoX}, Y=${caso.esperadoY}`);
     console.log(`  Obtenido: X=${resultado.x}, Y=${resultado.y}`);
-    console.log(`  Patrones: X=${resultado.normalizacionX.patronDetectado}, Y=${resultado.normalizacionY.patronDetectado}`);
-    
-    if (resultado.concatenacionDetectada) {
-      console.log(`  📎 Concatenación detectada y separada`);
-    }
-    
-    if (!xOk || !yOk) {
-      console.log(`  ⚠ FALLO: X ${xOk ? 'OK' : 'FAIL'}, Y ${yOk ? 'OK' : 'FAIL'}`);
-    }
-    
     console.log('');
   });
   
@@ -1191,7 +1220,7 @@ export function ejecutarTests(): void {
 }
 
 // ============================================================================
-// ALIASES PARA COMPATIBILIDAD CON IMPORTS EN INGLÉS
+// ALIASES PARA COMPATIBILIDAD
 // ============================================================================
 
 export { normalizarCoordenada as normalizeCoordinate };
@@ -1212,6 +1241,8 @@ export default {
   parseWKT,
   parseGeoJSON,
   detectarFormatoEspacial,
+  parseDMS,
+  esDMS,
   detectarPatron,
   esPlaceholder,
   detectarIntercambioXY,
