@@ -9,10 +9,18 @@
  * - NO modifica texto ALL CAPS que podría ser correcto (excepto números finales)
  * - Marca casos sospechosos para revisión manual
  * - Protege palabras completas que contienen preposiciones (residencial, modelo, etc.)
+ * - Protege nombres propios españoles (Manuel, Miguel, Gabriel, etc.)
  * 
  * Validado con datos reales de 6 documentos PTEL:
  * - Colomera, Quéntar, Hornos, Castril, Tíjola, Berja
  * - 103 registros afectados → 23/23 tests pasados (100%)
+ * 
+ * CHANGELOG v2.5 (30-Nov-2025):
+ * - ADD: Nombres propios españoles con preposiciones internas a FALSE_POSITIVES
+ * - ADD: Nombres con "el": Manuel, Manuela, Miguel, Gabriel, Rafael, Israel, etc.
+ * - ADD: Nombres con "la": Cela, Candela, Adela, Estela, Angela, Micaela, etc.
+ * - FIX: Evita romper "Manuel Díaz" → "Manu el Díaz"
+ * - FIX: Evita romper "Balneario Cela" → "Balneario Ce la"
  * 
  * CHANGELOG v2.4 (30-Nov-2025):
  * - FIX: Expandida lista FALSE_POSITIVES para proteger palabras con preposiciones
@@ -25,7 +33,7 @@
  * - NEW: Patrón 8 - unidad+número (Km5 → Km 5)
  * - NEW: Patrón 9 - allcaps+número (CPALMERÍA2 → CPALMERÍA 2)
  * 
- * @version 2.4.0
+ * @version 2.5.0
  * @date 2025-11-30
  */
 
@@ -57,28 +65,109 @@ export interface CoordinateValidation {
 
 /**
  * Palabras que contienen patrones que parecen concatenaciones pero no lo son.
- * Incluye palabras con preposiciones internas (de, del, la, el) que NO deben separarse.
+ * Incluye:
+ * - Palabras compuestas con preposiciones internas (de, del, la, el)
+ * - Nombres propios españoles que contienen estas preposiciones
+ * - Topónimos andaluces comunes
  * 
+ * v2.5: Añadidos nombres propios españoles
  * v2.4: Expandida significativamente para evitar falsos positivos
  */
 const FALSE_POSITIVES = new Set([
-  // Palabras compuestas originales
+  // =========================================================================
+  // PALABRAS COMPUESTAS (v2.4)
+  // =========================================================================
   'polideportivo', 'videojuego', 'videoconferencia', 'radiodifusión',
   'biodegradable', 'audiovisual', 'hidroeléctrica', 'termodinámico',
   'electromagnético', 'socioeconómico', 'medioambiental', 'iberoamericano',
+  
   // Palabras con "de" interno
   'residencial', 'modelo', 'moderno', 'moderna', 'federal', 'confederal',
   'moderado', 'moderada', 'modelado', 'modelaje', 'remodelación',
+  
   // Palabras con "del" interno  
   'adelante', 'delante', 'delantera', 'delantero', 'modelista',
+  
   // Palabras con "la" interno
   'lateral', 'bilateral', 'multilateral', 'colateral', 'unilateral',
+  
   // Palabras con "el" interno
   'elemento', 'elemental', 'electoral', 'eléctrico', 'eléctrica',
-  'delegación', 'delegado', 'delegada', 'modelo', 'modelar',
+  'delegación', 'delegado', 'delegada', 'modelar',
+  
   // Palabras con "al" interno
   'mineral', 'general', 'comercial', 'industrial', 'material',
-  'medicinal', 'acional', 'racional', 'nacional', 'regional',
+  'medicinal', 'racional', 'nacional', 'regional',
+
+  // =========================================================================
+  // NOMBRES PROPIOS ESPAÑOLES (v2.5)
+  // =========================================================================
+  
+  // Nombres con "el" interno - MUY COMUNES
+  'manuel', 'manuela', 'manuelita',
+  'miguel', 'miguela', 'miguelito',
+  'gabriel', 'gabriela', 'gabrielito',
+  'rafael', 'rafaela', 'rafaelito',
+  'israel', 'israelita',
+  'ezequiel', 'ezequiela',
+  'daniel', 'daniela', 'danielita',
+  'joel', 'joela',
+  'abel', 'abela',
+  'ismael', 'ismaela',
+  'samuel', 'samuela',
+  'nathanael', 'natanael',
+  'misael',
+  'eliel', 'eliseo',
+  'rogelio', 'rogeliA', // OJO: rogelio contiene "el"
+  'aurelio', 'aurelia',
+  'cornelio', 'cornelia',
+  'heliodoro', 'heliodora',
+  'fidel', 'fidela', 'fidelio',
+  'olegario', 'olegaria',
+  
+  // Nombres con "la" interno
+  'candela', 'candelaria', 'candelario',
+  'adela', 'adelaida', 'adelina', 'adelita',
+  'estela', 'estelita',
+  'angela', 'angelita', 'angelica', 'angeles',
+  'micaela', 'micaelita',
+  'graciela', 'gracielita',
+  'carmela', 'carmelita', 'carmelo',
+  'manuela', 'manuelita',
+  'consuela', 'consuelo', 'consuelito',
+  'rafaela', 'rafaelita',
+  'gabriela', 'gabrielita',
+  'isela', 'iselita',
+  'gisela', 'giselita',
+  'mariela', 'marielita',
+  'daniela', 'danielita',
+  'pamela', 'pamelita',
+  'noela', 'noelia',
+  'estela', 'estelita',
+  'marcela', 'marcelita', 'marcelo', 'marcelino',
+  'graciela', 'gracielita',
+  'ornela', 'ornella',
+  'ariela', 'ariel', 'arielita',
+  'marisela', 'mariselita',
+  'varela', // apellido común
+  'vilela', // apellido común
+  'candela', 'candelita',
+  'uela', // sufijo común (escuela,uela, etc.)
+  
+  // =========================================================================
+  // TOPÓNIMOS ANDALUCES (v2.5)
+  // =========================================================================
+  'cela', 'pela', 'estela', 'candela',
+  'adela', 'graciela', 'micaela',
+  // Barrios/pedanías con estos nombres
+  'candelaria', 'candelario',
+  
+  // =========================================================================
+  // APELLIDOS COMUNES (v2.5)
+  // =========================================================================
+  'varela', 'vilela', 'candela', 'estela',
+  'manuel', 'miguel', 'gabriel', 'rafael',
+  'daniel', 'samuel', 'israel', 'ismael',
 ]);
 
 /**
@@ -113,8 +202,14 @@ export function deconcatenateText(input: string): DeconcatenationResult {
   const lowerText = text.toLowerCase();
 
   // Verificar falsos positivos conocidos
-  for (const fp of FALSE_POSITIVES) {
-    if (lowerText.includes(fp)) {
+  // Buscar cada palabra del texto en la lista de falsos positivos
+  const words = lowerText.split(/\s+/);
+  for (const word of words) {
+    // Limpiar puntuación del word
+    const cleanWord = word.replace(/[.,;:!?()]/g, '');
+    if (FALSE_POSITIVES.has(cleanWord)) {
+      // Si alguna palabra del texto es un falso positivo conocido,
+      // no aplicar desconcatenación a todo el texto
       return result;
     }
   }
@@ -157,7 +252,7 @@ export function deconcatenateText(input: string): DeconcatenationResult {
   // PATRÓN 5: Preposición pegada al final de palabra (legacy - mantener compatibilidad)
   for (const prep of PREPOSITIONS) {
     const pattern = new RegExp(
-      `([aeiouáéíóú])(${prep})([\\s][A-ZÁÉÍÓÚÜÑ])`,
+      `([aeiouáéíóú])(${prep})([\s][A-ZÁÉÍÓÚÜÑ])`,
       'gi'
     );
     const beforePrep = text;
