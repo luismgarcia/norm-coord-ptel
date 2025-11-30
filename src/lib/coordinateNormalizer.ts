@@ -1,12 +1,18 @@
 /**
- * PTEL Andalucía - Normalizador de Coordenadas v2.0
+ * PTEL Andalucía - Normalizador de Coordenadas v2.1
  * 
  * Implementa la taxonomía completa de 52 patrones de coordenadas
  * identificados en documentos municipales andaluces.
  * 
  * Sistema objetivo: EPSG:25830 (UTM Zona 30N, ETRS89)
  * 
- * @version 2.0.0
+ * CHANGELOG v2.1 (30-Nov-2025):
+ * - NEW: Detección de coordenadas concatenadas (X+Y fusionadas)
+ * - NEW: Separación automática usando validación de rangos UTM
+ * - NEW: Integración en procesarParCoordenadas()
+ * - TEST: Casos adicionales para coordenadas concatenadas
+ * 
+ * @version 2.1.0
  * @date Noviembre 2025
  */
 
@@ -28,6 +34,7 @@ export type PatronDetectado =
   | 'MOJIBAKE'
   | 'COMILLAS_TIPOGRAFICAS'
   | 'PLACEHOLDER'
+  | 'CONCATENADO'
   | 'DESCONOCIDO';
 
 export interface ResultadoNormalizacion {
@@ -49,6 +56,14 @@ export interface ResultadoValidacion {
   valorCorregido?: number;
 }
 
+export interface ResultadoConcatenacion {
+  esConcatenado: boolean;
+  valorX: number | null;
+  valorY: number | null;
+  confianza: NivelConfianza;
+  warning: string | null;
+}
+
 export interface ParCoordenadas {
   x: number | null;
   y: number | null;
@@ -59,6 +74,7 @@ export interface ParCoordenadas {
   validacionX: ResultadoValidacion | null;
   validacionY: ResultadoValidacion | null;
   intercambioAplicado: boolean;
+  concatenacionDetectada: boolean;
   confianzaGlobal: NivelConfianza;
   epsg: number;
 }
@@ -179,6 +195,12 @@ export function detectarPatron(valor: string): PatronDetectado {
     return 'PLACEHOLDER';
   }
   
+  // Detectar coordenadas concatenadas (12+ dígitos sin separadores)
+  const soloDigitos = v.replace(/[^\d]/g, '');
+  if (soloDigitos.length >= 12 && /^\d+$/.test(v)) {
+    return 'CONCATENADO';
+  }
+  
   // P2-1: Mojibake (Â´, Âº)
   if (/Â[´º]/.test(v)) {
     return 'MOJIBAKE';
@@ -205,7 +227,7 @@ export function detectarPatron(valor: string): PatronDetectado {
   }
   
   // P2-3/P2-4: Comillas tipográficas o apóstrofe
-  if (/['']/.test(v) && /\d+['\']\d+/.test(v)) {
+  if (/['']/.test(v) && /\d+['\']d+/.test(v)) {
     return 'COMILLAS_TIPOGRAFICAS';
   }
   
@@ -233,6 +255,94 @@ export function detectarPatron(valor: string): PatronDetectado {
 }
 
 // ============================================================================
+// FUNCIÓN: SEPARAR COORDENADAS CONCATENADAS
+// ============================================================================
+
+/**
+ * Detecta y separa coordenadas X+Y concatenadas en un solo valor.
+ * 
+ * Patrón típico: "5234004120000" → X=523400, Y=4120000
+ * 
+ * Estrategia:
+ * 1. Probar división en el punto medio
+ * 2. Validar que ambas partes caigan en rangos UTM válidos para Andalucía
+ * 3. Identificar cuál es X y cuál es Y por sus rangos característicos
+ * 
+ * @example
+ * separarCoordenadasConcatenadas("5234004120000")
+ * // → { esConcatenado: true, valorX: 523400, valorY: 4120000, ... }
+ */
+export function separarCoordenadasConcatenadas(valor: string): ResultadoConcatenacion {
+  const resultado: ResultadoConcatenacion = {
+    esConcatenado: false,
+    valorX: null,
+    valorY: null,
+    confianza: 'BAJA',
+    warning: null,
+  };
+  
+  // Extraer solo dígitos
+  const soloDigitos = valor.replace(/[^\d]/g, '');
+  
+  // Necesitamos al menos 12 dígitos para tener X (6) + Y (7)
+  if (soloDigitos.length < 12) {
+    return resultado;
+  }
+  
+  // Estrategia 1: División en punto medio
+  const mid = Math.floor(soloDigitos.length / 2);
+  
+  // Probar diferentes puntos de corte alrededor del medio
+  const puntosCorte = [mid, mid - 1, mid + 1, mid - 2, mid + 2];
+  
+  for (const corte of puntosCorte) {
+    if (corte < 5 || corte > soloDigitos.length - 6) continue;
+    
+    const parte1 = parseInt(soloDigitos.substring(0, corte), 10);
+    const parte2 = parseInt(soloDigitos.substring(corte), 10);
+    
+    // Verificar si parte1 es X válida y parte2 es Y válida
+    const parte1EsX = parte1 >= RANGOS_ANDALUCIA.UTM.X_MIN && parte1 <= RANGOS_ANDALUCIA.UTM.X_MAX;
+    const parte1EsY = parte1 >= RANGOS_ANDALUCIA.UTM.Y_MIN && parte1 <= RANGOS_ANDALUCIA.UTM.Y_MAX;
+    const parte2EsX = parte2 >= RANGOS_ANDALUCIA.UTM.X_MIN && parte2 <= RANGOS_ANDALUCIA.UTM.X_MAX;
+    const parte2EsY = parte2 >= RANGOS_ANDALUCIA.UTM.Y_MIN && parte2 <= RANGOS_ANDALUCIA.UTM.Y_MAX;
+    
+    // Caso más común: X + Y (primero X, luego Y)
+    if (parte1EsX && parte2EsY) {
+      resultado.esConcatenado = true;
+      resultado.valorX = parte1;
+      resultado.valorY = parte2;
+      resultado.confianza = 'ALTA';
+      resultado.warning = `Coordenadas concatenadas separadas: ${valor} → X=${parte1}, Y=${parte2}`;
+      return resultado;
+    }
+    
+    // Caso inverso: Y + X (primero Y, luego X)
+    if (parte1EsY && parte2EsX) {
+      resultado.esConcatenado = true;
+      resultado.valorX = parte2;
+      resultado.valorY = parte1;
+      resultado.confianza = 'MEDIA';
+      resultado.warning = `Coordenadas concatenadas (orden invertido): ${valor} → X=${parte2}, Y=${parte1}`;
+      return resultado;
+    }
+    
+    // Casos menos probables pero posibles
+    if ((parte1EsX && parte2EsX) || (parte1EsY && parte2EsY)) {
+      // Ambas del mismo tipo - podría ser error de datos
+      resultado.esConcatenado = true;
+      resultado.valorX = parte1EsX ? parte1 : parte2;
+      resultado.valorY = parte1EsY ? parte1 : parte2;
+      resultado.confianza = 'BAJA';
+      resultado.warning = `Coordenadas concatenadas (tipo ambiguo): ${valor} → ${parte1}, ${parte2}`;
+      return resultado;
+    }
+  }
+  
+  return resultado;
+}
+
+// ============================================================================
 // FUNCIONES DE NORMALIZACIÓN
 // ============================================================================
 
@@ -241,11 +351,12 @@ export function detectarPatron(valor: string): PatronDetectado {
  * 
  * Pipeline:
  * 1. Limpieza inicial y detección placeholder
- * 2. Corrección mojibake UTF-8/Windows-1252
- * 3. Normalización caracteres especiales (tildes, comillas)
- * 4. Eliminación espacios entre dígitos
- * 5. Normalización formato europeo
- * 6. Parsing numérico
+ * 2. Detección de coordenadas concatenadas
+ * 3. Corrección mojibake UTF-8/Windows-1252
+ * 4. Normalización caracteres especiales (tildes, comillas)
+ * 5. Eliminación espacios entre dígitos
+ * 6. Normalización formato europeo
+ * 7. Parsing numérico
  */
 export function normalizarCoordenada(input: string): ResultadoNormalizacion {
   const resultado: ResultadoNormalizacion = {
@@ -276,6 +387,27 @@ export function normalizarCoordenada(input: string): ResultadoNormalizacion {
   
   // Detectar patrón original
   resultado.patronDetectado = detectarPatron(valor);
+  
+  // ══════════════════════════════════════════════════════════════════════════
+  // FASE 0.5: Detección de coordenadas concatenadas
+  // ══════════════════════════════════════════════════════════════════════════
+  if (resultado.patronDetectado === 'CONCATENADO') {
+    const separacion = separarCoordenadasConcatenadas(valor);
+    if (separacion.esConcatenado && separacion.valorX !== null) {
+      // Devolver solo la primera coordenada encontrada
+      // La segunda se recuperará en procesarParCoordenadas
+      resultado.valorNormalizado = separacion.valorX;
+      resultado.exito = true;
+      resultado.fasesAplicadas.push('FASE_0.5_CONCATENADO');
+      resultado.warnings.push(separacion.warning || 'Coordenadas concatenadas detectadas');
+      
+      // Guardar Y en metadata para recuperación posterior
+      (resultado as any)._yExtraida = separacion.valorY;
+      (resultado as any)._confianzaConcatenacion = separacion.confianza;
+      
+      return resultado;
+    }
+  }
   
   // ══════════════════════════════════════════════════════════════════════════
   // FASE 1: Corrección Mojibake UTF-8 → Windows-1252
@@ -329,10 +461,6 @@ export function normalizarCoordenada(input: string): ResultadoNormalizacion {
   // ══════════════════════════════════════════════════════════════════════════
   const valorAntesFase3 = valor;
   
-  // Eliminar todos los espacios entre dígitos
-  // Pero primero: detectar si hay patrón "dígitos espacio dígitos punto dígitos"
-  // que indica decimales implícitos: "506 527 28" → "506527.28"
-  
   // Patrón: 3 dígitos + espacio + 3 dígitos + espacio + 1-2 dígitos (sin punto)
   const matchDecimalImplicito = valor.match(/^(\d{1,3}(?:\s+\d{3})*)\s+(\d{1,2})$/);
   if (matchDecimalImplicito && !valor.includes('.')) {
@@ -352,7 +480,6 @@ export function normalizarCoordenada(input: string): ResultadoNormalizacion {
   // ══════════════════════════════════════════════════════════════════════════
   // FASE 4: Normalización formato europeo (punto miles, coma decimal)
   // ══════════════════════════════════════════════════════════════════════════
-  const valorAntesFase4 = valor;
   
   // Caso 4a: Punto miles + coma decimal: "4.077.905,68" → "4077905.68"
   if (/^\d{1,3}(?:\.\d{3})+,\d+$/.test(valor)) {
@@ -409,9 +536,7 @@ export function normalizarCoordenada(input: string): ResultadoNormalizacion {
 export function validarCoordenada(valor: number): ResultadoValidacion {
   const warnings: string[] = [];
   
-  // ══════════════════════════════════════════════════════════════════════════
   // CHECK 1: ¿Es coordenada X válida?
-  // ══════════════════════════════════════════════════════════════════════════
   if (valor >= RANGOS_ANDALUCIA.UTM.X_MIN && valor <= RANGOS_ANDALUCIA.UTM.X_MAX) {
     return {
       valido: true,
@@ -421,9 +546,7 @@ export function validarCoordenada(valor: number): ResultadoValidacion {
     };
   }
   
-  // ══════════════════════════════════════════════════════════════════════════
   // CHECK 2: ¿Es coordenada Y válida?
-  // ══════════════════════════════════════════════════════════════════════════
   if (valor >= RANGOS_ANDALUCIA.UTM.Y_MIN && valor <= RANGOS_ANDALUCIA.UTM.Y_MAX) {
     return {
       valido: true,
@@ -433,13 +556,10 @@ export function validarCoordenada(valor: number): ResultadoValidacion {
     };
   }
   
-  // ══════════════════════════════════════════════════════════════════════════
   // CHECK 3: ¿Es Y truncada (falta el "4" inicial)?
-  // ══════════════════════════════════════════════════════════════════════════
   if (valor >= RANGOS_ANDALUCIA.Y_TRUNCADA.MIN && valor <= RANGOS_ANDALUCIA.Y_TRUNCADA.MAX) {
     const valorCorregido = valor + 4000000;
     
-    // Verificar que el valor corregido está en rango válido
     if (valorCorregido >= RANGOS_ANDALUCIA.UTM.Y_MIN && 
         valorCorregido <= RANGOS_ANDALUCIA.UTM.Y_MAX) {
       warnings.push(`ERROR P0-1: Y truncada detectada. Valor ${valor} → ${valorCorregido}`);
@@ -454,9 +574,7 @@ export function validarCoordenada(valor: number): ResultadoValidacion {
     }
   }
   
-  // ══════════════════════════════════════════════════════════════════════════
   // CHECK 4: ¿Es coordenada geográfica (latitud)?
-  // ══════════════════════════════════════════════════════════════════════════
   if (valor >= RANGOS_ANDALUCIA.GEOGRAFICAS.LAT_MIN && 
       valor <= RANGOS_ANDALUCIA.GEOGRAFICAS.LAT_MAX) {
     warnings.push('Coordenada geográfica detectada (latitud). Requiere conversión a UTM.');
@@ -468,9 +586,7 @@ export function validarCoordenada(valor: number): ResultadoValidacion {
     };
   }
   
-  // ══════════════════════════════════════════════════════════════════════════
   // CHECK 5: ¿Es coordenada geográfica (longitud)?
-  // ══════════════════════════════════════════════════════════════════════════
   if (valor >= RANGOS_ANDALUCIA.GEOGRAFICAS.LON_MIN && 
       valor <= RANGOS_ANDALUCIA.GEOGRAFICAS.LON_MAX) {
     warnings.push('Coordenada geográfica detectada (longitud). Requiere conversión a UTM.');
@@ -482,9 +598,7 @@ export function validarCoordenada(valor: number): ResultadoValidacion {
     };
   }
   
-  // ══════════════════════════════════════════════════════════════════════════
   // FUERA DE RANGO
-  // ══════════════════════════════════════════════════════════════════════════
   warnings.push(`Valor ${valor} fuera de rangos válidos para Andalucía`);
   return {
     valido: false,
@@ -503,7 +617,6 @@ export function detectarIntercambioXY(x: number, y: number): {
   yCorregida: number;
   mensaje?: string;
 } {
-  // Patrón típico de intercambio: X tiene valor de Y (>2M) y Y tiene valor de X (<1M)
   const xPareceSiendoY = x >= 2000000 && x <= 5000000;
   const yPareceSiendoX = y >= 100000 && y <= 700000;
   
@@ -530,6 +643,8 @@ export function detectarIntercambioXY(x: number, y: number): {
 /**
  * Procesa un par de coordenadas X,Y aplicando normalización completa,
  * validación, y corrección de errores P0.
+ * 
+ * v2.1: Añadida detección de coordenadas concatenadas
  */
 export function procesarParCoordenadas(
   xInput: string,
@@ -537,24 +652,75 @@ export function procesarParCoordenadas(
   opciones: {
     aplicarCorreccionP0?: boolean;
     detectarIntercambio?: boolean;
+    detectarConcatenacion?: boolean;
     epsgAsumido?: number;
   } = {}
 ): ParCoordenadas {
   const {
     aplicarCorreccionP0 = true,
     detectarIntercambio = true,
+    detectarConcatenacion = true,
     epsgAsumido = 25830,
   } = opciones;
   
   // Normalizar ambas coordenadas
-  const normX = normalizarCoordenada(xInput);
-  const normY = normalizarCoordenada(yInput);
+  let normX = normalizarCoordenada(xInput);
+  let normY = normalizarCoordenada(yInput);
   
   let x = normX.valorNormalizado;
   let y = normY.valorNormalizado;
   let validX: ResultadoValidacion | null = null;
   let validY: ResultadoValidacion | null = null;
   let intercambioAplicado = false;
+  let concatenacionDetectada = false;
+  
+  // ══════════════════════════════════════════════════════════════════════════
+  // NUEVO v2.1: Detectar coordenadas concatenadas
+  // ══════════════════════════════════════════════════════════════════════════
+  if (detectarConcatenacion) {
+    // Caso 1: X contiene ambas coordenadas concatenadas, Y está vacía o placeholder
+    if (normX.patronDetectado === 'CONCATENADO' && 
+        (normY.patronDetectado === 'PLACEHOLDER' || yInput.trim() === '')) {
+      const yExtraida = (normX as any)._yExtraida;
+      if (yExtraida !== undefined) {
+        y = yExtraida;
+        concatenacionDetectada = true;
+        normY.valorNormalizado = yExtraida;
+        normY.exito = true;
+        normY.patronDetectado = 'CONCATENADO';
+        normY.warnings.push('Y extraída de coordenadas concatenadas en campo X');
+      }
+    }
+    
+    // Caso 2: Y contiene ambas coordenadas concatenadas, X está vacía o placeholder
+    if (normY.patronDetectado === 'CONCATENADO' && 
+        (normX.patronDetectado === 'PLACEHOLDER' || xInput.trim() === '')) {
+      const separacion = separarCoordenadasConcatenadas(yInput);
+      if (separacion.esConcatenado) {
+        x = separacion.valorX;
+        y = separacion.valorY;
+        concatenacionDetectada = true;
+        normX.valorNormalizado = separacion.valorX;
+        normX.exito = true;
+        normX.patronDetectado = 'CONCATENADO';
+        normX.warnings.push('X extraída de coordenadas concatenadas en campo Y');
+      }
+    }
+    
+    // Caso 3: Ambos campos tienen el mismo valor concatenado (error de copia)
+    if (xInput.trim() === yInput.trim() && normX.patronDetectado === 'CONCATENADO') {
+      const separacion = separarCoordenadasConcatenadas(xInput);
+      if (separacion.esConcatenado) {
+        x = separacion.valorX;
+        y = separacion.valorY;
+        concatenacionDetectada = true;
+        normX.valorNormalizado = separacion.valorX;
+        normY.valorNormalizado = separacion.valorY;
+        normX.warnings.push('Campos X e Y idénticos con valor concatenado - separados');
+        normY.warnings.push('Campos X e Y idénticos con valor concatenado - separados');
+      }
+    }
+  }
   
   // Validar si tenemos valores numéricos
   if (x !== null) {
@@ -595,6 +761,8 @@ export function procesarParCoordenadas(
   let confianzaGlobal: NivelConfianza = 'ALTA';
   if (x === null || y === null) {
     confianzaGlobal = 'CRITICA';
+  } else if (concatenacionDetectada) {
+    confianzaGlobal = 'MEDIA'; // Siempre MEDIA si hubo separación de concatenadas
   } else if (intercambioAplicado || validX?.confianza === 'MEDIA' || validY?.confianza === 'MEDIA') {
     confianzaGlobal = 'MEDIA';
   } else if (validX?.confianza === 'BAJA' || validY?.confianza === 'BAJA') {
@@ -611,6 +779,7 @@ export function procesarParCoordenadas(
     validacionX: validX,
     validacionY: validY,
     intercambioAplicado,
+    concatenacionDetectada,
     confianzaGlobal,
     epsg: epsgAsumido,
   };
@@ -655,6 +824,10 @@ export function generarDiagnostico(par: ParCoordenadas): string {
     `  X: ${par.normalizacionX.fasesAplicadas.join(' → ')}`,
     `  Y: ${par.normalizacionY.fasesAplicadas.join(' → ')}`,
   ];
+  
+  if (par.concatenacionDetectada) {
+    lineas.push(``, `⚠️  CORRECCIÓN P0-3: Coordenadas concatenadas separadas`);
+  }
   
   if (par.intercambioAplicado) {
     lineas.push(``, `⚠️  CORRECCIÓN P0-2: Intercambio X↔Y aplicado`);
@@ -747,9 +920,14 @@ export function ejecutarTests(): void {
     
     // Mojibake
     { x: '504750Â´25', y: '4077905Â´68', esperadoX: 504750.25, esperadoY: 4077905.68 },
+    
+    // NUEVO v2.1: Coordenadas concatenadas
+    { x: '5234004120000', y: '', esperadoX: 523400, esperadoY: 4120000 },
+    { x: '4367804136578', y: 'Pendiente', esperadoX: 436780, esperadoY: 4136578 },
+    { x: '5047504077153', y: '5047504077153', esperadoX: 504750, esperadoY: 4077153 },
   ];
   
-  console.log('\n🧪 EJECUTANDO TESTS DE NORMALIZACIÓN\n');
+  console.log('\n🧪 EJECUTANDO TESTS DE NORMALIZACIÓN v2.1\n');
   console.log('═'.repeat(70));
   
   let pasados = 0;
@@ -778,6 +956,10 @@ export function ejecutarTests(): void {
     console.log(`  Obtenido: X=${resultado.x}, Y=${resultado.y}`);
     console.log(`  Patrones: X=${resultado.normalizacionX.patronDetectado}, Y=${resultado.normalizacionY.patronDetectado}`);
     
+    if (resultado.concatenacionDetectada) {
+      console.log(`  📎 Concatenación detectada y separada`);
+    }
+    
     if (!xOk || !yOk) {
       console.log(`  ⚠ FALLO: X ${xOk ? 'OK' : 'FAIL'}, Y ${yOk ? 'OK' : 'FAIL'}`);
     }
@@ -795,6 +977,7 @@ export function ejecutarTests(): void {
 
 export { normalizarCoordenada as normalizeCoordinate };
 export { ResultadoNormalizacion as NormalizationResult };
+export { separarCoordenadasConcatenadas as splitConcatenatedCoordinates };
 
 // ============================================================================
 // EXPORTACIÓN POR DEFECTO
@@ -804,6 +987,7 @@ export default {
   normalizarCoordenada,
   validarCoordenada,
   procesarParCoordenadas,
+  separarCoordenadasConcatenadas,
   detectarPatron,
   esPlaceholder,
   detectarIntercambioXY,
