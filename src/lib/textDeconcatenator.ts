@@ -6,15 +6,21 @@
  * 
  * ENFOQUE CONSERVADOR:
  * - Solo aplica patrones de ALTA CONFIANZA
- * - NO modifica texto ALL CAPS que podría ser correcto
+ * - NO modifica texto ALL CAPS que podría ser correcto (excepto números finales)
  * - Marca casos sospechosos para revisión manual
  * 
  * Validado con datos reales de 6 documentos PTEL:
  * - Colomera, Quéntar, Hornos, Castril, Tíjola, Berja
  * - 103 registros afectados
  * 
- * @version 2.0.0
- * @date 2025-11-28
+ * CHANGELOG v2.2 (30-Nov-2025):
+ * - NEW: Patrón 6 mejorado - vocal+preposición (Sierrade → Sierra de)
+ * - NEW: Patrón 7 - punto+mayúscula (Ctra.GR → Ctra. GR)
+ * - NEW: Patrón 8 - unidad+número (Km5 → Km 5)
+ * - NEW: Patrón 9 - allcaps+número (CPALMERÍA2 → CPALMERÍA 2)
+ * 
+ * @version 2.2.0
+ * @date 2025-11-30
  */
 
 // ============================================================================
@@ -125,7 +131,7 @@ export function deconcatenateText(input: string): DeconcatenationResult {
     result.patternsApplied.push('abreviatura');
   }
 
-  // PATRÓN 5: Preposición pegada al final de palabra
+  // PATRÓN 5: Preposición pegada al final de palabra (legacy - mantener compatibilidad)
   for (const prep of PREPOSITIONS) {
     const pattern = new RegExp(
       `([aeiouáéíóú])(${prep})([\\s][A-ZÁÉÍÓÚÜÑ])`,
@@ -138,11 +144,66 @@ export function deconcatenateText(input: string): DeconcatenationResult {
     }
   }
 
-  // POST-PROCESAMIENTO PTEL
+  // =========================================================================
+  // PATRONES v2.1 (30-Nov-2025)
+  // =========================================================================
+
+  // PATRÓN 6: Vocal + preposición pegada (mejorado)
+  // Ej: "Sierrade Castril" → "Sierra de Castril"
+  // Ej: "Plazadel Ayuntamiento" → "Plaza del Ayuntamiento"
+  const beforeVocalPrep = text;
+  // Con espacio después
+  text = text.replace(/([aeiouáéíóú])(de|del|la|el)(\s+[A-ZÁÉÍÓÚÜÑ])/gi, '$1 $2$3');
+  // Sin espacio después (todo pegado)
+  text = text.replace(/([aeiouáéíóú])(de|del|la|el)([A-ZÁÉÍÓÚÜÑ])/gi, '$1 $2 $3');
+  if (text !== beforeVocalPrep) {
+    result.patternsApplied.push('vocal+preposición');
+  }
+
+  // PATRÓN 7: Punto pegado a siguiente palabra
+  // Ej: "Ctra.GR" → "Ctra. GR"
+  // Ej: "Av.Principal" → "Av. Principal"
+  const beforeDot = text;
+  text = text.replace(/\.([A-ZÁÉÍÓÚÜÑ])/g, '. $1');
+  if (text !== beforeDot) {
+    result.patternsApplied.push('punto+mayúscula');
+  }
+
+  // =========================================================================
+  // PATRONES v2.2 (30-Nov-2025)
+  // =========================================================================
+
+  // PATRÓN 8: Unidades pegadas a números
+  // Ej: "3100Km" → "3100 Km", "Km5" → "Km 5"
+  const beforeUnit = text;
+  // número + unidad
+  text = text.replace(/(\d)(Km|km|Kms|kms|m|ha)(?=\d|\s|$)/gi, '$1 $2');
+  // unidad + número
+  text = text.replace(/(Km|km|Kms|kms)(\d)/gi, '$1 $2');
+  if (text !== beforeUnit) {
+    result.patternsApplied.push('unidad+número');
+  }
+
+  // PATRÓN 9: ALL CAPS + número al final
+  // Ej: "CPALMERÍA2" → "CPALMERÍA 2", "CEIP3" → "CEIP 3"
+  // Solo aplica si hay al menos 3 letras mayúsculas antes del número
+  const beforeAllCaps = text;
+  text = text.replace(/([A-ZÁÉÍÓÚÜÑ]{3,})(\d+)$/g, '$1 $2');
+  if (text !== beforeAllCaps) {
+    result.patternsApplied.push('allcaps+número');
+  }
+
+  // =========================================================================
+  // POST-PROCESAMIENTO
+  // =========================================================================
+
+  // Corrección ortográfica común en PTEL
   text = text.replace(/\bTrasformador\b/gi, 'Transformador');
+  
+  // Normalizar espacios múltiples
   text = text.replace(/\s+/g, ' ').trim();
 
-  // DETECCIÓN DE CASOS SOSPECHOSOS (ALL CAPS concatenados)
+  // DETECCIÓN DE CASOS SOSPECHOSOS (ALL CAPS concatenados muy largos)
   if (/^[A-ZÁÉÍÓÚÜÑ\s\.\-]+$/.test(input)) {
     const longSequences = input.match(/[A-ZÁÉÍÓÚÜÑ]{12,}/g);
     if (longSequences && longSequences.length > 0) {
@@ -156,6 +217,7 @@ export function deconcatenateText(input: string): DeconcatenationResult {
   result.corrected = text;
   result.wasModified = text !== input;
 
+  // Calcular nivel de confianza
   if (result.patternsApplied.length === 0) {
     result.confidence = 'ALTA';
   } else if (result.patternsApplied.length <= 2) {
