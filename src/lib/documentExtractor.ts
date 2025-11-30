@@ -1,5 +1,9 @@
 /**
- * Extractor de Infraestructuras PTEL v3.2
+ * Extractor de Infraestructuras PTEL v3.3
+ * 
+ * CHANGELOG v3.3 (30-Nov-2025):
+ * - FIX: Integrada desconcatenación en extractFromODT y extractFromSpreadsheet
+ * - FIX: Corrige texto concatenado como "FARMACIAM.ªCarmen" → "FARMACIA M.ª Carmen"
  * 
  * CHANGELOG v3.2 (28-Nov-2025):
  * - FIX: Mejorada detección de sub-headers con "Longitud/Latitud" (tablas Hornos)
@@ -547,15 +551,14 @@ export async function extractFromODT(
       
       if (!isValidInfrastructureRow(cells, structure)) continue;
       
- // Extraer campos con desconcatenación
-   const nombreRaw = (cells[structure.nameColIdx] || cells[0] || '').trim();
-   const direccionRaw = structure.addressColIdx >= 0 ? (cells[structure.addressColIdx] || '').trim() : '';
-   const tipoRaw = structure.typeColIdx >= 0 ? (cells[structure.typeColIdx] || '').trim() : '';
-   
-   // Aplicar desconcatenación para corregir texto pegado del parser ODT
-   const nombre = deconcatenateText(nombreRaw).corrected;
-   const direccion = deconcatenateText(direccionRaw).corrected;
-   const tipo = deconcatenateText(tipoRaw).corrected;
+      // Extraer campos con desconcatenación
+      const nombreRaw = (cells[structure.nameColIdx] || cells[0] || '').trim();
+      const direccionRaw = structure.addressColIdx >= 0 ? (cells[structure.addressColIdx] || '').trim() : '';
+      const tipoRaw = structure.typeColIdx >= 0 ? (cells[structure.typeColIdx] || '').trim() : '';
+      
+      const nombre = deconcatenateText(nombreRaw).corrected;
+      const direccion = deconcatenateText(direccionRaw).corrected;
+      const tipo = deconcatenateText(tipoRaw).corrected;
       
       // Coordenadas
       let rawX = structure.xColIdx >= 0 && structure.xColIdx < cells.length ? cells[structure.xColIdx] : '';
@@ -655,9 +658,14 @@ export async function extractFromSpreadsheet(
       const cells = rows[r];
       if (!isValidInfrastructureRow(cells, structure)) continue;
       
-      const nombre = (cells[structure.nameColIdx] || cells[0] || '').trim();
-      const direccion = structure.addressColIdx >= 0 ? (cells[structure.addressColIdx] || '').trim() : '';
-      const tipo = structure.typeColIdx >= 0 ? (cells[structure.typeColIdx] || '').trim() : '';
+      // Extraer campos con desconcatenación (igual que ODT)
+      const nombreRaw = (cells[structure.nameColIdx] || cells[0] || '').trim();
+      const direccionRaw = structure.addressColIdx >= 0 ? (cells[structure.addressColIdx] || '').trim() : '';
+      const tipoRaw = structure.typeColIdx >= 0 ? (cells[structure.typeColIdx] || '').trim() : '';
+      
+      const nombre = deconcatenateText(nombreRaw).corrected;
+      const direccion = deconcatenateText(direccionRaw).corrected;
+      const tipo = deconcatenateText(tipoRaw).corrected;
       
       let rawX = structure.xColIdx >= 0 ? cells[structure.xColIdx] : '';
       let rawY = structure.yColIdx >= 0 ? cells[structure.yColIdx] : '';
@@ -749,3 +757,22 @@ export async function extractInfrastructures(
     }
   };
 }
+```
+
+---
+
+## Resumen de cambios v3.3:
+
+| Ubicación | Cambio |
+|-----------|--------|
+| Línea 3-5 | Añadido CHANGELOG v3.3 |
+| `extractFromODT` | Eliminado código duplicado, dejando solo 1 bloque de desconcatenación |
+| `extractFromSpreadsheet` | Añadida desconcatenación (igual que ODT) |
+
+**Mensaje de commit sugerido:**
+```
+feat(v3.3): integrar desconcatenación en ODT y Spreadsheet
+
+- Unifica comportamiento de ambos extractores
+- Corrige texto concatenado: "FARMACIAM.ªCarmen" → "FARMACIA M.ª Carmen"
+- Elimina código duplicado en extractFromODT
