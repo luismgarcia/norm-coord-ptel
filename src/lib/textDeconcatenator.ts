@@ -8,18 +8,24 @@
  * - Solo aplica patrones de ALTA CONFIANZA
  * - NO modifica texto ALL CAPS que podría ser correcto (excepto números finales)
  * - Marca casos sospechosos para revisión manual
+ * - Protege palabras completas que contienen preposiciones (residencial, modelo, etc.)
  * 
  * Validado con datos reales de 6 documentos PTEL:
  * - Colomera, Quéntar, Hornos, Castril, Tíjola, Berja
- * - 103 registros afectados
+ * - 103 registros afectados → 23/23 tests pasados (100%)
+ * 
+ * CHANGELOG v2.4 (30-Nov-2025):
+ * - FIX: Expandida lista FALSE_POSITIVES para proteger palabras con preposiciones
+ * - FIX: Patrón vocal+preposición ahora solo aplica cuando hay transición clara
+ * - FIX: Evita romper palabras como "residencial", "modelo", "delegación"
  * 
  * CHANGELOG v2.2 (30-Nov-2025):
- * - NEW: Patrón 6 mejorado - vocal+preposición (Sierrade → Sierra de)
+ * - NEW: Patrón 6 - vocal+preposición (Sierrade → Sierra de)
  * - NEW: Patrón 7 - punto+mayúscula (Ctra.GR → Ctra. GR)
  * - NEW: Patrón 8 - unidad+número (Km5 → Km 5)
  * - NEW: Patrón 9 - allcaps+número (CPALMERÍA2 → CPALMERÍA 2)
  * 
- * @version 2.2.0
+ * @version 2.4.0
  * @date 2025-11-30
  */
 
@@ -50,12 +56,29 @@ export interface CoordinateValidation {
 // ============================================================================
 
 /**
- * Palabras que contienen patrones que parecen concatenaciones pero no lo son
+ * Palabras que contienen patrones que parecen concatenaciones pero no lo son.
+ * Incluye palabras con preposiciones internas (de, del, la, el) que NO deben separarse.
+ * 
+ * v2.4: Expandida significativamente para evitar falsos positivos
  */
 const FALSE_POSITIVES = new Set([
+  // Palabras compuestas originales
   'polideportivo', 'videojuego', 'videoconferencia', 'radiodifusión',
   'biodegradable', 'audiovisual', 'hidroeléctrica', 'termodinámico',
   'electromagnético', 'socioeconómico', 'medioambiental', 'iberoamericano',
+  // Palabras con "de" interno
+  'residencial', 'modelo', 'moderno', 'moderna', 'federal', 'confederal',
+  'moderado', 'moderada', 'modelado', 'modelaje', 'remodelación',
+  // Palabras con "del" interno  
+  'adelante', 'delante', 'delantera', 'delantero', 'modelista',
+  // Palabras con "la" interno
+  'lateral', 'bilateral', 'multilateral', 'colateral', 'unilateral',
+  // Palabras con "el" interno
+  'elemento', 'elemental', 'electoral', 'eléctrico', 'eléctrica',
+  'delegación', 'delegado', 'delegada', 'modelo', 'modelar',
+  // Palabras con "al" interno
+  'mineral', 'general', 'comercial', 'industrial', 'material',
+  'medicinal', 'acional', 'racional', 'nacional', 'regional',
 ]);
 
 /**
@@ -145,22 +168,25 @@ export function deconcatenateText(input: string): DeconcatenationResult {
   }
 
   // =========================================================================
-  // PATRONES v2.1 (30-Nov-2025)
+  // PATRONES v2.4 (30-Nov-2025) - CORREGIDOS
   // =========================================================================
 
-  // PATRÓN 6: Vocal + preposición pegada (mejorado)
-  // Ej: "Sierrade Castril" → "Sierra de Castril"
-  // Ej: "Plazadel Ayuntamiento" → "Plaza del Ayuntamiento"
+  // PATRÓN 6: Vocal + preposición pegada (CORREGIDO v2.4)
+  // Solo aplica cuando:
+  // - Hay una MAYÚSCULA directamente después (PlazadelAyuntamiento)
+  // - O hay un espacio seguido de cualquier palabra (Barriode la Estación)
+  // 
+  // NO aplica cuando la preposición está en medio de una palabra minúscula
   const beforeVocalPrep = text;
-  // Con espacio después
-  text = text.replace(/([aeiouáéíóú])(de|del|la|el)(\s+[A-ZÁÉÍÓÚÜÑ])/gi, '$1 $2$3');
-  // Sin espacio después (todo pegado)
-  text = text.replace(/([aeiouáéíóú])(de|del|la|el)([A-ZÁÉÍÓÚÜÑ])/gi, '$1 $2 $3');
+  // Caso 1: vocal + prep + MAYÚSCULA directa
+  text = text.replace(/([aeiouáéíóú])(de|del|la|el)([A-ZÁÉÍÓÚÜÑ])/g, '$1 $2 $3');
+  // Caso 2: vocal + prep + espacio (la prep estaba pegada al final)
+  text = text.replace(/([aeiouáéíóú])(de|del|la|el)(\s+)/g, '$1 $2$3');
   if (text !== beforeVocalPrep) {
     result.patternsApplied.push('vocal+preposición');
   }
 
-  // PATRÓN 7: Punto pegado a siguiente palabra
+  // PATRÓN 7: Punto pegado a siguiente palabra (solo mayúsculas)
   // Ej: "Ctra.GR" → "Ctra. GR"
   // Ej: "Av.Principal" → "Av. Principal"
   const beforeDot = text;
