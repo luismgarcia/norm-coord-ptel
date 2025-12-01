@@ -32,3 +32,28 @@ pids
 .devcontainer/
 
 .spark-workbench-id
+
+# ===========================================
+# PTEL: Archivos locales (NO sincronizar)
+# ===========================================
+
+# Datos municipales grandes (PDFs, ODTs originales)
+/data-local/
+*.odt
+*.pdf
+
+# Backups locales
+/backup_*/
+/backup-*/
+
+# Archivos temporales de procesamiento
+*.tmp
+*.temp
+/tmp/
+
+# Exports grandes
+/exports/
+*.csv.bak
+
+# Caché de geocodificación local
+/cache-local/
