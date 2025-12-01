@@ -1,14 +1,14 @@
 {
-  "version": "0.4.1",
-  "lastUpdate": "2025-11-30T09:00:00Z",
+  "version": "0.4.2",
+  "lastUpdate": "2025-12-01T10:30:00Z",
   "currentPhase": {
     "id": 1,
     "name": "Geocodificación Especializada",
-    "progress": 90,
+    "progress": 92,
     "status": "in_progress",
-    "details": "14/16 features implementadas. Parser ODT mejorado con desconcatenador."
+    "details": "Parser NMEA GPS migrado. 15/16 features implementadas."
   },
-  "activeWorkArea": "parsing",
+  "activeWorkArea": "normalization",
   "metrics": {
     "coordCompleteness": 26.9,
     "geocodingSuccess": 70,
@@ -16,7 +16,7 @@
     "precision_m": 50,
     "municipiosCovered": 6,
     "operationalCost_eur": 0,
-    "notes": "Parser ODT mejorado de 70% a ~90% con integración desconcatenador. Impacto: ~60% de 103 registros concatenados se corrigen automáticamente."
+    "notes": "Parser NMEA v2.4 implementado - soporta formatos D1-D4 GPS. 59 tests passing."
   },
   "targets": {
     "coordCompleteness": 95,
@@ -50,19 +50,20 @@
       ]
     },
     "normalization": {
-      "status": "stable",
-      "progress": 95,
-      "lastWorked": "2025-11-27"
+      "status": "improved",
+      "progress": 98,
+      "lastWorked": "2025-12-01",
+      "recentChanges": [
+        "Parser NMEA GPS v2.4 - formatos D1-D4",
+        "parseNMEA(), parseNMEASentence(), parseParNMEA(), esNMEA()",
+        "Fase 0.8 en pipeline de normalización",
+        "Tipos NMEA_ESTANDAR, NMEA_ENTERO, NMEA_SENTENCIA, NMEA_PAR"
+      ]
     },
     "parsing": {
-      "status": "improved",
+      "status": "stable",
       "progress": 90,
-      "lastWorked": "2025-11-30",
-      "recentChanges": [
-        "Integración textDeconcatenator en extractFromODT",
-        "Integración textDeconcatenator en extractFromSpreadsheet",
-        "documentExtractor.ts actualizado a v3.3"
-      ]
+      "lastWorked": "2025-11-30"
     },
     "ci": {
       "status": "operational",
@@ -72,21 +73,21 @@
     }
   },
   "lastSession": {
-    "date": "2025-11-30",
-    "role": "MapWizard",
-    "area": "parsing",
-    "summary": "Integración desconcatenador en parser ODT/Spreadsheet. Creación workflow CI. Corrección texto markdown accidental.",
+    "date": "2025-12-01",
+    "role": "GitMaster",
+    "area": "normalization",
+    "summary": "Instalación GitHub MCP. Migración parser NMEA desde repo incorrecto. Creación guía multi-dispositivo.",
     "filesModified": [
-      "src/lib/documentExtractor.ts (v3.3)",
-      ".github/workflows/test.yml (nuevo)"
+      "src/lib/coordinateNormalizer.ts (v2.4 - NMEA parser)",
+      ".ptel/SYNC_MULTI_DEVICE.md (nuevo)",
+      ".gitignore (actualizado)"
     ],
     "commits": [
-      "Add GitHub Actions workflow for testing",
-      "Enhance field extraction with text deconcatenation",
-      "Unify extraction behavior for ODT and Spreadsheet"
+      "docs: add multi-device sync guide and update .gitignore for local data",
+      "feat(normalizer): add NMEA GPS parser (D1-D4 formats) v2.4"
     ],
-    "nextArea": "validation"
+    "nextArea": "testing"
   },
   "blockers": [],
-  "notes": "Parser ODT mejorado. Próximo paso: validar con documentos reales en Mac."
+  "notes": "Parser NMEA migrado exitosamente. GitHub MCP instalado. Próximo: test con documentos reales que contengan coordenadas NMEA."
 }
