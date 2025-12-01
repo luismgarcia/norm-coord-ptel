@@ -202,3 +202,78 @@ Integrar textDeconcatenator en parser ODT y crear workflow CI
 3. Pruebas empíricas geocodificación
 
 ---
+
+## 2025-12-01 - Sesión GitMaster + Documentación
+
+### Objetivo
+Migrar parser NMEA, sincronizar repos, actualizar documentación
+
+### Contexto
+- Sesión anterior detectó código divergente entre repos
+- Parser NMEA implementado en repo incorrecto (normalizador-geolocalizador-ptel)
+- Necesidad de consolidar todo en norm-coord-ptel
+
+### Trabajo realizado
+
+#### 1. Verificación entorno desarrollo
+- GitHub MCP instalado y funcionando en Claude Desktop
+- Node.js, npm, GitHub CLI operativos
+- 59 tests pasando al inicio
+
+#### 2. Migración Parser NMEA
+- Parser ya estaba en local pero sin commit
+- Funciones: parseNMEA(), parseNMEASentence(), parseParNMEA(), esNMEA()
+- Formatos soportados: D1-D4 (NMEA_ESTANDAR, NMEA_ENTERO, NMEA_SENTENCIA, NMEA_PAR)
+- Commit: `feat(normalizer): add NMEA GPS parser (D1-D4 formats) v2.4`
+
+#### 3. Tests NMEA
+- Nuevo archivo: `src/lib/__tests__/nmeaParser.test.ts`
+- 7 tests añadidos:
+  - parseNMEA individual (lat/lon)
+  - parseNMEASentence ($GPGGA, $GPRMC)
+  - parseParNMEA (pares)
+  - esNMEA() detección
+- Total tests: 59 → 66
+
+#### 4. Actualización documentación .ptel
+- PROMPTS_RAPIDOS.md:
+  - Añadido rol GitMaster
+  - Eliminado rol Validator (no existía en PTEL_ROLES.md)
+  - Añadida sección Sincronización con reglas de oro
+  - Añadido paso "git push" en cierre
+  - Añadida sección Emergencias
+- Guía trabajo Claude v2:
+  - Corregido mojibake UTF-8
+  - Añadido GitMaster
+  - Añadida sección herramientas MCP
+  - Actualizada info proyecto (v0.4.2, 66 tests)
+  - Guardada local para usuario (no en repo)
+
+### Commits realizados (hoy)
+1. `feat(normalizer): add NMEA GPS parser (D1-D4 formats) v2.4`
+2. `chore(.ptel): update session state - NMEA parser migrated v2.4`
+3. `test(nmea): add NMEA parser tests - 7 cases for D1-D4 formats`
+4. `docs(.ptel): update PROMPTS_RAPIDOS with GitMaster role and sync rules`
+5. `chore(.ptel): session close - tests NMEA, docs updated, 66 tests passing`
+
+### Estado final
+| Métrica | Valor |
+|---------|-------|
+| Tests | 66/66 ✅ |
+| Versión | 0.4.3 |
+| GitHub ↔ Local | Sincronizado ✅ |
+| Parser NMEA | Migrado y testeado ✅ |
+| Documentación | Actualizada ✅ |
+
+### Decisión sobre guía
+- Guía completa v2 → para usuario (local/impresa)
+- No subir al repo (redundante con .ptel/ existente)
+- PROMPTS_RAPIDOS.md actualizado con lo esencial
+
+### Pendientes para próxima sesión
+1. **Pruebas empíricas** - Documentos reales con coordenadas NMEA/geocodificación
+2. **CacheManager multinivel** - localStorage + IndexedDB
+3. **Decidir área** - ¿geocoding (WFSHydrography) o UI (Home React)?
+4. **Validar mockup Home v3** - Abrir HTML y decidir logo
+
+---
