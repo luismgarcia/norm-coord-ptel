@@ -1,14 +1,14 @@
 {
-  "version": "0.4.2",
-  "lastUpdate": "2025-12-01T10:30:00Z",
+  "version": "0.4.3",
+  "lastUpdate": "2025-12-01T11:30:00Z",
   "currentPhase": {
     "id": 1,
     "name": "Geocodificación Especializada",
-    "progress": 92,
+    "progress": 93,
     "status": "in_progress",
-    "details": "Parser NMEA GPS migrado. 15/16 features implementadas."
+    "details": "Parser NMEA testeado. Documentación sincronizada. 66 tests passing."
   },
-  "activeWorkArea": "normalization",
+  "activeWorkArea": "documentation",
   "metrics": {
     "coordCompleteness": 26.9,
     "geocodingSuccess": 70,
@@ -16,7 +16,8 @@
     "precision_m": 50,
     "municipiosCovered": 6,
     "operationalCost_eur": 0,
-    "notes": "Parser NMEA v2.4 implementado - soporta formatos D1-D4 GPS. 59 tests passing."
+    "testsCount": 66,
+    "notes": "Parser NMEA v2.4 testeado (7 tests). Documentación .ptel actualizada y sincronizada."
   },
   "targets": {
     "coordCompleteness": 95,
@@ -50,14 +51,13 @@
       ]
     },
     "normalization": {
-      "status": "improved",
+      "status": "stable",
       "progress": 98,
       "lastWorked": "2025-12-01",
       "recentChanges": [
         "Parser NMEA GPS v2.4 - formatos D1-D4",
-        "parseNMEA(), parseNMEASentence(), parseParNMEA(), esNMEA()",
-        "Fase 0.8 en pipeline de normalización",
-        "Tipos NMEA_ESTANDAR, NMEA_ENTERO, NMEA_SENTENCIA, NMEA_PAR"
+        "7 tests NMEA añadidos (nmeaParser.test.ts)",
+        "66 tests totales pasando"
       ]
     },
     "parsing": {
@@ -69,25 +69,40 @@
       "status": "operational",
       "progress": 100,
       "lastWorked": "2025-11-30",
-      "details": "GitHub Actions workflow creado y funcionando"
+      "details": "GitHub Actions workflow funcionando"
+    },
+    "documentation": {
+      "status": "updated",
+      "progress": 95,
+      "lastWorked": "2025-12-01",
+      "recentChanges": [
+        "PROMPTS_RAPIDOS.md actualizado con GitMaster",
+        "SYNC_MULTI_DEVICE.md creado",
+        "Guía trabajo Claude v2 preparada (local usuario)"
+      ]
     }
   },
   "lastSession": {
     "date": "2025-12-01",
     "role": "GitMaster",
-    "area": "normalization",
-    "summary": "Instalación GitHub MCP. Migración parser NMEA desde repo incorrecto. Creación guía multi-dispositivo.",
+    "area": "normalization + documentation",
+    "summary": "Tests NMEA. Sincronización repos. Actualización documentación .ptel con GitMaster y reglas de oro.",
     "filesModified": [
-      "src/lib/coordinateNormalizer.ts (v2.4 - NMEA parser)",
-      ".ptel/SYNC_MULTI_DEVICE.md (nuevo)",
-      ".gitignore (actualizado)"
+      "src/lib/__tests__/nmeaParser.test.ts (nuevo - 7 tests)",
+      ".ptel/PROMPTS_RAPIDOS.md (GitMaster + sync)",
+      ".ptel/PTEL_ESTADO_SESION.json",
+      ".ptel/claude-progress.txt"
     ],
     "commits": [
-      "docs: add multi-device sync guide and update .gitignore for local data",
-      "feat(normalizer): add NMEA GPS parser (D1-D4 formats) v2.4"
+      "test(nmea): add NMEA parser tests - 7 cases for D1-D4 formats",
+      "docs(.ptel): update PROMPTS_RAPIDOS with GitMaster role and sync rules"
     ],
-    "nextArea": "testing"
+    "nextPriorities": [
+      "Pruebas empíricas con documentos reales",
+      "CacheManager multinivel",
+      "Decidir siguiente área: geocoding vs UI"
+    ]
   },
   "blockers": [],
-  "notes": "Parser NMEA migrado exitosamente. GitHub MCP instalado. Próximo: test con documentos reales que contengan coordenadas NMEA."
+  "notes": "Sesión productiva. Repo sincronizado. 66 tests OK. Documentación coherente. Usuario tiene guía v2 local."
 }
