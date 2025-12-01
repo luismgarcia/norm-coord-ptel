@@ -7,15 +7,38 @@ Copia y pega esto al comenzar una nueva conversación:
 ```
 INICIO SESIÓN PTEL
 
-Por favor:
-1. Lee los archivos de estado del proyecto:
-   - .ptel/PTEL_ESTADO_SESION.json
-   - .ptel/PTEL_FEATURES.json
-   - .ptel/handoff.json
-2. Muestra el resumen del estado actual
-3. Identifica la siguiente tarea prioritaria (passes: false)
-4. Pregunta qué rol debo activar: DataMaster / MapWizard / DesignCraft / GitMaster
+Proyecto: norm-coord-ptel
+Ya hice git pull y npm test pasa OK.
+
+Localiza el repositorio, lee .ptel/ y dime en qué punto estamos.
 ```
+
+### Con rol específico:
+```
+INICIO SESIÓN PTEL
+
+Proyecto: norm-coord-ptel
+Ya sincronicé y los tests pasan.
+
+Activa rol [DataMaster / MapWizard / DesignCraft / GitMaster].
+Localiza el repositorio, lee .ptel/ y dime el estado del proyecto.
+```
+
+---
+
+## PROTOCOLO OBLIGATORIO DE CLAUDE
+
+Al recibir "INICIO SESIÓN PTEL", Claude DEBE:
+
+1. `list_allowed_directories` → Listar directorios permitidos
+2. Buscar carpeta `norm-coord-ptel` (nombre exacto)
+3. **EXCLUIR** carpetas: `_BACKUP_*`, `_OLD_*`, `_TEST_*`
+4. Verificar que existe `.ptel/` dentro
+5. Informar al usuario qué ruta encontró
+6. Leer archivos de estado
+7. Reportar resumen + próximas prioridades
+
+**NO asumir rutas. Detectar dinámicamente.**
 
 ---
 
@@ -28,7 +51,15 @@ Por favor:
 | Al EMPEZAR | `git pull` → `npm install` → `npm test` |
 | Al TERMINAR | `git add .` → `git commit` → `git push` |
 
-⚠️ **Nunca** subir `node_modules/` ni `dist/`
+### Nomenclatura de carpetas
+
+| Tipo | Formato |
+|------|---------|
+| **Repo activo** | `norm-coord-ptel` (solo este nombre) |
+| **Backup** | `_BACKUP_norm-coord-ptel_FECHA` |
+| **Versión antigua** | `_OLD_norm-coord-ptel` |
+
+⚠️ Backups van FUERA de `Documents/GitHub/`
 
 ---
 
@@ -37,85 +68,48 @@ Por favor:
 ### DataMaster (Datos y Geodesia)
 ```
 Activa rol DATAMASTER
-
-Expertise: Geodesia, validación, tipos TypeScript
-- Parseo CSV/XLSX/ODT
-- Normalización UTF-8 y coordenadas
-- Interfaces estrictas (no any)
-- Tests con datos reales
-
-Lee .ptel/PTEL_ROLES.md para más contexto.
+Vamos a trabajar en [tarea de datos/validación].
 ```
 
 ### MapWizard (APIs y Código)
 ```
 Activa rol MAPWIZARD
-
-Expertise: React/TypeScript, APIs geoespaciales
-- proj4.js EPSG:25830
-- Clientes WFS/WMS
-- Lógica geocodificación
-- Hooks personalizados
-
-Lee .ptel/PTEL_ROLES.md para más contexto.
+Vamos a trabajar en [tarea de código/APIs].
 ```
 
 ### DesignCraft (Diseño UI/UX)
 ```
 Activa rol DESIGNCRAFT
-
-Expertise: UI/UX, Tailwind CSS
-- Componentes shadcn/ui
-- Responsive mobile-first
-- Feedback visual
-- Accesibilidad
-
-Lee .ptel/PTEL_ROLES.md para más contexto.
+Vamos a trabajar en [tarea de interfaz].
 ```
 
 ### GitMaster (Git/GitHub/CI-CD)
 ```
 Activa rol GITMASTER
-
-Expertise: Git, GitHub, sincronización, CI/CD
-- Sincronización multi-dispositivo
-- Resolución conflictos Git
-- Migración código entre repos
-- Verificación estado repositorio
-- Gestión commits y releases
-
-Lee .ptel/PTEL_ROLES.md para más contexto.
+Vamos a trabajar en [tarea de repositorio/sincronización].
 ```
 
 ---
 
 ## CIERRE DE SESIÓN
 
-Copia y pega esto ANTES de cerrar la conversación:
-
 ```
 CIERRE SESIÓN PTEL
 
-Por favor:
-1. Resume lo que hicimos esta sesión
-2. Actualiza .ptel/PTEL_ESTADO_SESION.json con:
-   - Fecha actual
-   - Rol usado
-   - Resumen de cambios
-   - Archivos modificados
-   - Próxima prioridad
-3. Añade entrada al final de .ptel/claude-progress.txt
-4. Si completamos una feature, marca passes: true en PTEL_FEATURES.json
-5. Actualiza .ptel/handoff.json para el próximo turno
-6. Haz commit con mensaje descriptivo
-7. Haz git push para sincronizar con GitHub
+Necesito que:
+1. Actualices .ptel/PTEL_ESTADO_SESION.json con el estado actual
+2. Añadas entrada a .ptel/claude-progress.txt
+3. Actualices .ptel/PTEL_FEATURES.json si completamos alguna feature
+4. Actualices .ptel/handoff.json para la próxima sesión
+5. Hagas commit con mensaje descriptivo
+6. Hagas git push
+
+Resume qué queda pendiente para la próxima sesión.
 ```
 
 ---
 
 ## VERIFICACIÓN RÁPIDA
-
-Para comprobar el estado sin iniciar trabajo:
 
 ```
 ESTADO PTEL
@@ -125,7 +119,6 @@ Muestra:
 - Fase y progreso
 - Features completadas vs pendientes
 - Última sesión y siguiente prioridad
-- Estado sincronización GitHub ↔ Local
 ```
 
 ---
@@ -134,8 +127,8 @@ Muestra:
 
 ### Si Claude pierde contexto:
 ```
-Lee CLAUDE.md y todos los archivos en .ptel/ de GitHub.
-Dame resumen completo antes de continuar.
+Para. Lee CLAUDE.md y todos los archivos en .ptel/ de GitHub.
+Dame un resumen completo del estado del proyecto.
 ```
 
 ### Si los tests fallan:
@@ -143,3 +136,7 @@ Dame resumen completo antes de continuar.
 npm test falla con este error: [pegar error]
 Corrige antes de continuar. No hacer commit hasta que pasen.
 ```
+
+---
+
+*Ver guía completa en: `.ptel/GUIA_TRABAJO_CLAUDE_v3.md`*
