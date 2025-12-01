@@ -6,187 +6,123 @@
       "description": "Clasificador tipológico 16 categorías PTEL",
       "priority": "critical",
       "estimatedHours": 3,
-      "steps": [
-        "Definir interfaces TypeScript para 16 tipos",
-        "Implementar función clasificadora por keywords",
-        "Mapear tipos a servicios WFS específicos",
-        "Tests unitarios con datos reales"
-      ],
       "passes": true,
       "completedDate": "2025-11-20",
-      "assignedRole": "DataMaster",
-      "implementation": {
-        "file": "src/services/classification/InfrastructureClassifier.ts",
-        "linesOfCode": 280,
-        "types": ["HEALTH", "EDUCATION", "POLICE", "FIRE", "CULTURAL", "RELIGIOUS", "SPORTS", "MUNICIPAL", "SOCIAL", "FUEL", "EMERGENCY", "HYDRAULIC", "ENERGY", "TELECOM", "VIAL", "INDUSTRIAL", "GENERIC"]
-      }
+      "assignedRole": "DataMaster"
     },
     {
       "id": "F002",
       "category": "geocoding",
       "description": "WFS Health Geocoder (SICESS/DERA G12)",
       "priority": "critical",
-      "estimatedHours": 4,
       "passes": true,
       "completedDate": "2025-11-22",
-      "assignedRole": "MapWizard",
-      "implementation": {
-        "file": "src/services/geocoding/specialized/WFSHealthGeocoder.ts",
-        "testFile": "src/lib/__tests__/WFSHealthGeocoder.test.ts"
-      }
+      "assignedRole": "MapWizard"
     },
     {
       "id": "F003",
       "category": "geocoding",
       "description": "WFS Education Geocoder (API CKAN)",
       "priority": "high",
-      "estimatedHours": 3,
       "passes": true,
       "completedDate": "2025-11-22",
-      "assignedRole": "MapWizard",
-      "implementation": {
-        "file": "src/services/geocoding/specialized/WFSEducationGeocoder.ts"
-      }
+      "assignedRole": "MapWizard"
     },
     {
       "id": "F004",
       "category": "geocoding",
       "description": "WFS Cultural Geocoder (IAPH)",
       "priority": "high",
-      "estimatedHours": 3,
       "passes": true,
       "completedDate": "2025-11-22",
-      "assignedRole": "MapWizard",
-      "implementation": {
-        "file": "src/services/geocoding/specialized/WFSCulturalGeocoder.ts"
-      }
+      "assignedRole": "MapWizard"
     },
     {
       "id": "F005",
       "category": "geocoding",
       "description": "WFS Security Geocoder (Emergencias)",
       "priority": "high",
-      "estimatedHours": 3,
       "passes": true,
       "completedDate": "2025-11-23",
-      "assignedRole": "MapWizard",
-      "implementation": {
-        "file": "src/services/geocoding/specialized/WFSSecurityGeocoder.ts"
-      }
+      "assignedRole": "MapWizard"
     },
     {
       "id": "F006",
       "category": "geocoding",
       "description": "WFS Hydraulic Geocoder (REDIAM)",
       "priority": "high",
-      "estimatedHours": 3,
       "passes": true,
       "completedDate": "2025-11-23",
-      "assignedRole": "MapWizard",
-      "implementation": {
-        "file": "src/services/geocoding/specialized/WFSHydraulicGeocoder.ts"
-      }
+      "assignedRole": "MapWizard"
     },
     {
       "id": "F007",
       "category": "geocoding",
       "description": "WFS Energy Geocoder (Agencia Energía)",
       "priority": "high",
-      "estimatedHours": 3,
       "passes": true,
       "completedDate": "2025-11-23",
-      "assignedRole": "MapWizard",
-      "implementation": {
-        "file": "src/services/geocoding/specialized/WFSEnergyGeocoder.ts"
-      }
+      "assignedRole": "MapWizard"
     },
     {
       "id": "F008",
       "category": "geocoding",
       "description": "NGA Geocoder (Nomenclátor Topónimos)",
       "priority": "high",
-      "estimatedHours": 4,
       "passes": true,
       "completedDate": "2025-11-24",
-      "assignedRole": "MapWizard",
-      "implementation": {
-        "file": "src/services/geocoding/specialized/NGAGeocoder.ts",
-        "coverage": "232,000 topónimos Andalucía"
-      }
+      "assignedRole": "MapWizard"
     },
     {
       "id": "F009",
       "category": "geocoding",
       "description": "IAID Geocoder (Instalaciones Deportivas)",
       "priority": "medium",
-      "estimatedHours": 3,
       "passes": true,
       "completedDate": "2025-11-24",
-      "assignedRole": "MapWizard",
-      "implementation": {
-        "file": "src/services/geocoding/specialized/IAIDGeocoder.ts"
-      }
+      "assignedRole": "MapWizard"
     },
     {
       "id": "F010",
       "category": "geocoding",
       "description": "Overpass Geocoder (OpenStreetMap)",
       "priority": "medium",
-      "estimatedHours": 4,
       "passes": true,
       "completedDate": "2025-11-24",
-      "assignedRole": "MapWizard",
-      "implementation": {
-        "file": "src/services/geocoding/specialized/OverpassGeocoder.ts"
-      }
+      "assignedRole": "MapWizard"
     },
     {
       "id": "F011",
       "category": "geocoding",
       "description": "CDAU Geocoder (Callejero Andalucía)",
       "priority": "critical",
-      "estimatedHours": 3,
       "passes": true,
       "completedDate": "2025-11-22",
-      "assignedRole": "MapWizard",
-      "implementation": {
-        "file": "src/services/geocoding/generic/CDAUGeocoder.ts"
-      }
+      "assignedRole": "MapWizard"
     },
     {
       "id": "F012",
       "category": "geocoding",
       "description": "CartoCiudad Geocoder (IGN) + Validación INE",
       "priority": "critical",
-      "estimatedHours": 4,
       "passes": true,
       "completedDate": "2025-11-28",
-      "assignedRole": "MapWizard",
-      "implementation": {
-        "file": "src/services/geocoding/generic/CartoCiudadGeocoder.ts",
-        "validator": "src/services/geocoding/ineValidator.ts"
-      }
+      "assignedRole": "MapWizard"
     },
     {
       "id": "F013",
       "category": "orchestration",
       "description": "GeocodingOrchestrator (Cascada 7 niveles)",
       "priority": "critical",
-      "estimatedHours": 5,
       "passes": true,
       "completedDate": "2025-11-25",
-      "assignedRole": "MapWizard",
-      "implementation": {
-        "file": "src/services/geocoding/GeocodingOrchestrator.ts",
-        "linesOfCode": 739
-      }
+      "assignedRole": "MapWizard"
     },
     {
       "id": "F014",
       "category": "cache",
       "description": "CacheManager multinivel (localStorage + IndexedDB)",
       "priority": "high",
-      "estimatedHours": 4,
       "passes": false,
       "completedDate": null,
       "assignedRole": "MapWizard",
@@ -197,7 +133,6 @@
       "category": "ui",
       "description": "Panel progreso geocodificación en tiempo real",
       "priority": "medium",
-      "estimatedHours": 2,
       "passes": false,
       "completedDate": null,
       "assignedRole": "DesignCraft",
@@ -208,47 +143,72 @@
       "category": "ci",
       "description": "GitHub Actions CI Workflow",
       "priority": "high",
-      "estimatedHours": 1,
       "passes": true,
       "completedDate": "2025-11-30",
-      "assignedRole": "MapWizard",
-      "implementation": {
-        "file": ".github/workflows/test.yml",
-        "features": ["npm ci", "npm test", "npm run build"],
-        "trigger": "push/PR to main"
-      },
-      "notes": "Workflow CI operativo. Tests automáticos en cada push."
+      "assignedRole": "MapWizard"
     },
     {
       "id": "F017",
       "category": "parsing",
       "description": "Integración textDeconcatenator en extractores",
       "priority": "critical",
-      "estimatedHours": 1,
       "passes": true,
       "completedDate": "2025-11-30",
-      "assignedRole": "MapWizard",
+      "assignedRole": "MapWizard"
+    },
+    {
+      "id": "F018",
+      "category": "validation",
+      "description": "Sistema validación multi-medida coordenadas (3 medidas independientes)",
+      "priority": "critical",
+      "estimatedHours": 4,
+      "passes": true,
+      "completedDate": "2025-12-01",
+      "assignedRole": "DataMaster",
       "implementation": {
-        "file": "src/lib/documentExtractor.ts",
-        "version": "v3.3",
-        "changes": [
-          "deconcatenateText() aplicado en extractFromODT",
-          "deconcatenateText() aplicado en extractFromSpreadsheet",
-          "Comportamiento unificado ambos extractores"
+        "file": "src/lib/CoordinateValidator.ts",
+        "testFile": "src/lib/__tests__/CoordinateValidator.test.ts",
+        "linesOfCode": 739,
+        "measures": [
+          "M1: Pertenencia municipal (WFS DERA da07_term_municipal)",
+          "M2: Distancia al centroide (cálculo local)",
+          "M3: Reverse geocoding (CartoCiudad)"
         ],
-        "impact": "~60% de 103 registros concatenados se corrigen automáticamente"
+        "confidenceLevels": {
+          "CONFIRMADA": "3/3 medidas OK - 95-100%",
+          "ALTA": "2/3 medidas OK - 80-90%",
+          "MEDIA": "1/3 medidas OK - 50-70%",
+          "BAJA": "0/3 medidas OK - <50%"
+        },
+        "functions": [
+          "validarCoordenadasCompleto",
+          "validarPertenenciaMunicipal",
+          "validarDistanciaCentroide",
+          "validarReverseGeocoding",
+          "validarCoordenadasBatch",
+          "generarResumenBatch"
+        ],
+        "utilities": [
+          "haversineDistance",
+          "distanciaUTM",
+          "utmToWgs84Approx",
+          "normalizarNombreMunicipio",
+          "compararMunicipios (Levenshtein)"
+        ],
+        "testCoverage": "6 municipios reales (Colomera, Castril, Berja, Tíjola, Quéntar, Hornos)"
       },
-      "notes": "Corrige texto concatenado como 'FARMACIAM.ªCarmen' → 'FARMACIA M.ª Carmen'"
+      "notes": "Validado con datos reales de 13 documentos PTEL. Centroides iniciales para 6 municipios. Pendiente: cargar 786 centroides desde SIPOB."
     }
   ],
   "summary": {
-    "completedCount": 15,
+    "completedCount": 16,
     "pendingCount": 2,
-    "totalCount": 17,
-    "completionRate": "88.2%",
+    "totalCount": 18,
+    "completionRate": "88.9%",
     "geocodingCoverage": "13/13 geocodificadores implementados",
+    "validationCoverage": "1/1 validador multi-medida implementado",
     "pendingFeatures": ["F014:CacheManager", "F015:ProgressPanel"]
   },
-  "lastUpdated": "2025-11-30T09:00:00Z",
-  "updatedBy": "Claude (sesión 30-Nov-2025)"
+  "lastUpdated": "2025-12-01T12:00:00Z",
+  "updatedBy": "Claude (sesión 01-Dic-2025)"
 }
