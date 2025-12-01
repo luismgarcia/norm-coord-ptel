@@ -1,16 +1,25 @@
 /**
- * PTEL Andalucía - Validador de Coordenadas Multi-Medida v1.0
+ * PTEL Andalucía - Validador de Coordenadas Multi-Medida v1.1
  * 
  * Sistema de confirmación de coordenadas con 3 medidas independientes:
  * 1. Pertenencia municipal (WFS DERA)
- * 2. Distancia al centroide municipal
+ * 2. Distancia al centroide municipal (785 municipios cargados)
  * 3. Reverse geocoding (CartoCiudad)
  * 
  * Una coordenada se considera CONFIRMADA (100%) cuando las 3 medidas coinciden.
  * 
- * @version 1.0.0
+ * @version 1.1.0
  * @date Diciembre 2025
  */
+
+import { 
+  CENTROIDES_MUNICIPIOS, 
+  getCentroidePorINE,
+  TOTAL_MUNICIPIOS 
+} from './municipiosCentroides';
+
+// Re-exportar para compatibilidad
+export { CENTROIDES_MUNICIPIOS, getCentroidePorINE, TOTAL_MUNICIPIOS };
 
 // ============================================================================
 // TIPOS E INTERFACES
@@ -80,19 +89,6 @@ export interface ResultadoValidacionCompleta {
 // ============================================================================
 // CONSTANTES
 // ============================================================================
-
-/**
- * Centroides de municipios andaluces (muestra para testing)
- * En producción, cargar desde SIPOB/IECA
- */
-export const CENTROIDES_MUNICIPIOS: Record<string, { x: number; y: number; nombre: string }> = {
-  '18052': { x: 437000, y: 4137000, nombre: 'Colomera' },
-  '18054': { x: 519500, y: 4184500, nombre: 'Castril' },
-  '04015': { x: 505000, y: 4078000, nombre: 'Berja' },
-  '04091': { x: 551000, y: 4131000, nombre: 'Tíjola' },
-  '18168': { x: 455000, y: 4117000, nombre: 'Quéntar' },
-  '23049': { x: 528000, y: 4218000, nombre: 'Hornos' },
-};
 
 /**
  * Radios de validación por tamaño de municipio
@@ -329,6 +325,7 @@ export async function validarPertenenciaMunicipal(
 
 /**
  * Valida si un punto está dentro de un radio razonable del centroide municipal
+ * Ahora soporta los 785 municipios de Andalucía
  * 
  * @param utmX - Coordenada X en EPSG:25830
  * @param utmY - Coordenada Y en EPSG:25830
@@ -341,8 +338,8 @@ export function validarDistanciaCentroide(
   codigoINE: string,
   radioMaxKm?: number
 ): ResultadoDistanciaCentroide {
-  // Buscar centroide del municipio
-  const centroide = CENTROIDES_MUNICIPIOS[codigoINE];
+  // Buscar centroide del municipio usando la nueva función
+  const centroide = getCentroidePorINE(codigoINE);
   
   if (!centroide) {
     // Si no tenemos el centroide, usar validación genérica
@@ -734,6 +731,8 @@ export default {
   haversineDistance,
   distanciaUTM,
   utmToWgs84Approx,
+  getCentroidePorINE,
   CENTROIDES_MUNICIPIOS,
   RADIOS_VALIDACION,
+  TOTAL_MUNICIPIOS,
 };
