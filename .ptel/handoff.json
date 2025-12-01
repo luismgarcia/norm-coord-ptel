@@ -1,26 +1,16 @@
 {
-  "sessionDate": "2025-11-30",
-  "sessionRole": "DesignCraft",
-  "summary": "Sesión de diseño UI centrada en logo y título de Home PTEL v3",
+  "sessionDate": "2025-12-01",
+  "sessionRole": "GitMaster",
+  "summary": "Creación Guía Trabajo Claude v4 con protocolo detección entorno multi-dispositivo",
   
-  "decisionsFinalized": [
-    {
-      "item": "Logo icono",
-      "decision": "Cuadrado con P, gradiente azul (#228BE6) → cyan (#22B8CF)",
-      "file": "ptel-home-mantine-v3.html línea ~46"
-    },
-    {
-      "item": "Título principal Hero",
-      "decision": "Normalizador de Coordenadas PTEL",
-      "rationale": "Más descriptivo y técnico que 'Sistema Profesional de Normalización'"
-    },
-    {
-      "item": "Municipios Andalucía",
-      "decision": "785 (no 786)",
-      "source": "Estrategia Desafío Demográfico 2025-2030, Junta de Andalucía"
-    }
+  "completedThisSession": [
+    "GUIA_TRABAJO_CLAUDE_v4.md - guía ordenada cronológicamente",
+    "Protocolo detección entorno obligatorio (list_allowed_directories → buscar norm-coord-ptel → excluir _BACKUP_/_OLD_/_TEST_ → verificar .ptel/)",
+    "Nomenclatura backups definida",
+    "Sección git fetch antes de pull añadida",
+    "Referencias actualizadas en CLAUDE.md y PROMPTS_RAPIDOS.md"
   ],
-  
+
   "pendingDecisions": [
     {
       "item": "Logo texto formato",
@@ -29,42 +19,55 @@
     }
   ],
   
-  "artifactsCreated": [
+  "artifactsPendingReview": [
     {
       "file": "/Users/lm/Desktop/ptel-home-mantine-v3.html",
-      "description": "Home completa recreada con todas las mejoras (589 líneas, 36KB)",
+      "description": "Mockup Home completo",
       "status": "ready_for_review"
     },
     {
       "file": "/Users/lm/Desktop/ptel-logo-comparativa.html",
-      "description": "Comparativa visual logo 1 línea vs 2 líneas",
+      "description": "Comparativa logo 1 vs 2 líneas",
       "status": "pending_decision"
     }
   ],
-  
-  "technicalIssues": [
-    "Sistema archivos Claude tuvo errores I/O durante sesión",
-    "Archivo Home original perdido, recreado desde cero vía Desktop Commander"
-  ],
-  
+
   "nextSession": {
-    "recommendedRole": "DesignCraft",
-    "priority": "high",
-    "tasks": [
-      "1. Abrir ptel-home-mantine-v3.html en navegador y validar diseño",
-      "2. Decidir logo texto 1 vs 2 líneas (ver ptel-logo-comparativa.html)",
-      "3. Si diseño ~80-90% aprobado → iniciar implementación React",
-      "4. Definir estructura componentes React para Home"
-    ],
-    "files_to_review": [
-      "/Users/lm/Desktop/ptel-home-mantine-v3.html",
-      "/Users/lm/Desktop/ptel-logo-comparativa.html"
+    "recommendedRoles": ["DesignCraft", "DataMaster"],
+    "options": [
+      {
+        "role": "DesignCraft",
+        "priority": "high",
+        "tasks": [
+          "Validar mockup Home v3 en navegador",
+          "Decidir logo 1 vs 2 líneas",
+          "Iniciar implementación React con Mantine"
+        ]
+      },
+      {
+        "role": "DataMaster", 
+        "priority": "high",
+        "tasks": [
+          "Pruebas empíricas con documentos PTEL reales",
+          "Validar geocodificadores con datos de municipios"
+        ]
+      },
+      {
+        "role": "MapWizard",
+        "priority": "medium",
+        "tasks": [
+          "CacheManager multinivel",
+          "WFSHydrographyGeocoder",
+          "WFSRoadNetworkGeocoder"
+        ]
+      }
     ]
   },
-  
+
   "contextForNextSession": {
-    "homeDesignStatus": "Mockup HTML completo, pendiente validación final",
-    "reactImplementation": "No iniciada, esperando aprobación diseño",
-    "libraryChoice": "Mantine v7 (decidido en sesiones anteriores)"
+    "guideVersion": "v4.0",
+    "detectionProtocol": "Implementado - Claude debe buscar norm-coord-ptel dinámicamente",
+    "backupNaming": "_BACKUP_norm-coord-ptel_FECHA fuera de Documents/GitHub/",
+    "testsStatus": "66 tests passing"
   }
 }

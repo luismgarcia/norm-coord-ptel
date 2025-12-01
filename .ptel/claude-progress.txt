@@ -11,6 +11,52 @@
 
 ---
 
+## 2025-12-01 Sesión 2 - GitMaster (Documentación Multi-dispositivo)
+
+### Problema detectado
+Claude buscó archivos en Dropbox en lugar del repo GitHub.
+Causa: rutas hardcodeadas en documentación, sin protocolo de detección.
+
+### Solución implementada
+1. **Protocolo detección entorno** (obligatorio al iniciar):
+   - list_allowed_directories
+   - Buscar `norm-coord-ptel` (nombre exacto)
+   - Excluir `_BACKUP_*`, `_OLD_*`, `_TEST_*`
+   - Verificar `.ptel/` existe
+   - Informar ruta encontrada
+
+2. **Nomenclatura backups**:
+   - `_BACKUP_norm-coord-ptel_FECHA`
+   - Ubicación: FUERA de Documents/GitHub/
+
+3. **Git fetch antes de pull**:
+   ```bash
+   git fetch origin main
+   git log main..origin/main --oneline
+   git diff main origin/main --stat
+   ```
+
+### Archivos modificados
+- `.ptel/GUIA_TRABAJO_CLAUDE_v4.md` (nueva - ordenada cronológicamente)
+- `.ptel/PROMPTS_RAPIDOS.md` (referencias v4)
+- `.ptel/SYNC_MULTI_DEVICE.md` (git fetch añadido)
+- `CLAUDE.md` (protocolo detección + referencia v4)
+
+### Commits
+- `docs: add environment detection protocol and update guide to v3`
+- `docs: add git fetch verification step before pull`
+- `docs: rename guide to v4 and update all references`
+- `docs: remove personal info from guide`
+
+### Pendientes próxima sesión
+| Rol | Tarea |
+|-----|-------|
+| DesignCraft | Validar mockup Home, decidir logo |
+| DataMaster | Pruebas empíricas geocodificación |
+| MapWizard | CacheManager multinivel |
+
+---
+
 [2025-11-29] [Organización] - Análisis y reorganización documental
 
 ## Investigación realizada

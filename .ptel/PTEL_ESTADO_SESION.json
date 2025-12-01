@@ -1,12 +1,12 @@
 {
-  "version": "0.4.3",
-  "lastUpdate": "2025-12-01T11:30:00Z",
+  "version": "0.4.4",
+  "lastUpdate": "2025-12-01T12:30:00Z",
   "currentPhase": {
     "id": 1,
     "name": "Geocodificación Especializada",
     "progress": 93,
     "status": "in_progress",
-    "details": "Parser NMEA testeado. Documentación sincronizada. 66 tests passing."
+    "details": "Documentación v4 completada. Protocolo detección entorno implementado."
   },
   "activeWorkArea": "documentation",
   "metrics": {
@@ -17,7 +17,7 @@
     "municipiosCovered": 6,
     "operationalCost_eur": 0,
     "testsCount": 66,
-    "notes": "Parser NMEA v2.4 testeado (7 tests). Documentación .ptel actualizada y sincronizada."
+    "notes": "Guía trabajo Claude v4 con protocolo detección multi-dispositivo."
   },
   "targets": {
     "coordCompleteness": 95,
@@ -53,12 +53,7 @@
     "normalization": {
       "status": "stable",
       "progress": 98,
-      "lastWorked": "2025-12-01",
-      "recentChanges": [
-        "Parser NMEA GPS v2.4 - formatos D1-D4",
-        "7 tests NMEA añadidos (nmeaParser.test.ts)",
-        "66 tests totales pasando"
-      ]
+      "lastWorked": "2025-12-01"
     },
     "parsing": {
       "status": "stable",
@@ -68,41 +63,44 @@
     "ci": {
       "status": "operational",
       "progress": 100,
-      "lastWorked": "2025-11-30",
-      "details": "GitHub Actions workflow funcionando"
+      "lastWorked": "2025-11-30"
     },
     "documentation": {
       "status": "updated",
-      "progress": 95,
+      "progress": 100,
       "lastWorked": "2025-12-01",
       "recentChanges": [
-        "PROMPTS_RAPIDOS.md actualizado con GitMaster",
-        "SYNC_MULTI_DEVICE.md creado",
-        "Guía trabajo Claude v2 preparada (local usuario)"
+        "GUIA_TRABAJO_CLAUDE_v4.md - ordenada cronológicamente",
+        "Protocolo detección entorno obligatorio para Claude",
+        "Nomenclatura backups: _BACKUP_, _OLD_, _TEST_",
+        "Sección git fetch antes de pull",
+        "Referencias actualizadas en CLAUDE.md y PROMPTS_RAPIDOS.md"
       ]
     }
   },
   "lastSession": {
     "date": "2025-12-01",
     "role": "GitMaster",
-    "area": "normalization + documentation",
-    "summary": "Tests NMEA. Sincronización repos. Actualización documentación .ptel con GitMaster y reglas de oro.",
+    "area": "documentation + multi-device",
+    "summary": "Creación Guía Trabajo Claude v4 con protocolo detección entorno multi-dispositivo. Nomenclatura backups. Git fetch antes de pull.",
     "filesModified": [
-      "src/lib/__tests__/nmeaParser.test.ts (nuevo - 7 tests)",
-      ".ptel/PROMPTS_RAPIDOS.md (GitMaster + sync)",
-      ".ptel/PTEL_ESTADO_SESION.json",
-      ".ptel/claude-progress.txt"
+      ".ptel/GUIA_TRABAJO_CLAUDE_v4.md (nueva)",
+      ".ptel/PROMPTS_RAPIDOS.md",
+      ".ptel/SYNC_MULTI_DEVICE.md",
+      "CLAUDE.md"
     ],
     "commits": [
-      "test(nmea): add NMEA parser tests - 7 cases for D1-D4 formats",
-      "docs(.ptel): update PROMPTS_RAPIDOS with GitMaster role and sync rules"
+      "docs: add environment detection protocol and update guide to v3",
+      "docs: add git fetch verification step before pull",
+      "docs: rename guide to v4 and update all references",
+      "docs: remove personal info from guide"
     ],
     "nextPriorities": [
-      "Pruebas empíricas con documentos reales",
-      "CacheManager multinivel",
-      "Decidir siguiente área: geocoding vs UI"
+      "Validar mockup Home (DesignCraft)",
+      "Pruebas empíricas geocodificación (DataMaster)",
+      "CacheManager multinivel (MapWizard)"
     ]
   },
   "blockers": [],
-  "notes": "Sesión productiva. Repo sincronizado. 66 tests OK. Documentación coherente. Usuario tiene guía v2 local."
+  "notes": "Documentación completada. Próxima sesión elegir entre UI o geocodificación."
 }
