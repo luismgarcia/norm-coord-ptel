@@ -33,7 +33,19 @@ cd ~/Documents/GitHub/norm-coord-ptel
 cd C:\Users\TuUsuario\Documents\GitHub\norm-coord-ptel
 ```
 
-## 1.2 Sincronización obligatoria
+## 1.2 Verificar cambios remotos (opcional pero recomendado)
+
+Antes de aplicar cambios, puedes ver qué modificaciones hay en GitHub:
+
+```bash
+git fetch origin main                              # Descarga cambios SIN aplicar
+git log main..origin/main --oneline                # Ver commits nuevos
+git diff main origin/main --stat                   # Ver archivos modificados
+```
+
+Si todo está bien, continúa con el paso 1.3.
+
+## 1.3 Sincronización obligatoria
 
 ```bash
 git pull origin main
@@ -309,6 +321,7 @@ Añade esto a .ptel/claude-progress.txt.
 # CHECKLIST RÁPIDO
 
 ## Al empezar ☐
+- [ ] `git fetch` + revisar cambios (opcional)
 - [ ] `git pull` ejecutado
 - [ ] `npm test` pasa OK
 - [ ] Mensaje de inicio enviado
@@ -333,7 +346,7 @@ Añade esto a .ptel/claude-progress.txt.
 
 | Fase | Acción | Mensaje clave |
 |------|--------|---------------|
-| **1. Preparar** | git pull + npm test | Verificar sincronización |
+| **1. Preparar** | git fetch + git pull + npm test | Verificar sincronización |
 | **2. Inicio** | Dar contexto + nombre proyecto | "INICIO SESIÓN PTEL, proyecto: norm-coord-ptel" |
 | **3. Trabajo** | Ser específico | "[ÁREA] + [TAREA] + [CRITERIO]" |
 | **4. Bloqueo** | Recargar contexto | "Lee CLAUDE.md y .ptel/, has perdido contexto" |
@@ -343,5 +356,5 @@ Añade esto a .ptel/claude-progress.txt.
 ---
 
 *Última actualización: 2025-12-01*
-*Versión: 3.0*
+*Versión: 3.1*
 *Proyecto PTEL*

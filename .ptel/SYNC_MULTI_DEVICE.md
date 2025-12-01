@@ -13,6 +13,12 @@
 cd ~/Documents/GitHub/norm-coord-ptel   # Mac
 cd C:\Users\[USER]\Documents\GitHub\norm-coord-ptel  # Windows
 
+# 1. Ver qué cambió en remoto (opcional pero recomendado)
+git fetch origin main
+git log main..origin/main --oneline      # Commits nuevos
+git diff main origin/main --stat         # Archivos modificados
+
+# 2. Aplicar cambios
 git pull origin main
 npm install   # Solo si package.json cambió
 npm test      # Verificar que todo funciona
@@ -44,6 +50,19 @@ git push origin main
 
 ---
 
+## 📍 Nomenclatura de carpetas
+
+| Tipo | Formato | Ejemplo |
+|------|---------|--------|
+| **Repo activo** | `norm-coord-ptel` | Solo este nombre |
+| **Backup** | `_BACKUP_norm-coord-ptel_FECHA` | `_BACKUP_norm-coord-ptel_2025-12-01` |
+| **Versión antigua** | `_OLD_norm-coord-ptel` | Para versiones descartadas |
+| **Experimento** | `_TEST_norm-coord-ptel-xxx` | Para pruebas aisladas |
+
+⚠️ **Los backups van FUERA de `Documents/GitHub/`**
+
+---
+
 ## 🚨 Resolución de conflictos
 
 Si Git detecta conflictos al hacer pull:
@@ -61,9 +80,10 @@ Si Git detecta conflictos al hacer pull:
 
 ## 📋 Checklist cambio de dispositivo
 
+- [ ] `git fetch` + revisar cambios (opcional)
 - [ ] `git pull` en nuevo dispositivo
 - [ ] `npm install` si es primera vez o cambió package.json
-- [ ] `npm test` para verificar (59 tests deben pasar)
+- [ ] `npm test` para verificar
 - [ ] Leer `.ptel/PTEL_ESTADO_SESION.json` para contexto
 - [ ] Al terminar: commit + push
 
