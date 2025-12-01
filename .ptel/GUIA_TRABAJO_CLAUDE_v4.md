@@ -3,12 +3,6 @@
 
 ---
 
-## Para quién es esta guía
-
-Luis Muñoz, Agente del GREA (Grupo de Emergencias de Andalucía), trabajando en el proyecto PTEL de normalización de coordenadas UTM para 785 municipios de Andalucía. Sin experiencia previa en programación, trabajando desde varios ordenadores (Mac y Windows), con Claude implementando el código directamente en GitHub.
-
----
-
 ## Información del proyecto
 
 | Campo | Valor |
