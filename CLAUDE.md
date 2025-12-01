@@ -66,4 +66,4 @@ src/
 - Coste: <50 EUR/año
 
 ## Documentación Completa
-Ver `.ptel/GUIA_TRABAJO_CLAUDE_v3.md`
+Ver `.ptel/GUIA_TRABAJO_CLAUDE_v4.md`

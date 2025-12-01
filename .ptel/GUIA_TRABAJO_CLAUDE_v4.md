@@ -1,5 +1,5 @@
 # Guía de Trabajo con Claude para el Proyecto PTEL
-## Versión 3.0 - Ordenada Cronológicamente
+## Versión 4.0 - Ordenada Cronológicamente
 
 ---
 
@@ -33,7 +33,19 @@ cd ~/Documents/GitHub/norm-coord-ptel
 cd C:\Users\TuUsuario\Documents\GitHub\norm-coord-ptel
 ```
 
-## 1.2 Sincronización obligatoria
+## 1.2 Verificar cambios remotos (opcional pero recomendado)
+
+Antes de aplicar cambios, puedes ver qué modificaciones hay en GitHub:
+
+```bash
+git fetch origin main                              # Descarga cambios SIN aplicar
+git log main..origin/main --oneline                # Ver commits nuevos
+git diff main origin/main --stat                   # Ver archivos modificados
+```
+
+Si todo está bien, continúa con el paso 1.3.
+
+## 1.3 Sincronización obligatoria
 
 ```bash
 git pull origin main
@@ -120,7 +132,7 @@ Si Claude encuentra más de una carpeta válida (o ninguna), debe preguntar:
 ├── PTEL_ROLES.md             ← Definición de roles especializados
 ├── PROMPTS_RAPIDOS.md        ← Comandos frecuentes
 ├── SYNC_MULTI_DEVICE.md      ← Guía sincronización multi-dispositivo
-└── GUIA_TRABAJO_CLAUDE_v3.md ← Esta guía
+└── GUIA_TRABAJO_CLAUDE_v4.md ← Esta guía
 ```
 
 **Regla fundamental**: Estos archivos son la "memoria" de Claude. Si no están actualizados, Claude no sabe dónde estamos.
@@ -343,5 +355,5 @@ Añade esto a .ptel/claude-progress.txt.
 ---
 
 *Última actualización: 2025-12-01*
-*Versión: 3.0*
+*Versión: 4.0*
 *Proyecto PTEL*

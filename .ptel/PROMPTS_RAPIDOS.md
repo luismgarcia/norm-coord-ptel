@@ -139,4 +139,4 @@ Corrige antes de continuar. No hacer commit hasta que pasen.
 
 ---
 
-*Ver guía completa en: `.ptel/GUIA_TRABAJO_CLAUDE_v3.md`*
+*Ver guía completa en: `.ptel/GUIA_TRABAJO_CLAUDE_v4.md`*
