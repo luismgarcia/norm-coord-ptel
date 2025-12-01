@@ -321,6 +321,7 @@ Añade esto a .ptel/claude-progress.txt.
 # CHECKLIST RÁPIDO
 
 ## Al empezar ☐
+- [ ] `git fetch` + revisar cambios (opcional)
 - [ ] `git pull` ejecutado
 - [ ] `npm test` pasa OK
 - [ ] Mensaje de inicio enviado
@@ -345,7 +346,7 @@ Añade esto a .ptel/claude-progress.txt.
 
 | Fase | Acción | Mensaje clave |
 |------|--------|---------------|
-| **1. Preparar** | git pull + npm test | Verificar sincronización |
+| **1. Preparar** | git fetch + git pull + npm test | Verificar sincronización |
 | **2. Inicio** | Dar contexto + nombre proyecto | "INICIO SESIÓN PTEL, proyecto: norm-coord-ptel" |
 | **3. Trabajo** | Ser específico | "[ÁREA] + [TAREA] + [CRITERIO]" |
 | **4. Bloqueo** | Recargar contexto | "Lee CLAUDE.md y .ptel/, has perdido contexto" |
