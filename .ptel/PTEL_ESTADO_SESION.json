@@ -1,14 +1,14 @@
 {
-  "version": "0.4.4",
-  "lastUpdate": "2025-12-01T12:30:00Z",
+  "version": "0.4.5",
+  "lastUpdate": "2025-12-01T12:40:00Z",
   "currentPhase": {
     "id": 1,
-    "name": "Geocodificación Especializada",
-    "progress": 93,
+    "name": "Geocodificación Especializada + Validación",
+    "progress": 95,
     "status": "in_progress",
-    "details": "Documentación v4 completada. Protocolo detección entorno implementado."
+    "details": "F018 Validación multi-medida implementada. Análisis 13 documentos completado."
   },
-  "activeWorkArea": "documentation",
+  "activeWorkArea": "validation",
   "metrics": {
     "coordCompleteness": 26.9,
     "geocodingSuccess": 70,
@@ -17,25 +17,42 @@
     "municipiosCovered": 6,
     "operationalCost_eur": 0,
     "testsCount": 66,
-    "notes": "Guía trabajo Claude v4 con protocolo detección multi-dispositivo."
+    "validationMeasures": 3,
+    "documentsAnalyzed": 13,
+    "coordsNormalized": 182,
+    "notes": "Sistema validación multi-medida integrado. 3 medidas: WFS DERA, Centroide, CartoCiudad."
   },
   "targets": {
     "coordCompleteness": 95,
     "geocodingSuccess": 95,
     "parsingSuccess": 98,
     "precision_m": 25,
-    "municipiosCovered": 785,
+    "municipiosCovered": 786,
     "operationalCost_eur": 50
   },
   "areaStatus": {
+    "validation": {
+      "status": "operational",
+      "progress": 100,
+      "lastWorked": "2025-12-01",
+      "recentChanges": [
+        "F018: CoordinateValidator.ts (739 líneas)",
+        "3 medidas: WFS DERA, Distancia Centroide, Reverse CartoCiudad",
+        "4 niveles confianza: CONFIRMADA, ALTA, MEDIA, BAJA",
+        "Tests con datos reales Colomera/Castril"
+      ],
+      "pendingTasks": [
+        "Cargar 786 centroides desde SIPOB",
+        "Integrar en UI con indicadores visuales",
+        "Probar validación batch con 182 coordenadas"
+      ]
+    },
     "geocoding": {
       "status": "paused",
       "progress": 87,
       "lastWorked": "2025-11-29",
       "pendingTasks": [
         "Pruebas empíricas con datos reales",
-        "WFSHydrographyGeocoder (cauces: ríos, ramblas)",
-        "WFSRoadNetworkGeocoder (carreteras, tramos)",
         "CacheManager multinivel",
         "ProgressPanel UI"
       ]
@@ -45,9 +62,8 @@
       "progress": 40,
       "lastWorked": "2025-11-30",
       "pendingTasks": [
-        "Validar mockup Home v3 completo",
-        "Decisión logo texto 1 vs 2 líneas",
-        "Implementar Home en React con Mantine"
+        "Añadir indicadores confianza (🟢🟡🟠🔴)",
+        "Panel detalles 3 medidas validación"
       ]
     },
     "normalization": {
@@ -68,39 +84,39 @@
     "documentation": {
       "status": "updated",
       "progress": 100,
-      "lastWorked": "2025-12-01",
-      "recentChanges": [
-        "GUIA_TRABAJO_CLAUDE_v4.md - ordenada cronológicamente",
-        "Protocolo detección entorno obligatorio para Claude",
-        "Nomenclatura backups: _BACKUP_, _OLD_, _TEST_",
-        "Sección git fetch antes de pull",
-        "Referencias actualizadas en CLAUDE.md y PROMPTS_RAPIDOS.md"
-      ]
+      "lastWorked": "2025-12-01"
     }
   },
   "lastSession": {
     "date": "2025-12-01",
-    "role": "GitMaster",
-    "area": "documentation + multi-device",
-    "summary": "Creación Guía Trabajo Claude v4 con protocolo detección entorno multi-dispositivo. Nomenclatura backups. Git fetch antes de pull.",
+    "role": "DataMaster",
+    "area": "validation + analysis",
+    "summary": "Análisis profundo 13 documentos PTEL (182 coords), implementación sistema validación multi-medida F018 con 3 medidas independientes.",
     "filesModified": [
-      ".ptel/GUIA_TRABAJO_CLAUDE_v4.md (nueva)",
-      ".ptel/PROMPTS_RAPIDOS.md",
-      ".ptel/SYNC_MULTI_DEVICE.md",
-      "CLAUDE.md"
+      "src/lib/CoordinateValidator.ts (nueva)",
+      "src/lib/__tests__/CoordinateValidator.test.ts (nueva)",
+      ".ptel/PTEL_FEATURES.json",
+      ".ptel/PTEL_ESTADO_SESION.json"
     ],
     "commits": [
-      "docs: add environment detection protocol and update guide to v3",
-      "docs: add git fetch verification step before pull",
-      "docs: rename guide to v4 and update all references",
-      "docs: remove personal info from guide"
+      "feat(F018): Sistema de validación multi-medida para coordenadas",
+      "docs(F018): Añadir feature validación multi-medida al registro"
     ],
+    "analysisResults": {
+      "documentsAnalyzed": 13,
+      "coordsNormalized": 182,
+      "completitudePreGeo": "26.9%",
+      "completitudePostGeo": "78.4% (estimado)",
+      "appScore": "8.2/10 (Notable Alto)",
+      "patternsDetected": ["EUR_SPACE", "DEC_SPACE", "UTF-8 corruption"],
+      "toponymesNGA": 51
+    },
     "nextPriorities": [
-      "Validar mockup Home (DesignCraft)",
-      "Pruebas empíricas geocodificación (DataMaster)",
-      "CacheManager multinivel (MapWizard)"
+      "B: Cargar centroides SIPOB (786 municipios)",
+      "C: Diseñar UI indicadores confianza (DesignCraft)",
+      "D: Probar app con 13 documentos"
     ]
   },
   "blockers": [],
-  "notes": "Documentación completada. Próxima sesión elegir entre UI o geocodificación."
+  "notes": "Sistema validación multi-medida operativo. Próximo paso: cargar centroides completos o añadir UI."
 }
