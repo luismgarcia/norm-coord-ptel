@@ -1,83 +1,93 @@
 {
   "sessionDate": "2025-12-01",
   "sessionRole": "DataMaster",
-  "summary": "Análisis profundo 13 documentos PTEL + Implementación F018 Sistema Validación Multi-Medida",
+  "summary": "Análisis sistema validación actual + Diseño arquitectura robusta para bordes municipales",
   
   "completedThisSession": [
-    "Análisis de 13 documentos PTEL reales (182 coordenadas extraídas)",
-    "Calificación app: 8.2/10 (Notable Alto)",
-    "F018: CoordinateValidator.ts (739 líneas) con 3 medidas independientes",
-    "Tests CoordinateValidator.test.ts (15 tests con datos reales)",
-    "Clasificación confianza: CONFIRMADA/ALTA/MEDIA/BAJA",
-    "Centroides 6 municipios: Colomera, Castril, Berja, Tíjola, Quéntar, Hornos"
+    "Verificación: 785 municipios (no 786) - confirmado IECA/INE oficiales",
+    "Verificación: 785 centroides ya cargados en municipiosCentroides.ts",
+    "Análisis sistema actual: 3 medidas paralelas, NO cascada",
+    "Identificación problema: 5-10% falsos negativos en bordes municipales",
+    "Investigación técnica: Flatbush, Turf.js, tolerancias geométricas",
+    "Diseño arquitectura cascada inteligente con 5 niveles",
+    "Comparativa costes: 0€ adicionales, solo +3-5MB descarga"
   ],
 
-  "analysisResults": {
-    "documentsAnalyzed": 13,
-    "coordsNormalized": 182,
-    "completitudePreGeo": "26.9%",
-    "completitudePostGeo": "78.4% (estimado)",
-    "appScore": "8.2/10",
-    "patternsDetected": ["EUR_SPACE", "DEC_SPACE", "UTF-8 corruption", "integer coords"],
-    "toponymesNGA": 51
-  },
-
-  "newFeature": {
-    "id": "F018",
-    "name": "Sistema validación multi-medida coordenadas",
-    "file": "src/lib/CoordinateValidator.ts",
-    "testFile": "src/lib/__tests__/CoordinateValidator.test.ts",
-    "measures": [
-      "M1: Pertenencia municipal (WFS DERA)",
-      "M2: Distancia centroide (local)",
-      "M3: Reverse geocoding (CartoCiudad)"
+  "keyFindings": {
+    "currentSystemIssues": [
+      "M1 (WFS DERA) devuelve binario dentro/fuera sin tolerancia",
+      "No hay verificación de municipios colindantes",
+      "No funciona offline - 2 llamadas remotas siempre",
+      "Latencia 200-800ms por punto"
     ],
-    "confidenceLevels": {
-      "CONFIRMADA": "3/3 medidas OK - 95-100%",
-      "ALTA": "2/3 medidas OK - 80-90%",
-      "MEDIA": "1/3 medidas OK - 50-70%",
-      "BAJA": "0/3 medidas OK - <50%"
+    "proposedImprovements": [
+      "Polígonos TopoJSON locales (~3-5MB)",
+      "Índice espacial Flatbush (<1ms búsqueda)",
+      "Tolerancia 50-100m en bordes",
+      "Grafo adyacencia municipios colindantes",
+      "Cascada: local primero, remoto solo si necesario"
+    ],
+    "expectedResults": {
+      "falseNegatives": "5-10% → <0.5%",
+      "latency": "200-800ms → 5-50ms",
+      "offlineCapability": "0% → 95%",
+      "remoteCalls": "2/punto → 0.1/punto"
     }
   },
 
-  "pendingDecisions": [],
-  
   "nextSession": {
-    "recommendedRoles": ["DataMaster", "DesignCraft"],
-    "options": [
+    "objective": "Implementar 3 fases validación robusta",
+    "recommendedRole": "DataMaster",
+    
+    "phases": [
       {
-        "id": "B",
-        "role": "DataMaster",
-        "priority": "high",
-        "description": "Cargar 786 centroides desde SIPOB",
-        "impact": "Medida 2 funcionará para TODOS los municipios andaluces",
-        "time": "30 min"
+        "id": "A",
+        "name": "Detección automática municipio",
+        "duration": "20 min",
+        "deliverables": ["src/lib/municipioDetector.ts"],
+        "description": "Detectar municipio desde nombre archivo, cabecera, contenido documento"
+      },
+      {
+        "id": "B", 
+        "name": "Polígonos TopoJSON + índice espacial",
+        "duration": "45 min",
+        "deliverables": [
+          "src/data/municipios-andalucia.topojson",
+          "src/lib/geometryValidator.ts"
+        ],
+        "dependencies": ["flatbush", "@turf/boolean-point-in-polygon", "topojson-client"],
+        "description": "785 polígonos municipales + Flatbush para PIP local <20ms"
       },
       {
         "id": "C",
-        "role": "DesignCraft", 
-        "priority": "high",
-        "description": "Diseñar UI indicadores confianza",
-        "impact": "Visualización inmediata 🟢🟡🟠🔴 + panel detalles",
-        "time": "45 min"
-      },
-      {
-        "id": "D",
-        "role": "DataMaster",
-        "priority": "medium",
-        "description": "Probar app con 13 documentos subidos",
-        "impact": "Validación empírica del sistema completo",
-        "time": "20 min"
+        "name": "Cascada inteligente con tolerancia bordes", 
+        "duration": "30 min",
+        "deliverables": ["src/lib/cascadeValidator.ts (refactor CoordinateValidator)"],
+        "description": "5 niveles: bbox→PIP→tolerancia→colindantes→remoto"
       }
-    ]
+    ],
+    
+    "totalTime": "~95 min",
+    "approach": "Incremental - cada fase independiente y validable"
+  },
+
+  "technicalNotes": {
+    "libraries": {
+      "flatbush": "Índice R-tree empaquetado, 4x más rápido que RBush",
+      "turf": "@turf/boolean-point-in-polygon, @turf/point-to-polygon-distance",
+      "topojson-client": "Conversión TopoJSON→GeoJSON bajo demanda"
+    },
+    "dataSource": "DERA G13 WFS: https://www.ideandalucia.es/services/DERA_g13_limites_administrativos/wfs",
+    "toleranceRecommended": "50-100 metros para compensar simplificación TopoJSON",
+    "cascadeFallback": "CartoCiudad reverse geocoding como oráculo remoto final"
   },
 
   "contextForNextSession": {
     "version": "0.4.5",
     "featuresCompleted": "16/18 (88.9%)",
-    "validationSystem": "F018 operativo con 6 municipios de prueba",
-    "pendingFeatures": ["F014: CacheManager", "F015: ProgressPanel"],
-    "testsStatus": "66 + 15 nuevos tests",
-    "recommendation": "Opción B (centroides SIPOB) para máximo impacto"
+    "totalMunicipios": 785,
+    "centroidesLoaded": 785,
+    "testsStatus": "66 tests pasando",
+    "currentValidator": "src/lib/CoordinateValidator.ts (739 líneas)"
   }
 }
