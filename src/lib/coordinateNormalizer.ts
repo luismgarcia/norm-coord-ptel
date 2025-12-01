@@ -1,10 +1,21 @@
 /**
- * PTEL Andalucía - Normalizador de Coordenadas v2.3
+ * PTEL Andalucía - Normalizador de Coordenadas v2.4
  * 
  * Implementa la taxonomía completa de 52 patrones de coordenadas
  * identificados en documentos municipales andaluces.
  * 
  * Sistema objetivo: EPSG:25830 (UTM Zona 30N, ETRS89)
+ * 
+ * CHANGELOG v2.4 (01-Dic-2025):
+ * - NEW: Parser NMEA GPS - 4 formatos D1-D4
+ * - NEW: parseNMEA() - convierte NMEA a grados decimales
+ * - NEW: parseNMEASentence() - extrae coords de $GPGGA, $GPRMC, $GPGLL
+ * - NEW: parseParNMEA() - procesa pares NMEA lat/lon
+ * - NEW: esNMEA() - detecta si un string es formato NMEA
+ * - NEW: Fase 0.8 en pipeline de normalización
+ * - NEW: Tipos NMEA_ESTANDAR, NMEA_ENTERO, NMEA_SENTENCIA, NMEA_PAR
+ * - NEW: Interfaz ResultadoNMEA con metadata de conversión
+ * - TEST: Casos adicionales para formatos NMEA GPS
  * 
  * CHANGELOG v2.3 (30-Nov-2025):
  * - NEW: Parser DMS (Grados Sexagesimales) - 8 formatos C1-C8
@@ -60,6 +71,10 @@ export type PatronDetectado =
   | 'DMS_ESPACIOS_EXTRA'// C6: 37° 26' 46.5" N
   | 'DMS_SIGNO'         // C7: +37°26'46.5"
   | 'DMS_DOS_PUNTOS'    // C8: 37:26:46.5 N
+  | 'NMEA_ESTANDAR'     // D1: 3726.775N (ddmm.mmmm)
+  | 'NMEA_ENTERO'       // D2: 3726N (sin decimales)
+  | 'NMEA_SENTENCIA'    // D3: $GPGGA,... $GPRMC,... $GPGLL,...
+  | 'NMEA_PAR'          // D4: Par lat/lon NMEA
   | 'DESCONOCIDO';
 
 export interface ResultadoNormalizacion {
@@ -107,6 +122,30 @@ export interface ResultadoDMS {
   esLatitud: boolean | null;     // true = lat, false = lon, null = desconocido
   formatoDetectado: PatronDetectado | null;
   warning: string | null;
+}
+
+/**
+ * Resultado del parseo de coordenadas NMEA GPS (D1-D4)
+ */
+export interface ResultadoNMEA {
+  esValido: boolean;
+  valorDecimal: number | null;
+  hemisferio: 'N' | 'S' | 'E' | 'W' | null;
+  esLatitud: boolean | null;     // true = lat, false = lon, null = desconocido
+  formatoDetectado: PatronDetectado | null;
+  tipoSentencia: string | null;  // GGA, RMC, GLL para sentencias NMEA
+  warning: string | null;
+}
+
+/**
+ * Resultado del parseo de un par de coordenadas NMEA
+ */
+export interface ResultadoParNMEA {
+  latitud: number | null;
+  longitud: number | null;
+  exito: boolean;
+  patrones: PatronDetectado[];
+  tipoSentencia: string | null;
 }
 
 export interface ParCoordenadas {
@@ -283,6 +322,27 @@ export function detectarPatron(valor: string): PatronDetectado {
   // C3: Espacios como separadores: 37 26 46.5 N
   if (/^\d+\s+\d+\s+\d+\.?\d*\s*[NSEWO]$/i.test(v)) {
     return 'DMS_ESPACIOS';
+  }
+  
+  // D1-D4: Formatos NMEA GPS
+  // D3: Sentencia NMEA completa ($GPGGA, $GPRMC, $GPGLL)
+  if (/^\$G[PN](GGA|RMC|GLL)/i.test(v)) {
+    return 'NMEA_SENTENCIA';
+  }
+  
+  // D1: NMEA estándar con decimales: 3726.775N o 00345.204W
+  if (/^\d{4,5}\.\d+\s*,?\s*[NSEWO]$/i.test(v)) {
+    return 'NMEA_ESTANDAR';
+  }
+  
+  // D2: NMEA entero sin decimales: 3726N
+  if (/^\d{4,5}\s*[NSEWO]$/i.test(v)) {
+    return 'NMEA_ENTERO';
+  }
+  
+  // D4: Par NMEA: 3726.775N, 00345.204W o similar
+  if (/\d{4,5}\.?\d*\s*,?\s*[NS]\s*[,\/\s]+\s*\d{4,5}\.?\d*\s*,?\s*[EWO]/i.test(v)) {
+    return 'NMEA_PAR';
   }
   
   // Detectar coordenadas concatenadas (12+ dígitos sin separadores)
@@ -668,6 +728,319 @@ export function esDMS(valor: string): boolean {
 }
 
 // ============================================================================
+// FUNCIONES NMEA GPS - Patrones D1-D4
+// ============================================================================
+
+/**
+ * Parser NMEA GPS - detecta y convierte formatos D1-D4
+ * 
+ * Formato NMEA:
+ * - Latitud: ddmm.mmmm[N/S] donde dd=grados, mm.mmmm=minutos decimales
+ * - Longitud: dddmm.mmmm[E/W] donde ddd=grados, mm.mmmm=minutos decimales
+ * 
+ * @param valor - Coordenada en formato NMEA
+ * @returns Objeto ResultadoNMEA con valor decimal y metadata
+ * 
+ * @example
+ * parseNMEA("3726.775N")   // { valorDecimal: 37.44625, hemisferio: 'N', esLatitud: true }
+ * parseNMEA("00345.204W")  // { valorDecimal: 3.7534, hemisferio: 'W', esLatitud: false }
+ */
+export function parseNMEA(valor: string): ResultadoNMEA {
+  const resultado: ResultadoNMEA = {
+    esValido: false,
+    valorDecimal: null,
+    hemisferio: null,
+    esLatitud: null,
+    formatoDetectado: null,
+    tipoSentencia: null,
+    warning: null
+  };
+  
+  if (!valor || typeof valor !== 'string') {
+    return resultado;
+  }
+
+  let s = valor.trim().toUpperCase();
+  if (s.length === 0) return resultado;
+  
+  // Normalizar: quitar espacios internos y comas antes de hemisferio
+  s = s.replace(/[\s,]+([NSEWON])$/i, '$1');
+  s = s.replace(/,/g, '.');
+  
+  // Detectar hemisferio
+  let hemisferio: 'N' | 'S' | 'E' | 'W' | null = null;
+  const hemMatch = s.match(/[NSEWON]$/i);
+  if (hemMatch) {
+    const hem = hemMatch[0].toUpperCase();
+    hemisferio = (hem === 'O' ? 'W' : hem) as 'N' | 'S' | 'E' | 'W';
+    s = s.slice(0, -1).trim();
+  }
+
+  // Determinar tipo según hemisferio
+  let esLatitud: boolean | null = null;
+  if (hemisferio === 'N' || hemisferio === 'S') {
+    esLatitud = true;
+  } else if (hemisferio === 'E' || hemisferio === 'W') {
+    esLatitud = false;
+  }
+
+  // PATRÓN NMEA estándar: ddmm.mmmm o dddmm.mmmm
+  const nmeaPattern = /^(\d+)\.(\d+)$/;
+  const match = s.match(nmeaPattern);
+  
+  if (match) {
+    const intPart = match[1];
+    const decPart = match[2];
+    
+    let grados: number, minutos: number;
+    
+    if (esLatitud === true || (esLatitud === null && intPart.length <= 4)) {
+      // Latitud: ddmm.mmmm
+      if (intPart.length >= 3) {
+        grados = parseInt(intPart.slice(0, -2), 10);
+        minutos = parseFloat(intPart.slice(-2) + '.' + decPart);
+      } else if (intPart.length === 2) {
+        grados = 0;
+        minutos = parseFloat(intPart + '.' + decPart);
+      } else {
+        return resultado;
+      }
+    } else {
+      // Longitud: dddmm.mmmm
+      if (intPart.length >= 4) {
+        grados = parseInt(intPart.slice(0, -2), 10);
+        minutos = parseFloat(intPart.slice(-2) + '.' + decPart);
+      } else if (intPart.length === 3) {
+        grados = parseInt(intPart.slice(0, 1), 10);
+        minutos = parseFloat(intPart.slice(1) + '.' + decPart);
+      } else {
+        return resultado;
+      }
+    }
+    
+    if (minutos >= 60) {
+      resultado.warning = `Minutos fuera de rango: ${minutos}`;
+      return resultado;
+    }
+    
+    const decimal = grados + minutos / 60;
+    resultado.esValido = true;
+    resultado.valorDecimal = decimal;
+    resultado.hemisferio = hemisferio;
+    resultado.esLatitud = esLatitud;
+    resultado.formatoDetectado = 'NMEA_ESTANDAR';
+    return resultado;
+  }
+  
+  // Patrón entero sin decimales: 3726N
+  const intOnlyPattern = /^(\d{4,5})$/;
+  const intMatch = s.match(intOnlyPattern);
+  
+  if (intMatch) {
+    const intPart = intMatch[1];
+    let grados: number, minutos: number;
+    
+    if (intPart.length === 4) {
+      grados = parseInt(intPart.slice(0, 2), 10);
+      minutos = parseInt(intPart.slice(2), 10);
+    } else if (intPart.length === 5) {
+      grados = parseInt(intPart.slice(0, 3), 10);
+      minutos = parseInt(intPart.slice(3), 10);
+    } else {
+      return resultado;
+    }
+    
+    if (minutos >= 60) {
+      resultado.warning = `Minutos fuera de rango: ${minutos}`;
+      return resultado;
+    }
+    
+    const decimal = grados + minutos / 60;
+    resultado.esValido = true;
+    resultado.valorDecimal = decimal;
+    resultado.hemisferio = hemisferio;
+    resultado.esLatitud = esLatitud;
+    resultado.formatoDetectado = 'NMEA_ENTERO';
+    return resultado;
+  }
+  
+  return resultado;
+}
+
+/**
+ * Extrae coordenadas de una sentencia NMEA completa ($GPGGA, $GPRMC, $GPGLL).
+ * 
+ * @param sentencia - Sentencia NMEA completa
+ * @returns Objeto ResultadoParNMEA con latitud, longitud y metadata
+ * 
+ * @example
+ * parseNMEASentence("$GPGGA,123519,3726.775,N,00345.204,W,1,08,0.9,545.4,M,...")
+ * // { latitud: 37.44625, longitud: -3.7534, exito: true, tipoSentencia: 'GGA' }
+ */
+export function parseNMEASentence(sentencia: string): ResultadoParNMEA {
+  const nullResult: ResultadoParNMEA = { 
+    latitud: null, longitud: null, exito: false, patrones: [], tipoSentencia: null 
+  };
+  
+  if (!sentencia || typeof sentencia !== 'string') return nullResult;
+  
+  const s = sentencia.trim().toUpperCase();
+  
+  // Detectar tipo de sentencia
+  let tipoSentencia: string | null = null;
+  if (s.startsWith('$GPGGA') || s.startsWith('$GNGGA')) {
+    tipoSentencia = 'GGA';
+  } else if (s.startsWith('$GPRMC') || s.startsWith('$GNRMC')) {
+    tipoSentencia = 'RMC';
+  } else if (s.startsWith('$GPGLL') || s.startsWith('$GNGLL')) {
+    tipoSentencia = 'GLL';
+  }
+  
+  if (!tipoSentencia) return nullResult;
+  
+  const mainPart = s.split('*')[0];
+  const fields = mainPart.split(',');
+  
+  let latField: string, latHem: string, lonField: string, lonHem: string;
+  
+  if (tipoSentencia === 'GGA' && fields.length >= 6) {
+    latField = fields[2]; latHem = fields[3];
+    lonField = fields[4]; lonHem = fields[5];
+  } else if (tipoSentencia === 'RMC' && fields.length >= 7) {
+    latField = fields[3]; latHem = fields[4];
+    lonField = fields[5]; lonHem = fields[6];
+  } else if (tipoSentencia === 'GLL' && fields.length >= 5) {
+    latField = fields[1]; latHem = fields[2];
+    lonField = fields[3]; lonHem = fields[4];
+  } else {
+    return nullResult;
+  }
+  
+  const latParsed = parseNMEA(latField + latHem);
+  const lonParsed = parseNMEA(lonField + lonHem);
+  
+  if (!latParsed.esValido || !lonParsed.esValido) return nullResult;
+  if (latParsed.valorDecimal === null || lonParsed.valorDecimal === null) return nullResult;
+  
+  let latitud = latParsed.valorDecimal;
+  let longitud = lonParsed.valorDecimal;
+  
+  if (latHem === 'S') latitud = -latitud;
+  if (lonHem === 'W' || lonHem === 'O') longitud = -longitud;
+  
+  return { 
+    latitud, 
+    longitud, 
+    exito: true, 
+    patrones: ['NMEA_SENTENCIA'], 
+    tipoSentencia 
+  };
+}
+
+/**
+ * Parsea un par de coordenadas NMEA (o sentencia completa).
+ * 
+ * @param input - Par de coordenadas NMEA o sentencia completa
+ * @returns Objeto ResultadoParNMEA con latitud y longitud en decimales
+ * 
+ * @example
+ * parseParNMEA("3726.775N, 00345.204W")
+ * // { latitud: 37.44625, longitud: -3.7534, exito: true }
+ */
+export function parseParNMEA(input: string): ResultadoParNMEA {
+  const nullResult: ResultadoParNMEA = { 
+    latitud: null, longitud: null, exito: false, patrones: [], tipoSentencia: null 
+  };
+  
+  if (!input || typeof input !== 'string') return nullResult;
+  
+  const s = input.trim();
+  
+  // Si es sentencia NMEA completa
+  if (s.toUpperCase().startsWith('$GP') || s.toUpperCase().startsWith('$GN')) {
+    return parseNMEASentence(s);
+  }
+  
+  // Buscar par NMEA: ddmm.mmmmN dddmm.mmmmW
+  const nmeaPairPattern = /(\d+\.?\d*)\s*,?\s*([NS])\s*[,\/\s]+\s*(\d+\.?\d*)\s*,?\s*([EWO])/i;
+  const match = s.match(nmeaPairPattern);
+  
+  if (match) {
+    const lat = parseNMEA(match[1] + match[2]);
+    const lon = parseNMEA(match[3] + match[4]);
+    
+    if (lat.esValido && lon.esValido && lat.valorDecimal !== null && lon.valorDecimal !== null) {
+      let latitud = lat.valorDecimal;
+      let longitud = lon.valorDecimal;
+      
+      if (match[2].toUpperCase() === 'S') latitud = -latitud;
+      if (match[4].toUpperCase() === 'W' || match[4].toUpperCase() === 'O') {
+        longitud = -longitud;
+      }
+      
+      return { latitud, longitud, exito: true, patrones: ['NMEA_PAR'], tipoSentencia: null };
+    }
+  }
+  
+  // Intentar separar por coma/espacio
+  const parts = s.split(/[,;\/ ]\s*/).filter(p => p.length > 0);
+  if (parts.length >= 2) {
+    const parsed1 = parseNMEA(parts[0]);
+    const parsed2 = parseNMEA(parts[1]);
+    
+    if (parsed1.esValido && parsed2.esValido && 
+        parsed1.valorDecimal !== null && parsed2.valorDecimal !== null) {
+      let latitud: number | null = null;
+      let longitud: number | null = null;
+      const patrones: PatronDetectado[] = [];
+      
+      if (parsed1.formatoDetectado) patrones.push(parsed1.formatoDetectado);
+      if (parsed2.formatoDetectado) patrones.push(parsed2.formatoDetectado);
+      
+      if (parsed1.esLatitud === true) {
+        latitud = parsed1.hemisferio === 'S' ? -parsed1.valorDecimal : parsed1.valorDecimal;
+      } else if (parsed1.esLatitud === false) {
+        longitud = parsed1.hemisferio === 'W' ? -parsed1.valorDecimal : parsed1.valorDecimal;
+      }
+      
+      if (parsed2.esLatitud === true) {
+        latitud = parsed2.hemisferio === 'S' ? -parsed2.valorDecimal : parsed2.valorDecimal;
+      } else if (parsed2.esLatitud === false) {
+        longitud = parsed2.hemisferio === 'W' ? -parsed2.valorDecimal : parsed2.valorDecimal;
+      }
+      
+      if (latitud !== null && longitud !== null) {
+        return { latitud, longitud, exito: true, patrones, tipoSentencia: null };
+      }
+    }
+  }
+  
+  return nullResult;
+}
+
+/**
+ * Detecta si un valor está en formato NMEA GPS.
+ * 
+ * @param valor - Valor a analizar
+ * @returns true si parece ser formato NMEA
+ */
+export function esNMEA(valor: string): boolean {
+  if (!valor || typeof valor !== 'string') return false;
+  
+  const s = valor.trim().toUpperCase();
+  
+  const nmeaIndicators = [
+    /^\$GP[A-Z]{3}/,                    // Sentencia NMEA GPS
+    /^\$GN[A-Z]{3}/,                    // Sentencia NMEA multi-constelación
+    /^\d{4,5}\.\d+[NSEWON]$/i,          // ddmm.mmmmN o dddmm.mmmmW
+    /^\d{4,5}\.\d+\s*,?\s*[NSEWON]$/i,  // Con espacio/coma antes de hemisferio
+    /^\d{4,5}[NSEWON]$/i,               // Entero sin decimales
+  ];
+  
+  return nmeaIndicators.some(pattern => pattern.test(s));
+}
+
+// ============================================================================
 // FUNCIONES DE NORMALIZACIÓN
 // ============================================================================
 
@@ -750,6 +1123,47 @@ export function normalizarCoordenada(input: string): ResultadoNormalizacion {
       };
       (resultado as any)._esLatitud = dms.esLatitud;
       (resultado as any)._esGeografica = true;
+      return resultado;
+    }
+  }
+  
+  // FASE 0.8: Formatos NMEA GPS (D1-D4)
+  const patronesNMEA: PatronDetectado[] = [
+    'NMEA_ESTANDAR', 'NMEA_ENTERO', 'NMEA_SENTENCIA', 'NMEA_PAR'
+  ];
+  
+  if (patronesNMEA.includes(resultado.patronDetectado)) {
+    // Intentar parsear como NMEA individual
+    const nmea = parseNMEA(valor);
+    if (nmea.esValido && nmea.valorDecimal !== null) {
+      resultado.valorNormalizado = nmea.valorDecimal;
+      resultado.exito = true;
+      resultado.fasesAplicadas.push('FASE_0.8_NMEA');
+      if (nmea.warning) {
+        resultado.warnings.push(nmea.warning);
+      }
+      resultado.warnings.push(
+        `NMEA convertido: ${valor} → ${nmea.valorDecimal.toFixed(6)}° (${nmea.hemisferio || 'sin hemisferio'})`
+      );
+      (resultado as any)._esLatitud = nmea.esLatitud;
+      (resultado as any)._esGeografica = true;
+      (resultado as any)._hemisferio = nmea.hemisferio;
+      return resultado;
+    }
+    
+    // Intentar como par NMEA o sentencia
+    const parNmea = parseParNMEA(valor);
+    if (parNmea.exito && parNmea.latitud !== null) {
+      resultado.valorNormalizado = parNmea.latitud;
+      resultado.exito = true;
+      resultado.fasesAplicadas.push('FASE_0.8_NMEA_PAR');
+      resultado.warnings.push(
+        `NMEA par detectado: lat=${parNmea.latitud.toFixed(6)}°, lon=${parNmea.longitud?.toFixed(6)}°`
+      );
+      (resultado as any)._yExtraida = parNmea.longitud;
+      (resultado as any)._esLatitud = true;
+      (resultado as any)._esGeografica = true;
+      (resultado as any)._tipoSentencia = parNmea.tipoSentencia;
       return resultado;
     }
   }
@@ -1183,6 +1597,10 @@ export function ejecutarTests(): void {
     { x: '37 26 46.5 N', y: '3 45 12.3 W', esperadoX: 37.44625, esperadoY: -3.753417 },
     // DMS C8 dos puntos
     { x: '37:26:46.5 N', y: '3:45:12.3 W', esperadoX: 37.44625, esperadoY: -3.753417 },
+    // NMEA D1 estándar
+    { x: '3726.775N', y: '00345.204W', esperadoX: 37.44625, esperadoY: -3.7534 },
+    // NMEA D2 entero
+    { x: '3726N', y: '00345W', esperadoX: 37.4333, esperadoY: -3.75 },
   ];
   
   console.log('\n🧪 EJECUTANDO TESTS DE NORMALIZACIÓN v2.3\n');
@@ -1243,6 +1661,10 @@ export default {
   detectarFormatoEspacial,
   parseDMS,
   esDMS,
+  parseNMEA,
+  parseNMEASentence,
+  parseParNMEA,
+  esNMEA,
   detectarPatron,
   esPlaceholder,
   detectarIntercambioXY,
