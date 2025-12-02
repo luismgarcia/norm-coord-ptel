@@ -1,104 +1,87 @@
 {
-  "sessionDate": "2025-12-01",
-  "sessionRole": "DataMaster",
-  "summary": "Implementación completa de validación robusta en bordes municipales - 3 fases completadas",
+  "sessionDate": "2025-12-02",
+  "sessionRole": "MapWizard",
+  "summary": "Auditoría completa del repositorio - normalizador v2.4 ya operativo con 30+ patrones",
   
   "completedThisSession": [
-    "FASE A: municipioDetector.ts - Detección automática de municipio",
-    "FASE A: Tests para MunicipioDetector",
-    "FASE B: geometryValidator.ts - Validador con índice espacial R-tree",
-    "FASE B: Script generate-topojson.mjs para descargar polígonos DERA",
-    "FASE B: Documentación directorio src/data/",
-    "FASE C: cascadeValidator.ts - Validación en cascada 5 niveles",
-    "Integración: Sistema completo de validación local + tolerancia bordes"
+    "Auditoría estructura src/lib/ y src/utils/",
+    "Verificación normalizador v2.4 (54KB) totalmente implementado",
+    "Identificación archivo obsoleto src/utils/coordinateNormalizer.ts",
+    "Verificación 5 archivos usan ruta correcta src/lib/",
+    "Actualización .ptel/PTEL_ESTADO_SESION.json a v0.4.7"
   ],
 
-  "newFiles": [
-    "src/lib/municipioDetector.ts",
-    "src/lib/__tests__/municipioDetector.test.ts",
-    "src/lib/geometryValidator.ts",
-    "src/lib/cascadeValidator.ts",
-    "scripts/generate-topojson.mjs",
-    "src/data/README.md"
-  ],
-
-  "architectureImplemented": {
-    "cascadeLevels": [
-      {
-        "level": 1,
-        "name": "BBox",
-        "description": "Filtro inicial por rango Andalucía + distancia centroide",
-        "latency": "<0.1ms"
-      },
-      {
-        "level": 2,
-        "name": "PIP",
-        "description": "Point-in-Polygon con algoritmo Winding Number",
-        "latency": "<1ms"
-      },
-      {
-        "level": 3,
-        "name": "Tolerancia",
-        "description": "PIP con tolerancia de bordes 50-100m",
-        "latency": "<10ms"
-      },
-      {
-        "level": 4,
-        "name": "Colindantes",
-        "description": "Verificación en municipios adyacentes",
-        "latency": "<20ms"
-      },
-      {
-        "level": 5,
-        "name": "Remoto",
-        "description": "CartoCiudad reverse geocoding como oráculo",
-        "latency": "<5s"
-      }
-    ],
-    "features": [
-      "Índice espacial R-tree simplificado (compatible Flatbush)",
-      "Algoritmo Winding Number para PIP robusto",
-      "Grafo de adyacencias para municipios colindantes",
-      "Cache de validaciones con TTL 1 hora",
-      "Soporte offline (salta nivel 5)",
-      "3 configuraciones: default, rápida, exhaustiva",
-      "Clasificación de confianza 6 niveles"
-    ]
+  "discoveredState": {
+    "normalizerVersion": "2.4",
+    "normalizerLocation": "src/lib/coordinateNormalizer.ts",
+    "normalizerSize": "54KB (1400+ líneas)",
+    "patternsImplemented": {
+      "total": "30+",
+      "categoriaA_numericos": ["LIMPIO", "COMA_DECIMAL", "EUROPEO_COMPLETO", "PUNTO_MILES", "ESPACIO_DOBLE_TILDE", "ESPACIO_SIN_DECIMAL", "ESPACIO_DECIMAL_IMPLICITO"],
+      "categoriaB_caracteres": ["TILDE_SIMPLE", "MOJIBAKE", "COMILLAS_TIPOGRAFICAS"],
+      "categoriaC_dms": ["DMS_ESTANDAR", "DMS_ESPACIOS", "DMS_PREFIJO", "DMS_MINUTOS_DEC", "DMS_ESPACIOS_EXTRA", "DMS_SIGNO", "DMS_DOS_PUNTOS"],
+      "categoriaD_nmea": ["NMEA_ESTANDAR", "NMEA_ENTERO", "NMEA_SENTENCIA", "NMEA_PAR"],
+      "categoriaG_espaciales": ["CONCATENADO", "WKT_POINT", "GEOJSON_POINT"]
+    },
+    "testsLocation": "src/__tests__/coordinateNormalizer.test.ts",
+    "importsCorrect": true
   },
 
   "pendingTasks": [
-    "Ejecutar script para generar TopoJSON: npm install topojson-server topojson-simplify && node scripts/generate-topojson.mjs",
-    "Integrar cascadeValidator en UI (reemplazar llamadas a CoordinateValidator)",
-    "Añadir tests para cascadeValidator",
-    "Validar con datos reales de Colomera y otros municipios"
+    {
+      "priority": "ALTA",
+      "task": "Eliminar archivo obsoleto src/utils/coordinateNormalizer.ts",
+      "command": "rm src/utils/coordinateNormalizer.ts && git add -A && git commit -m 'chore: remove obsolete normalizer duplicate' && git push",
+      "notes": "Este archivo NO es usado por ningún import. Es residuo de versión anterior."
+    },
+    {
+      "priority": "MEDIA",
+      "task": "Probar app con documento Berja (formato espacio + doble tilde)",
+      "notes": "Verificar que '504 750´´92' se normaliza correctamente a 504750.92"
+    },
+    {
+      "priority": "MEDIA", 
+      "task": "Probar app con documento Hornos (formato punto miles)",
+      "notes": "Verificar que '4.230.105' se normaliza correctamente a 4230105"
+    },
+    {
+      "priority": "BAJA",
+      "task": "Integrar cascadeValidator en UI",
+      "notes": "Archivo src/lib/cascadeValidator.ts listo, falta conexión con componentes React"
+    }
   ],
 
   "nextSession": {
-    "objective": "Integrar cascadeValidator en UI + validar con datos reales",
+    "objective": "Validar normalización con documentos reales + eliminar archivo obsoleto",
     "recommendedRole": "MapWizard",
     "tasks": [
-      "Crear componente React para mostrar resultados de cascada",
-      "Integrar en flujo de normalización existente",
-      "Ejecutar script TopoJSON y validar carga",
-      "Tests end-to-end con documentos PTEL reales"
+      "Eliminar src/utils/coordinateNormalizer.ts",
+      "Subir documento ODT de prueba (Berja, Hornos o similar)",
+      "Verificar procesamiento completo en UI",
+      "Añadir tests adicionales si se detectan casos edge"
     ],
-    "estimatedTime": "60-90 min"
+    "estimatedTime": "30-45 min"
   },
 
   "technicalNotes": {
-    "modoMinimo": "Si TopoJSON no está disponible, el sistema degrada automáticamente a validación por centroides",
-    "toleranciaRecomendada": "75 metros (compromiso entre 50m y 100m)",
-    "cacheKey": "utmX_utmY_codigoINE con precisión de 2 decimales",
-    "wfsUrl": "https://www.ideandalucia.es/services/DERA_g13_limites_administrativos/wfs"
+    "duplicateResolution": "Solo mantener src/lib/coordinateNormalizer.ts (v2.4, 54KB)",
+    "obsoleteFile": "src/utils/coordinateNormalizer.ts (v2.0, 28KB) - NO USADO",
+    "correctImportPath": "../lib/coordinateNormalizer",
+    "filesUsingNormalizer": [
+      "src/types/processing.ts",
+      "src/components/ResultsTable.tsx",
+      "src/components/Step2.tsx",
+      "src/components/NormalizationPanel.tsx",
+      "src/__tests__/coordinateNormalizer.test.ts"
+    ]
   },
 
   "contextForNextSession": {
-    "version": "0.4.6",
-    "featuresCompleted": "17/18 (94.4%)",
-    "newModules": 4,
-    "totalMunicipios": 785,
-    "centroidesLoaded": 785,
+    "version": "0.4.7",
+    "featuresCompleted": "16/18 (88.9%)",
+    "normalizerPatterns": "30+",
+    "cascadeReady": true,
     "topojsonStatus": "pendiente de generación",
-    "cascadeReady": true
+    "actionRequired": "Eliminar archivo obsoleto manualmente"
   }
 }
