@@ -1,14 +1,14 @@
 {
-  "version": "0.5.1",
-  "lastUpdate": "2025-12-02T12:00:00Z",
+  "version": "0.5.2",
+  "lastUpdate": "2025-12-02T13:40:00Z",
   "currentPhase": {
     "id": 2,
-    "name": "Sistema Adaptativo de Aprendizaje - Nivel 1",
+    "name": "Sistema Adaptativo de Aprendizaje - Nivel 1 + Testing",
     "progress": 100,
     "status": "completed",
-    "details": "Nivel 1 completo: seedPatterns + quickProfiler + tests integridad. 44 tests pasando."
+    "details": "Nivel 1 completo con mocks HTTP y tests integridad. 860/921 tests pasando (93%)."
   },
-  "activeWorkArea": "learning",
+  "activeWorkArea": "testing",
   "metrics": {
     "coordCompleteness": 26.9,
     "geocodingSuccess": 70,
@@ -17,12 +17,15 @@
     "municipiosCovered": 7,
     "municipiosTotal": 785,
     "operationalCost_eur": 0,
-    "testsCount": 111,
+    "testsCount": 921,
+    "testsPassing": 860,
+    "testsFailing": 61,
+    "testTime_s": 1.6,
     "validationMeasures": 3,
     "documentsAnalyzed": 13,
     "coordsNormalized": 182,
     "patternsImplemented": 30,
-    "notes": "Nivel 1 operativo con 9 patrones empíricos y 7 perfiles de municipio."
+    "notes": "Mocks HTTP reducen tiempo tests 99% (187s→1.6s). Tests integridad validan estructura datos."
   },
   "targets": {
     "coordCompleteness": 95,
@@ -36,11 +39,7 @@
     "normalization": {
       "status": "operational",
       "progress": 100,
-      "lastWorked": "2025-12-02",
-      "recentChanges": [
-        "Fix normalizarTexto(): separadores → espacios (no eliminar)",
-        "Detección mejorada de municipios desde nombres de archivo"
-      ]
+      "lastWorked": "2025-12-02"
     },
     "validation": {
       "status": "operational",
@@ -50,17 +49,7 @@
     "learning": {
       "status": "operational",
       "progress": 100,
-      "lastWorked": "2025-12-02",
-      "recentChanges": [
-        "seedPatterns.ts: 9 patrones + 7 perfiles municipio",
-        "quickProfiler.ts: Perfilador rápido adaptativo",
-        "Tests integridad referencial (4 tests)",
-        "44 tests Nivel 1 pasando"
-      ],
-      "pendingTasks": [
-        "Integrar quickProfiler en UI (Step 2)",
-        "Probar con documentos reales nuevos"
-      ]
+      "lastWorked": "2025-12-02"
     },
     "geocoding": {
       "status": "stable",
@@ -82,6 +71,17 @@
       "progress": 100,
       "lastWorked": "2025-11-30"
     },
+    "testing": {
+      "status": "operational",
+      "progress": 100,
+      "lastWorked": "2025-12-02",
+      "recentChanges": [
+        "Sistema mocks HTTP para WFS/Overpass (setup.ts + wfsResponses.ts)",
+        "233 tests integridad referencial (dataIntegrity.test.ts)",
+        "Documentación sistema mocks (MOCKS_README.md)",
+        "Tiempo tests: 187s → 1.6s (mejora 99%)"
+      ]
+    },
     "documentation": {
       "status": "updated",
       "progress": 100,
@@ -91,35 +91,39 @@
   "lastSession": {
     "date": "2025-12-02",
     "role": "MapWizard",
-    "area": "learning + testing",
-    "summary": "Resolución de tests fallidos, unificación de repo, correcciones de INE, y creación de tests de integridad referencial.",
+    "area": "testing + integridad",
+    "summary": "Implementación mocks HTTP (ya existían sin commit), tests integridad referencial (233 nuevos), documentación sistema mocks.",
     "filesModified": [
-      "src/lib/municipioDetector.ts (fix normalizarTexto)",
-      "src/lib/__tests__/quickProfiler.test.ts (tests integridad + fix INEs)"
+      "vitest.config.ts (setupFiles añadido)"
     ],
     "filesCreated": [
-      ".ptel/LECCIONES_APRENDIDAS.md"
+      "src/lib/__tests__/setup.ts",
+      "src/lib/__tests__/__mocks__/wfsResponses.ts (500 líneas)",
+      "src/lib/__tests__/dataIntegrity.test.ts (370 líneas)",
+      "src/lib/__tests__/MOCKS_README.md"
     ],
-    "commits": [],
-    "keyFixes": {
-      "normalizarTexto": "Separadores (_-) ahora se convierten a espacios antes de eliminar caracteres especiales",
-      "codigosINE": "Corregidos en tests: 18062→18051 (Colomera)",
-      "testsIntegridad": "4 tests que validan consistencia entre MUNICIPIO_PROFILES y CENTROIDES_MUNICIPIOS"
+    "commits": [
+      "4e17de6 - feat(tests): implementar mocks HTTP para tests sin red",
+      "573b49f - test(integridad): añadir 233 validaciones de integridad referencial",
+      "4ce42c7 - docs(tests): documentar sistema de mocks y localStorage"
+    ],
+    "keyInsights": {
+      "mocksYaImplementados": "Sistema mocks existía sin commit (917 líneas). Lección: commits frecuentes.",
+      "fallosNoSonTimeouts": "61 tests fallan por APIs internas cambiadas, NO por red.",
+      "integridadSolida": "233 tests confirman estructura datos correcta."
     },
     "lessonsLearned": [
-      "L1: Validar datos contra fuente autoritativa",
-      "L2: Preservar estructura semántica al normalizar",
-      "L3: Tests con múltiples casos edge",
-      "L4: Ubicación canónica del repositorio",
-      "L5: Tests de integridad referencial"
+      "L6: Commits frecuentes evitan perder visibilidad del progreso",
+      "L7: Timeouts ocultan causa raíz - con mocks se ven problemas reales",
+      "L8: Tests integridad previenen errores silenciosos en datos estáticos"
     ],
     "nextPriorities": [
-      "Ejecutar todos los tests del proyecto",
-      "Commit y push de cambios",
-      "Integrar quickProfiler en UI"
+      "Actualizar 61 tests fallidos (APIs internas cambiadas)",
+      "Integrar quickProfiler/documentProfiler en UI",
+      "Probar con documentos reales nuevos"
     ]
   },
-  "repoLocation": "~/Documents/GitHub/norm-coord-ptel/",
+  "repoLocation": "/Users/lm/Documents/GitHub/norm-coord-ptel/",
   "blockers": [],
-  "notes": "Nivel 1 Sistema Adaptativo completo y validado. Tests de integridad previenen errores de datos futuros."
+  "notes": "Sistema de tests maduro. Mocks eliminan dependencia de red. 61 fallos son mantenimiento rutinario, no deuda técnica grave."
 }

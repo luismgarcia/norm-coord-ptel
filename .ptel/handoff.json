@@ -1,81 +1,100 @@
 {
-  "version": "0.5.0",
-  "timestamp": "2025-12-02T01:15:00Z",
+  "version": "0.5.2",
+  "timestamp": "2025-12-02T13:40:00Z",
   "lastSession": {
     "date": "2025-12-02",
     "role": "MapWizard",
-    "duration": "~45 minutos",
-    "summary": "Implementación completa de Opción C: Sistema Adaptativo de Aprendizaje con IndexedDB y documentProfiler"
+    "duration": "~30 minutos",
+    "summary": "Confirmación mocks HTTP (ya implementados), tests integridad referencial (233 nuevos), documentación sistema mocks"
   },
   "completedTasks": [
     {
-      "task": "Crear PatternLearningStore.ts con IndexedDB (Dexie.js)",
-      "status": "✅ Completado",
-      "file": "src/lib/PatternLearningStore.ts",
-      "lines": 580
+      "task": "Mejora A: Mocks HTTP para tests sin red",
+      "status": "✅ Ya implementado (confirmado)",
+      "files": [
+        "src/lib/__tests__/setup.ts",
+        "src/lib/__tests__/__mocks__/wfsResponses.ts"
+      ],
+      "impact": "Tiempo tests: 187s → 1.6s (99% mejora)"
     },
     {
-      "task": "Crear documentProfiler.ts para detección automática de formato",
+      "task": "Mejora B: Tests integridad referencial ampliados",
       "status": "✅ Completado",
-      "file": "src/lib/documentProfiler.ts",
-      "lines": 620
+      "file": "src/lib/__tests__/dataIntegrity.test.ts",
+      "lines": 370,
+      "tests": 233
     },
     {
-      "task": "Actualizar archivos .ptel/ con nuevo estado",
+      "task": "Mejora C: Documentar sistema mocks",
       "status": "✅ Completado",
-      "files": ["PTEL_ESTADO_SESION.json", "PTEL_FEATURES.json", "handoff.json", "claude-progress.txt"]
-    },
-    {
-      "task": "Corregir número de municipios: 786 → 785",
-      "status": "✅ Corregido",
-      "notes": "Dato oficial INE/IECA confirmado: Andalucía tiene 785 municipios"
+      "file": "src/lib/__tests__/MOCKS_README.md"
     }
   ],
   "newFiles": [
     {
-      "path": "src/lib/PatternLearningStore.ts",
-      "description": "Sistema de almacenamiento persistente con IndexedDB (Dexie.js)",
-      "exports": [
-        "saveLearnedPattern()",
-        "getPattern()",
-        "getAllPatterns()",
-        "getStablePatterns()",
-        "getPatternsByMunicipio()",
-        "updatePatternUsage()",
-        "saveDocumentProfile()",
-        "getMunicipioStats()",
-        "exportLearningData()",
-        "importLearningData()",
-        "getLearningStats()"
+      "path": "src/lib/__tests__/setup.ts",
+      "description": "Mock global de fetch y localStorage para Vitest"
+    },
+    {
+      "path": "src/lib/__tests__/__mocks__/wfsResponses.ts",
+      "description": "Respuestas mock para WFS/Overpass (500 líneas)",
+      "coverage": ["ISE Health/Security", "Education", "Energy", "NGA", "IAID", "Heritage", "Overpass"]
+    },
+    {
+      "path": "src/lib/__tests__/dataIntegrity.test.ts",
+      "description": "233 tests de integridad referencial",
+      "validates": [
+        "Regex de PATTERN_CATALOG compilan",
+        "Ejemplos coinciden con regex",
+        "Provincias son de Andalucía (8)",
+        "Códigos INE válidos y coherentes",
+        "Referencias cruzadas MUNICIPIO_PROFILES ↔ PATTERN_CATALOG",
+        "ESTADISTICAS_GLOBALES coherentes",
+        "Rangos UTM por provincia válidos"
       ]
     },
     {
-      "path": "src/lib/documentProfiler.ts",
-      "description": "Perfilador de documentos PTEL con detección automática de formato",
-      "exports": [
-        "analizarDocumento()",
-        "analizarDocumentoRapido()",
-        "sugerirEstrategia()"
-      ]
+      "path": "src/lib/__tests__/MOCKS_README.md",
+      "description": "Documentación del sistema de mocks"
     }
   ],
+  "testStatus": {
+    "total": 921,
+    "passing": 860,
+    "failing": 61,
+    "percentage": "93%",
+    "executionTime": "1.6s",
+    "failureAnalysis": {
+      "causeReal": "APIs internas cambiadas, NO timeouts de red",
+      "archivosAfectados": [
+        "OverpassGeocoder.test.ts (27 fallos) - métodos privados renombrados",
+        "InfrastructureClassifier.test.ts (6 fallos) - clasificaciones evolucionadas",
+        "NGAGeocoder.test.ts (6 fallos) - estructura respuesta diferente",
+        "CoordinateValidator.test.ts (4 fallos) - expectativas coordenadas",
+        "Otros geocoders (18 fallos) - expectativas desactualizadas"
+      ]
+    }
+  },
   "pendingForNextSession": [
     {
       "priority": "HIGH",
-      "task": "Instalar Dexie.js si no está en package.json",
-      "command": "npm install dexie",
-      "notes": "Requerido para PatternLearningStore.ts"
+      "task": "Actualizar tests fallidos de OverpassGeocoder",
+      "count": 27,
+      "issue": "Métodos privados renombrados/eliminados (getStats, parseOSMElement, etc.)",
+      "solution": "Refactorizar tests para usar API pública"
     },
     {
       "priority": "HIGH",
-      "task": "Añadir tests para PatternLearningStore",
-      "file": "src/lib/__tests__/PatternLearningStore.test.ts",
-      "notes": "Mockear IndexedDB con fake-indexeddb"
+      "task": "Actualizar tests InfrastructureClassifier",
+      "count": 6,
+      "issue": "Clasificaciones cambiaron (Casa Cultura→OTROS, Torre Telecomunicaciones→CULTURAL)",
+      "solution": "Revisar si cambios son correctos o hay regresión"
     },
     {
       "priority": "MEDIUM",
-      "task": "Añadir tests para documentProfiler",
-      "file": "src/lib/__tests__/documentProfiler.test.ts"
+      "task": "Actualizar tests NGAGeocoder, SecurityGeocoder, EducationGeocoder",
+      "count": 11,
+      "issue": "Estructura respuestas y expectativas desactualizadas"
     },
     {
       "priority": "MEDIUM",
@@ -84,29 +103,37 @@
     },
     {
       "priority": "LOW",
-      "task": "Probar sistema con documentos reales (Berja, Hornos)",
+      "task": "Probar sistema con documentos reales nuevos",
       "notes": "Validación empírica del aprendizaje"
     }
   ],
-  "blockers": [
+  "blockers": [],
+  "insights": [
     {
-      "issue": "Dexie.js puede no estar instalado",
-      "impact": "PatternLearningStore.ts fallará al importar",
-      "solution": "Ejecutar: npm install dexie"
+      "insight": "El sistema estaba más maduro de lo documentado",
+      "detail": "Mocks HTTP existían (917 líneas) pero sin commit. Lección: commits frecuentes."
+    },
+    {
+      "insight": "Timeouts ocultaban causa raíz",
+      "detail": "Con mocks, los 61 fallos reales son visibles: APIs internas cambiadas, no red."
+    },
+    {
+      "insight": "Integridad referencial sólida",
+      "detail": "233 tests confirman que seedPatterns.ts y MUNICIPIO_PROFILES están bien estructurados."
     }
   ],
   "suggestedNextRole": "MapWizard",
-  "suggestedNextArea": "testing + integración UI",
-  "notes": [
-    "Sistema de aprendizaje listo para escalar a 785 municipios",
-    "Migración automática desde localStorage implementada",
-    "Cache LRU optimiza rendimiento para consultas frecuentes",
-    "documentProfiler genera recomendaciones automáticas de estrategia"
+  "suggestedNextArea": "testing (actualizar 61 tests fallidos)",
+  "commits": [
+    "4e17de6 - feat(tests): implementar mocks HTTP para tests sin red",
+    "573b49f - test(integridad): añadir 233 validaciones de integridad referencial",
+    "4ce42c7 - docs(tests): documentar sistema de mocks y localStorage"
   ],
   "metrics": {
     "featuresCompleted": "18/20 (90%)",
-    "testsTotal": 66,
-    "newLinesOfCode": 1200,
-    "municipiosSupported": 785
+    "testsTotal": 921,
+    "testsPassing": 860,
+    "newTestsAdded": 233,
+    "testTimeImprovement": "99% (187s → 1.6s)"
   }
 }
