@@ -110,4 +110,9 @@ Mocks HTTP, tests integridad, documentación
 4. **MEDIUM**: Integrar documentProfiler en UI
 5. **LOW**: Probar con documentos reales
 
+### Mejoras adicionales sesión
+- Guía v4.1 actualizada (UTF-8, sección mocks, lecciones L1-L8)
+- Reorganizado progress.txt (587→114 líneas)
+- Creado .ptel/archive/ para sesiones antiguas
+
 ---
