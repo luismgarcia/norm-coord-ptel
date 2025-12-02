@@ -1,12 +1,12 @@
 {
-  "version": "0.5.0",
-  "lastUpdate": "2025-12-02T01:15:00Z",
+  "version": "0.5.1",
+  "lastUpdate": "2025-12-02T12:00:00Z",
   "currentPhase": {
     "id": 2,
-    "name": "Sistema Adaptativo de Aprendizaje",
+    "name": "Sistema Adaptativo de Aprendizaje - Nivel 1",
     "progress": 100,
     "status": "completed",
-    "details": "Opción C implementada: IndexedDB + documentProfiler + sistema aprendizaje dinámico."
+    "details": "Nivel 1 completo: seedPatterns + quickProfiler + tests integridad. 44 tests pasando."
   },
   "activeWorkArea": "learning",
   "metrics": {
@@ -14,15 +14,15 @@
     "geocodingSuccess": 70,
     "parsingSuccess": 95,
     "precision_m": 50,
-    "municipiosCovered": 6,
+    "municipiosCovered": 7,
     "municipiosTotal": 785,
     "operationalCost_eur": 0,
-    "testsCount": 66,
+    "testsCount": 111,
     "validationMeasures": 3,
     "documentsAnalyzed": 13,
     "coordsNormalized": 182,
     "patternsImplemented": 30,
-    "notes": "Corregido: Andalucía tiene 785 municipios (no 786). Sistema adaptativo implementado."
+    "notes": "Nivel 1 operativo con 9 patrones empíricos y 7 perfiles de municipio."
   },
   "targets": {
     "coordCompleteness": 95,
@@ -38,34 +38,28 @@
       "progress": 100,
       "lastWorked": "2025-12-02",
       "recentChanges": [
-        "Normalizador v2.4 en src/lib/coordinateNormalizer.ts (54KB)",
-        "30+ patrones: numéricos, DMS, NMEA, WKT, GeoJSON"
+        "Fix normalizarTexto(): separadores → espacios (no eliminar)",
+        "Detección mejorada de municipios desde nombres de archivo"
       ]
     },
     "validation": {
       "status": "operational",
       "progress": 100,
-      "lastWorked": "2025-12-01",
-      "recentChanges": [
-        "F018: CoordinateValidator.ts (739 líneas)",
-        "cascadeValidator.ts (25KB) - 5 niveles validación"
-      ]
+      "lastWorked": "2025-12-01"
     },
     "learning": {
       "status": "operational",
       "progress": 100,
       "lastWorked": "2025-12-02",
       "recentChanges": [
-        "F019: PatternLearningStore.ts - IndexedDB con Dexie.js",
-        "F020: documentProfiler.ts - Detección automática de formato",
-        "Migración automática desde localStorage",
-        "Cache LRU con TTL para rendimiento",
-        "Estadísticas por municipio y documento"
+        "seedPatterns.ts: 9 patrones + 7 perfiles municipio",
+        "quickProfiler.ts: Perfilador rápido adaptativo",
+        "Tests integridad referencial (4 tests)",
+        "44 tests Nivel 1 pasando"
       ],
       "pendingTasks": [
-        "Añadir tests para PatternLearningStore",
-        "Integrar documentProfiler en UI (Step 2)",
-        "Probar con documentos reales"
+        "Integrar quickProfiler en UI (Step 2)",
+        "Probar con documentos reales nuevos"
       ]
     },
     "geocoding": {
@@ -97,44 +91,35 @@
   "lastSession": {
     "date": "2025-12-02",
     "role": "MapWizard",
-    "area": "learning (Opción C)",
-    "summary": "Implementada Opción C completa: Sistema Adaptativo de Aprendizaje con IndexedDB (Dexie.js) y documentProfiler para detección automática de formato.",
+    "area": "learning + testing",
+    "summary": "Resolución de tests fallidos, unificación de repo, correcciones de INE, y creación de tests de integridad referencial.",
+    "filesModified": [
+      "src/lib/municipioDetector.ts (fix normalizarTexto)",
+      "src/lib/__tests__/quickProfiler.test.ts (tests integridad + fix INEs)"
+    ],
     "filesCreated": [
-      "src/lib/PatternLearningStore.ts (19KB)",
-      "src/lib/documentProfiler.ts (21KB)"
+      ".ptel/LECCIONES_APRENDIDAS.md"
     ],
-    "commits": [
-      "feat(learning): añadir PatternLearningStore con IndexedDB (Dexie.js)",
-      "feat(profiler): añadir documentProfiler.ts para detección automática de formato"
-    ],
-    "keyFeatures": {
-      "PatternLearningStore": [
-        "IndexedDB persistente con Dexie.js",
-        "Migración automática desde localStorage",
-        "Cache LRU (100 entradas, 5min TTL)",
-        "Estadísticas por municipio",
-        "Exportación/importación de patrones"
-      ],
-      "documentProfiler": [
-        "Detección formato decimal (coma/punto/mixto)",
-        "Detección separador miles",
-        "Identificación corrupción UTF-8",
-        "Estadísticas de patrones",
-        "Recomendaciones de estrategia"
-      ]
+    "commits": [],
+    "keyFixes": {
+      "normalizarTexto": "Separadores (_-) ahora se convierten a espacios antes de eliminar caracteres especiales",
+      "codigosINE": "Corregidos en tests: 18062→18051 (Colomera)",
+      "testsIntegridad": "4 tests que validan consistencia entre MUNICIPIO_PROFILES y CENTROIDES_MUNICIPIOS"
     },
-    "corrections": [
-      "Andalucía tiene 785 municipios (no 786) - dato oficial confirmado"
+    "lessonsLearned": [
+      "L1: Validar datos contra fuente autoritativa",
+      "L2: Preservar estructura semántica al normalizar",
+      "L3: Tests con múltiples casos edge",
+      "L4: Ubicación canónica del repositorio",
+      "L5: Tests de integridad referencial"
     ],
     "nextPriorities": [
-      "A: Añadir tests para nuevo sistema de aprendizaje",
-      "B: Integrar documentProfiler en UI wizard",
-      "C: Probar con documentos reales (Berja, Hornos, etc.)",
-      "D: Instalar Dexie.js si no está en package.json"
+      "Ejecutar todos los tests del proyecto",
+      "Commit y push de cambios",
+      "Integrar quickProfiler en UI"
     ]
   },
-  "blockers": [
-    "Verificar que Dexie.js está en dependencias (npm install dexie)"
-  ],
-  "notes": "Opción C implementada. Sistema preparado para escalar a 785 municipios con aprendizaje adaptativo."
+  "repoLocation": "~/Documents/GitHub/norm-coord-ptel/",
+  "blockers": [],
+  "notes": "Nivel 1 Sistema Adaptativo completo y validado. Tests de integridad previenen errores de datos futuros."
 }

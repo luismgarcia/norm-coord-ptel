@@ -177,6 +177,8 @@ export function normalizarTexto(texto: string): string {
   return texto
     .toLowerCase()
     .trim()
+    // Convertir separadores comunes a espacios ANTES de eliminar caracteres especiales
+    .replace(/[_\-]/g, ' ')
     // Normalizar acentos
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
@@ -232,7 +234,7 @@ export function detectarDesdeNombreArchivo(
   }
   
   // Intento directo: buscar cualquier municipio en el nombre
-  const palabrasNombre = normalizarTexto(nombreBase).split(/[_\-\s]+/);
+  const palabrasNombre = normalizarTexto(nombreBase).split(/\s+/);
   for (const palabra of palabrasNombre) {
     if (palabra.length < 3 || PALABRAS_EXCLUIR.has(palabra)) continue;
     
