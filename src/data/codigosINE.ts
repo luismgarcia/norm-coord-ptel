@@ -5,6 +5,21 @@
  * @version 1.0.0
  * @date 2025-11-28
  * @source INE - Instituto Nacional de Estadística
+ * 
+ * ⚠️ ARCHIVO DEPRECADO - CONTIENE CÓDIGOS INE INCORRECTOS
+ * 
+ * Este archivo fue generado manualmente y contiene ~38 códigos INE incorrectos
+ * que no coinciden con el catálogo oficial del INE.
+ * 
+ * RECOMENDACIÓN: Usar en su lugar:
+ * - src/lib/codigosINEUnificado.ts (fuente única de verdad, deriva de centroides WFS)
+ * - getCodigoINE(nombre) para búsqueda por nombre
+ * - esCodigoINEValido(codigo) para validación
+ * 
+ * Los códigos correctos están en src/lib/municipiosCentroides.ts que fue
+ * generado automáticamente desde el servicio WFS DERA del IECA.
+ * 
+ * @deprecated Usar codigosINEUnificado.ts - Ver test dataIntegrity.test.ts para detalles
  */
 
 // ============================================================================

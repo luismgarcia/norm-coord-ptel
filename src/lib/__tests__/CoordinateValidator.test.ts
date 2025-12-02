@@ -1,6 +1,9 @@
 /**
  * Tests para CoordinateValidator
  * Valida las 3 medidas con coordenadas reales de documentos PTEL
+ * 
+ * IMPORTANTE: Usa fixtures centralizados para códigos INE validados
+ * Los códigos INE son verificados automáticamente contra municipiosCentroides.ts
  */
 
 import {
@@ -12,26 +15,8 @@ import {
   CENTROIDES_MUNICIPIOS,
 } from '../CoordinateValidator';
 
-// ============================================================================
-// DATOS DE PRUEBA (extraídos del análisis de documentos reales)
-// ============================================================================
-
-const COORDS_REALES = {
-  COLOMERA: [
-    { x: 436780.00, y: 4136578.20, descripcion: 'CEIP' },
-    { x: 437301.80, y: 4136940.50, descripcion: 'Ayuntamiento' },
-    { x: 436972.40, y: 4137231.90, descripcion: 'Centro Salud' },
-  ],
-  CASTRIL: [
-    { x: 519444.37, y: 4183129.02, descripcion: 'Núcleo urbano' },
-    { x: 521581.88, y: 4185653.05, descripcion: 'Ermita' },
-    { x: 520000.00, y: 4184000.00, descripcion: 'Centro aproximado' },
-  ],
-  BERJA: [
-    // Sin coords reales, usamos estimaciones del centroide
-    { x: 504750.00, y: 4077905.00, descripcion: 'Estimado centro' },
-  ],
-};
+// Importar fixtures con códigos INE validados
+import { GRANADA, ALMERIA, JAEN, COORDS_REALES } from './fixtures/municipiosTest';
 
 // ============================================================================
 // TEST: NORMALIZACIÓN DE NOMBRES
@@ -131,7 +116,7 @@ describe('utmToWgs84Approx', () => {
 describe('validarDistanciaCentroide', () => {
   test('Colomera: coordenadas reales dentro del radio', () => {
     COORDS_REALES.COLOMERA.forEach(coord => {
-      const resultado = validarDistanciaCentroide(coord.x, coord.y, '18052');
+      const resultado = validarDistanciaCentroide(coord.x, coord.y, GRANADA.COLOMERA.codigo);
       expect(resultado.exito).toBe(true);
       expect(resultado.dentroRadio).toBe(true);
       expect(resultado.distanciaKm).toBeLessThan(5); // < 5km del centro
@@ -141,7 +126,7 @@ describe('validarDistanciaCentroide', () => {
 
   test('Castril: coordenadas reales dentro del radio', () => {
     COORDS_REALES.CASTRIL.forEach(coord => {
-      const resultado = validarDistanciaCentroide(coord.x, coord.y, '18054');
+      const resultado = validarDistanciaCentroide(coord.x, coord.y, GRANADA.CASTRIL.codigo);
       expect(resultado.exito).toBe(true);
       // Castril es un municipio extenso
       expect(resultado.distanciaKm).toBeLessThan(20);
@@ -156,7 +141,7 @@ describe('validarDistanciaCentroide', () => {
 
   test('Coordenada muy lejana: dentroRadio=false', () => {
     // Coordenada de Castril probada contra centroide de Colomera
-    const resultado = validarDistanciaCentroide(519500, 4184500, '18052', 15);
+    const resultado = validarDistanciaCentroide(519500, 4184500, GRANADA.COLOMERA.codigo, 15);
     expect(resultado.dentroRadio).toBe(false);
     expect(resultado.distanciaKm).toBeGreaterThan(50);
   });
@@ -169,7 +154,7 @@ describe('validarDistanciaCentroide', () => {
 describe('Integración offline', () => {
   test('Coordenadas Colomera: distancia OK', () => {
     const coord = COORDS_REALES.COLOMERA[0];
-    const dist = validarDistanciaCentroide(coord.x, coord.y, '18052');
+    const dist = validarDistanciaCentroide(coord.x, coord.y, GRANADA.COLOMERA.codigo);
     
     expect(dist.exito).toBe(true);
     expect(dist.confianza).toBe('ALTA');

@@ -87,6 +87,7 @@ const PATTERNS: Record<InfrastructureType, PatternConfig[]> = {
     // Media confianza
     { pattern: /\bsanitario\b/i, confidence: 'MEDIA', wfs: 'SICESS' },
     { pattern: /\bmédic[oa]\b/i, confidence: 'BAJA', wfs: 'SICESS' },
+    { pattern: /\bhospitalari[oa]\b/i, confidence: 'MEDIA', wfs: 'SICESS', description: 'Uso CTE hospitalario' },
   ],
 
   // ═══════════════════════════════════════════════════════════════════════════
@@ -144,7 +145,7 @@ const PATTERNS: Record<InfrastructureType, PatternConfig[]> = {
     // Monumentos históricos
     { pattern: /\bcastillo\b/i, confidence: 'ALTA', wfs: 'IAPH' },
     { pattern: /\bfortaleza\b/i, confidence: 'ALTA', wfs: 'IAPH' },
-    { pattern: /\btorre\s*(del?\s*)?(homenaje|atalaya|vigía)?\b/i, confidence: 'ALTA', wfs: 'IAPH' },
+    { pattern: /\btorre\s*(del?\s*)?(homenaje|atalaya|vigía)?(?!\s*(de\s*)?telecomunicaciones)\b/i, confidence: 'ALTA', wfs: 'IAPH' },
     { pattern: /\bmurallaS?\b/i, confidence: 'ALTA', wfs: 'IAPH' },
     { pattern: /\balcazaba\b/i, confidence: 'ALTA', wfs: 'IAPH' },
     { pattern: /\bpalacio\b/i, confidence: 'ALTA', wfs: 'IAPH' },
@@ -164,13 +165,13 @@ const PATTERNS: Record<InfrastructureType, PatternConfig[]> = {
     { pattern: /\barchivo\s*(municipal|histórico)?\b/i, confidence: 'ALTA', wfs: 'ISE' },
     { pattern: /\bteatro\b/i, confidence: 'ALTA', wfs: 'ISE' },
     { pattern: /\bauditorio\b/i, confidence: 'ALTA', wfs: 'ISE' },
-    { pattern: /\bcasa\s*(de\s*)?cultura\b/i, confidence: 'ALTA', wfs: 'ISE' },
+    { pattern: /\bcasa\s*(de\s*(la\s*)?)?cultura\b/i, confidence: 'ALTA', wfs: 'ISE' },
     { pattern: /\bcentro\s*cultural\b/i, confidence: 'ALTA', wfs: 'ISE' },
     // BIC genérico
     { pattern: /\bB\.?I\.?C\.?\b/i, confidence: 'ALTA', wfs: 'IAPH', description: 'Bien Interés Cultural' },
     { pattern: /\bmonumento\b/i, confidence: 'MEDIA', wfs: 'IAPH' },
     { pattern: /\bpatrimonio\b/i, confidence: 'MEDIA', wfs: 'IAPH' },
-    { pattern: /\bhistóric[oa]\b/i, confidence: 'BAJA', wfs: 'IAPH' },
+    { pattern: /(?<!iglesia\s.*)\bhistóric[oa]\b/i, confidence: 'BAJA', wfs: 'IAPH' },
   ],
 
   // ═══════════════════════════════════════════════════════════════════════════
@@ -271,7 +272,7 @@ const PATTERNS: Record<InfrastructureType, PatternConfig[]> = {
     // Almacenamiento
     { pattern: /\bdepósito\s*(de\s*)?(agua|regulación)?\b/i, confidence: 'ALTA', wfs: 'REDIAM' },
     { pattern: /\bembalse\b/i, confidence: 'ALTA', wfs: 'REDIAM' },
-    { pattern: /\bpantano\b/i, confidence: 'ALTA', wfs: 'REDIAM' },
+    { pattern: /(?<!helipuerto\s.*)\bpantano\b/i, confidence: 'ALTA', wfs: 'REDIAM' },
     { pattern: /\bpresa\b/i, confidence: 'ALTA', wfs: 'REDIAM' },
     { pattern: /\bbalsa\s*(de\s*)?(riego|agua)?\b/i, confidence: 'ALTA', wfs: 'REDIAM' },
     { pattern: /\baljibe\b/i, confidence: 'ALTA', wfs: 'REDIAM' },
@@ -379,6 +380,7 @@ const PATTERNS: Record<InfrastructureType, PatternConfig[]> = {
     { pattern: /\bnave\s*(industrial)?\b/i, confidence: 'ALTA', wfs: 'REDIAM' },
     { pattern: /\bpolígono\s*(industrial)?\b/i, confidence: 'ALTA', wfs: 'REDIAM' },
     { pattern: /\btaller\s*(mecánico|de\s*reparación)?\b/i, confidence: 'ALTA', wfs: null },
+    { pattern: /\bcarpintería\b/i, confidence: 'ALTA', wfs: null, description: 'Taller de madera' },
     { pattern: /\bcooperativa\b/i, confidence: 'ALTA', wfs: null },
     { pattern: /\balmazara\b/i, confidence: 'ALTA', wfs: 'REDIAM' },
     { pattern: /\bbodega\b/i, confidence: 'ALTA', wfs: null },
@@ -445,12 +447,13 @@ export function classifyInfrastructure(input: InfrastructureInput): Classificati
   ].filter(f => f.value && f.value.trim().length > 0);
 
   // Orden de tipos por prioridad (críticos primero)
+  // NOTA: RELIGIOSO antes de CULTURAL porque edificios de culto históricos son primero religiosos
   const typeOrder: InfrastructureType[] = [
     'SANITARIO',
     'EDUCATIVO', 
     'SEGURIDAD',
+    'RELIGIOSO',     // Antes de CULTURAL - iglesias históricas son primero religiosas
     'CULTURAL',
-    'RELIGIOSO',
     'DEPORTIVO',
     'SERVICIOS',
     'ENERGIA',

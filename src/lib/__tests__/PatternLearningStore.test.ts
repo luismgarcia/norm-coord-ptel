@@ -253,7 +253,7 @@ describe('PatternLearningStore', () => {
       
       const exportado = await exportLearningData();
       
-      expect(exportado.version).toBe('1.0.0');
+      expect(exportado.version).toBe('1.1.0');
       expect(exportado.patterns.length).toBe(1);
       expect(exportado.profiles.length).toBe(1);
     });

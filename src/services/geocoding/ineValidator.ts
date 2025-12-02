@@ -8,7 +8,7 @@
  * @date 2025-11-28
  */
 
-import { getCodigoINE } from '../../data/codigosINE';
+import { getCodigoINE } from '../../utils/codigosINEDerivados';
 import { logRechazo } from './rejectionLogger';
 
 // ============================================================================

@@ -124,13 +124,28 @@ export function cleanCoordinateValue(val: string): string {
   // Eliminar comillas especiales
   cleaned = cleaned.replace(/[´`''""]+/g, '');
   
-  // Espacios como separadores de miles: "437 686 30" → "437686.30"
+  // Espacios como separadores de miles: "437 686" → "437686", "4 076 367" → "4076367"
+  // CUIDADO: "437 686 30" podría tener decimales → "437686.30"
   if (/^\d[\d\s]+\d$/.test(cleaned) && cleaned.includes(' ')) {
-    const noSpaces = cleaned.replace(/\s/g, '');
-    if (/^\d+$/.test(noSpaces) && noSpaces.length > 6) {
-      cleaned = noSpaces.slice(0, -2) + '.' + noSpaces.slice(-2);
+    const groups = cleaned.split(/\s+/);
+    
+    // Si todos los grupos (excepto el primero) tienen exactamente 3 dígitos,
+    // son separadores de miles puro (ej: "4 076 367", "524 538")
+    const allThreeDigitGroups = groups.slice(1).every(g => g.length === 3);
+    
+    if (allThreeDigitGroups) {
+      // Solo unir sin añadir punto decimal
+      cleaned = groups.join('');
     } else {
-      cleaned = noSpaces;
+      // El último grupo tiene distinta longitud, podría ser decimal
+      const noSpaces = cleaned.replace(/\s/g, '');
+      const lastGroup = groups[groups.length - 1];
+      if (lastGroup.length === 2 && noSpaces.length > 6) {
+        // Último grupo de 2 dígitos = probable decimal
+        cleaned = noSpaces.slice(0, -2) + '.' + noSpaces.slice(-2);
+      } else {
+        cleaned = noSpaces;
+      }
     }
   }
   

@@ -149,7 +149,7 @@ describe('WFSSportsGeocoder', () => {
           TIPO: 'Polideportivo',
           MUNICIPIO: 'Colomera',
           PROVINCIA: 'Granada',
-          COD_MUN: '18054',
+          COD_MUN: '18051',
           COD_PROV: '18'
         }
       };
@@ -163,7 +163,7 @@ describe('WFSSportsGeocoder', () => {
       expect(result?.municipality).toBe('Colomera');
       expect(result?.province).toBe('Granada');
       expect(result?.properties.tipo).toBe('Polideportivo');
-      expect(result?.properties.codMun).toBe('18054');
+      expect(result?.properties.codMun).toBe('18051');
     });
 
     it('debe rechazar feature sin geometría', () => {

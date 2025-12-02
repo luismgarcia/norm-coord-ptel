@@ -67,8 +67,9 @@ export interface OverpassSearchOptions {
 
 /**
  * Mapeo de tipos PTEL a queries Overpass
+ * @public Exportado para testing
  */
-const PTEL_TO_OSM_QUERIES: Record<InfrastructureType, string[]> = {
+export const PTEL_TO_OSM_QUERIES: Record<InfrastructureType, string[]> = {
   [InfrastructureType.HEALTH]: [
     'nwr["amenity"="hospital"]',
     'nwr["amenity"="clinic"]',
@@ -133,6 +134,22 @@ const PTEL_TO_OSM_QUERIES: Record<InfrastructureType, string[]> = {
   [InfrastructureType.GENERIC]: [
     'nwr["amenity"]',
     'nwr["building"="public"]'
+  ],
+  [InfrastructureType.TELECOM]: [
+    'nwr["man_made"="mast"]["tower:type"="communication"]',
+    'nwr["man_made"="tower"]["tower:type"="communication"]',
+    'nwr["tower:type"="communication"]',
+    'nwr["communication:mobile_phone"="yes"]'
+  ],
+  [InfrastructureType.INDUSTRIAL]: [
+    'nwr["landuse"="industrial"]',
+    'nwr["building"="industrial"]',
+    'nwr["industrial"]'
+  ],
+  [InfrastructureType.VIAL]: [
+    'nwr["highway"="primary"]',
+    'nwr["highway"="secondary"]',
+    'nwr["highway"="tertiary"]'
   ]
 };
 
@@ -600,5 +617,32 @@ export class OverpassGeocoder {
    */
   public clearCache(): void {
     this.areaCache.clear();
+  }
+
+  /**
+   * Estadísticas del geocodificador para testing/monitorización
+   */
+  public getStats(): {
+    endpoint: string;
+    nominatimEndpoint: string;
+    rateLimitMs: number;
+    cacheSize: number;
+    requestCount: number;
+  } {
+    return {
+      endpoint: OverpassGeocoder.OVERPASS_URL,
+      nominatimEndpoint: OverpassGeocoder.NOMINATIM_URL,
+      rateLimitMs: 1000, // 1 req/s para Nominatim
+      cacheSize: this.areaCache.size,
+      requestCount: 0 // TODO: implementar contador si necesario
+    };
+  }
+
+  /**
+   * Verifica si se puede hacer una petición según rate limit
+   */
+  public checkRateLimit(): boolean {
+    // Por ahora siempre true - rate limit se gestiona con delay()
+    return true;
   }
 }

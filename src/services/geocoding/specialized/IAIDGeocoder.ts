@@ -118,7 +118,7 @@ export class IAIDGeocoder extends WFSBaseGeocoder {
    */
   private static readonly FACILITY_PATTERNS: Record<SportsFacilityType, RegExp> = {
     [SportsFacilityType.SWIMMING_POOL]: /\b(piscina|nataci[oó]n|vaso|acuático)\b/i,
-    [SportsFacilityType.FOOTBALL_FIELD]: /\b(f[uú]tbol|campo|estadio|césped)\b/i,
+    [SportsFacilityType.FOOTBALL_FIELD]: /\b(f[uú]tbol|campo|estadio(?!\s+de\s+atletismo)|césped)\b/i,
     [SportsFacilityType.SPORTS_CENTER]: /\b(polideportivo|pabellón|pabell[oó]n|complejo deportivo|centro deportivo)\b/i,
     [SportsFacilityType.PADEL_COURT]: /\b(p[aá]del|padel)\b/i,
     [SportsFacilityType.TENNIS_COURT]: /\b(tenis|tennis)\b/i,

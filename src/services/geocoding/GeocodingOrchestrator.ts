@@ -52,7 +52,7 @@ import {
   validarResultadoCartoCiudad, 
   esAndalucia 
 } from './ineValidator';
-import { getCodigoINE } from '../../data/codigosINE';
+import { getCodigoINE } from '../../utils/codigosINEDerivados';
 
 /**
  * Opciones para geocodificación orquestada

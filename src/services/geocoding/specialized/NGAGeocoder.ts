@@ -99,17 +99,19 @@ export class NGAGeocoder extends WFSBaseGeocoder {
   
   /**
    * Patrones para detectar y normalizar tipos de topónimos
+   * NOTA: El orden importa - se evalúan secuencialmente
+   * LLANO debe ir ANTES de ARROYO porque "Vega del Río" es un llano
    */
   private static readonly TOPONYM_PATTERNS: Record<ToponymType, RegExp> = {
     [ToponymType.PARAJE]: /\b(paraje|pago|partido|sitio)\b/i,
     [ToponymType.CERRO]: /\b(cerro|loma|colina|alto|cabezo|peñón|risco)\b/i,
     [ToponymType.CORTIJO]: /\b(cortijo|cortijada|caserío|casa|venta|molino)\b/i,
-    [ToponymType.ARROYO]: /\b(arroyo|rambla|río|regato|caz)\b/i,
     [ToponymType.FUENTE]: /\b(fuente|manantial|nacimiento|aljibe)\b/i,
     [ToponymType.ERA]: /\b(era|eras|ejido)\b/i,
     [ToponymType.CANADA]: /\b(cañada|vereda|cordel|colada)\b/i,
     [ToponymType.BARRANCO]: /\b(barranco|barranquillo|cárcava)\b/i,
     [ToponymType.LLANO]: /\b(llano|llanura|vega|hoya)\b/i,
+    [ToponymType.ARROYO]: /\b(arroyo|rambla|río|regato|caz)\b/i,
     [ToponymType.ANY]: /.*/
   };
 
@@ -138,7 +140,7 @@ export class NGAGeocoder extends WFSBaseGeocoder {
    *     MUNICIPIO: "Colomera",
    *     PROVINCIA: "Granada",
    *     TIPO: "Cerro",
-   *     COD_MUN: "18052",
+   *     COD_MUN: "18051",
    *     HOJA_MTA: "1009"
    *   }
    * }
@@ -174,9 +176,11 @@ export class NGAGeocoder extends WFSBaseGeocoder {
         name: props.TEXTO || props.NOMBRE || props.DENOMINACION || '',
         x,
         y,
+        address: '', // Los topónimos no tienen dirección postal
         municipality: props.MUNICIPIO || '',
         province: props.PROVINCIA || '',
         properties: {
+          type: props.TIPO || '', // Para compatibilidad con tests
           toponymType: props.TIPO || '',
           codMun: props.COD_MUN || '',
           hojaMTA: props.HOJA_MTA || '',
@@ -205,15 +209,15 @@ export class NGAGeocoder extends WFSBaseGeocoder {
       filters.push(`PROVINCIA ILIKE '%${this.escapeCQL(options.province)}%'`);
     }
 
-    // Filtro por tipo de topónimo
+    // Filtro por tipo de topónimo - igualdad exacta
     if (options.toponymType && options.toponymType !== ToponymType.ANY) {
-      filters.push(`TIPO ILIKE '%${this.escapeCQL(options.toponymType)}%'`);
+      filters.push(`TIPO = '${this.escapeCQL(options.toponymType)}'`);
     }
 
     // Filtro por texto del topónimo (búsqueda parcial)
     if (options.name) {
-      // Extraer palabras clave significativas (eliminar artículos, preposiciones)
-      const keywords = this.extractKeywords(options.name);
+      // Extraer palabras clave significativas preservando mayúsculas
+      const keywords = this.extractKeywordsPreserveCase(options.name);
       if (keywords.length > 0) {
         // Usar OR para mayor flexibilidad
         const textFilters = keywords.map(kw => 
@@ -227,9 +231,9 @@ export class NGAGeocoder extends WFSBaseGeocoder {
   }
 
   /**
-   * Extrae palabras clave significativas de un nombre de topónimo
+   * Extrae palabras clave significativas preservando mayúsculas
    */
-  private extractKeywords(name: string): string[] {
+  private extractKeywordsPreserveCase(name: string): string[] {
     // Palabras a ignorar (artículos, preposiciones, etc.)
     const stopWords = new Set([
       'el', 'la', 'los', 'las', 'de', 'del', 'a', 'al', 'en', 'y', 'o',
@@ -237,11 +241,8 @@ export class NGAGeocoder extends WFSBaseGeocoder {
     ]);
 
     return name
-      .toLowerCase()
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '') // Eliminar acentos
       .split(/\s+/)
-      .filter(word => word.length > 2 && !stopWords.has(word));
+      .filter(word => word.length > 2 && !stopWords.has(word.toLowerCase()));
   }
 
   /**

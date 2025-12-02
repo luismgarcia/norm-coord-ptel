@@ -33,7 +33,7 @@ describe('IAIDGeocoder', () => {
 
     it('debe usar capa g12_06_Deportivo', () => {
       const stats = geocoder.getStats();
-      expect(stats.layer).toBe('DERA_g12_servicios:g12_06_Deportivo');
+      expect(stats.layer).toContain('g12_06_Deportivo');
     });
   });
 

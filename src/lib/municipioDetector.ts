@@ -68,13 +68,19 @@ const PATRONES_ARCHIVO = [
 
 /**
  * Patrones para detectar municipio en cabeceras de documento
+ * NOTA: Usamos [^\n\r]+ para capturar hasta fin de línea y evitar capturar texto adicional
  */
 const PATRONES_CABECERA = [
-  /Plan\s+Territorial\s+de\s+Emergencias?\s+(?:Local|Municipal)?\s*(?:de|del)?\s+([A-ZÁÉÍÓÚÑa-záéíóúñ\s]+)/i,
-  /PTEL\s+(?:de|del)?\s+([A-ZÁÉÍÓÚÑa-záéíóúñ\s]+)/i,
-  /Ayuntamiento\s+de\s+([A-ZÁÉÍÓÚÑa-záéíóúñ\s]+)/i,
-  /Municipio\s+de\s+([A-ZÁÉÍÓÚÑa-záéíóúñ\s]+)/i,
-  /Término\s+Municipal\s+de\s+([A-ZÁÉÍÓÚÑa-záéíóúñ\s]+)/i,
+  // Plan Territorial de Emergencias [Local|Municipal] de MUNICIPIO
+  /Plan\s+Territorial\s+de\s+Emergencias?(?:\s+(?:Local|Municipal))?\s+(?:de|del)\s+([A-ZÁÉÍÓÚÑa-záéíóúñ][A-ZÁÉÍÓÚÑa-záéíóúñ ]*[A-ZÁÉÍÓÚÑa-záéíóúñ])/im,
+  // PTEL [de|del] MUNICIPIO
+  /PTEL\s+(?:de|del)\s+([A-ZÁÉÍÓÚÑa-záéíóúñ][A-ZÁÉÍÓÚÑa-záéíóúñ ]*[A-ZÁÉÍÓÚÑa-záéíóúñ])/im,
+  // Ayuntamiento de MUNICIPIO
+  /Ayuntamiento\s+de\s+([A-ZÁÉÍÓÚÑa-záéíóúñ][A-ZÁÉÍÓÚÑa-záéíóúñ ]*[A-ZÁÉÍÓÚÑa-záéíóúñ])/im,
+  // Municipio de MUNICIPIO
+  /Municipio\s+de\s+([A-ZÁÉÍÓÚÑa-záéíóúñ][A-ZÁÉÍÓÚÑa-záéíóúñ ]*[A-ZÁÉÍÓÚÑa-záéíóúñ])/im,
+  // Término Municipal de MUNICIPIO
+  /Término\s+Municipal\s+de\s+([A-ZÁÉÍÓÚÑa-záéíóúñ][A-ZÁÉÍÓÚÑa-záéíóúñ ]*[A-ZÁÉÍÓÚÑa-záéíóúñ])/im,
 ];
 
 /**

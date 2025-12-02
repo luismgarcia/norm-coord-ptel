@@ -165,6 +165,8 @@ export class WFSEnergyGeocoder extends WFSBaseGeocoder {
           type: props.TIPO || '',
           voltage: props.TENSION_KV || props.TENSION,
           power: props.POTENCIA_MW || props.POTENCIA,
+          turbines: props.NUM_AEROGENERADORES,
+          area: props.SUPERFICIE_HA,
           owner: props.PROPIETARIO || props.TITULAR,
           status: props.ESTADO || '',
           year: props.ANNO_PUESTA_SERVICIO || props.ANNO,
@@ -222,7 +224,7 @@ export class WFSEnergyGeocoder extends WFSBaseGeocoder {
       return EnergyFacilityType.GAS_STATION;
     }
     if (nameLower.includes('parque eólico') || nameLower.includes('eólico') ||
-        nameLower.includes('aerogenerador')) {
+        nameLower.includes('aerogenerador') || nameLower.startsWith('pe ')) {
       return EnergyFacilityType.WIND_FARM;
     }
     if (nameLower.includes('fotovoltaica') || nameLower.includes('solar') ||

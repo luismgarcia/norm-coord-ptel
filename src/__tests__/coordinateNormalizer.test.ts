@@ -269,7 +269,7 @@ describe('Normalizador de Coordenadas PTEL', () => {
       const resultado = validarCoordenada(77905);
       expect(resultado.valido).toBe(true);
       expect(resultado.tipo).toBe('Y');
-      expect(resultado.correccionAplicada).toBe(4077905);
+      expect(resultado.valorCorregido).toBe(4077905);
     });
     
     it('Rechaza valor fuera de rango', () => {
