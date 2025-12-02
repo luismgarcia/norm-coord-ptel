@@ -8,6 +8,23 @@
 
 ---
 
+## 🎭 ROL DE SESIÓN
+
+**Activar rol**: **MapWizard** (React/TypeScript/APIs)
+
+Este rol es el adecuado porque las tareas implican:
+- Refactorizar `coordinateNormalizer.ts`
+- Crear nuevo módulo `documentProfiler.ts`
+- Integrar transformaciones proj4.js (ED50 → ETRS89)
+- Modificar pipeline de procesamiento
+- Tests unitarios con Vitest
+
+**Cambios de rol durante sesión**:
+- Si deriva hacia UI/UX → cambiar a **DesignCraft**
+- Si deriva hacia validación geodésica/rangos → cambiar a **DataMaster**
+
+---
+
 ## 📋 CONTEXTO DEL PROYECTO
 
 Sistema de normalización de coordenadas para Planes Territoriales de Emergencias Locales (PTEL) de los 786 municipios de Andalucía, cumpliendo el Decreto 197/2024.
@@ -164,9 +181,10 @@ norm-coord-ptel/
 
 ## 🏁 INICIO DE SESIÓN
 
-**Rol sugerido**: MapWizard (React/TypeScript/APIs)
-
-**Primera acción**: Leer archivos `.ptel/PTEL_ESTADO_SESION.json` y `.ptel/PTEL_FEATURES.json` para contexto completo, luego esperar decisión del usuario sobre las 3 áreas.
+**Primera acción**: 
+1. Leer `.ptel/PTEL_ESTADO_SESION.json` y `.ptel/PTEL_FEATURES.json`
+2. Confirmar rol **MapWizard** activado
+3. Esperar decisión del usuario sobre las 3 áreas
 
 ---
 
