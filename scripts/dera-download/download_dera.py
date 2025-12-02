@@ -58,8 +58,8 @@ WFS_CONFIG = {
             },
             {
                 "url": "https://www.ideandalucia.es/services/DERA_g12_servicios/wfs",
-                "layer": "DERA_g12_servicios:g12_02_CentroAtencionEspecializada",
-                "description": "Hospitales y Especializada"
+                "layer": "DERA_g12_servicios:g12_02_Hospital_CAE",
+                "description": "Hospitales y CAE"
             }
         ]
     },
@@ -67,10 +67,24 @@ WFS_CONFIG = {
         "name": "Instalaciones de Seguridad",
         "urls": [
             {
-                "url": "https://www.ideandalucia.es/services/ISE/wfs",
-                "layer": "ISE:equipamiento",
-                "description": "Inventario Sedes y Equipamientos",
-                "cql_filter": "tipo_sector = 'JUSTICIA' OR tipo_sector = 'SEGURIDAD'"
+                "url": "https://www.ideandalucia.es/services/DERA_g12_servicios/wfs",
+                "layer": "DERA_g12_servicios:g12_26_Policia",
+                "description": "Comisarías de Policía"
+            },
+            {
+                "url": "https://www.ideandalucia.es/services/DERA_g12_servicios/wfs",
+                "layer": "DERA_g12_servicios:g12_29_ParqueBomberos",
+                "description": "Parques de Bomberos"
+            },
+            {
+                "url": "https://www.ideandalucia.es/services/DERA_g12_servicios/wfs",
+                "layer": "DERA_g12_servicios:g12_34_GuardiaCivil",
+                "description": "Guardia Civil"
+            },
+            {
+                "url": "https://www.ideandalucia.es/services/DERA_g12_servicios/wfs",
+                "layer": "DERA_g12_servicios:g12_35_GestionEmergencias",
+                "description": "Gestión Emergencias PTEAnd"
             }
         ]
     },
@@ -79,13 +93,28 @@ WFS_CONFIG = {
         "urls": [
             {
                 "url": "https://www.ideandalucia.es/services/DERA_g10_infra_energetica/wfs",
-                "layer": "DERA_g10_infra_energetica:g10_01_CentralTermicaConvencional",
-                "description": "Centrales Térmicas"
-            },
-            {
-                "url": "https://www.ideandalucia.es/services/DERA_g10_infra_energetica/wfs",
                 "layer": "DERA_g10_infra_energetica:g10_02_ParqueEolico",
                 "description": "Parques Eólicos"
+            }
+        ]
+    },
+    "education": {
+        "name": "Centros Educativos",
+        "urls": [
+            {
+                "url": "https://www.ideandalucia.es/services/DERA_g12_servicios/wfs",
+                "layer": "DERA_g12_servicios:g12_05_CentroEducativo",
+                "description": "Centros Educativos"
+            }
+        ]
+    },
+    "municipal": {
+        "name": "Servicios Municipales",
+        "urls": [
+            {
+                "url": "https://www.ideandalucia.es/services/DERA_g12_servicios/wfs",
+                "layer": "DERA_g12_servicios:g12_11_Ayuntamiento",
+                "description": "Ayuntamientos"
             }
         ]
     }

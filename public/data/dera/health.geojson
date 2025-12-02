@@ -34868,16 +34868,4616 @@
         "municipio": "Marbella",
         "provincia": "Málaga"
       }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200014889",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            430116.61,
+            4181220.05
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200014889,
+        "nombre": "HOSPITAL GENERAL DEL H. U. DE JAEN",
+        "tipo": "Hospital",
+        "sistema_sa": "Público",
+        "direccion": "AV DEL EJERCITO ESPAÑOL 10",
+        "localidad": "Jaén",
+        "cod_mun": "23050",
+        "municipio": "Jaén",
+        "provincia": "Jaén"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200014890",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            430116.61,
+            4181220.05
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200014890,
+        "nombre": "HOSPITAL MATERNO-INFANTIL DEL H. U. DE JAEN",
+        "tipo": "Hospital",
+        "sistema_sa": "Público",
+        "direccion": "AV DEL EJERCITO ESPAÑOL 10",
+        "localidad": "Jaén",
+        "cod_mun": "23050",
+        "municipio": "Jaén",
+        "provincia": "Jaén"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200014891",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            364067.48,
+            4099417.25
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200014891,
+        "nombre": "HOSPITAL DE ANTEQUERA",
+        "tipo": "Hospital",
+        "sistema_sa": "Público",
+        "direccion": "AV POETA MUÑOZ ROJAS S/N",
+        "localidad": "Hospital Comarcal",
+        "cod_mun": "29015",
+        "municipio": "Antequera",
+        "provincia": "Málaga"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200014892",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            206400.9,
+            4045391.91
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200014892,
+        "nombre": "HOSPITAL PUERTA DEL MAR",
+        "tipo": "Hospital",
+        "sistema_sa": "Público",
+        "direccion": "AV ANA DE VIYA 21",
+        "localidad": "Cádiz",
+        "cod_mun": "11012",
+        "municipio": "Cádiz",
+        "provincia": "Cádiz"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200014893",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            343062.04,
+            4194026.25
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200014893,
+        "nombre": "HOSPITAL CRUZ ROJA DE CORDOBA",
+        "tipo": "Hospital",
+        "sistema_sa": "Privado",
+        "direccion": "PASEO DE LA VICTORIA S/N",
+        "localidad": "Córdoba",
+        "cod_mun": "14021",
+        "municipio": "Córdoba",
+        "provincia": "Córdoba"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200014894",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            551926.56,
+            4079061.06
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200014894,
+        "nombre": "HOSPITAL VIRGEN DEL MAR",
+        "tipo": "Hospital",
+        "sistema_sa": "Privado",
+        "direccion": "CARRETERA DEL MAMI KM. 1",
+        "localidad": "Hospital Virgen del Mar",
+        "cod_mun": "04013",
+        "municipio": "Almería",
+        "provincia": "Almería"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200014895",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            550361.25,
+            4075110.55
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200014895,
+        "nombre": "HOSPITAL MEDITERRANEO",
+        "tipo": "Hospital",
+        "sistema_sa": "Privado",
+        "direccion": "CALLE NUEVA MUSA 8",
+        "localidad": "Almería",
+        "cod_mun": "04013",
+        "municipio": "Almería",
+        "provincia": "Almería"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200014896",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            210341.6,
+            4055185.12
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200014896,
+        "nombre": "HOSPITAL CONCERTADO SANTA MARIA DEL PUERTO",
+        "tipo": "Hospital",
+        "sistema_sa": "Concertado",
+        "direccion": "CL VALDES S/N",
+        "localidad": "El Puerto de Santa María",
+        "cod_mun": "11027",
+        "municipio": "El Puerto de Santa María",
+        "provincia": "Cádiz"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200014897",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            218573.39,
+            4065255.72
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200014897,
+        "nombre": "HOSPITAL SAN JUAN GRANDE",
+        "tipo": "Hospital",
+        "sistema_sa": "Privado",
+        "direccion": "GLORIETA DOCTOR FELIX RODRIGUEZ DE LA FUENTE S/N",
+        "localidad": "Jerez de la Frontera",
+        "cod_mun": "11020",
+        "municipio": "Jerez de la Frontera",
+        "provincia": "Cádiz"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200014898",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            204331.41,
+            4048165.34
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200014898,
+        "nombre": "HOSPITAL CONCERTADO SAN RAFAEL",
+        "tipo": "Hospital",
+        "sistema_sa": "Concertado",
+        "direccion": "CL DIEGO ARIAS 2",
+        "localidad": "Cádiz",
+        "cod_mun": "11012",
+        "municipio": "Cádiz",
+        "provincia": "Cádiz"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200014899",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            263773.76,
+            4082890.15
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200014899,
+        "nombre": "HOSPITAL CONCERTADO VIRGEN DE LAS MONTAÑAS",
+        "tipo": "Hospital",
+        "sistema_sa": "Concertado",
+        "direccion": "AV AMBULATORIO S/N",
+        "localidad": "Villamartín",
+        "cod_mun": "11041",
+        "municipio": "Villamartín",
+        "provincia": "Cádiz"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200014900",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            200089.1,
+            4074414.86
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200014900,
+        "nombre": "HOSPITAL CONCERTADO VIRGEN DEL CAMINO",
+        "tipo": "Hospital",
+        "sistema_sa": "Concertado",
+        "direccion": "CTRA SANLUCAR-CHIPIONA S/N",
+        "localidad": "Sanlúcar de Barrameda",
+        "cod_mun": "11032",
+        "municipio": "Sanlúcar de Barrameda",
+        "provincia": "Cádiz"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200014901",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            219383.57,
+            4062791.64
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200014901,
+        "nombre": "HOSPITAL JEREZ PUERTA DEL SUR",
+        "tipo": "Hospital",
+        "sistema_sa": "Privado",
+        "direccion": "AVENIDA PUERTA DEL SUR S/N",
+        "localidad": "Jerez de la Frontera",
+        "cod_mun": "11020",
+        "municipio": "Jerez de la Frontera",
+        "provincia": "Cádiz"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200014902",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            220340.86,
+            4066619.89
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200014902,
+        "nombre": "CLINICA LOS ALAMOS",
+        "tipo": "Hospital",
+        "sistema_sa": "Privado",
+        "direccion": "AVENIDA TAMARIX 4",
+        "localidad": "Jerez de la Frontera",
+        "cod_mun": "11020",
+        "municipio": "Jerez de la Frontera",
+        "provincia": "Cádiz"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200014903",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            216546.4,
+            4028089.22
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200014903,
+        "nombre": "HOSPITAL VIAMED NOVO SANCTI PETRI",
+        "tipo": "Hospital",
+        "sistema_sa": "Privado",
+        "direccion": "AVENIDA OCTAVIO AUGUSTO S/N",
+        "localidad": "La Barrosa",
+        "cod_mun": "11015",
+        "municipio": "Chiclana de la Frontera",
+        "provincia": "Cádiz"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200014904",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            217562.96,
+            4035243.45
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200014904,
+        "nombre": "HOSPITAL VIAMED BAHIA DE CADIZ",
+        "tipo": "Hospital",
+        "sistema_sa": "Privado",
+        "direccion": "CALLE AYALA 2",
+        "localidad": "Chiclana de la Frontera",
+        "cod_mun": "11015",
+        "municipio": "Chiclana de la Frontera",
+        "provincia": "Cádiz"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200014905",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            281362.9,
+            4007265.8
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200014905,
+        "nombre": "HOSPITAL QUIRON CAMPO DE GIBRALTAR",
+        "tipo": "Hospital",
+        "sistema_sa": "Privado",
+        "direccion": "EDIFICIO ARTTYSUR - P. E. T. LAS MARISMAS DE PALMONES",
+        "localidad": "Parque Empresarial y Tecnológico Las Marismas de Palmones",
+        "cod_mun": "11008",
+        "municipio": "Los Barrios",
+        "provincia": "Cádiz"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200014906",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            342379.89,
+            4196716.01
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200014906,
+        "nombre": "HOSPITAL LA ARRUZAFA - INSTITUTO DE OFTALMOLOGIA",
+        "tipo": "Hospital",
+        "sistema_sa": "Privado",
+        "direccion": "AVENIDA DE LA ARRUZAFA 9",
+        "localidad": "Córdoba",
+        "cod_mun": "14021",
+        "municipio": "Córdoba",
+        "provincia": "Córdoba"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200014907",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            342353.32,
+            4197321
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200014907,
+        "nombre": "HOSPITAL SAN JUAN DE DIOS DE CORDOBA",
+        "tipo": "Hospital",
+        "sistema_sa": "Privado",
+        "direccion": "AVENIDA DEL BRILLANTE 106",
+        "localidad": "Córdoba",
+        "cod_mun": "14021",
+        "municipio": "Córdoba",
+        "provincia": "Córdoba"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200014908",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            341495.40158788,
+            4193158.62738163
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200014908,
+        "nombre": "HOSPITAL QUIRONSALUD CORDOBA",
+        "tipo": "Hospital",
+        "sistema_sa": "Privado",
+        "direccion": "AVENIDA AEROPUERTO S/N",
+        "localidad": "Córdoba",
+        "cod_mun": "14021",
+        "municipio": "Córdoba",
+        "provincia": "Córdoba"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200014909",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            446020.23,
+            4113237.07
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200014909,
+        "nombre": "HOSPITAL DE LA INMACULADA CONCEPCION",
+        "tipo": "Hospital",
+        "sistema_sa": "Privado",
+        "direccion": "CALLE DOCTOR ALEJANDRO OTERO 8",
+        "localidad": "Granada",
+        "cod_mun": "18087",
+        "municipio": "Granada",
+        "provincia": "Granada"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200014910",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            446503.036,
+            4115126.58720075
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200014910,
+        "nombre": "HOSPITAL SAN RAFAEL",
+        "tipo": "Hospital",
+        "sistema_sa": "Privado",
+        "direccion": "CALLE SAN JUAN DE DIOS 19-23",
+        "localidad": "Granada",
+        "cod_mun": "18087",
+        "municipio": "Granada",
+        "provincia": "Granada"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200014911",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            449125.51,
+            4113289.25
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200014911,
+        "nombre": "HOSPITAL VITHAS LA SALUD",
+        "tipo": "Hospital",
+        "sistema_sa": "Privado",
+        "direccion": "AVENIDA SANTA MARIA DE LA ALHAMBRA S/N",
+        "localidad": "Granada",
+        "cod_mun": "18087",
+        "municipio": "Granada",
+        "provincia": "Granada"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200014912",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            149738.45,
+            4131287.27
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200014912,
+        "nombre": "CLINICA LOS NARANJOS",
+        "tipo": "Hospital",
+        "sistema_sa": "Privado",
+        "direccion": "PASEO DE LOS NARANJOS 1",
+        "localidad": "Huelva",
+        "cod_mun": "21041",
+        "municipio": "Huelva",
+        "provincia": "Huelva"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200014913",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            149359.86,
+            4131824.93
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200014913,
+        "nombre": "HOSPITAL QUIRONSALUD HUELVA",
+        "tipo": "Hospital",
+        "sistema_sa": "Privado",
+        "direccion": "CALLE PUNTA UMBRIA 8",
+        "localidad": "Huelva",
+        "cod_mun": "21041",
+        "municipio": "Huelva",
+        "provincia": "Huelva"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200014914",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            127956.01395868,
+            4132005.39199198
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200014914,
+        "nombre": "HOSPITAL CONCERTADO VIRGEN DE LA BELLA",
+        "tipo": "Hospital",
+        "sistema_sa": "Concertado",
+        "direccion": "AV DE LAS ROSAS S/N",
+        "localidad": "Lepe",
+        "cod_mun": "21044",
+        "municipio": "Lepe",
+        "provincia": "Huelva"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200014915",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            430522.47,
+            4181204.26
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200014915,
+        "nombre": "CLINICA CRISTO REY",
+        "tipo": "Hospital",
+        "sistema_sa": "Privado",
+        "direccion": "PASEO LA ESTACION 40",
+        "localidad": "Jaén",
+        "cod_mun": "23050",
+        "municipio": "Jaén",
+        "provincia": "Jaén"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200014916",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            375209.29,
+            4065050.98
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200014916,
+        "nombre": "HOSPITAL VITHAS PARQUE SAN ANTONIO",
+        "tipo": "Hospital",
+        "sistema_sa": "Privado",
+        "direccion": "AVENIDA PINTOR JOAQUIN SOROLLA 2",
+        "localidad": "Málaga",
+        "cod_mun": "29067",
+        "municipio": "Málaga",
+        "provincia": "Málaga"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200014917",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            374603.9,
+            4064928.54
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200014917,
+        "nombre": "CLINICA NUESTRA SEÑORA DEL PILAR",
+        "tipo": "Hospital",
+        "sistema_sa": "Privado",
+        "direccion": "PASEO DE SANCHA 15",
+        "localidad": "Málaga",
+        "cod_mun": "29067",
+        "municipio": "Málaga",
+        "provincia": "Málaga"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200014918",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            370143.21930272,
+            4065109.07327144
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200014918,
+        "nombre": "CLINICA DE LA ENCARNACION",
+        "tipo": "Hospital",
+        "sistema_sa": "Privado",
+        "direccion": "CALLE FERNANDEZ DE ALARCON 2",
+        "localidad": "Málaga",
+        "cod_mun": "29067",
+        "municipio": "Málaga",
+        "provincia": "Málaga"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200014919",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            373240.11,
+            4064842.83
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200014919,
+        "nombre": "HOSPITAL DOCTOR GÁLVEZ",
+        "tipo": "Hospital",
+        "sistema_sa": "Privado",
+        "direccion": "CALLE SAN AGUSTIN 1",
+        "localidad": "Málaga",
+        "cod_mun": "29067",
+        "municipio": "Málaga",
+        "provincia": "Málaga"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200014920",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            367002.54,
+            4056561.03
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200014920,
+        "nombre": "CLINICA SANTA ELENA",
+        "tipo": "Hospital",
+        "sistema_sa": "Privado",
+        "direccion": "URBANIZACION LOS ALAMOS S/N",
+        "localidad": "Torremolinos",
+        "cod_mun": "29901",
+        "municipio": "Torremolinos",
+        "provincia": "Málaga"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200014921",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            370202.53,
+            4064277.79
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200014921,
+        "nombre": "HOSPITAL EL ANGEL",
+        "tipo": "Hospital",
+        "sistema_sa": "Privado",
+        "direccion": "CALLE CORREGIDOR NICOLAS ISIDRO 16",
+        "localidad": "Málaga",
+        "cod_mun": "29067",
+        "municipio": "Málaga",
+        "provincia": "Málaga"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200014922",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            373019.8693,
+            4066247.2531
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200014922,
+        "nombre": "CENTRO ASISTENCIAL HERMANAS HOSPITALARIAS DEL SAGRADO CORAZÓN DE JESÚS",
+        "tipo": "Hospital",
+        "sistema_sa": "Privado",
+        "direccion": "CALLE SAN JUAN BOSCO 41",
+        "localidad": "Málaga",
+        "cod_mun": "29067",
+        "municipio": "Málaga",
+        "provincia": "Málaga"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200014923",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            392887.87,
+            4064018.09
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200014923,
+        "nombre": "CLINICA EL SERANIL",
+        "tipo": "Hospital",
+        "sistema_sa": "Privado",
+        "direccion": "CARRETERA ALMERIA KM 261",
+        "localidad": "Benajarafe",
+        "cod_mun": "29094",
+        "municipio": "Vélez-Málaga",
+        "provincia": "Málaga"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200014924",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            332158.44,
+            4042017.35
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200014924,
+        "nombre": "HOSPITAL QUIRONSALUD MARBELLA",
+        "tipo": "Hospital",
+        "sistema_sa": "Privado",
+        "direccion": "AVENIDA SEVERO OCHOA 22",
+        "localidad": "Marbella",
+        "cod_mun": "29069",
+        "municipio": "Marbella",
+        "provincia": "Málaga"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200014925",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            372888.2162,
+            4068945.4548
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200014925,
+        "nombre": "CENTRO ASISTENCIAL SAN JUAN DE DIOS",
+        "tipo": "Hospital",
+        "sistema_sa": "Privado",
+        "direccion": "CAMINO CASABERMEJA 126",
+        "localidad": "Málaga",
+        "cod_mun": "29067",
+        "municipio": "Málaga",
+        "provincia": "Málaga"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200014926",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            377759.36,
+            4065687.16
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200014926,
+        "nombre": "HOSPITAL PSIQUIATRICO SAN FRANCISCO DE ASIS",
+        "tipo": "Hospital",
+        "sistema_sa": "Privado",
+        "direccion": "AVENIDA HERNAN NUÑEZ DE TOLEDO 5",
+        "localidad": "Málaga",
+        "cod_mun": "29067",
+        "municipio": "Málaga",
+        "provincia": "Málaga"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200014927",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            323498.07,
+            4039550.54
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200014927,
+        "nombre": "HC MARBELLA INTERNATIONAL HOSPITAL",
+        "tipo": "Hospital",
+        "sistema_sa": "Privado",
+        "direccion": "CALLE VENTURA DEL MAR 11",
+        "localidad": "Nueva Andalucía",
+        "cod_mun": "29069",
+        "municipio": "Marbella",
+        "provincia": "Málaga"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200014928",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            331465.64,
+            4041862.79
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200014928,
+        "nombre": "HOSPITAL OCHOA",
+        "tipo": "Hospital",
+        "sistema_sa": "Privado",
+        "direccion": "AVENIDA SEVERO OCHOA S/N (EDIFICIO MAYORAL)",
+        "localidad": "Marbella",
+        "cod_mun": "29069",
+        "municipio": "Marbella",
+        "provincia": "Málaga"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200014929",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            421382.20382104,
+            4067188.24956712
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200014929,
+        "nombre": "VITHAS SALUD RINCÓN MEDICAL CENTER NERJA",
+        "tipo": "Hospital",
+        "sistema_sa": "Privado",
+        "direccion": "CALLE ANTONIO FERRANDIS 'CHANQUETE' (EDIFICIO. RIOSOL 1) 1",
+        "localidad": "Nerja",
+        "cod_mun": "29075",
+        "municipio": "Nerja",
+        "provincia": "Málaga"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200014930",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            313231.65,
+            4036176.12
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200014930,
+        "nombre": "HOSPITEN ESTEPONA",
+        "tipo": "Hospital",
+        "sistema_sa": "Privado",
+        "direccion": "CARRETERA NACIONAL 340 KM 162",
+        "localidad": "Hospiten",
+        "cod_mun": "29051",
+        "municipio": "Estepona",
+        "provincia": "Málaga"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200014931",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            360602.74,
+            4051425.95
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200014931,
+        "nombre": "HOSPITAL VITHAS XANIT HOSPITAL INTERNACIONAL",
+        "tipo": "Hospital",
+        "sistema_sa": "Privado",
+        "direccion": "AVENIDA DE LOS ARGONAUTAS S/N",
+        "localidad": "Arroyo de la Miel-Benalmadena Costa",
+        "cod_mun": "29025",
+        "municipio": "Benalmádena",
+        "provincia": "Málaga"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200014932",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            361515.11,
+            4051894.07
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200014932,
+        "nombre": "FUNDACION CUDECA. CENTRO DE CUIDADOS PALIATIVOS",
+        "tipo": "Hospital",
+        "sistema_sa": "Privado",
+        "direccion": "AVENIDA DEL COSMOS S/N",
+        "localidad": "Arroyo de la Miel-Benalmadena Costa",
+        "cod_mun": "29025",
+        "municipio": "Benalmádena",
+        "provincia": "Málaga"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200014933",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            369792.56,
+            4060883.99
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200014933,
+        "nombre": "HOSPITAL QUIRONSALUD MALAGA",
+        "tipo": "Hospital",
+        "sistema_sa": "Privado",
+        "direccion": "AVENIDA IMPERIO ARGENTINA 1",
+        "localidad": "Málaga",
+        "cod_mun": "29067",
+        "municipio": "Málaga",
+        "provincia": "Málaga"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200014934",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            308274.94,
+            4033554.79
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200014934,
+        "nombre": "CENYT HOSPITAL",
+        "tipo": "Hospital",
+        "sistema_sa": "Privado",
+        "direccion": "AVENIDA ANDALUCIA 4",
+        "localidad": "Estepona",
+        "cod_mun": "29051",
+        "municipio": "Estepona",
+        "provincia": "Málaga"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200014935",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            330165.71,
+            4042926.87
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200014935,
+        "nombre": "CENTRO DE REPRODUCCION ASISTIDA DE MARBELLA (CERAM)",
+        "tipo": "Hospital",
+        "sistema_sa": "Privado",
+        "direccion": "CALLE MAESTRA DOÑA CAROLA 8",
+        "localidad": "Marbella",
+        "cod_mun": "29069",
+        "municipio": "Marbella",
+        "provincia": "Málaga"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200014936",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            325257.93799243,
+            4040484.83930689
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200014936,
+        "nombre": "HELICOPTEROS SANITARIOS HOSPITAL",
+        "tipo": "Hospital",
+        "sistema_sa": "Privado",
+        "direccion": "CARRETERA NACIONAL 340 KM 175",
+        "localidad": "Nueva Andalucía",
+        "cod_mun": "29069",
+        "municipio": "Marbella",
+        "provincia": "Málaga"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200014937",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            236033.88,
+            4138938.14
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200014937,
+        "nombre": "HOSPITAL QUIRONSALUD SAGRADO CORAZON",
+        "tipo": "Hospital",
+        "sistema_sa": "Privado",
+        "direccion": "CALLE RAFAEL SALGADO 3",
+        "localidad": "Sevilla",
+        "cod_mun": "41091",
+        "municipio": "Sevilla",
+        "provincia": "Sevilla"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200014938",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            235400.19,
+            4139974.11
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200014938,
+        "nombre": "HOSPITAL FATIMA",
+        "tipo": "Hospital",
+        "sistema_sa": "Privado",
+        "direccion": "GLORIETA DE MEJICO 1",
+        "localidad": "Sevilla",
+        "cod_mun": "41091",
+        "municipio": "Sevilla",
+        "provincia": "Sevilla"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200014939",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            236005.49277178,
+            4143491.03103437
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200014939,
+        "nombre": "HOSPITAL VICTORIA EUGENIA DE LA CRUZ ROJA ESPAÑOLA",
+        "tipo": "Hospital",
+        "sistema_sa": "Privado",
+        "direccion": "AVENIDA DE LA CRUZ ROJA 1",
+        "localidad": "Sevilla",
+        "cod_mun": "41091",
+        "municipio": "Sevilla",
+        "provincia": "Sevilla"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200014940",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            236562.07,
+            4141952.61
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200014940,
+        "nombre": "CLINICA SANTA ISABEL",
+        "tipo": "Hospital",
+        "sistema_sa": "Privado",
+        "direccion": "CALLE LUIS MONTOTO 100",
+        "localidad": "Sevilla",
+        "cod_mun": "41091",
+        "municipio": "Sevilla",
+        "provincia": "Sevilla"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200014941",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            237109.66,
+            4141334.71
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200014941,
+        "nombre": "HOSPITAL SAN JUAN DE DIOS DE SEVILLA",
+        "tipo": "Hospital",
+        "sistema_sa": "Privado",
+        "direccion": "AVENIDA EDUARDO DATO 42",
+        "localidad": "Sevilla",
+        "cod_mun": "41091",
+        "municipio": "Sevilla",
+        "provincia": "Sevilla"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200014942",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            234813.74,
+            4142992.43
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200014942,
+        "nombre": "CLINICA NUESTRA SEÑORA DE ARANZAZU",
+        "tipo": "Hospital",
+        "sistema_sa": "Privado",
+        "direccion": "CALLE JESUS DEL GRAN PODER 29",
+        "localidad": "Sevilla",
+        "cod_mun": "41091",
+        "municipio": "Sevilla",
+        "provincia": "Sevilla"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200014943",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            228159.25,
+            4141302.61
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200014943,
+        "nombre": "RESIDENCIA DE SALUD MENTAL NUESTRA SEÑORA DEL CARMEN",
+        "tipo": "Hospital",
+        "sistema_sa": "Privado",
+        "direccion": "AVENIDA DEL RIO PUDIO S/N",
+        "localidad": "Bormujos",
+        "cod_mun": "41017",
+        "municipio": "Bormujos",
+        "provincia": "Sevilla"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200014944",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            233646.86,
+            4141435.36
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200014944,
+        "nombre": "HOSPITAL QUIRONSALUD INFANTA LUISA",
+        "tipo": "Hospital",
+        "sistema_sa": "Privado",
+        "direccion": "CALLE SAN JACINTO 87",
+        "localidad": "Sevilla",
+        "cod_mun": "41091",
+        "municipio": "Sevilla",
+        "provincia": "Sevilla"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200014945",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            239695.23,
+            4130055.96
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200014945,
+        "nombre": "HOSPITAL SAN AGUSTIN",
+        "tipo": "Hospital",
+        "sistema_sa": "Privado",
+        "direccion": "CALLE PROLONGACION DOCTOR FLEMING SECTOR 13 S/N",
+        "localidad": "Dos Hermanas",
+        "cod_mun": "41038",
+        "municipio": "Dos Hermanas",
+        "provincia": "Sevilla"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200014946",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            228930.64,
+            4142814.06
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200014946,
+        "nombre": "HOSPITAL NISA SEVILLA-ALJARAFE",
+        "tipo": "Hospital",
+        "sistema_sa": "Privado",
+        "direccion": "AVENIDA PLACIDO FERNANDEZ VIAGAS S/N",
+        "localidad": "Hospital",
+        "cod_mun": "41029",
+        "municipio": "Castilleja de la Cuesta",
+        "provincia": "Sevilla"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200014947",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            237196.38,
+            4135352.07
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200014947,
+        "nombre": "HOSPITAL VIAMED SANTA ANGELA DE LA CRUZ",
+        "tipo": "Hospital",
+        "sistema_sa": "Privado",
+        "direccion": "AVENIDA DE JEREZ 59",
+        "localidad": "Sevilla",
+        "cod_mun": "41091",
+        "municipio": "Sevilla",
+        "provincia": "Sevilla"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200014948",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            241420.81907133,
+            4135813.53724656
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200014948,
+        "nombre": "CLINICA DE SALUD MENTAL MIGUEL DE MAÑARA",
+        "tipo": "Hospital",
+        "sistema_sa": "Privado",
+        "direccion": "CALLE HERMANOS DE LA CRUZ BLANCA 1",
+        "localidad": "Quinto",
+        "cod_mun": "41038",
+        "municipio": "Dos Hermanas",
+        "provincia": "Sevilla"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200014949",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            549829.61,
+            4079717.78
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200014949,
+        "nombre": "HOSPITAL TORRECARDENAS",
+        "tipo": "Hospital",
+        "sistema_sa": "Público",
+        "direccion": "CL HERMANDAD DE DONANTES DE SANGRE S/N",
+        "localidad": "Almería",
+        "cod_mun": "04013",
+        "municipio": "Almería",
+        "provincia": "Almería"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200014950",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            593650.88,
+            4139882.4
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200014950,
+        "nombre": "HOSPITAL LA INMACULADA",
+        "tipo": "Hospital",
+        "sistema_sa": "Público",
+        "direccion": "AV DRA. ANA PARRA S/N",
+        "localidad": "Huércal-Overa",
+        "cod_mun": "04053",
+        "municipio": "Huércal-Overa",
+        "provincia": "Almería"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200014951",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            517469.18,
+            4067494.06
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200014951,
+        "nombre": "HOSPITAL DE PONIENTE",
+        "tipo": "Hospital",
+        "sistema_sa": "Público",
+        "direccion": "CTRA ALMERIMAR S/N",
+        "localidad": "Hospital del Poniente",
+        "cod_mun": "04902",
+        "municipio": "El Ejido",
+        "provincia": "Almería"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200014952",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            561277.83,
+            4078503.99
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200014952,
+        "nombre": "HOSPITAL DE ALTA RESOLUCION EL TOYO",
+        "tipo": "Hospital",
+        "sistema_sa": "Público",
+        "direccion": "CL LA BOTICA S/N",
+        "localidad": "Retamar",
+        "cod_mun": "04013",
+        "municipio": "Almería",
+        "provincia": "Almería"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200014953",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            280000.19,
+            3998999.53
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200014953,
+        "nombre": "HOSPITAL PUNTA DE EUROPA",
+        "tipo": "Hospital",
+        "sistema_sa": "Público",
+        "direccion": "CTRA DE GETARES S/N",
+        "localidad": "Algeciras",
+        "cod_mun": "11004",
+        "municipio": "Algeciras",
+        "provincia": "Cádiz"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200014954",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            213777.47,
+            4041935.42
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200014954,
+        "nombre": "HOSPITAL SAN CARLOS DE SAN FERNANDO",
+        "tipo": "Hospital",
+        "sistema_sa": "Público",
+        "direccion": "CAPITAN CONFORTO S/N",
+        "localidad": "San Fernando",
+        "cod_mun": "11031",
+        "municipio": "San Fernando",
+        "provincia": "Cádiz"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200014955",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            218769.28435135,
+            4066024.95713335
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200014955,
+        "nombre": "HOSPITAL DE JEREZ DE LA FRONTERA",
+        "tipo": "Hospital",
+        "sistema_sa": "Público",
+        "direccion": "CTRA CIRCUNVALACION S/N",
+        "localidad": "Jerez de la Frontera",
+        "cod_mun": "11020",
+        "municipio": "Jerez de la Frontera",
+        "provincia": "Cádiz"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200014956",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            217801.23,
+            4046246.06
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200014956,
+        "nombre": "HOSPITAL DE PUERTO REAL",
+        "tipo": "Hospital",
+        "sistema_sa": "Público",
+        "direccion": "CTRA N-IV KM. 665",
+        "localidad": "Hospital Universitario Puerto Real",
+        "cod_mun": "11028",
+        "municipio": "Puerto Real",
+        "provincia": "Cádiz"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200014957",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            288208.82416415,
+            4005915.33534332
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200014957,
+        "nombre": "HOSPITAL DE LA LINEA DE LA CONCEPCION",
+        "tipo": "Hospital",
+        "sistema_sa": "Público",
+        "direccion": "RONDA NORTE S/N",
+        "localidad": "La Línea de la Concepción",
+        "cod_mun": "11022",
+        "municipio": "La Línea de la Concepción",
+        "provincia": "Cádiz"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200014958",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            373958.23539253,
+            4147776.03038258
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200014958,
+        "nombre": "HOSPITAL INFANTA MARGARITA",
+        "tipo": "Hospital",
+        "sistema_sa": "Público",
+        "direccion": "AV DE GONGORA S/N",
+        "localidad": "Cabra",
+        "cod_mun": "14013",
+        "municipio": "Cabra",
+        "provincia": "Córdoba"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200014959",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            341797.48,
+            4192665.62
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200014959,
+        "nombre": "HOSPITAL GENERAL DEL H.U. REINA SOFIA",
+        "tipo": "Hospital",
+        "sistema_sa": "Público",
+        "direccion": "AV MENENDEZ PIDAL S/N",
+        "localidad": "Córdoba",
+        "cod_mun": "14021",
+        "municipio": "Córdoba",
+        "provincia": "Córdoba"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200014960",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            341381.38,
+            4200068.28
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200014960,
+        "nombre": "HOSPITAL LOS MORALES",
+        "tipo": "Hospital",
+        "sistema_sa": "Público",
+        "direccion": "CTRA DE LOS MORALES S/N",
+        "localidad": "Hospital los Morales",
+        "cod_mun": "14021",
+        "municipio": "Córdoba",
+        "provincia": "Córdoba"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200014961",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            341939.96,
+            4192602.7
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200014961,
+        "nombre": "HOSPITAL MATERNO-INFANTIL DEL H.U. REINA SOFIA",
+        "tipo": "Hospital",
+        "sistema_sa": "Público",
+        "direccion": "AV MENENDEZ PIDAL S/N",
+        "localidad": "Córdoba",
+        "cod_mun": "14021",
+        "municipio": "Córdoba",
+        "provincia": "Córdoba"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200014962",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            342356.61,
+            4192770.11
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200014962,
+        "nombre": "HOSPITAL PROVINCIAL",
+        "tipo": "Hospital",
+        "sistema_sa": "Público",
+        "direccion": "AV MENENDEZ PIDAL S/N",
+        "localidad": "Córdoba",
+        "cod_mun": "14021",
+        "municipio": "Córdoba",
+        "provincia": "Córdoba"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200014963",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            338441.5,
+            4249949
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200014963,
+        "nombre": "HOSPITAL VALLE DE LOS PEDROCHES",
+        "tipo": "Hospital",
+        "sistema_sa": "Público",
+        "direccion": "JUAN DEL REY CALERO S/N",
+        "localidad": "Pozoblanco",
+        "cod_mun": "14054",
+        "municipio": "Pozoblanco",
+        "provincia": "Córdoba"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200014964",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            354439.67,
+            4158814.51
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200014964,
+        "nombre": "HOSPITAL DE MONTILLA",
+        "tipo": "Hospital",
+        "sistema_sa": "Público",
+        "direccion": "CTRA. MONTORO-PUENTE GENIL, KM. 65,350",
+        "localidad": "Hospital de Montilla",
+        "cod_mun": "14042",
+        "municipio": "Montilla",
+        "provincia": "Córdoba"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200014965",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            344967.16,
+            4140602.12
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200014965,
+        "nombre": "HOSPITAL DE ALTA RESOLUCION DE PUENTE GENIL",
+        "tipo": "Hospital",
+        "sistema_sa": "Público",
+        "direccion": "CL BURGOS (POLIGONO INDUSTRIAL LAS ACACIAS) S/N",
+        "localidad": "Los Arcos",
+        "cod_mun": "14056",
+        "municipio": "Puente Genil",
+        "provincia": "Córdoba"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200014966",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            301480.69,
+            4242497.71
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200014966,
+        "nombre": "HOSPITAL DE ALTA RESOLUCION VALLE DEL GUADIATO",
+        "tipo": "Hospital",
+        "sistema_sa": "Público",
+        "direccion": "CERRO DEL CAMELLO",
+        "localidad": "Hospital Valle del Guadiato",
+        "cod_mun": "14052",
+        "municipio": "Peñarroya-Pueblonuevo",
+        "provincia": "Córdoba"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200014967",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            521898.17,
+            4150413.88
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200014967,
+        "nombre": "HOSPITAL DE BAZA",
+        "tipo": "Hospital",
+        "sistema_sa": "Público",
+        "direccion": "CTRA DE MURCIA S/N",
+        "localidad": "Hospital General Básico de Baza",
+        "cod_mun": "18023",
+        "municipio": "Baza",
+        "provincia": "Granada"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200014968",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            445904.73,
+            4115961.49
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200014968,
+        "nombre": "HOSPITAL GENERAL DEL H.U. VIRGEN DE LAS NIEVES",
+        "tipo": "Hospital",
+        "sistema_sa": "Público",
+        "direccion": "AV DE LAS FUERZAS ARMADAS 2",
+        "localidad": "Granada",
+        "cod_mun": "18087",
+        "municipio": "Granada",
+        "provincia": "Granada"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200014969",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            445762.63,
+            4116010.68
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200014969,
+        "nombre": "HOSPITAL MATERNO-INFANTIL DEL H.U. VIRGEN DE LAS NIEVES",
+        "tipo": "Hospital",
+        "sistema_sa": "Público",
+        "direccion": "AV DE LAS FUERZAS ARMADAS 2",
+        "localidad": "Granada",
+        "cod_mun": "18087",
+        "municipio": "Granada",
+        "provincia": "Granada"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200014970",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            446074.94,
+            4116455.02
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200014970,
+        "nombre": "HOSPITAL DE NEUROTRAUMATOLOGIA Y REHABILITACION DEL H.U. VIRGEN DE LAS NIEVES",
+        "tipo": "Hospital",
+        "sistema_sa": "Público",
+        "direccion": "AV DE LAS FUERZAS ARMADAS 2",
+        "localidad": "Granada",
+        "cod_mun": "18087",
+        "municipio": "Granada",
+        "provincia": "Granada"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200014971",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            453499.22,
+            4067796.49
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200014971,
+        "nombre": "HOSPITAL SANTA ANA",
+        "tipo": "Hospital",
+        "sistema_sa": "Público",
+        "direccion": "AV ENRIQUE MARTIN CUEVAS S/N",
+        "localidad": "Motril",
+        "cod_mun": "18140",
+        "municipio": "Motril",
+        "provincia": "Granada"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200014972",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            487068.76,
+            4129286.54
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200014972,
+        "nombre": "HOSPITAL DE ALTA RESOLUCION DE GUADIX",
+        "tipo": "Hospital",
+        "sistema_sa": "Público",
+        "direccion": "AV MARIANA DE PINEDA S/N",
+        "localidad": "Guadix",
+        "cod_mun": "18089",
+        "municipio": "Guadix",
+        "provincia": "Granada"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200014973",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            397536.03201507,
+            4114458.30823107
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200014973,
+        "nombre": "HOSPITAL DE ALTA RESOLUCION DE LOJA",
+        "tipo": "Hospital",
+        "sistema_sa": "Público",
+        "direccion": "AV TIERNO GALVAN S/N",
+        "localidad": "Loja",
+        "cod_mun": "18122",
+        "municipio": "Loja",
+        "provincia": "Granada"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200014974",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            446242.52,
+            4111372.48
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200014974,
+        "nombre": "HOSPITAL SAN CECILIO",
+        "tipo": "Hospital",
+        "sistema_sa": "Público",
+        "direccion": "AV DE LA INVESTIGACION S/N",
+        "localidad": "Granada",
+        "cod_mun": "18087",
+        "municipio": "Granada",
+        "provincia": "Granada"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200014975",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            153075.74,
+            4133189.24
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200014975,
+        "nombre": "HOSPITAL INFANTA ELENA",
+        "tipo": "Hospital",
+        "sistema_sa": "Público",
+        "direccion": "CTRA SEVILLA-HUELVA S/N",
+        "localidad": "Hospital Infanta Elena",
+        "cod_mun": "21041",
+        "municipio": "Huelva",
+        "provincia": "Huelva"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200014976",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            151849.06,
+            4133207.79
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200014976,
+        "nombre": "HOSPITAL JUAN RAMON JIMENEZ",
+        "tipo": "Hospital",
+        "sistema_sa": "Público",
+        "direccion": "RONDA EXTERIOR NORTE S/N",
+        "localidad": "Huelva",
+        "cod_mun": "21041",
+        "municipio": "Huelva",
+        "provincia": "Huelva"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200014977",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            152325.86,
+            4133096.94
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200014977,
+        "nombre": "HOSPITAL VAZQUEZ DIAZ",
+        "tipo": "Hospital",
+        "sistema_sa": "Público",
+        "direccion": "CTRA DE SEVILLA S/N",
+        "localidad": "Hospital Juan Ramón Jiménez",
+        "cod_mun": "21041",
+        "municipio": "Huelva",
+        "provincia": "Huelva"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200014978",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            182788.06,
+            4177873.85
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200014978,
+        "nombre": "HOSPITAL DE RIOTINTO",
+        "tipo": "Hospital",
+        "sistema_sa": "Público",
+        "direccion": "AV LA ESQUILA 5",
+        "localidad": "Minas de Riotinto",
+        "cod_mun": "21049",
+        "municipio": "Minas de Riotinto",
+        "provincia": "Huelva"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200014979",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            431427.04,
+            4183450.31
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200014979,
+        "nombre": "HOSPITAL NEUROTRAUMATOLOGICO DEL H. U. DE JAEN",
+        "tipo": "Hospital",
+        "sistema_sa": "Público",
+        "direccion": "CTRA BAILEN-MOTRIL S/N",
+        "localidad": "Hospital Universitario",
+        "cod_mun": "23050",
+        "municipio": "Jaén",
+        "provincia": "Jaén"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200014980",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            427964.07,
+            4180674.91
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200014980,
+        "nombre": "HOSPITAL DOCTOR SAGAZ",
+        "tipo": "Hospital",
+        "sistema_sa": "Público",
+        "direccion": "CTRA DEL NEVERAL S/N",
+        "localidad": "El Neveral",
+        "cod_mun": "23050",
+        "municipio": "Jaén",
+        "provincia": "Jaén"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200014981",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            443581.64,
+            4215839.06
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200014981,
+        "nombre": "HOSPITAL SAN AGUSTIN",
+        "tipo": "Hospital",
+        "sistema_sa": "Público",
+        "direccion": "AV DE SAN CRISTOBAL S/N",
+        "localidad": "Linares",
+        "cod_mun": "23055",
+        "municipio": "Linares",
+        "provincia": "Jaén"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200014982",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            466290.00237162,
+            4208083.22507782
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200014982,
+        "nombre": "HOSPITAL SAN JUAN DE LA CRUZ",
+        "tipo": "Hospital",
+        "sistema_sa": "Público",
+        "direccion": "AV CIUDAD DE LINARES 41",
+        "localidad": "Úbeda",
+        "cod_mun": "23092",
+        "municipio": "Úbeda",
+        "provincia": "Jaén"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200014983",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            409509.64,
+            4210765.42
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200014983,
+        "nombre": "HOSPITAL ALTO GUADALQUIVIR",
+        "tipo": "Hospital",
+        "sistema_sa": "Público",
+        "direccion": "AV DE BLAS INFANTE S/N",
+        "localidad": "Hospital Alto Guadalquivir",
+        "cod_mun": "23005",
+        "municipio": "Andújar",
+        "provincia": "Jaén"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200014984",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            518601.7,
+            4245813.24
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200014984,
+        "nombre": "HOSPITAL DE ALTA RESOLUCION SIERRA DE SEGURA",
+        "tipo": "Hospital",
+        "sistema_sa": "Público",
+        "direccion": "CTRA PUENTE DE GENAVE A PUERTA DEL SEGURA KM 0300",
+        "localidad": "Hospital de Alta Resolución Sierra de Segura",
+        "cod_mun": "23071",
+        "municipio": "Puente de Génave",
+        "provincia": "Jaén"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200014985",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            404558.96,
+            4160534.86
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200014985,
+        "nombre": "HOSPITAL DE ALTA RESOLUCION DE ALCAUDETE",
+        "tipo": "Hospital",
+        "sistema_sa": "Público",
+        "direccion": "CAMINO VIEJO DE LA FUENSANTA 2",
+        "localidad": "Alcaudete",
+        "cod_mun": "23003",
+        "municipio": "Alcaudete",
+        "provincia": "Jaén"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200014986",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            417654.41,
+            4145687.9
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200014986,
+        "nombre": "HOSPITAL DE ALTA RESOLUCION DE ALCALA LA REAL",
+        "tipo": "Hospital",
+        "sistema_sa": "Público",
+        "direccion": "IBEROAMERICA S/N",
+        "localidad": "Alcalá la Real",
+        "cod_mun": "23002",
+        "municipio": "Alcalá la Real",
+        "provincia": "Jaén"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200014987",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            336436.02,
+            4041804.08
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200014987,
+        "nombre": "HOSPITAL COSTA DEL SOL",
+        "tipo": "Hospital",
+        "sistema_sa": "Público",
+        "direccion": "AUTOVIA A-7 KM. 187",
+        "localidad": "Hospital Costa del Sol",
+        "cod_mun": "29069",
+        "municipio": "Marbella",
+        "provincia": "Málaga"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200014988",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            370591.18,
+            4065117.75
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200014988,
+        "nombre": "HOSPITAL GENERAL DEL H.U.R. DE MALAGA",
+        "tipo": "Hospital",
+        "sistema_sa": "Público",
+        "direccion": "AV CARLOS HAYA S/N",
+        "localidad": "Málaga",
+        "cod_mun": "29067",
+        "municipio": "Málaga",
+        "provincia": "Málaga"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200014989",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            372097.96370001,
+            4065779.81740075
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200014989,
+        "nombre": "HOSPITAL MATERNO-INFANTIL DEL H.U.R. DE MALAGA",
+        "tipo": "Hospital",
+        "sistema_sa": "Público",
+        "direccion": "ARROYO DE LOS ANGELES S/N",
+        "localidad": "Málaga",
+        "cod_mun": "29067",
+        "municipio": "Málaga",
+        "provincia": "Málaga"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200014990",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            372232.01,
+            4065555.01
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200014990,
+        "nombre": "HOSPITAL CIVIL",
+        "tipo": "Hospital",
+        "sistema_sa": "Público",
+        "direccion": "PLAZA HOSPITAL CIVIL S/N",
+        "localidad": "Málaga",
+        "cod_mun": "29067",
+        "municipio": "Málaga",
+        "provincia": "Málaga"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200014991",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            350698.74606022,
+            4065268.94693511
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200014991,
+        "nombre": "HOSPITAL VALLE DEL GUADALHORCE DE CARTAMA",
+        "tipo": "Hospital",
+        "sistema_sa": "Público",
+        "direccion": "AUTOVIA A-357 (AUTOVIA DEL GUADALHORCE)",
+        "localidad": "Hospital Valle del Guadalhorce",
+        "cod_mun": "29038",
+        "municipio": "Cártama",
+        "provincia": "Málaga"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200014992",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            366952.62,
+            4055696.54
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200014992,
+        "nombre": "HOSPITAL MARITIMO DE TORREMOLINOS",
+        "tipo": "Hospital",
+        "sistema_sa": "Público",
+        "direccion": "CL SANATORIO 5",
+        "localidad": "Torremolinos",
+        "cod_mun": "29901",
+        "municipio": "Torremolinos",
+        "provincia": "Málaga"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200014993",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            368027.25,
+            4064714.54
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200014993,
+        "nombre": "HOSPITAL VIRGEN DE LA VICTORIA",
+        "tipo": "Hospital",
+        "sistema_sa": "Público",
+        "direccion": "AV CAMPUS UNIVERSITARIO TEATINOS S/N",
+        "localidad": "Málaga",
+        "cod_mun": "29067",
+        "municipio": "Málaga",
+        "provincia": "Málaga"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200014994",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            402694.35,
+            4067868.55
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200014994,
+        "nombre": "HOSPITAL LA AXARQUIA",
+        "tipo": "Hospital",
+        "sistema_sa": "Público",
+        "direccion": "UR EL TOMILLAR S/N",
+        "localidad": "El Tomillar",
+        "cod_mun": "29094",
+        "municipio": "Vélez-Málaga",
+        "provincia": "Málaga"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200014995",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            360707.99,
+            4051579.48
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200014995,
+        "nombre": "HOSPITAL DE ALTA RESOLUCION DE BENALMADENA",
+        "tipo": "Hospital",
+        "sistema_sa": "Público",
+        "direccion": "AV ARROYO HONDO S/N",
+        "localidad": "Arroyo de la Miel-Benalmadena Costa",
+        "cod_mun": "29025",
+        "municipio": "Benalmádena",
+        "provincia": "Málaga"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200014996",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            308287.45,
+            4066146.73
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200014996,
+        "nombre": "HOSPITAL LA SERRANIA",
+        "tipo": "Hospital",
+        "sistema_sa": "Público",
+        "direccion": "CTRA RONDA - SAN PEDRO KM 2",
+        "localidad": "Hospital Comarcal",
+        "cod_mun": "29084",
+        "municipio": "Ronda",
+        "provincia": "Málaga"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200014997",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            236490.98,
+            4137049.03
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200014997,
+        "nombre": "FREMAP, HOSPITAL Y CENTRO DE REHABILITACION DE SEVILLA",
+        "tipo": "Hospital",
+        "sistema_sa": "Privado",
+        "direccion": "AVENIDA DE JEREZ S/N",
+        "localidad": "Sevilla",
+        "cod_mun": "41091",
+        "municipio": "Sevilla",
+        "provincia": "Sevilla"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200014998",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            314028.62099872,
+            4122742.26999894
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200014998,
+        "nombre": "HOSPITAL LA MERCED",
+        "tipo": "Hospital",
+        "sistema_sa": "Público",
+        "direccion": "AV DE LA CONSTITUCION 2",
+        "localidad": "Osuna",
+        "cod_mun": "41068",
+        "municipio": "Osuna",
+        "provincia": "Sevilla"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200014999",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            242911.09,
+            4131920.97
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200014999,
+        "nombre": "HOSPITAL EL TOMILLAR",
+        "tipo": "Hospital",
+        "sistema_sa": "Público",
+        "direccion": "CTRA ALCALA-DOS HERMANAS KM.6",
+        "localidad": "El Tomillar",
+        "cod_mun": "41004",
+        "municipio": "Alcalá de Guadaíra",
+        "provincia": "Sevilla"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200015000",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            236713.17,
+            4134387.52
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200015000,
+        "nombre": "HOSPITAL VIRGEN DE VALME",
+        "tipo": "Hospital",
+        "sistema_sa": "Público",
+        "direccion": "CTRA DE CADIZ KM. 548,9",
+        "localidad": "Sevilla",
+        "cod_mun": "41091",
+        "municipio": "Sevilla",
+        "provincia": "Sevilla"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200015001",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            235984.46000114,
+            4145004.96200074
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200015001,
+        "nombre": "HOSPITAL SAN LAZARO",
+        "tipo": "Hospital",
+        "sistema_sa": "Público",
+        "direccion": "AV DR. FEDRIANI 56",
+        "localidad": "Sevilla",
+        "cod_mun": "41091",
+        "municipio": "Sevilla",
+        "provincia": "Sevilla"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200015002",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            235644.98,
+            4144121.73
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200015002,
+        "nombre": "HOSPITAL VIRGEN MACARENA",
+        "tipo": "Hospital",
+        "sistema_sa": "Público",
+        "direccion": "AV DR. FEDRIANI 3",
+        "localidad": "Sevilla",
+        "cod_mun": "41091",
+        "municipio": "Sevilla",
+        "provincia": "Sevilla"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200015003",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            236317.63,
+            4139236.58
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200015003,
+        "nombre": "HOSPITAL INFANTIL",
+        "tipo": "Hospital",
+        "sistema_sa": "Público",
+        "direccion": "AV MANUEL SIUROT S/N",
+        "localidad": "Sevilla",
+        "cod_mun": "41091",
+        "municipio": "Sevilla",
+        "provincia": "Sevilla"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200015004",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            236165.46,
+            4139160.47
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200015004,
+        "nombre": "HOSPITAL DE REHABILITACION Y TRAUMATOLOGIA DEL H.U. VIRGEN DEL ROCIO",
+        "tipo": "Hospital",
+        "sistema_sa": "Público",
+        "direccion": "AV MANUEL SIUROT S/N",
+        "localidad": "Sevilla",
+        "cod_mun": "41091",
+        "municipio": "Sevilla",
+        "provincia": "Sevilla"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200015005",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            235414.27,
+            4139338.95
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200015005,
+        "nombre": "HOSPITAL DUQUES DEL INFANTADO",
+        "tipo": "Hospital",
+        "sistema_sa": "Público",
+        "direccion": "AV SOR GREGORIA DE STA. TERESA S/N",
+        "localidad": "Sevilla",
+        "cod_mun": "41091",
+        "municipio": "Sevilla",
+        "provincia": "Sevilla"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200015006",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            236249.94,
+            4139293.07
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200015006,
+        "nombre": "HOSPITAL DE LA MUJER",
+        "tipo": "Hospital",
+        "sistema_sa": "Público",
+        "direccion": "AV MANUEL SIUROT S/N",
+        "localidad": "Sevilla",
+        "cod_mun": "41091",
+        "municipio": "Sevilla",
+        "provincia": "Sevilla"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200015007",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            236024.66,
+            4139170.3
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200015007,
+        "nombre": "HOSPITAL GENERAL DEL H.U. VIRGEN DEL ROCIO",
+        "tipo": "Hospital",
+        "sistema_sa": "Público",
+        "direccion": "AV MANUEL SIUROT S/N",
+        "localidad": "Sevilla",
+        "cod_mun": "41091",
+        "municipio": "Sevilla",
+        "provincia": "Sevilla"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200015008",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            248090.89,
+            4141897.44
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200015008,
+        "nombre": "HOSPITAL PSIQUIATRICO PENITENCIARIO",
+        "tipo": "Hospital",
+        "sistema_sa": "Público",
+        "direccion": "CTRA TORREBLANCA-MAIRENA DEL ALCOR KM 3,5",
+        "localidad": "Centro Penitenciario",
+        "cod_mun": "41091",
+        "municipio": "Sevilla",
+        "provincia": "Sevilla"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200015009",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            281947.907,
+            4110688.696
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200015009,
+        "nombre": "HOSPITAL DE ALTA RESOLUCION DE MORON DE LA FRONTERA",
+        "tipo": "Hospital",
+        "sistema_sa": "Público",
+        "direccion": "PZ SAN FRANCISCO S/N",
+        "localidad": "Morón de la Frontera",
+        "cod_mun": "41065",
+        "municipio": "Morón de la Frontera",
+        "provincia": "Sevilla"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200015010",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            226873.4,
+            4140726.38
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200015010,
+        "nombre": "HOSPITAL SAN JUAN DE DIOS",
+        "tipo": "Hospital",
+        "sistema_sa": "Público",
+        "direccion": "AV SAN JUAN DE DIOS S/N",
+        "localidad": "Bormujos",
+        "cod_mun": "41017",
+        "municipio": "Bormujos",
+        "provincia": "Sevilla"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200015011",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            252786.45,
+            4118042.71
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200015011,
+        "nombre": "HOSPITAL DE ALTA RESOLUCION DE UTRERA",
+        "tipo": "Hospital",
+        "sistema_sa": "Público",
+        "direccion": "AV BRIGADAS INTERNACIONALES S/N",
+        "localidad": "Utrera",
+        "cod_mun": "41095",
+        "municipio": "Utrera",
+        "provincia": "Sevilla"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200015012",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            269589.23,
+            4193768.12
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200015012,
+        "nombre": "HOSPITAL DE ALTA RESOLUCION SIERRA NORTE",
+        "tipo": "Hospital",
+        "sistema_sa": "Público",
+        "direccion": "CTRA DEL PEDROSO S/N",
+        "localidad": "Constantina",
+        "cod_mun": "41033",
+        "municipio": "Constantina",
+        "provincia": "Sevilla"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200015013",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            226324.96,
+            4089377.5
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200015013,
+        "nombre": "HOSPITAL DE ALTA RESOLUCION DE LEBRIJA",
+        "tipo": "Hospital",
+        "sistema_sa": "Público",
+        "direccion": "AV EL CUERVO S/N",
+        "localidad": "Lebrija",
+        "cod_mun": "41053",
+        "municipio": "Lebrija",
+        "provincia": "Sevilla"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200015014",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            315108.09,
+            4156012.15
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200015014,
+        "nombre": "HOSPITAL DE ALTA RESOLUCION DE ECIJA",
+        "tipo": "Hospital",
+        "sistema_sa": "Público",
+        "direccion": "AV SANCHEZ MALO 73",
+        "localidad": "Hospital",
+        "cod_mun": "41039",
+        "municipio": "Écija",
+        "provincia": "Sevilla"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200015015",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            232113.15271356,
+            4015897.42172738
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200015015,
+        "nombre": "HOSPITAL DE ALTA RESOLUCION LA JANDA",
+        "tipo": "Hospital",
+        "sistema_sa": "Público",
+        "direccion": "CT A-2230,S/N",
+        "localidad": "No disponible",
+        "cod_mun": "11039",
+        "municipio": "Vejer de la Frontera",
+        "provincia": "Cádiz"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200015016",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            206765.37119806,
+            4044645.30439408
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200015016,
+        "nombre": "HOSPITAL DOCTOR LOPEZ CANO",
+        "tipo": "Hospital",
+        "sistema_sa": "Privado",
+        "direccion": "PLAZA DE MADRID,S/N",
+        "localidad": "Cádiz",
+        "cod_mun": "11012",
+        "municipio": "Cádiz",
+        "provincia": "Cádiz"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200015017",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            498705.5198551,
+            4196462.56487487
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200015017,
+        "nombre": "HOSPITAL DE ALTA RESOLUCION SIERRA DE CAZORLA",
+        "tipo": "Hospital",
+        "sistema_sa": "Público",
+        "direccion": "A-319 CAZORLA-PEAL DEL BECERRO",
+        "localidad": "Centro Hospitalario de Alta Resolución de Cazorla",
+        "cod_mun": "23028",
+        "municipio": "Cazorla",
+        "provincia": "Jaén"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200015018",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            235620.02389731,
+            4142193.89004007
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200015018,
+        "nombre": "ITA CLINIC BCN",
+        "tipo": "Hospital",
+        "sistema_sa": "Privado",
+        "direccion": "CALLE VIDRIO 32",
+        "localidad": "Sevilla",
+        "cod_mun": "41091",
+        "municipio": "Sevilla",
+        "provincia": "Sevilla"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200015019",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            229107.44499021,
+            4131051.29758606
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200015019,
+        "nombre": "CLÍNICA ADINFA",
+        "tipo": "Hospital",
+        "sistema_sa": "Privado",
+        "direccion": "CALLE MARIA JESUS 3",
+        "localidad": "Coria del Río",
+        "cod_mun": "41034",
+        "municipio": "Coria del Río",
+        "provincia": "Sevilla"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200015020",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            236742.83952523,
+            4137401.19809272
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200015020,
+        "nombre": "HOSPITAL DOCTOR MUÑOZ CARIÑANOS",
+        "tipo": "Hospital",
+        "sistema_sa": "Público",
+        "direccion": "AV DE JEREZ S/N",
+        "localidad": "Sevilla",
+        "cod_mun": "41091",
+        "municipio": "Sevilla",
+        "provincia": "Sevilla"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200015021",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            302989.47669652,
+            4031876.75418334
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200015021,
+        "nombre": "HOSPITAL DE ALTA RESOLUCION DE ESTEPONA",
+        "tipo": "Hospital",
+        "sistema_sa": "Público",
+        "direccion": "CL IRENE VILLA GONZALEZ 9",
+        "localidad": "Santa María",
+        "cod_mun": "29051",
+        "municipio": "Estepona",
+        "provincia": "Málaga"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200015022",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            366504.08367809,
+            4138994.35319621
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200015022,
+        "nombre": "HOSPITAL CENTRO DE ANDALUCIA",
+        "tipo": "Hospital",
+        "sistema_sa": "Privado",
+        "direccion": "CALLE PONTEVEDRA 1",
+        "localidad": "Parque Empresarial Príncipe Felipe",
+        "cod_mun": "14038",
+        "municipio": "Lucena",
+        "provincia": "Córdoba"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200015023",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            431427.04,
+            4183450.31
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200015023,
+        "nombre": "HOSPITAL PUERTA DE ANDALUCIA",
+        "tipo": "Hospital",
+        "sistema_sa": "Público",
+        "direccion": "CTRA BAILEN-MOTRIL S/N",
+        "localidad": "Hospital Universitario",
+        "cod_mun": "23050",
+        "municipio": "Jaén",
+        "provincia": "Jaén"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200015024",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            549671.11343221,
+            4079762.72478097
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200015024,
+        "nombre": "HOSPITAL MATERNO INFANTIL",
+        "tipo": "Hospital",
+        "sistema_sa": "Público",
+        "direccion": "CL HERMANDAD DONANTE DE SANGRE S/N",
+        "localidad": "Almería",
+        "cod_mun": "04013",
+        "municipio": "Almería",
+        "provincia": "Almería"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200015025",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            299966.05928303,
+            4175172.62117987
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200015025,
+        "nombre": "HOSPITAL DE PALMA DEL RIO",
+        "tipo": "Hospital",
+        "sistema_sa": "Público",
+        "direccion": "AV V CALIFA S/N",
+        "localidad": "El Vínculo",
+        "cod_mun": "14049",
+        "municipio": "Palma del Río",
+        "provincia": "Córdoba"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200015026",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            204937.7,
+            4048010.43
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200015026,
+        "nombre": "HOSPITAL NUESTRA SEÑORA DE LA SALUD HLA,SL",
+        "tipo": "Hospital",
+        "sistema_sa": "Privado",
+        "direccion": "CALLE FEDUCHY 8",
+        "localidad": "Cádiz",
+        "cod_mun": "11012",
+        "municipio": "Cádiz",
+        "provincia": "Cádiz"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200015027",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            446274.41443841,
+            4115963.21387239
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200015027,
+        "nombre": "HOSPITAL DR. OLORIZ",
+        "tipo": "Hospital",
+        "sistema_sa": "No disponible",
+        "direccion": "AV DE MADRID 15",
+        "localidad": "Granada",
+        "cod_mun": "18087",
+        "municipio": "Granada",
+        "provincia": "Granada"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200015028",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            427187.56393923,
+            4182173.10292547
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200015028,
+        "nombre": "HOSPITAL METROPOLITANO DE JAEN",
+        "tipo": "Hospital",
+        "sistema_sa": "No disponible",
+        "direccion": "CTRA CORDOBA VALENCIA S/N",
+        "localidad": "Hotel La Imora",
+        "cod_mun": "23050",
+        "municipio": "Jaén",
+        "provincia": "Jaén"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200015029",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            330942.87783871,
+            4042049.81123204
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200015029,
+        "nombre": "CLINICA PREMIUM COSTA DEL SOL SL",
+        "tipo": "Hospital",
+        "sistema_sa": "No disponible",
+        "direccion": "CL SAN JUAN BOSCO 8",
+        "localidad": "Marbella",
+        "cod_mun": "29069",
+        "municipio": "Marbella",
+        "provincia": "Málaga"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200015030",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            342630.48898126,
+            4196616.14735047
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200015030,
+        "nombre": "CLINICA BAU,SL",
+        "tipo": "Hospital",
+        "sistema_sa": "No disponible",
+        "direccion": "AV DEL BRILLANTE 91",
+        "localidad": "Córdoba",
+        "cod_mun": "14021",
+        "municipio": "Córdoba",
+        "provincia": "Córdoba"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200015031",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            548902.88943195,
+            4078160.83008579
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200015031,
+        "nombre": "C.P.E. Bola Azul",
+        "tipo": "Centro de consultas externas",
+        "sistema_sa": "Público",
+        "direccion": "CT CTRA. DE RONDA, 226",
+        "localidad": "Almería",
+        "cod_mun": "04013",
+        "municipio": "Almería",
+        "provincia": "Almería"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200015032",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            547442.15,
+            4076948.44
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200015032,
+        "nombre": "Centro de Alta Resolución Nicolas Salmerón",
+        "tipo": "Centro de consultas externas",
+        "sistema_sa": "Público",
+        "direccion": "CL HOSPITAL, 3",
+        "localidad": "Almería",
+        "cod_mun": "04013",
+        "municipio": "Almería",
+        "provincia": "Almería"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200015033",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            279520.07,
+            4001523.73
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200015033,
+        "nombre": "C.P.E. Algeciras Centro",
+        "tipo": "Centro de consultas externas",
+        "sistema_sa": "Público",
+        "direccion": "PZ PZA. MENÉNDEZ TOLOSA, S/N",
+        "localidad": "Algeciras",
+        "cod_mun": "11004",
+        "municipio": "Algeciras",
+        "provincia": "Cádiz"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200015034",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            249243.5,
+            4071127.2
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200015034,
+        "nombre": "Centro de Rehabilitación de Arcos de la Frontera",
+        "tipo": "Centro de consultas externas",
+        "sistema_sa": "Público",
+        "direccion": "CL GRAZALEMA, S/N",
+        "localidad": "Arcos de la Frontera",
+        "cod_mun": "11006",
+        "municipio": "Arcos de la Frontera",
+        "provincia": "Cádiz"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200015035",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            250257.53280397,
+            4069984.30935426
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200015035,
+        "nombre": "C.P.E. Arcos de la Frontera",
+        "tipo": "Centro de consultas externas",
+        "sistema_sa": "Público",
+        "direccion": "CL CALVARIO, S/N",
+        "localidad": "Arcos de la Frontera",
+        "cod_mun": "11006",
+        "municipio": "Arcos de la Frontera",
+        "provincia": "Cádiz"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200015036",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            205119.4,
+            4047906.94
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200015036,
+        "nombre": "C.P.E. de Cádiz",
+        "tipo": "Centro de consultas externas",
+        "sistema_sa": "Público",
+        "direccion": "PZ MENDIZABAL, 2",
+        "localidad": "Cádiz",
+        "cod_mun": "11012",
+        "municipio": "Cádiz",
+        "provincia": "Cádiz"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200015037",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            217577.39,
+            4035259.83
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200015037,
+        "nombre": "C.P.E. de Chiclana de la Frontera",
+        "tipo": "Centro de consultas externas",
+        "sistema_sa": "Público",
+        "direccion": "PG LA LONGUERA, ",
+        "localidad": "Chiclana de la Frontera",
+        "cod_mun": "11015",
+        "municipio": "Chiclana de la Frontera",
+        "provincia": "Cádiz"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200015038",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            300201.21395451,
+            4175086.18196315
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200015038,
+        "nombre": "Centro Consultas Externas Palma del Río",
+        "tipo": "Centro de consultas externas",
+        "sistema_sa": "Público",
+        "direccion": "AV FÉLIX RODRIGUEZ DE LA FUENTE, S/N",
+        "localidad": "El Vínculo",
+        "cod_mun": "14049",
+        "municipio": "Palma del Río",
+        "provincia": "Córdoba"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200015039",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            289444.68,
+            4005309.62
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200015039,
+        "nombre": "C.P.E. de La Línea de La Concepción",
+        "tipo": "Centro de consultas externas",
+        "sistema_sa": "Público",
+        "direccion": "AV AVDA. MENÉNDEZ PELAYO, S/N",
+        "localidad": "La Línea de la Concepción",
+        "cod_mun": "11022",
+        "municipio": "La Línea de la Concepción",
+        "provincia": "Cádiz"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200015040",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            211010.16,
+            4054537.74
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200015040,
+        "nombre": "C.P.E. de El Puerto de Sta. María",
+        "tipo": "Centro de consultas externas",
+        "sistema_sa": "Público",
+        "direccion": "AV AVDA. DE LA CONSTITUCIÓN, 4",
+        "localidad": "El Puerto de Santa María",
+        "cod_mun": "11027",
+        "municipio": "El Puerto de Santa María",
+        "provincia": "Cádiz"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200015041",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            200928.79,
+            4075687.99
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200015041,
+        "nombre": "C.P.E. de Sanlúcar de Barrameda",
+        "tipo": "Centro de consultas externas",
+        "sistema_sa": "Público",
+        "direccion": "CI CARRIL DE SAN DIEGO, S/N",
+        "localidad": "Sanlúcar de Barrameda",
+        "cod_mun": "11032",
+        "municipio": "Sanlúcar de Barrameda",
+        "provincia": "Cádiz"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200015042",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            264019.159,
+            4082523.891
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200015042,
+        "nombre": "C.P.E. de Villamartín",
+        "tipo": "Centro de consultas externas",
+        "sistema_sa": "Público",
+        "direccion": "AV AVDA. DE LA FERIA, S/N",
+        "localidad": "Villamartín",
+        "cod_mun": "11041",
+        "municipio": "Villamartín",
+        "provincia": "Cádiz"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200015043",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            341899.933401,
+            4194846.64181
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200015043,
+        "nombre": "Centro de Alta Resolucion Carlos Castilla del Pino",
+        "tipo": "Centro de consultas externas",
+        "sistema_sa": "Público",
+        "direccion": "CL ISLA LANZAROTE, S/N",
+        "localidad": "Córdoba",
+        "cod_mun": "14021",
+        "municipio": "Córdoba",
+        "provincia": "Córdoba"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200015044",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            341797.48,
+            4192665.62
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200015044,
+        "nombre": "Centro de Consultas Externas",
+        "tipo": "Centro de consultas externas",
+        "sistema_sa": "Público",
+        "direccion": "AV MENÉNDEZ PIDAL, S/N",
+        "localidad": "Córdoba",
+        "cod_mun": "14021",
+        "municipio": "Córdoba",
+        "provincia": "Córdoba"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200015045",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            446050.64485633,
+            4116357.6707462
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200015045,
+        "nombre": "C.P.E. Cartuja de Granada",
+        "tipo": "Centro de consultas externas",
+        "sistema_sa": "Público",
+        "direccion": "CT CTRA. DE JAÉN, S/N",
+        "localidad": "Granada",
+        "cod_mun": "18087",
+        "municipio": "Granada",
+        "provincia": "Granada"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200015046",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            445936.97511938,
+            4116004.77701729
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200015046,
+        "nombre": "Centro de consultas externas del Hospital Universitario Virgen de las Nieves",
+        "tipo": "Centro de consultas externas",
+        "sistema_sa": "Público",
+        "direccion": "CALLE DOCTOR AZPITARTE, 4",
+        "localidad": "Granada",
+        "cod_mun": "18087",
+        "municipio": "Granada",
+        "provincia": "Granada"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200015047",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            446249.04744117,
+            4115984.84439094
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200015047,
+        "nombre": "Unidad de Cirugía de Alta Resolución",
+        "tipo": "Centro de consultas externas",
+        "sistema_sa": "Público",
+        "direccion": "AV DR. OLARIZ, S/N",
+        "localidad": "Granada",
+        "cod_mun": "18087",
+        "municipio": "Granada",
+        "provincia": "Granada"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200015048",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            398420.55,
+            4113757.57
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200015048,
+        "nombre": "C.P.E. de Loja",
+        "tipo": "Centro de consultas externas",
+        "sistema_sa": "Público",
+        "direccion": "AV PÉREZ DEL ÁLAMO, 26",
+        "localidad": "Loja",
+        "cod_mun": "18122",
+        "municipio": "Loja",
+        "provincia": "Granada"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200015049",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            150720.2,
+            4131004.4
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200015049,
+        "nombre": "Centro de consultas externas de Plaza Houston",
+        "tipo": "Centro de consultas externas",
+        "sistema_sa": "Público",
+        "direccion": "PLAZA HOUSTON, 11",
+        "localidad": "Huelva",
+        "cod_mun": "21041",
+        "municipio": "Huelva",
+        "provincia": "Huelva"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200015050",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            150042.12,
+            4130725.88
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200015050,
+        "nombre": "Centro de consultas externas de Virgen de la Cinta",
+        "tipo": "Centro de consultas externas",
+        "sistema_sa": "Público",
+        "direccion": "AVENIDA CUESTA CRISTO DE LAS TRES CAIDAS",
+        "localidad": "Huelva",
+        "cod_mun": "21041",
+        "municipio": "Huelva",
+        "provincia": "Huelva"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200015051",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            430149.8,
+            4181144.98
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200015051,
+        "nombre": "Centro de Diagnóstico y Tratamiento del Hospital de Jaén",
+        "tipo": "Centro de consultas externas",
+        "sistema_sa": "Público",
+        "direccion": "AV EJÉRCITO ESPAÑOL, 10",
+        "localidad": "Jaén",
+        "cod_mun": "23050",
+        "municipio": "Jaén",
+        "provincia": "Jaén"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200015052",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            444197.79783401,
+            4216914.88976318
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200015052,
+        "nombre": "C.P.E. de Linares",
+        "tipo": "Centro de consultas externas",
+        "sistema_sa": "Público",
+        "direccion": "AV AVDA. DE SAN SEBASTIÁN, S/N",
+        "localidad": "Linares",
+        "cod_mun": "23055",
+        "municipio": "Linares",
+        "provincia": "Jaén"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200015053",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            467125.53543057,
+            4207390.08438688
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200015053,
+        "nombre": "C.P.E. de Úbeda",
+        "tipo": "Centro de consultas externas",
+        "sistema_sa": "Público",
+        "direccion": "AS EXPLANADA, S/N",
+        "localidad": "Úbeda",
+        "cod_mun": "23092",
+        "municipio": "Úbeda",
+        "provincia": "Jaén"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200015054",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            492796.74,
+            4218892.34
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200015054,
+        "nombre": "C.P.E. de Villacarrillo",
+        "tipo": "Centro de consultas externas",
+        "sistema_sa": "Público",
+        "direccion": "CT CTRA. CÓRDOBA-VALENCIA, ",
+        "localidad": "Villacarrillo",
+        "cod_mun": "23095",
+        "municipio": "Villacarrillo",
+        "provincia": "Jaén"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200015055",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            372683.74,
+            4063957.23
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200015055,
+        "nombre": "C.P.E. José Estrada",
+        "tipo": "Centro de consultas externas",
+        "sistema_sa": "Público",
+        "direccion": "AV MANUEL AGUSTIN HEREDIA, 34",
+        "localidad": "Málaga",
+        "cod_mun": "29067",
+        "municipio": "Málaga",
+        "provincia": "Málaga"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200015056",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            370817.24,
+            4063936.61
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200015056,
+        "nombre": "C.P.E. San José Obrero",
+        "tipo": "Centro de consultas externas",
+        "sistema_sa": "Público",
+        "direccion": "AV JUAN XXIII, 74",
+        "localidad": "Málaga",
+        "cod_mun": "29067",
+        "municipio": "Málaga",
+        "provincia": "Málaga"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200015057",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            446626.17523213,
+            4236536.41672962
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200015057,
+        "nombre": "Centro Consultas Externas La Carolina",
+        "tipo": "Centro de consultas externas",
+        "sistema_sa": "Público",
+        "direccion": "CL DR. FLEMING, 5",
+        "localidad": "La Carolina",
+        "cod_mun": "23024",
+        "municipio": "La Carolina",
+        "provincia": "Jaén"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200015058",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            353076.95,
+            4045528.43
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200015058,
+        "nombre": "Centro de Alta Resolución de Mijas",
+        "tipo": "Centro de consultas externas",
+        "sistema_sa": "Público",
+        "direccion": "AV AV DE LAS MARGARITAS, ESQUINA CALLE ALBERO, S/N",
+        "localidad": "Las Lagunas",
+        "cod_mun": "29070",
+        "municipio": "Mijas",
+        "provincia": "Málaga"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200015059",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            248740.76,
+            4135989.91
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200015059,
+        "nombre": "C.P.E.Ntra. Sra. del Aguila de Alcalá de Guadaira",
+        "tipo": "Centro de consultas externas",
+        "sistema_sa": "Público",
+        "direccion": "AV SANTANDER, S/N",
+        "localidad": "Alcalá de Guadaíra",
+        "cod_mun": "41004",
+        "municipio": "Alcalá de Guadaíra",
+        "provincia": "Sevilla"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200015060",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            240798.33,
+            4130210.13
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200015060,
+        "nombre": "C.P.E. Santa Ana de Dos Hermanas",
+        "tipo": "Centro de consultas externas",
+        "sistema_sa": "Público",
+        "direccion": "AV ANTONIA DÍAZ, 19",
+        "localidad": "Dos Hermanas",
+        "cod_mun": "41038",
+        "municipio": "Dos Hermanas",
+        "provincia": "Sevilla"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200015061",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            316677.71345825,
+            4156400.34077577
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200015061,
+        "nombre": "C.P.E. de Écija",
+        "tipo": "Centro de consultas externas",
+        "sistema_sa": "Público",
+        "direccion": "AV AVDA. DEL GENIL, 2",
+        "localidad": "Écija",
+        "cod_mun": "41039",
+        "municipio": "Écija",
+        "provincia": "Sevilla"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200015062",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            333406.18550775,
+            4129380.98575023
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200015062,
+        "nombre": "Centro de consultas externas de Estepa",
+        "tipo": "Centro de consultas externas",
+        "sistema_sa": "Público",
+        "direccion": "CALLE MÉDICO ANTONIO VILCHES, S/N",
+        "localidad": "Estepa",
+        "cod_mun": "41041",
+        "municipio": "Estepa",
+        "provincia": "Sevilla"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200015063",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            285478.33,
+            4134582.987
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200015063,
+        "nombre": "Centro de consultas externas de Marchena",
+        "tipo": "Centro de consultas externas",
+        "sistema_sa": "Público",
+        "direccion": "AVENIDA MAESTRO SANTOS RUANO, S/N",
+        "localidad": "Marchena",
+        "cod_mun": "41060",
+        "municipio": "Marchena",
+        "provincia": "Sevilla"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200015064",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            281239.2,
+            4111130.8
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200015064,
+        "nombre": "C.P.E.Inmacula Concepción de Morón de la Frontera",
+        "tipo": "Centro de consultas externas",
+        "sistema_sa": "Público",
+        "direccion": "PP PASEO DE LA ALAMEDA, 17",
+        "localidad": "Morón de la Frontera",
+        "cod_mun": "41065",
+        "municipio": "Morón de la Frontera",
+        "provincia": "Sevilla"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200015065",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            313441.73384777,
+            4105337.54895471
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200015065,
+        "nombre": "Centro de consultas externas de El Saucejo",
+        "tipo": "Centro de consultas externas",
+        "sistema_sa": "Público",
+        "direccion": "CALLE CARRETERA ECIJA-OLVERA, S/N",
+        "localidad": "El Saucejo",
+        "cod_mun": "41090",
+        "municipio": "El Saucejo",
+        "provincia": "Sevilla"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200015066",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            237257.95,
+            4141015.48
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200015066,
+        "nombre": "Centro de consultas externas de Doctor Fleming de Sevilla",
+        "tipo": "Centro de consultas externas",
+        "sistema_sa": "Público",
+        "direccion": "AVENIDA JUAN DE PADILLA, 8",
+        "localidad": "Sevilla",
+        "cod_mun": "41091",
+        "municipio": "Sevilla",
+        "provincia": "Sevilla"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200015067",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            235910.33,
+            4142808.81
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200015067,
+        "nombre": "C.P.E. Esperanza Macarena de Sevilla (María Auxiliadora)",
+        "tipo": "Centro de consultas externas",
+        "sistema_sa": "Público",
+        "direccion": "AV MARÍA AUXILIADORA, 4",
+        "localidad": "Sevilla",
+        "cod_mun": "41091",
+        "municipio": "Sevilla",
+        "provincia": "Sevilla"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200015068",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            234306.97,
+            4142417.67
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200015068,
+        "nombre": "C.P.E. Virgen de los Reyes de Sevilla",
+        "tipo": "Centro de consultas externas",
+        "sistema_sa": "Público",
+        "direccion": "AV MARQUÉS DE PARADAS, 49",
+        "localidad": "Sevilla",
+        "cod_mun": "41091",
+        "municipio": "Sevilla",
+        "provincia": "Sevilla"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200015069",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            236279.15,
+            4146871.67
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200015069,
+        "nombre": "C.P.E. San Jerónimo de Sevilla",
+        "tipo": "Centro de consultas externas",
+        "sistema_sa": "Público",
+        "direccion": "AV MEDINA GALNARES, 129",
+        "localidad": "Sevilla",
+        "cod_mun": "41091",
+        "municipio": "Sevilla",
+        "provincia": "Sevilla"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200015070",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            235614.49,
+            4144065.2
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200015070,
+        "nombre": "Policlínico Virgen Macarena",
+        "tipo": "Centro de consultas externas",
+        "sistema_sa": "Público",
+        "direccion": "AV AVDA. DR. FEDRIANI, 3",
+        "localidad": "Sevilla",
+        "cod_mun": "41091",
+        "municipio": "Sevilla",
+        "provincia": "Sevilla"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200015071",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            236097.01,
+            4139339.98
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200015071,
+        "nombre": "Centro de Diagnóstico y Tratamiento Virgen del Rocío",
+        "tipo": "Centro de consultas externas",
+        "sistema_sa": "Público",
+        "direccion": "AV AVDA. MANUEL SIUROT, S/N",
+        "localidad": "Sevilla",
+        "cod_mun": "41091",
+        "municipio": "Sevilla",
+        "provincia": "Sevilla"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "g12_02_Hospital_CAE.11213200015072",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [
+            258176.74332545,
+            4140947.61134966
+          ]
+        ]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "id_dera": 11213200015072,
+        "nombre": "Centro de Alta Resolución y Especialidades Los Alcores",
+        "tipo": "Centro de consultas externas",
+        "sistema_sa": "Público",
+        "direccion": "CM EL HIJUELILLO, S/N",
+        "localidad": "Mairena del Alcor",
+        "cod_mun": "41058",
+        "municipio": "Mairena del Alcor",
+        "provincia": "Sevilla"
+      }
     }
   ],
   "metadata": {
     "layer": "health",
     "name": "Centros Sanitarios",
-    "featuresCount": 1516,
-    "downloadedAt": "2025-12-02T22:48:56.445682Z",
+    "featuresCount": 1700,
+    "downloadedAt": "2025-12-02T23:06:49.615467Z",
     "sources": [
       "DERA_g12_servicios:g12_01_CentroSalud",
-      "DERA_g12_servicios:g12_02_CentroAtencionEspecializada"
+      "DERA_g12_servicios:g12_02_Hospital_CAE"
     ]
   }
 }

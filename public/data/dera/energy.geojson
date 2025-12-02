@@ -3709,9 +3709,8 @@
     "layer": "energy",
     "name": "Infraestructuras Energéticas",
     "featuresCount": 161,
-    "downloadedAt": "2025-12-02T22:48:56.801888Z",
+    "downloadedAt": "2025-12-02T23:06:50.867347Z",
     "sources": [
-      "DERA_g10_infra_energetica:g10_01_CentralTermicaConvencional",
       "DERA_g10_infra_energetica:g10_02_ParqueEolico"
     ]
   }
