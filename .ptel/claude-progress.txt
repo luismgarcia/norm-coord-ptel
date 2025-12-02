@@ -415,3 +415,77 @@ Análisis profundo de 13 documentos PTEL reales + Sistema validación multi-medi
 3. **D: Probar app con 13 documentos** - Validación empírica completa
 
 ---
+
+## 2025-12-02 - Sesión MapWizard (Opción C: Sistema Adaptativo)
+
+### Objetivo
+Implementar Sistema Adaptativo de Aprendizaje con IndexedDB + documentProfiler
+
+### Contexto
+- Usuario eligió Opción C (la más completa) de 3 opciones presentadas
+- Opción A: Parche rápido (3-6 patrones)
+- Opción B: Refactorizar + documentProfiler
+- **Opción C: Todo B + IndexedDB + sistema aprendizaje dinámico** ← ELEGIDA
+
+### Corrección importante
+- Andalucía tiene **785 municipios** (no 786)
+- Confirmado con datos oficiales INE/IECA (enero 2023/2024)
+- Corregido en toda la documentación
+
+### Trabajo realizado
+
+#### 1. PatternLearningStore.ts (F019)
+- **Archivo**: `src/lib/PatternLearningStore.ts` (580 líneas)
+- **Tecnología**: IndexedDB con Dexie.js
+- **Características**:
+  - Migración automática desde localStorage
+  - Cache LRU (100 entradas, 5min TTL)
+  - 4 tablas: patterns, profiles, municipioStats, events
+  - Estadísticas por municipio (785 andaluces)
+  - Exportación/importación de patrones comunitarios
+- **Funciones principales**:
+  - saveLearnedPattern(), getPattern(), getAllPatterns()
+  - getStablePatterns(), getPatternsByMunicipio()
+  - updatePatternUsage(), saveDocumentProfile()
+  - getMunicipioStats(), exportLearningData()
+
+#### 2. documentProfiler.ts (F020)
+- **Archivo**: `src/lib/documentProfiler.ts` (620 líneas)
+- **Características**:
+  - Análisis completo de documentos PTEL
+  - Detección formato decimal (coma/punto/mixto)
+  - Detección separador miles (punto/espacio/ninguno)
+  - Identificación corrupción UTF-8 (mojibake)
+  - Estadísticas por patrón detectado (Top 10)
+  - Recomendaciones automáticas de estrategia
+  - Integración con PatternLearningStore
+- **Funciones principales**:
+  - analizarDocumento() → ProfileAnalysisResult completo
+  - analizarDocumentoRapido() → Vista previa ligera
+  - sugerirEstrategia() → Recomendaciones de procesamiento
+
+### Commits realizados
+1. `feat(learning): añadir PatternLearningStore con IndexedDB (Dexie.js)`
+2. `feat(profiler): añadir documentProfiler.ts para detección automática de formato`
+3. `chore(.ptel): actualizar estado sesión v0.5.0 - Opción C completada`
+
+### Métricas actualizadas
+| Métrica | Valor |
+|---------|-------|
+| Versión | 0.5.0 |
+| Features | 18/20 (90%) |
+| Nuevos archivos | 2 (~1200 líneas) |
+| Municipios soportados | 785 |
+
+### Bloqueante identificado
+- **Dexie.js** debe estar instalado: `npm install dexie`
+- Si no está, PatternLearningStore.ts fallará al importar
+
+### Pendientes próxima sesión
+1. **HIGH**: Instalar Dexie.js (`npm install dexie`)
+2. **HIGH**: Añadir tests para PatternLearningStore (mockear IndexedDB)
+3. **MEDIUM**: Añadir tests para documentProfiler
+4. **MEDIUM**: Integrar documentProfiler en UI wizard Step 2
+5. **LOW**: Probar sistema con documentos reales (Berja, Hornos)
+
+---

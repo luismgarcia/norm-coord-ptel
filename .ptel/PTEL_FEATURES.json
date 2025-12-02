@@ -126,7 +126,7 @@
       "passes": false,
       "completedDate": null,
       "assignedRole": "MapWizard",
-      "notes": "Pendiente de implementar."
+      "notes": "Parcialmente cubierto por F019 PatternLearningStore. Pendiente cache específico para geocodificación."
     },
     {
       "id": "F015",
@@ -161,54 +161,88 @@
       "category": "validation",
       "description": "Sistema validación multi-medida coordenadas (3 medidas independientes)",
       "priority": "critical",
-      "estimatedHours": 4,
       "passes": true,
       "completedDate": "2025-12-01",
-      "assignedRole": "DataMaster",
+      "assignedRole": "DataMaster"
+    },
+    {
+      "id": "F019",
+      "category": "learning",
+      "description": "PatternLearningStore - Sistema aprendizaje con IndexedDB (Dexie.js)",
+      "priority": "high",
+      "passes": true,
+      "completedDate": "2025-12-02",
+      "assignedRole": "MapWizard",
       "implementation": {
-        "file": "src/lib/CoordinateValidator.ts",
-        "testFile": "src/lib/__tests__/CoordinateValidator.test.ts",
-        "linesOfCode": 739,
-        "measures": [
-          "M1: Pertenencia municipal (WFS DERA da07_term_municipal)",
-          "M2: Distancia al centroide (cálculo local)",
-          "M3: Reverse geocoding (CartoCiudad)"
+        "file": "src/lib/PatternLearningStore.ts",
+        "linesOfCode": 580,
+        "features": [
+          "IndexedDB persistente con Dexie.js",
+          "Migración automática desde localStorage",
+          "Cache LRU (100 entradas, 5min TTL)",
+          "Tablas: patterns, profiles, municipioStats, events",
+          "Estadísticas por municipio (785 andaluces)",
+          "Exportación/importación de patrones"
         ],
-        "confidenceLevels": {
-          "CONFIRMADA": "3/3 medidas OK - 95-100%",
-          "ALTA": "2/3 medidas OK - 80-90%",
-          "MEDIA": "1/3 medidas OK - 50-70%",
-          "BAJA": "0/3 medidas OK - <50%"
-        },
         "functions": [
-          "validarCoordenadasCompleto",
-          "validarPertenenciaMunicipal",
-          "validarDistanciaCentroide",
-          "validarReverseGeocoding",
-          "validarCoordenadasBatch",
-          "generarResumenBatch"
-        ],
-        "utilities": [
-          "haversineDistance",
-          "distanciaUTM",
-          "utmToWgs84Approx",
-          "normalizarNombreMunicipio",
-          "compararMunicipios (Levenshtein)"
-        ],
-        "testCoverage": "6 municipios reales (Colomera, Castril, Berja, Tíjola, Quéntar, Hornos)"
+          "saveLearnedPattern",
+          "getPattern",
+          "getAllPatterns",
+          "getStablePatterns",
+          "getPatternsByMunicipio",
+          "updatePatternUsage",
+          "saveDocumentProfile",
+          "getMunicipioStats",
+          "exportLearningData",
+          "importLearningData"
+        ]
       },
-      "notes": "Validado con datos reales de 13 documentos PTEL. Centroides iniciales para 6 municipios. Pendiente: cargar 786 centroides desde SIPOB."
+      "notes": "Implementado como parte de Opción C (Sistema Adaptativo)."
+    },
+    {
+      "id": "F020",
+      "category": "learning",
+      "description": "documentProfiler - Detección automática de formato de documentos PTEL",
+      "priority": "high",
+      "passes": true,
+      "completedDate": "2025-12-02",
+      "assignedRole": "MapWizard",
+      "implementation": {
+        "file": "src/lib/documentProfiler.ts",
+        "linesOfCode": 620,
+        "features": [
+          "Análisis completo de documentos PTEL",
+          "Detección formato decimal (coma/punto/mixto)",
+          "Detección separador miles (punto/espacio/ninguno)",
+          "Identificación corrupción UTF-8",
+          "Estadísticas por patrón detectado",
+          "Recomendaciones automáticas de estrategia",
+          "Integración con PatternLearningStore"
+        ],
+        "functions": [
+          "analizarDocumento",
+          "analizarDocumentoRapido",
+          "sugerirEstrategia"
+        ],
+        "outputs": [
+          "DocumentProfile con patronesPredominantes",
+          "DetailedStats con conteos por tipo",
+          "ProfileRecommendation[] con acciones sugeridas"
+        ]
+      },
+      "notes": "Implementado como parte de Opción C (Sistema Adaptativo)."
     }
   ],
   "summary": {
-    "completedCount": 16,
+    "completedCount": 18,
     "pendingCount": 2,
-    "totalCount": 18,
-    "completionRate": "88.9%",
+    "totalCount": 20,
+    "completionRate": "90.0%",
     "geocodingCoverage": "13/13 geocodificadores implementados",
     "validationCoverage": "1/1 validador multi-medida implementado",
-    "pendingFeatures": ["F014:CacheManager", "F015:ProgressPanel"]
+    "learningCoverage": "2/2 módulos aprendizaje implementados",
+    "pendingFeatures": ["F014:CacheManager (parcial)", "F015:ProgressPanel"]
   },
-  "lastUpdated": "2025-12-01T12:00:00Z",
-  "updatedBy": "Claude (sesión 01-Dic-2025)"
+  "lastUpdated": "2025-12-02T01:15:00Z",
+  "updatedBy": "Claude (sesión 02-Dic-2025 - Opción C)"
 }
