@@ -63,8 +63,8 @@ describe('HeritageGeocoder - Unit Tests', () => {
 // ============================================================================
 
 describe('HeritageGeocoder - Integration Tests', () => {
-
-  jest.setTimeout(45000); // WFS pueden ser lentos
+  // NOTA: Timeout configurado globalmente en vitest.config.ts
+  // Con mocks de fetch, los tests son rápidos (<100ms)
 
   describe('checkServicesAvailability', () => {
     test('verifica disponibilidad de servicios WFS', async () => {
@@ -292,8 +292,7 @@ describe('HeritageGeocoder - Integration Tests', () => {
 // ============================================================================
 
 describe('HeritageGeocoder - Casos PTEL Reales', () => {
-
-  jest.setTimeout(45000);
+  // Timeout configurado en vitest.config.ts (10000ms)
 
   const casosPTEL = [
     { municipio: 'Colomera', provincia: 'Granada', nombre: 'Puente Romano' },

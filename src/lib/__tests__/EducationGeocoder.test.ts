@@ -60,8 +60,8 @@ describe('EducationGeocoder - Unit Tests', () => {
 // ============================================================================
 
 describe('EducationGeocoder - Integration Tests', () => {
-
-  jest.setTimeout(30000);
+  // NOTA: Timeout configurado globalmente en vitest.config.ts
+  // Con mocks de fetch, los tests son rápidos (<100ms)
 
   describe('checkAPIAvailability', () => {
     test('API de Datos Abiertos está disponible', async () => {
@@ -272,8 +272,7 @@ describe('EducationGeocoder - Integration Tests', () => {
 // ============================================================================
 
 describe('EducationGeocoder - Casos PTEL Reales', () => {
-
-  jest.setTimeout(30000);
+  // Timeout configurado en vitest.config.ts (10000ms)
 
   const casosPTEL = [
     { municipio: 'Colomera', provincia: 'Granada', nombre: 'CEIP Juan Alonso Rivas' },

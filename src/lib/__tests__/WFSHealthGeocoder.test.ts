@@ -72,8 +72,8 @@ describe('WFSHealthGeocoder - Unit Tests', () => {
 
 describe('WFSHealthGeocoder - Integration Tests', () => {
 
-  // Aumentar timeout para llamadas WFS
-  jest.setTimeout(30000);
+  // NOTA: Timeout configurado globalmente en vitest.config.ts
+  // Con mocks de fetch, los tests son rápidos (<100ms)
 
   describe('checkWFSAvailability', () => {
     test('servicio WFS está disponible', async () => {
@@ -264,8 +264,7 @@ describe('WFSHealthGeocoder - Integration Tests', () => {
 // ============================================================================
 
 describe('WFSHealthGeocoder - Casos PTEL Reales', () => {
-
-  jest.setTimeout(30000);
+  // NOTA: Con mocks de fetch, no necesitamos timeouts largos
 
   const casosPTEL = [
     { municipio: 'Colomera', provincia: 'Granada', nombre: 'Consultorio Médico' },

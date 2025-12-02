@@ -17,7 +17,7 @@ import {
   OSMElement,
   OverpassSearchOptions 
 } from '../../services/geocoding/specialized/OverpassGeocoder';
-import { InfrastructureType } from '../../../types/infrastructure';
+import { InfrastructureType } from '../../types/infrastructure';
 
 describe('OverpassGeocoder', () => {
   let geocoder: OverpassGeocoder;

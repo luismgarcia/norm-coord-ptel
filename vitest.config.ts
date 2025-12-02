@@ -8,6 +8,12 @@ export default defineConfig({
     environment: 'node',
     include: ['src/**/*.test.ts', 'src/**/*.test.tsx'],
     globals: true,
+    // Setup file que mockea fetch y localStorage
+    setupFiles: ['./src/lib/__tests__/setup.ts'],
+    // Timeout más corto porque usamos mocks (no hay espera de red)
+    testTimeout: 10000,
+    // Hooks timeout también reducido
+    hookTimeout: 10000,
   },
   resolve: {
     alias: {

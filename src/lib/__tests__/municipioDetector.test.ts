@@ -4,7 +4,7 @@
  * Valida detección automática de municipios desde múltiples fuentes
  */
 
-import { describe, it, expect } from '../testFramework.mjs';
+import { describe, it, expect } from 'vitest';
 import {
   detectarMunicipio,
   detectarDesdeNombreArchivo,

@@ -75,6 +75,264 @@ describe('integridad referencial', () => {
       }
     }
   });
+
+  it('todas las provincias deben ser de Andalucía', () => {
+    const PROVINCIAS_ANDALUCIA = [
+      'Almería', 'Cádiz', 'Córdoba', 'Granada', 'Huelva', 'Jaén', 'Málaga', 'Sevilla'
+    ];
+    
+    for (const [ine, perfil] of Object.entries(MUNICIPIO_PROFILES)) {
+      expect(
+        PROVINCIAS_ANDALUCIA,
+        `Provincia "${perfil.provincia}" no es de Andalucía (municipio ${perfil.nombre})`
+      ).toContain(perfil.provincia);
+    }
+  });
+
+  it('todos los patrones deben tener regex válidos', () => {
+    for (const [id, patron] of Object.entries(PATTERN_CATALOG)) {
+      // Verificar que el regex se puede compilar sin errores
+      expect(() => {
+        new RegExp(patron.regex);
+      }).not.toThrow();
+      
+      // Verificar que el ejemplo coincide con el regex
+      if (patron.ejemplo) {
+        const regex = new RegExp(patron.regex);
+        expect(
+          regex.test(patron.ejemplo),
+          `Ejemplo "${patron.ejemplo}" no coincide con regex de patrón ${id}`
+        ).toBe(true);
+      }
+    }
+  });
+
+  it('las prioridades de patrones (si existen) deben estar en rango 1-10', () => {
+    for (const perfil of Object.values(MUNICIPIO_PROFILES)) {
+      for (const patron of perfil.patronesPrincipales) {
+        // prioridad es opcional, solo validar si existe
+        if (patron.prioridad !== undefined) {
+          expect(
+            patron.prioridad,
+            `Prioridad ${patron.prioridad} fuera de rango para patrón ${patron.patronId}`
+          ).toBeGreaterThanOrEqual(1);
+          expect(
+            patron.prioridad,
+            `Prioridad ${patron.prioridad} fuera de rango para patrón ${patron.patronId}`
+          ).toBeLessThanOrEqual(10);
+        }
+      }
+    }
+  });
+
+  it('las frecuencias observadas deben sumar <= 100%', () => {
+    for (const [ine, perfil] of Object.entries(MUNICIPIO_PROFILES)) {
+      const totalFrecuencia = perfil.patronesPrincipales.reduce(
+        (sum, p) => sum + (p.frecuenciaObservada || 0),
+        0
+      );
+      expect(
+        totalFrecuencia,
+        `Frecuencias suman ${totalFrecuencia}% para ${perfil.nombre} (máx 100%)`
+      ).toBeLessThanOrEqual(100);
+    }
+  });
+
+  it('los códigos INE deben tener formato válido (5 dígitos)', () => {
+    const INE_REGEX = /^\d{5}$/;
+    
+    for (const ine of Object.keys(MUNICIPIO_PROFILES)) {
+      expect(
+        INE_REGEX.test(ine),
+        `Código INE "${ine}" no tiene formato válido (5 dígitos)`
+      ).toBe(true);
+    }
+    
+    for (const ine of Object.keys(CENTROIDES_MUNICIPIOS)) {
+      expect(
+        INE_REGEX.test(ine),
+        `Código INE "${ine}" en CENTROIDES no tiene formato válido`
+      ).toBe(true);
+    }
+  });
+});
+
+// ============================================================================
+// TESTS DE INTEGRIDAD AVANZADA (Validaciones de datos)
+// ============================================================================
+
+describe('integridad avanzada', () => {
+  // Provincias válidas de Andalucía
+  const PROVINCIAS_ANDALUCIA = [
+    'Almería', 'Cádiz', 'Córdoba', 'Granada', 
+    'Huelva', 'Jaén', 'Málaga', 'Sevilla'
+  ];
+
+  // Rango UTM30 ETRS89 para Andalucía
+  const UTM30_ANDALUCIA = {
+    xMin: 100000,
+    xMax: 700000,
+    yMin: 3900000,
+    yMax: 4400000
+  };
+
+  it('todas las provincias en perfiles deben ser de Andalucía', () => {
+    for (const perfil of Object.values(MUNICIPIO_PROFILES)) {
+      expect(
+        PROVINCIAS_ANDALUCIA,
+        `Provincia inválida: ${perfil.provincia} en ${perfil.nombre}`
+      ).toContain(perfil.provincia);
+    }
+  });
+
+  it('todas las provincias en centroides deben ser de Andalucía', () => {
+    for (const [ine, centroide] of Object.entries(CENTROIDES_MUNICIPIOS)) {
+      expect(
+        PROVINCIAS_ANDALUCIA,
+        `Provincia inválida: ${centroide.provincia} para INE ${ine}`
+      ).toContain(centroide.provincia);
+    }
+  });
+
+  it('todos los centroides deben estar dentro del rango UTM30 de Andalucía', () => {
+    for (const [ine, centroide] of Object.entries(CENTROIDES_MUNICIPIOS)) {
+      expect(
+        centroide.x,
+        `X fuera de rango para ${centroide.nombre}: ${centroide.x}`
+      ).toBeGreaterThanOrEqual(UTM30_ANDALUCIA.xMin);
+      expect(
+        centroide.x,
+        `X fuera de rango para ${centroide.nombre}: ${centroide.x}`
+      ).toBeLessThanOrEqual(UTM30_ANDALUCIA.xMax);
+      expect(
+        centroide.y,
+        `Y fuera de rango para ${centroide.nombre}: ${centroide.y}`
+      ).toBeGreaterThanOrEqual(UTM30_ANDALUCIA.yMin);
+      expect(
+        centroide.y,
+        `Y fuera de rango para ${centroide.nombre}: ${centroide.y}`
+      ).toBeLessThanOrEqual(UTM30_ANDALUCIA.yMax);
+    }
+  });
+
+  it('todos los regex de patrones deben ser válidos y compilarse', () => {
+    for (const patron of Object.values(PATTERN_CATALOG)) {
+      expect(
+        patron.regex,
+        `Regex inválido para patrón ${patron.id}`
+      ).toBeInstanceOf(RegExp);
+      
+      // Verificar que el regex puede ejecutarse sin error
+      expect(() => patron.regex.test('test')).not.toThrow();
+    }
+  });
+
+  it('las frecuencias globales de patrones deben sumar un valor coherente', () => {
+    const sumaFrecuencias = Object.values(PATTERN_CATALOG)
+      .reduce((sum, p) => sum + p.frecuenciaGlobal, 0);
+    
+    // Las frecuencias pueden solaparse (un documento puede tener múltiples patrones)
+    // pero la suma debe estar entre 100 y 200 aproximadamente
+    expect(sumaFrecuencias).toBeGreaterThan(50);
+    expect(sumaFrecuencias).toBeLessThan(300);
+  });
+
+  it('los niveles de complejidad deben ser valores válidos', () => {
+    const nivelesValidos = ['baja', 'media', 'alta'];
+    
+    for (const patron of Object.values(PATTERN_CATALOG)) {
+      expect(
+        nivelesValidos,
+        `Complejidad inválida: ${patron.complejidadAsociada} en ${patron.id}`
+      ).toContain(patron.complejidadAsociada);
+    }
+    
+    for (const perfil of Object.values(MUNICIPIO_PROFILES)) {
+      expect(
+        nivelesValidos,
+        `Complejidad inválida: ${perfil.nivelComplejidad} en ${perfil.nombre}`
+      ).toContain(perfil.nivelComplejidad);
+    }
+  });
+
+  it('los niveles de confianza deben ser valores válidos', () => {
+    const nivelesValidos = ['alta', 'media', 'baja'];
+    
+    for (const perfil of Object.values(MUNICIPIO_PROFILES)) {
+      for (const patron of perfil.patronesPrincipales) {
+        expect(
+          nivelesValidos,
+          `Confianza inválida: ${patron.confianza} en ${perfil.nombre}`
+        ).toContain(patron.confianza);
+      }
+    }
+  });
+
+  it('los formatos decimales deben ser valores válidos', () => {
+    const formatosValidos = ['coma', 'punto', 'mixto', 'ninguno'];
+    
+    for (const perfil of Object.values(MUNICIPIO_PROFILES)) {
+      expect(
+        formatosValidos,
+        `Formato decimal inválido: ${perfil.formatoDecimalTipico} en ${perfil.nombre}`
+      ).toContain(perfil.formatoDecimalTipico);
+    }
+  });
+
+  it('los separadores de miles deben ser valores válidos', () => {
+    const separadoresValidos = ['punto', 'espacio', 'ninguno'];
+    
+    for (const perfil of Object.values(MUNICIPIO_PROFILES)) {
+      expect(
+        separadoresValidos,
+        `Separador miles inválido: ${perfil.separadorMilesTipico} en ${perfil.nombre}`
+      ).toContain(perfil.separadorMilesTipico);
+    }
+  });
+
+  it('cada ejemplo de patrón debe coincidir con su propio regex (coordenadas X)', () => {
+    // Patrones con ejemplos que SÍ deben coincidir
+    // Solo validamos coordenadas X (5-6 dígitos), no Y (7 dígitos)
+    const patronesConEjemplosExactos = [
+      'LIMPIO_PUNTO',
+      'LIMPIO_ENTERO',
+      'COMA_DECIMAL'
+    ];
+    
+    for (const id of patronesConEjemplosExactos) {
+      const patron = PATTERN_CATALOG[id];
+      // Filtramos solo ejemplos de coordenadas X (5-6 dígitos enteros)
+      const ejemplosX = patron.ejemplos.filter(ej => {
+        const parteEntera = ej.split(/[.,]/)[0];
+        return parteEntera.length <= 6;
+      });
+      
+      for (const ejemplo of ejemplosX) {
+        expect(
+          patron.regex.test(ejemplo),
+          `Ejemplo X "${ejemplo}" no coincide con regex de ${id}`
+        ).toBe(true);
+      }
+    }
+  });
+
+  it('los códigos INE deben tener formato correcto (5 dígitos)', () => {
+    const regexINE = /^\d{5}$/;
+    
+    for (const ine of Object.keys(MUNICIPIO_PROFILES)) {
+      expect(
+        regexINE.test(ine),
+        `Código INE inválido: ${ine}`
+      ).toBe(true);
+    }
+    
+    for (const ine of Object.keys(CENTROIDES_MUNICIPIOS)) {
+      expect(
+        regexINE.test(ine),
+        `Código INE inválido en centroides: ${ine}`
+      ).toBe(true);
+    }
+  });
 });
 
 // ============================================================================
