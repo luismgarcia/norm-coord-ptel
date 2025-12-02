@@ -1,5 +1,5 @@
 /**
- * PTEL Pattern Learning Store v1.0
+ * PTEL Pattern Learning Store v1.1
  * 
  * Sistema de almacenamiento persistente con IndexedDB (Dexie.js)
  * para patrones de coordenadas aprendidos adaptativamente.
@@ -10,13 +10,29 @@
  * - Cache LRU en memoria para rendimiento
  * - Estadísticas por municipio y documento
  * - Exportación/importación de patrones
+ * - Carga automática de patrones semilla (v1.1)
  * 
- * @version 1.0.1
+ * CHANGELOG v1.1 (02-Dic-2025):
+ * - NEW: loadSeedPatterns() - carga patrones validados empíricamente
+ * - NEW: initializeWithSeeds() - inicialización con patrones semilla
+ * - NEW: getSeedStats() - estadísticas de patrones semilla
+ * - NEW: Integración con seedPatterns.ts
+ * - FIX: Mejor manejo de booleanos en queries IndexedDB
+ * 
+ * @version 1.1.0
  * @date Diciembre 2025
  */
 
 import Dexie, { type Table } from 'dexie';
 import type { LearnedPattern, PatternCondition, PatternTransform } from './learnedPatterns';
+import { 
+  PATTERN_CATALOG, 
+  MUNICIPIO_PROFILES, 
+  VALIDATION_STATS,
+  generateAllSeedPatterns,
+  type PatternCatalogEntry,
+  type MunicipioProfile
+} from './seedPatterns';
 
 // ============================================================================
 // TIPOS E INTERFACES
@@ -63,7 +79,7 @@ export interface MunicipioStats {
 export interface LearningEvent {
   id?: number;
   timestamp: string;
-  tipo: 'pattern_learned' | 'pattern_applied' | 'pattern_failed' | 'profile_created';
+  tipo: 'pattern_learned' | 'pattern_applied' | 'pattern_failed' | 'profile_created' | 'seeds_loaded';
   patternId?: string;
   municipio?: string;
   documentId?: string;
@@ -115,8 +131,128 @@ export async function getDatabase(): Promise<PTELLearningDatabase> {
     db = new PTELLearningDatabase();
     await db.open();
     await migrateFromLocalStorage();
+    await loadSeedPatternsIfNeeded();
   }
   return db;
+}
+
+// ============================================================================
+// PATRONES SEMILLA
+// ============================================================================
+
+const SEEDS_LOADED_FLAG = 'ptel_seeds_loaded_v1';
+
+/**
+ * Carga los patrones semilla si no se han cargado antes
+ */
+async function loadSeedPatternsIfNeeded(): Promise<void> {
+  try {
+    if (typeof localStorage === 'undefined') {
+      return;
+    }
+    
+    // Verificar si ya se cargaron los seeds
+    if (localStorage.getItem(SEEDS_LOADED_FLAG) === 'true') {
+      return;
+    }
+    
+    await loadSeedPatterns();
+    localStorage.setItem(SEEDS_LOADED_FLAG, 'true');
+  } catch (error) {
+    console.warn('Error cargando patrones semilla:', error);
+  }
+}
+
+/**
+ * Carga los patrones semilla desde la validación empírica
+ */
+export async function loadSeedPatterns(): Promise<{ loaded: number; skipped: number }> {
+  const database = await getDatabase();
+  const seedPatterns = generateAllSeedPatterns();
+  
+  let loaded = 0;
+  let skipped = 0;
+  
+  for (const pattern of seedPatterns) {
+    const existing = await database.patterns.get(pattern.id);
+    if (!existing) {
+      await database.patterns.put(pattern);
+      loaded++;
+      
+      // Actualizar cache
+      memoryCache.set(pattern.id, pattern);
+      cacheTimestamps.set(pattern.id, Date.now());
+    } else {
+      skipped++;
+    }
+  }
+  
+  if (loaded > 0) {
+    console.log(`✅ Cargados ${loaded} patrones semilla de validación empírica`);
+    
+    await logEvent({
+      timestamp: new Date().toISOString(),
+      tipo: 'seeds_loaded',
+      detalles: {
+        loaded,
+        skipped,
+        source: 'empirical_validation_2025-12-02',
+        municipios: VALIDATION_STATS.municipios.lista
+      }
+    });
+  }
+  
+  return { loaded, skipped };
+}
+
+/**
+ * Obtiene estadísticas de los patrones semilla
+ */
+export function getSeedStats(): typeof VALIDATION_STATS {
+  return VALIDATION_STATS;
+}
+
+/**
+ * Obtiene el catálogo de patrones semilla
+ */
+export function getSeedCatalog(): PatternCatalogEntry[] {
+  return PATTERN_CATALOG;
+}
+
+/**
+ * Obtiene perfiles de municipio conocidos
+ */
+export function getMunicipioPerfil(municipio: string): MunicipioProfile | undefined {
+  const normalizado = normalizarNombreMunicipio(municipio);
+  return MUNICIPIO_PROFILES.find(p => 
+    normalizarNombreMunicipio(p.nombre) === normalizado
+  );
+}
+
+/**
+ * Obtiene todos los perfiles de municipio
+ */
+export function getAllMunicipioPerfiles(): MunicipioProfile[] {
+  return MUNICIPIO_PROFILES;
+}
+
+/**
+ * Sugiere patrones probables para un municipio
+ */
+export function sugerirPatronesParaMunicipio(municipio: string): PatternCatalogEntry[] {
+  const perfil = getMunicipioPerfil(municipio);
+  
+  if (perfil) {
+    // Retornar patrones dominantes del municipio
+    return PATTERN_CATALOG.filter(p => 
+      perfil.patronesDominantes.includes(p.id)
+    );
+  }
+  
+  // Si no hay perfil, retornar los patrones más comunes
+  return PATTERN_CATALOG
+    .filter(p => p.confidence === 'ALTA')
+    .slice(0, 5);
 }
 
 // ============================================================================
@@ -131,12 +267,10 @@ const MIGRATION_FLAG = 'ptel_indexeddb_migrated';
  */
 async function migrateFromLocalStorage(): Promise<void> {
   try {
-    // Verificar si localStorage está disponible (no en Node.js)
     if (typeof localStorage === 'undefined') {
       return;
     }
     
-    // Verificar si ya se migró
     if (localStorage.getItem(MIGRATION_FLAG) === 'true') {
       return;
     }
@@ -150,18 +284,13 @@ async function migrateFromLocalStorage(): Promise<void> {
     const patterns = JSON.parse(stored) as Record<string, LearnedPattern>;
     const database = await getDatabase();
 
-    // Migrar cada patrón
     const patternList = Object.values(patterns);
     if (patternList.length > 0) {
       await database.patterns.bulkPut(patternList.map(p => ({ ...p, id: p.id })));
       console.log(`✅ Migrados ${patternList.length} patrones de localStorage a IndexedDB`);
     }
 
-    // Marcar como migrado
     localStorage.setItem(MIGRATION_FLAG, 'true');
-    
-    // Opcional: limpiar localStorage después de migración exitosa
-    // localStorage.removeItem(LEGACY_STORAGE_KEY);
   } catch (error) {
     console.warn('Error migrando patrones:', error);
   }
@@ -177,7 +306,6 @@ async function migrateFromLocalStorage(): Promise<void> {
 export async function saveLearnedPattern(pattern: LearnedPattern): Promise<void> {
   const database = await getDatabase();
   
-  // Actualizar timestamp
   const updatedPattern = {
     ...pattern,
     lastUsed: new Date().toISOString()
@@ -185,16 +313,13 @@ export async function saveLearnedPattern(pattern: LearnedPattern): Promise<void>
   
   await database.patterns.put(updatedPattern);
   
-  // Actualizar cache
   memoryCache.set(pattern.id, updatedPattern);
   cacheTimestamps.set(pattern.id, Date.now());
   
-  // Limpiar cache si excede tamaño
   if (memoryCache.size > CACHE_MAX_SIZE) {
     evictOldestCacheEntry();
   }
   
-  // Registrar evento
   await logEvent({
     timestamp: new Date().toISOString(),
     tipo: 'pattern_learned',
@@ -208,7 +333,6 @@ export async function saveLearnedPattern(pattern: LearnedPattern): Promise<void>
  * Obtiene un patrón por ID
  */
 export async function getPattern(id: string): Promise<LearnedPattern | undefined> {
-  // Verificar cache primero
   const cached = memoryCache.get(id);
   const timestamp = cacheTimestamps.get(id);
   
@@ -216,7 +340,6 @@ export async function getPattern(id: string): Promise<LearnedPattern | undefined
     return cached;
   }
   
-  // Buscar en IndexedDB
   const database = await getDatabase();
   const pattern = await database.patterns.get(id);
   
@@ -238,11 +361,9 @@ export async function getAllPatterns(): Promise<LearnedPattern[]> {
 
 /**
  * Obtiene patrones estables (alto éxito)
- * NOTA: Usa filter() porque IndexedDB no indexa bien booleanos
  */
 export async function getStablePatterns(): Promise<LearnedPattern[]> {
   const database = await getDatabase();
-  // Usar filter en lugar de where().equals() para booleanos
   return database.patterns.filter(p => p.isStable === true).toArray();
 }
 
@@ -281,7 +402,6 @@ export async function updatePatternUsage(
   }
   pattern.lastUsed = new Date().toISOString();
   
-  // Añadir municipio si es nuevo
   if (municipio) {
     if (!pattern.municipalities) {
       pattern.municipalities = [];
@@ -291,17 +411,14 @@ export async function updatePatternUsage(
     }
   }
   
-  // Verificar estabilidad
   const successRate = pattern.uses > 0 ? pattern.successes / pattern.uses : 0;
   pattern.isStable = pattern.uses >= 10 && successRate >= 0.95;
   
   await database.patterns.put(pattern);
   
-  // Actualizar cache
   memoryCache.set(patternId, pattern);
   cacheTimestamps.set(patternId, Date.now());
   
-  // Registrar evento
   await logEvent({
     timestamp: new Date().toISOString(),
     tipo: success ? 'pattern_applied' : 'pattern_failed',
@@ -332,7 +449,6 @@ export async function saveDocumentProfile(profile: DocumentProfile): Promise<voi
   const database = await getDatabase();
   await database.profiles.put(profile);
   
-  // Actualizar estadísticas del municipio
   await updateMunicipioStats(profile.municipio, profile.provincia, profile);
   
   await logEvent({
@@ -398,15 +514,12 @@ async function updateMunicipioStats(
     };
   }
   
-  // Actualizar contadores
   stats.documentosProcesados++;
   stats.ultimoProcesamiento = new Date().toISOString();
   
-  // Actualizar tasa de éxito promedio
   const oldTotal = stats.tasaExitoPromedio * (stats.documentosProcesados - 1);
   stats.tasaExitoPromedio = (oldTotal + profile.porcentajeExito) / stats.documentosProcesados;
   
-  // Actualizar patrones frecuentes
   for (const patronStat of profile.patronesPredominantes) {
     const existing = stats.patronesFrecuentes.find(p => p.patron === patronStat.patron);
     if (existing) {
@@ -419,7 +532,6 @@ async function updateMunicipioStats(
     }
   }
   
-  // Ordenar por frecuencia y mantener top 10
   stats.patronesFrecuentes.sort((a, b) => b.count - a.count);
   stats.patronesFrecuentes = stats.patronesFrecuentes.slice(0, 10);
   
@@ -458,7 +570,6 @@ async function logEvent(event: LearningEvent): Promise<void> {
     const database = await getDatabase();
     await database.events.add(event);
     
-    // Limpiar eventos antiguos (mantener últimos 1000)
     const count = await database.events.count();
     if (count > 1000) {
       const oldest = await database.events.orderBy('id').limit(count - 1000).toArray();
@@ -500,7 +611,7 @@ export async function exportLearningData(): Promise<ExportData> {
   const database = await getDatabase();
   
   return {
-    version: '1.0.0',
+    version: '1.1.0',
     exportDate: new Date().toISOString(),
     patterns: await database.patterns.toArray(),
     profiles: await database.profiles.toArray(),
@@ -525,7 +636,6 @@ export async function importLearningData(
     await database.municipioStats.clear();
   }
   
-  // Importar patrones
   for (const pattern of data.patterns) {
     const existing = await database.patterns.get(pattern.id);
     if (!existing || mode === 'replace') {
@@ -536,7 +646,6 @@ export async function importLearningData(
     }
   }
   
-  // Importar perfiles
   for (const profile of data.profiles) {
     const existing = await database.profiles.get(profile.id);
     if (!existing || mode === 'replace') {
@@ -544,7 +653,6 @@ export async function importLearningData(
     }
   }
   
-  // Importar estadísticas de municipios
   for (const stats of data.municipioStats) {
     const existing = await database.municipioStats.get(stats.codigoINE);
     if (!existing || mode === 'replace') {
@@ -562,7 +670,7 @@ export async function exportCommunityPatterns(): Promise<string> {
   const stable = await getStablePatterns();
   
   const exportData = {
-    version: '1.0.0',
+    version: '1.1.0',
     exportDate: new Date().toISOString(),
     contributor: 'anonymous',
     patterns: stable.map(p => ({
@@ -585,8 +693,8 @@ function normalizarNombreMunicipio(nombre: string): string {
   return nombre
     .toLowerCase()
     .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '') // Quitar acentos
-    .replace(/[^a-z0-9]/g, '')       // Solo alfanumérico
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]/g, '')
     .trim();
 }
 
@@ -594,7 +702,6 @@ function normalizarNombreMunicipio(nombre: string): string {
  * Obtiene código INE aproximado (simplificado)
  */
 function obtenerCodigoINE(municipio: string, provincia: string): string {
-  // Simplificado: usar hash del nombre normalizado
   const normalizado = normalizarNombreMunicipio(municipio + provincia);
   let hash = 0;
   for (let i = 0; i < normalizado.length; i++) {
@@ -639,6 +746,7 @@ export function clearMemoryCache(): void {
 export async function getLearningStats(): Promise<{
   totalPatterns: number;
   stablePatterns: number;
+  seedPatterns: number;
   totalProfiles: number;
   totalMunicipios: number;
   cacheSize: number;
@@ -647,14 +755,13 @@ export async function getLearningStats(): Promise<{
   const database = await getDatabase();
   
   const totalPatterns = await database.patterns.count();
-  // Usar filter para contar booleanos correctamente
   const stablePatterns = await database.patterns.filter(p => p.isStable === true).count();
+  const seedPatterns = await database.patterns.filter(p => p.id.startsWith('SEED_')).count();
   const totalProfiles = await database.profiles.count();
   const totalMunicipios = await database.municipioStats.count();
   
-  // Estimación del tamaño de la DB
-  const patternsSize = totalPatterns * 500; // ~500 bytes por patrón
-  const profilesSize = totalProfiles * 1000; // ~1KB por perfil
+  const patternsSize = totalPatterns * 500;
+  const profilesSize = totalProfiles * 1000;
   const totalBytes = patternsSize + profilesSize;
   const dbSizeEstimate = totalBytes < 1024 
     ? `${totalBytes} B`
@@ -665,11 +772,22 @@ export async function getLearningStats(): Promise<{
   return {
     totalPatterns,
     stablePatterns,
+    seedPatterns,
     totalProfiles,
     totalMunicipios,
     cacheSize: memoryCache.size,
     dbSizeEstimate
   };
+}
+
+/**
+ * Fuerza la recarga de patrones semilla
+ */
+export async function forceReloadSeeds(): Promise<{ loaded: number; skipped: number }> {
+  if (typeof localStorage !== 'undefined') {
+    localStorage.removeItem(SEEDS_LOADED_FLAG);
+  }
+  return loadSeedPatterns();
 }
 
 // ============================================================================
@@ -678,6 +796,15 @@ export async function getLearningStats(): Promise<{
 
 export default {
   getDatabase,
+  // Patrones semilla
+  loadSeedPatterns,
+  forceReloadSeeds,
+  getSeedStats,
+  getSeedCatalog,
+  getMunicipioPerfil,
+  getAllMunicipioPerfiles,
+  sugerirPatronesParaMunicipio,
+  // Patrones aprendidos
   saveLearnedPattern,
   getPattern,
   getAllPatterns,
@@ -685,15 +812,19 @@ export default {
   getPatternsByMunicipio,
   updatePatternUsage,
   deletePattern,
+  // Perfiles de documento
   saveDocumentProfile,
   getDocumentProfile,
   getProfilesByMunicipio,
+  // Estadísticas
   getMunicipioStats,
   getAllMunicipioStats,
   getRecentEvents,
+  getLearningStats,
+  // Exportación/Importación
   exportLearningData,
   importLearningData,
   exportCommunityPatterns,
-  clearMemoryCache,
-  getLearningStats
+  // Utilidades
+  clearMemoryCache
 };
