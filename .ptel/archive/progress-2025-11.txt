@@ -1,0 +1,115 @@
+# PTEL Progress Log - Archivo Noviembre 2025
+# Sesiones archivadas de noviembre 2025
+# Movidas desde claude-progress.txt el 2025-12-02
+
+---
+
+[2024-11-29] [Setup] - Inicialización estructura .ptel/
+- Creado PTEL_ESTADO_SESION.json con métricas actuales
+- Creado PTEL_FEATURES.json con 8 features del Plan Maestro
+- Creado CLAUDE.md para contexto rápido
+- MCP GitHub configurado y funcionando
+- Sistema listo para protocolo de sesiones
+
+---
+
+[2025-11-29] [Organización] - Análisis y reorganización documental
+
+## Investigación realizada
+- Mejores prácticas 2025 para workflows con IA de larga duración
+- Comparativa archivos estado: Claude vs Cursor vs Windsurf
+- Protocolos inicio/cierre sesión (Anthropic Engineering)
+- Workflows multi-dispositivo sin entorno local
+
+## Diagnóstico Project Knowledge
+- 64 archivos actuales, muchos duplicados y obsoletos
+- 6 archivos código que ya están en GitHub
+- 5 duplicados con diferente encoding de nombre
+- 7 archivos PATCH fragmentados
+- 5 análisis de opciones descartadas (AWS, Mantine, MCP)
+
+## Entregables sesión
+1. Lista limpieza: 37 archivos a eliminar de Project Knowledge
+2. Guía trabajo con Claude: docs/guias/GUIA_TRABAJO_CON_CLAUDE.md
+
+## Pendiente para usuario
+- Eliminar 37 archivos de Project Knowledge (Claude no puede)
+
+---
+
+[2025-11-29] [DataMaster] - Auditoría código vs documentación
+
+## Problema detectado
+PTEL_FEATURES.json mostraba 0/8 features completadas, cuando el código
+real tiene 13/15 features implementadas.
+
+## Auditoría realizada
+- InfrastructureClassifier: 16 categorías PTEL (no 12)
+- Cascada geocodificación: 7 niveles (L1-L7) funcionando
+- Geocodificadores implementados: 13/13 (100%)
+- Tests: 59/59 pasando
+
+## Conclusión
+Progreso real: 87% (13/15 features). Solo faltan CacheManager y ProgressPanel.
+
+---
+
+[2025-11-29] [DataMaster] - Investigación geocodificadores adicionales
+
+## Análisis del corpus
+- 6 documentos PTEL analizados
+- 517 infraestructuras totales
+- 70% éxito actual, 30% fallidos/pendientes
+
+## Gaps identificados
+1. Cauces hidrográficos (12 registros) - DERA g01_hidrografia WFS
+2. Red viaria (13 registros) - DERA g09_vias WFS
+3. Referencias catastrales - Catastro INSPIRE WFS
+
+## Hallazgo crítico
+El cuello de botella es el **parser ODT** que concatena texto (72.5% de issues).
+
+---
+
+## 2025-11-30 - Sesión Diseño Home v3 (DesignCraft)
+
+### Objetivo
+Definir logo e iconografía para Home PTEL v3
+
+### Decisiones tomadas
+| Elemento | Decisión |
+|----------|----------|
+| Icono logo | Gradiente azul→cyan (P sobre cuadrado) |
+| Título Hero | "Normalizador de Coordenadas PTEL" |
+| Municipios | 785 (dato oficial corregido) |
+
+### Archivos generados
+- `/Users/lm/Desktop/ptel-home-mantine-v3.html` (589 líneas)
+- `/Users/lm/Desktop/ptel-logo-comparativa.html`
+
+---
+
+## 2025-11-30 - Sesión Parsing/CI (MapWizard)
+
+### Objetivo
+Integrar textDeconcatenator en parser ODT y crear workflow CI
+
+### Trabajo realizado
+1. **Workflow CI GitHub Actions** - `.github/workflows/test.yml`
+2. **Integración desconcatenador en ODT** - `src/lib/documentExtractor.ts`
+3. **Integración desconcatenador en Spreadsheet**
+
+### Impacto
+- Parser ODT: 70% → ~90% éxito estimado
+- Ejemplos corregidos:
+  - "FARMACIAM.ªCarmen" → "FARMACIA M.ª Carmen"
+  - "PN. Sierrade Castril" → "PN. Sierra de Castril"
+
+### Commits realizados
+1. `Add GitHub Actions workflow for testing` (a41dd0b4)
+2. `Enhance field extraction with text deconcatenation` (9fc4b4a8)
+3. `Unify extraction behavior for ODT and Spreadsheet`
+
+---
+
+# FIN ARCHIVO NOVIEMBRE 2025

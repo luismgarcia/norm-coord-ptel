@@ -1,5 +1,5 @@
 # Guía de Trabajo con Claude para el Proyecto PTEL
-## Versión 4.0 - Ordenada Cronológicamente
+## Versión 4.1 - Actualizada 2025-12-02
 
 ---
 
@@ -12,6 +12,9 @@
 | **URL Deploy** | https://luismgarcia.github.io/norm-coord-ptel |
 | **Ubicación** | `Documents/GitHub/norm-coord-ptel` (detectar en cada dispositivo) |
 | **Stack** | React + TypeScript + Vite |
+| **Versión actual** | 0.5.2 |
+| **Tests** | 921 total (860 passing, 93%) |
+| **Tiempo tests** | ~1.6s (con mocks HTTP) |
 
 ---
 
@@ -89,6 +92,14 @@ Ya sincronicé. Hoy quiero trabajar en [ÁREA/TAREA].
 Localiza el repo, lee .ptel/ y confirma el estado de esa área.
 ```
 
+### Opción D: Inicio ultrarrápido
+```
+INICIO PTEL
+Área: [testing/geocoding/ui/learning]
+Objetivo: [una línea]
+```
+Claude lee `.ptel/` automáticamente para el resto del contexto.
+
 ---
 
 ## 2.2 Protocolo obligatorio de Claude al iniciar
@@ -122,7 +133,9 @@ Si Claude encuentra más de una carpeta válida (o ninguna), debe preguntar:
 ├── PTEL_ESTADO_SESION.json   ← Estado actual del proyecto
 ├── PTEL_FEATURES.json        ← Lista de funcionalidades y su estado
 ├── handoff.json              ← Información para la próxima sesión
-├── claude-progress.txt       ← Log de progreso entre sesiones
+├── claude-progress.txt       ← Log de progreso (últimas 5-7 sesiones)
+├── archive/                  ← Sesiones antiguas (>2 semanas)
+│   └── progress-YYYY-MM.txt
 ├── PTEL_ROLES.md             ← Definición de roles especializados
 ├── PROMPTS_RAPIDOS.md        ← Comandos frecuentes
 ├── SYNC_MULTI_DEVICE.md      ← Guía sincronización multi-dispositivo
@@ -130,6 +143,15 @@ Si Claude encuentra más de una carpeta válida (o ninguna), debe preguntar:
 ```
 
 **Regla fundamental**: Estos archivos son la "memoria" de Claude. Si no están actualizados, Claude no sabe dónde estamos.
+
+---
+
+## 2.4 Gestión del archivo claude-progress.txt
+
+Cuando supere ~400 líneas:
+1. Mover sesiones >2 semanas a `.ptel/archive/progress-YYYY-MM.txt`
+2. Mantener solo últimas 5-7 sesiones en archivo principal
+3. Conservar sección de lecciones aprendidas (L1-L8+) siempre visible
 
 ---
 
@@ -228,10 +250,11 @@ Resume qué queda pendiente para la próxima sesión.
 
 ## 4.3 Lo que Claude debe hacer al cerrar
 
-1. Actualizar todos los archivos de estado
-2. Commit con mensaje: `session: [fecha] - [resumen]`
-3. Push a GitHub
-4. Proporcionar resumen de:
+1. Verificar que `npm test` pasa
+2. Actualizar todos los archivos de estado
+3. Commit con mensaje descriptivo
+4. Push a GitHub
+5. Proporcionar resumen de:
    - Lo completado
    - Lo que quedó a medias
    - Prioridades para próxima sesión
@@ -282,6 +305,30 @@ Documents/
 
 ---
 
+# SISTEMA DE TESTS
+
+## Tests con mocks HTTP (por defecto)
+
+El proyecto incluye mocks que eliminan dependencia de servicios externos:
+
+```bash
+npm test                    # Ejecuta tests con mocks (~1.6s)
+```
+
+- **Tiempo**: 187s → 1.6s (mejora 99%)
+- **Archivos**: `src/lib/__tests__/setup.ts`, `__mocks__/wfsResponses.ts`
+- **Documentación**: `src/lib/__tests__/MOCKS_README.md`
+
+## Tests con red real (opcional)
+
+```bash
+PTEL_REAL_NETWORK=true npm test    # Usa servicios WFS/Overpass reales
+```
+
+Solo usar cuando se necesite validar respuestas reales de APIs.
+
+---
+
 # MENSAJES DE EMERGENCIA
 
 ### "No entiendo dónde estamos"
@@ -328,11 +375,29 @@ Añade esto a .ptel/claude-progress.txt.
 - [ ] Si cambio de área, uso protocolo de cambio
 
 ## Al cerrar ☐
+- [ ] `npm test` pasa antes de commit
 - [ ] Mensaje de cierre enviado
 - [ ] Claude actualizó archivos `.ptel/`
 - [ ] Commit hecho con mensaje descriptivo
 - [ ] Push a GitHub completado
 - [ ] Sé qué toca en la próxima sesión
+
+---
+
+# LECCIONES APRENDIDAS (PERSISTENTES)
+
+Estas lecciones se mantienen siempre visibles:
+
+| ID | Lección | Contexto |
+|----|---------|----------|
+| L1 | Validar datos contra fuente autoritativa | Códigos INE erróneos en tests |
+| L2 | Preservar estructura semántica al normalizar | `normalizarTexto()` eliminaba separadores |
+| L3 | Tests con múltiples casos edge | Detectar regresiones temprano |
+| L4 | Ubicación canónica del repositorio | Detectar dinámicamente, no asumir |
+| L5 | Tests de integridad referencial | Previenen errores en datos estáticos |
+| L6 | Commits frecuentes | Evitan perder visibilidad del progreso |
+| L7 | Timeouts ocultan causa raíz | Con mocks se ven problemas reales |
+| L8 | Tests integridad previenen errores silenciosos | 233 validaciones estructurales |
 
 ---
 
@@ -349,6 +414,6 @@ Añade esto a .ptel/claude-progress.txt.
 
 ---
 
-*Última actualización: 2025-12-01*
-*Versión: 4.0*
-*Proyecto PTEL*
+*Última actualización: 2025-12-02*
+*Versión: 4.1*
+*Proyecto PTEL - 860/921 tests passing (93%)*
