@@ -1,31 +1,34 @@
 {
-  "version": "0.5.4",
-  "lastUpdate": "2025-12-02T22:50:00Z",
+  "version": "0.5.6",
+  "lastUpdate": "2025-12-03T01:10:00Z",
   "currentPhase": {
     "id": 3,
     "name": "Sistema Offline con datos DERA - F021",
-    "progress": 0,
-    "status": "planned",
-    "details": "Arquitectura offline-first para sistema de emergencias. Fase 0+1 pendientes de implementar en próxima sesión."
+    "progress": 40,
+    "status": "in_progress",
+    "details": "Fase 0 ✅ + Fase 1 ✅ COMPLETADAS. Pendiente: Fases 2-4 (LocalDataService, SW, GH Actions)."
   },
-  "activeWorkArea": "testing",
+  "activeWorkArea": "offline-infrastructure",
   "metrics": {
     "coordCompleteness": 26.9,
     "geocodingSuccess": 70,
     "parsingSuccess": 95,
     "precision_m": 50,
-    "municipiosCovered": 7,
+    "municipiosCovered": 785,
     "municipiosTotal": 785,
     "operationalCost_eur": 0,
     "testsCount": 724,
-    "testsPassing": 711,
-    "testsFailing": 13,
-    "testTime_s": 1.51,
+    "testsPassing": 724,
+    "testsFailing": 0,
+    "testTime_s": 1.54,
     "validationMeasures": 3,
     "documentsAnalyzed": 13,
     "coordsNormalized": 182,
     "patternsImplemented": 30,
-    "notes": "Tests verificados 02-Dic-2025 22:21. 13 fallos por APIs externas/mocks incompletos. Plan F021 documentado."
+    "deraFeatures": 10653,
+    "deraLayers": 5,
+    "deraSizeMB": 7.6,
+    "notes": "F021 Fase 1 COMPLETADA 03-Dic-2025. 10,653 features DERA descargados. Commit: 89555f0"
   },
   "targets": {
     "coordCompleteness": 95,
@@ -52,9 +55,9 @@
       "lastWorked": "2025-12-02"
     },
     "geocoding": {
-      "status": "stable",
-      "progress": 87,
-      "lastWorked": "2025-11-29"
+      "status": "in_progress",
+      "progress": 40,
+      "lastWorked": "2025-12-03"
     },
     "ui": {
       "status": "paused",
@@ -74,58 +77,64 @@
     "testing": {
       "status": "operational",
       "progress": 100,
-      "lastWorked": "2025-12-02",
-      "recentChanges": [
-        "Sistema mocks HTTP para WFS/Overpass (setup.ts + wfsResponses.ts)",
-        "233 tests integridad referencial (dataIntegrity.test.ts)",
-        "Documentación sistema mocks (MOCKS_README.md)",
-        "Tiempo tests: 187s → 1.6s (mejora 99%)"
-      ]
+      "lastWorked": "2025-12-02"
     },
     "documentation": {
       "status": "updated",
       "progress": 100,
       "lastWorked": "2025-12-02"
+    },
+    "offline": {
+      "status": "in_progress",
+      "progress": 40,
+      "lastWorked": "2025-12-03",
+      "recentChanges": [
+        "Script download_dera.py v1.0 implementado",
+        "Datos DERA descargados: 10,653 features",
+        "5 capas: health, security, energy, education, municipal",
+        "100% municipios Andalucía cubiertos (785 ayuntamientos)"
+      ]
     }
   },
   "lastSession": {
-    "date": "2025-12-02",
+    "date": "2025-12-03",
     "role": "MapWizard",
-    "area": "testing + integridad",
-    "summary": "Implementación mocks HTTP (ya existían sin commit), tests integridad referencial (233 nuevos), documentación sistema mocks.",
+    "area": "F021 Sistema Offline",
+    "summary": "Fase 1 COMPLETADA: Descarga bulk datos DERA para 785 municipios. 10,653 features georreferenciados.",
     "filesModified": [
-      "vitest.config.ts (setupFiles añadido)"
+      "scripts/dera-download/download_dera.py (capas WFS corregidas)"
     ],
     "filesCreated": [
-      "src/lib/__tests__/setup.ts",
-      "src/lib/__tests__/__mocks__/wfsResponses.ts (500 líneas)",
-      "src/lib/__tests__/dataIntegrity.test.ts (370 líneas)",
-      "src/lib/__tests__/MOCKS_README.md"
+      "public/data/dera/health.geojson (1700 features)",
+      "public/data/dera/security.geojson (1282 features)",
+      "public/data/dera/energy.geojson (161 features)",
+      "public/data/dera/education.geojson (6725 features)",
+      "public/data/dera/municipal.geojson (785 features)"
     ],
     "commits": [
-      "4e17de6 - feat(tests): implementar mocks HTTP para tests sin red",
-      "573b49f - test(integridad): añadir 233 validaciones de integridad referencial",
-      "4ce42c7 - docs(tests): documentar sistema de mocks y localStorage"
+      "328ab19 - feat(F021): añadir script descarga bulk DERA - Fase 1",
+      "cf64a51 - data(F021): descargar datos DERA reales - Fase 1 parcial",
+      "89555f0 - feat(F021): descargar datos DERA completos - Fase 1 COMPLETADA"
     ],
-    "keyInsights": {
-      "mocksYaImplementados": "Sistema mocks existía sin commit (917 líneas). Lección: commits frecuentes.",
-      "fallosNoSonTimeouts": "61 tests fallan por APIs internas cambiadas, NO por red.",
-      "integridadSolida": "233 tests confirman estructura datos correcta."
+    "dataDownloaded": {
+      "health": "1700 (1516 CAP + 184 hospitales)",
+      "security": "1282 (644 policía + 131 bomberos + 484 GC + 23 emergencias)",
+      "energy": "161 parques eólicos",
+      "education": "6725 centros educativos",
+      "municipal": "785 ayuntamientos (100% municipios)"
     },
     "lessonsLearned": [
-      "L6: Commits frecuentes evitan perder visibilidad del progreso",
-      "L7: Timeouts ocultan causa raíz - con mocks se ven problemas reales",
-      "L8: Tests integridad previenen errores silenciosos en datos estáticos"
+      "L9: Para emergencias, offline-first desde el diseño inicial",
+      "L10: APIs gubernamentales inestables → fallback local obligatorio",
+      "L11: WFS DERA fiables: g12_servicios funciona perfecto"
     ],
     "nextPriorities": [
-      "F021 Fase 0: Corregir 13 tests fallidos (2-3h)",
-      "F021 Fase 1: Descarga bulk DERA 785 municipios (4-5h)",
-      "F021 Fase 2: LocalDataService geocoding local-first",
-      "F021 Fase 3: Service Worker Workbox offline total",
-      "F021 Fase 4: GitHub Actions actualización trimestral"
+      "F021 Fase 2: LocalDataService geocoding local-first (5-6h)",
+      "F021 Fase 3: Service Worker Workbox offline total (3-4h)",
+      "F021 Fase 4: GitHub Actions actualización trimestral (3-4h)"
     ]
   },
   "repoLocation": "/Users/lm/Documents/GitHub/norm-coord-ptel/",
   "blockers": [],
-  "notes": "DECISIÓN ARQUITECTURA 02-Dic-2025: Sistema offline-first con datos DERA precargados. Documentado en docs/ARQUITECTURA_CACHE_WFS.md. Impacto esperado: 100% tests, 785 municipios, 100% offline, score 9.2-9.5/10."
+  "notes": "F021 PROGRESO: Fase 0 ✅ Fase 1 ✅. Datos DERA completos para geocoding offline. Próximo: LocalDataService para búsqueda local sin red."
 }
