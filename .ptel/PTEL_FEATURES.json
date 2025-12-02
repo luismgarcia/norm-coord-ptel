@@ -231,18 +231,71 @@
         ]
       },
       "notes": "Implementado como parte de Opción C (Sistema Adaptativo)."
+    },
+    {
+      "id": "F021",
+      "category": "architecture",
+      "description": "Sistema Offline con datos DERA precargados",
+      "priority": "critical",
+      "passes": false,
+      "completedDate": null,
+      "assignedRole": "MapWizard",
+      "implementation": {
+        "phases": [
+          {
+            "phase": 0,
+            "name": "Corregir 13 tests actuales",
+            "hours": "2-3h",
+            "status": "pendiente"
+          },
+          {
+            "phase": 1,
+            "name": "Descarga bulk DERA (785 municipios)",
+            "hours": "4-5h",
+            "status": "pendiente"
+          },
+          {
+            "phase": 2,
+            "name": "LocalDataService (geocoding local-first)",
+            "hours": "5-6h",
+            "status": "pendiente"
+          },
+          {
+            "phase": 3,
+            "name": "Service Worker con Workbox",
+            "hours": "3-4h",
+            "status": "pendiente"
+          },
+          {
+            "phase": 4,
+            "name": "GitHub Actions actualización trimestral",
+            "hours": "3-4h",
+            "status": "pendiente"
+          }
+        ],
+        "totalHours": "17-22h",
+        "documentation": "docs/ARQUITECTURA_CACHE_WFS.md",
+        "expectedImpact": {
+          "testsTarget": "724/724 (100%)",
+          "municipiosCoverage": "785 (100% Andalucía)",
+          "offlineCapability": "100%",
+          "appScoreTarget": "9.2-9.5/10"
+        }
+      },
+      "notes": "Arquitectura offline-first para sistema de emergencias. Planificado 02-Dic-2025."
     }
   ],
   "summary": {
     "completedCount": 18,
-    "pendingCount": 2,
-    "totalCount": 20,
-    "completionRate": "90.0%",
+    "pendingCount": 3,
+    "totalCount": 21,
+    "completionRate": "85.7%",
     "geocodingCoverage": "13/13 geocodificadores implementados",
     "validationCoverage": "1/1 validador multi-medida implementado",
     "learningCoverage": "2/2 módulos aprendizaje implementados",
-    "pendingFeatures": ["F014:CacheManager (parcial)", "F015:ProgressPanel"]
+    "offlineCoverage": "0/1 sistema offline (F021 planificado)",
+    "pendingFeatures": ["F014:CacheManager (parcial)", "F015:ProgressPanel", "F021:SistemaOffline"]
   },
-  "lastUpdated": "2025-12-02T01:15:00Z",
-  "updatedBy": "Claude (sesión 02-Dic-2025 - Opción C)"
+  "lastUpdated": "2025-12-02T22:45:00Z",
+  "updatedBy": "Claude (sesión 02-Dic-2025 - Arquitectura Offline)"
 }

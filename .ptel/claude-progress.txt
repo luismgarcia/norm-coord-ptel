@@ -116,3 +116,57 @@ Mocks HTTP, tests integridad, documentación
 - Creado .ptel/archive/ para sesiones antiguas
 
 ---
+
+---
+
+## 2025-12-02 - Sesión MapWizard (Arquitectura Offline F021)
+
+### Objetivo
+Investigar solución para tests fallando por APIs externas + planificar arquitectura offline
+
+### Diagnóstico
+- 13 tests fallan por dependencia de APIs WFS externas (DERA, ISE, etc.)
+- APIs de Junta de Andalucía inestables: "El servidor podrá ser desconectado sin previo aviso"
+- Sistema actual no funciona offline → crítico para emergencias
+
+### Decisión arquitectura
+**Sistema Offline-First con datos DERA precargados**
+
+Componentes:
+1. GitHub Actions: Descarga WFS trimestral automática
+2. Datos locales: GeoJSON en `/public/data/` (~2-4 MB comprimido)
+3. Service Worker: Workbox CacheFirst para offline total
+4. MSW: Tests deterministas sin dependencia de red
+
+### Plan implementación F021
+
+| Fase | Descripción | Horas | Estado |
+|------|-------------|-------|--------|
+| 0 | Corregir 13 tests actuales | 2-3h | Pendiente |
+| 1 | Descarga bulk DERA 785 municipios | 4-5h | Pendiente |
+| 2 | LocalDataService geocoding local | 5-6h | Pendiente |
+| 3 | Service Worker Workbox | 3-4h | Pendiente |
+| 4 | GitHub Actions cron trimestral | 3-4h | Pendiente |
+| **Total** | | **17-22h** | |
+
+### Impacto esperado
+
+| Métrica | Antes | Después |
+|---------|-------|---------|
+| Tests | 711/724 (98.2%) | 724/724 (100%) |
+| Municipios | 7 | 785 |
+| Offline | 0% | 100% |
+| Score app | 8.2/10 | 9.2-9.5/10 |
+
+### Documentación creada
+- `docs/ARQUITECTURA_CACHE_WFS.md` (251 líneas)
+- `.ptel/PTEL_FEATURES.json` actualizado con F021
+- `.ptel/PTEL_ESTADO_SESION.json` actualizado
+
+### Lecciones aprendidas
+- L9: Para sistemas de emergencias, offline-first desde el diseño inicial
+- L10: APIs gubernamentales son inestables → siempre tener fallback local
+
+### Commits pendientes
+- `docs(F021): añadir arquitectura caché WFS offline-first`
+- `chore(.ptel): actualizar estado con plan F021`
