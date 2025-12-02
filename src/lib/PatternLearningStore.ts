@@ -11,7 +11,7 @@
  * - Estadísticas por municipio y documento
  * - Exportación/importación de patrones
  * 
- * @version 1.0.0
+ * @version 1.0.1
  * @date Diciembre 2025
  */
 
@@ -131,6 +131,11 @@ const MIGRATION_FLAG = 'ptel_indexeddb_migrated';
  */
 async function migrateFromLocalStorage(): Promise<void> {
   try {
+    // Verificar si localStorage está disponible (no en Node.js)
+    if (typeof localStorage === 'undefined') {
+      return;
+    }
+    
     // Verificar si ya se migró
     if (localStorage.getItem(MIGRATION_FLAG) === 'true') {
       return;
@@ -194,7 +199,7 @@ export async function saveLearnedPattern(pattern: LearnedPattern): Promise<void>
     timestamp: new Date().toISOString(),
     tipo: 'pattern_learned',
     patternId: pattern.id,
-    municipio: pattern.municipalities[0],
+    municipio: pattern.municipalities?.[0],
     detalles: { name: pattern.name, source: pattern.source }
   });
 }
@@ -233,10 +238,12 @@ export async function getAllPatterns(): Promise<LearnedPattern[]> {
 
 /**
  * Obtiene patrones estables (alto éxito)
+ * NOTA: Usa filter() porque IndexedDB no indexa bien booleanos
  */
 export async function getStablePatterns(): Promise<LearnedPattern[]> {
   const database = await getDatabase();
-  return database.patterns.where('isStable').equals(1).toArray();
+  // Usar filter en lugar de where().equals() para booleanos
+  return database.patterns.filter(p => p.isStable === true).toArray();
 }
 
 /**
@@ -247,9 +254,9 @@ export async function getPatternsByMunicipio(municipio: string): Promise<Learned
   const normalizado = normalizarNombreMunicipio(municipio);
   
   return database.patterns
-    .filter(p => p.municipalities.some(m => 
+    .filter(p => p.municipalities?.some(m => 
       normalizarNombreMunicipio(m) === normalizado
-    ))
+    ) ?? false)
     .toArray();
 }
 
@@ -275,8 +282,13 @@ export async function updatePatternUsage(
   pattern.lastUsed = new Date().toISOString();
   
   // Añadir municipio si es nuevo
-  if (municipio && !pattern.municipalities.includes(municipio)) {
-    pattern.municipalities.push(municipio);
+  if (municipio) {
+    if (!pattern.municipalities) {
+      pattern.municipalities = [];
+    }
+    if (!pattern.municipalities.includes(municipio)) {
+      pattern.municipalities.push(municipio);
+    }
   }
   
   // Verificar estabilidad
@@ -635,7 +647,8 @@ export async function getLearningStats(): Promise<{
   const database = await getDatabase();
   
   const totalPatterns = await database.patterns.count();
-  const stablePatterns = await database.patterns.where('isStable').equals(1).count();
+  // Usar filter para contar booleanos correctamente
+  const stablePatterns = await database.patterns.filter(p => p.isStable === true).count();
   const totalProfiles = await database.profiles.count();
   const totalMunicipios = await database.municipioStats.count();
   
