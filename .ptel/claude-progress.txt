@@ -170,3 +170,34 @@ Componentes:
 ### Commits pendientes
 - `docs(F021): añadir arquitectura caché WFS offline-first`
 - `chore(.ptel): actualizar estado con plan F021`
+
+
+## Sesión 2025-12-03 - F021 Fase 1 COMPLETADA
+
+### Objetivo
+Descarga bulk de datos DERA para geocoding offline de 785 municipios andaluces.
+
+### Logros
+- ✅ Script download_dera.py corregido con capas WFS correctas
+- ✅ 10.653 features descargados (7.6 MB)
+- ✅ 100% municipios cubiertos (785 ayuntamientos)
+- ✅ 5 capas: health, security, education, municipal, energy
+
+### Datos descargados
+| Capa | Features | Contenido |
+|------|----------|-----------|
+| health | 1.700 | CAP + hospitales |
+| security | 1.282 | Policía + bomberos + GC + emergencias |
+| education | 6.725 | Centros educativos |
+| municipal | 785 | Ayuntamientos |
+| energy | 161 | Parques eólicos |
+
+### Commits
+- 328ab19 - feat(F021): script descarga DERA
+- cf64a51 - data(F021): primera descarga parcial
+- 89555f0 - feat(F021): datos completos
+- 09c7ebc - chore(.ptel): estado actualizado
+
+### Próxima sesión
+F021 Fase 2: LocalDataService para geocoding local sin red (5-6h)
+

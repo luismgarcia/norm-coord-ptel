@@ -1,87 +1,66 @@
 {
-  "version": "0.5.2",
-  "timestamp": "2025-12-02T14:15:00Z",
-  "lastSession": {
-    "date": "2025-12-02",
-    "role": "MapWizard",
-    "duration": "~45 minutos",
-    "summary": "Mocks HTTP confirmados, 233 tests integridad, guía v4.1 actualizada, progress.txt reorganizado"
-  },
-  "completedTasks": [
-    {
-      "task": "Mejora A: Mocks HTTP para tests sin red",
-      "status": "✅ Confirmado y commiteado",
-      "files": ["src/lib/__tests__/setup.ts", "src/lib/__tests__/__mocks__/wfsResponses.ts"],
-      "impact": "Tiempo tests: 187s → 1.6s (99% mejora)"
-    },
-    {
-      "task": "Mejora B: Tests integridad referencial",
-      "status": "✅ Completado",
-      "file": "src/lib/__tests__/dataIntegrity.test.ts",
-      "tests": 233
-    },
-    {
-      "task": "Mejora C: Documentar sistema mocks",
-      "status": "✅ Completado",
-      "file": "src/lib/__tests__/MOCKS_README.md"
-    },
-    {
-      "task": "Guía v4.1 actualizada",
-      "status": "✅ Completado",
-      "file": ".ptel/GUIA_TRABAJO_CLAUDE_v4.md",
-      "changes": ["UTF-8 corregido", "Opción D inicio rápido", "Sección mocks", "Lecciones L1-L8"]
-    },
-    {
-      "task": "Reorganizar progress.txt",
-      "status": "✅ Completado",
-      "changes": ["Creado .ptel/archive/", "Movidas sesiones noviembre", "Reducido 587→114 líneas"]
-    }
-  ],
-  "testStatus": {
-    "total": 921,
-    "passing": 860,
-    "failing": 61,
-    "percentage": "93%",
-    "executionTime": "1.6s"
-  },
-  "pendingForNextSession": [
-    {
-      "priority": "HIGH",
-      "task": "Actualizar tests OverpassGeocoder",
-      "count": 27,
-      "issue": "Métodos privados renombrados/eliminados",
-      "solution": "Refactorizar tests para usar API pública"
-    },
-    {
-      "priority": "HIGH",
-      "task": "Revisar tests InfrastructureClassifier",
-      "count": 6,
-      "issue": "Clasificaciones cambiaron",
-      "solution": "Determinar si son regresiones o evolución intencional"
-    },
-    {
-      "priority": "MEDIUM",
-      "task": "Actualizar tests geocoders varios",
-      "count": 28,
-      "files": ["NGAGeocoder", "SecurityGeocoder", "EducationGeocoder", "WFSHealthGeocoder"]
-    },
-    {
-      "priority": "MEDIUM",
-      "task": "Integrar documentProfiler en UI wizard Step 2"
-    },
-    {
-      "priority": "LOW",
-      "task": "Probar con documentos PTEL reales nuevos"
-    }
-  ],
+  "timestamp": "2025-12-03T01:15:00Z",
+  "session": "F021-Fase1-DERA-Download",
+  "status": "COMPLETADA",
+  
+  "resumen": "F021 Fase 1 completada: descarga bulk de datos DERA para los 785 municipios de Andalucía. 10.653 features georreferenciados listos para geocoding offline.",
+  
   "commits": [
-    "4e17de6 - feat(tests): implementar mocks HTTP",
-    "573b49f - test(integridad): 233 validaciones",
-    "4ce42c7 - docs(tests): MOCKS_README.md",
-    "66e393b - chore(.ptel): cierre sesión",
-    "7253240 - docs(.ptel): guía v4.1 + reorganizar progress"
+    "328ab19 - feat(F021): añadir script descarga bulk DERA - Fase 1",
+    "cf64a51 - data(F021): descargar datos DERA reales - Fase 1 parcial",
+    "89555f0 - feat(F021): descargar datos DERA completos - Fase 1 COMPLETADA",
+    "09c7ebc - chore(.ptel): actualizar estado sesión - F021 Fase 1 completada"
   ],
-  "blockers": [],
-  "suggestedNextRole": "MapWizard",
-  "suggestedNextArea": "testing (actualizar 61 tests fallidos)"
+  
+  "datosDescargados": {
+    "total": 10653,
+    "sizeMB": 7.6,
+    "capas": {
+      "health": "1700 (1516 CAP + 184 hospitales)",
+      "security": "1282 (644 policía + 131 bomberos + 484 GC + 23 emergencias)",
+      "education": "6725 centros educativos",
+      "municipal": "785 ayuntamientos (100% municipios)",
+      "energy": "161 parques eólicos"
+    },
+    "ubicacion": "public/data/dera/",
+    "formato": "GeoJSON EPSG:25830"
+  },
+  
+  "archivosModificados": [
+    "scripts/dera-download/download_dera.py"
+  ],
+  
+  "archivosCreados": [
+    "public/data/dera/health.geojson",
+    "public/data/dera/security.geojson", 
+    "public/data/dera/energy.geojson",
+    "public/data/dera/education.geojson",
+    "public/data/dera/municipal.geojson"
+  ],
+  
+  "estadoF021": {
+    "fase0": "✅ COMPLETADA - Tests robustos (724/724)",
+    "fase1": "✅ COMPLETADA - Descarga DERA (10.653 features)",
+    "fase2": "⏳ PENDIENTE - LocalDataService geocoding local",
+    "fase3": "⏳ PENDIENTE - Service Worker Workbox",
+    "fase4": "⏳ PENDIENTE - GitHub Actions trimestral"
+  },
+  
+  "proximaSesion": {
+    "prioridad": "F021 Fase 2: LocalDataService",
+    "descripcion": "Implementar servicio TypeScript para búsqueda local en datos DERA sin conexión a red",
+    "estimacion": "5-6 horas",
+    "archivosRelevantes": [
+      "docs/ARQUITECTURA_CACHE_WFS.md",
+      "public/data/dera/*.geojson",
+      "src/lib/geocoding/"
+    ]
+  },
+  
+  "notasTecnicas": [
+    "WFS DERA g12_servicios funciona perfectamente - usar este endpoint",
+    "ISE/wfs devuelve 404 - no usar",
+    "Centrales térmicas no devuelven JSON - omitido",
+    "Todos los datos ya en EPSG:25830 - sin conversión necesaria"
+  ]
 }
