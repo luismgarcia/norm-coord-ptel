@@ -28,6 +28,10 @@ import {
   geocodeWithLocalFallback,
   clearLocalData,
   injectTestData,
+  // F023 Fase 1.1 - Métodos Singleton
+  countByType,
+  getUniqueByType,
+  TYPOLOGY_TO_CATEGORY,
   type LocalFeature,
   type LocalSearchResult,
   type InfrastructureCategory,
@@ -356,6 +360,153 @@ describe('LocalDataService - Cascade Integration', () => {
       );
 
       expect(fallbackCalled.value).toBe(true);
+    });
+  });
+});
+
+// ============================================================================
+// F023 FASE 1.1 - TESTS MÉTODOS SINGLETON
+// ============================================================================
+
+describe('LocalDataService - F023 Singleton Methods', () => {
+  beforeEach(() => {
+    injectAllTestData();
+  });
+
+  describe('TYPOLOGY_TO_CATEGORY mapping', () => {
+    test('mapea HEALTH correctamente', () => {
+      expect(TYPOLOGY_TO_CATEGORY['HEALTH']).toBe('health');
+      expect(TYPOLOGY_TO_CATEGORY['SANITARIO']).toBe('health');
+    });
+
+    test('mapea EDUCATION correctamente', () => {
+      expect(TYPOLOGY_TO_CATEGORY['EDUCATION']).toBe('education');
+      expect(TYPOLOGY_TO_CATEGORY['EDUCATIVO']).toBe('education');
+    });
+
+    test('mapea SECURITY correctamente', () => {
+      expect(TYPOLOGY_TO_CATEGORY['SECURITY']).toBe('security');
+      expect(TYPOLOGY_TO_CATEGORY['POLICIAL']).toBe('security');
+      expect(TYPOLOGY_TO_CATEGORY['BOMBEROS']).toBe('security');
+    });
+
+    test('tipologías sin datos locales retornan null', () => {
+      expect(TYPOLOGY_TO_CATEGORY['CULTURAL']).toBeNull();
+      expect(TYPOLOGY_TO_CATEGORY['DEPORTIVO']).toBeNull();
+      expect(TYPOLOGY_TO_CATEGORY['RELIGIOSO']).toBeNull();
+    });
+  });
+
+  describe('countByType', () => {
+    test('cuenta centros de salud en Granada (2)', async () => {
+      const count = await countByType('HEALTH', '18087');
+      expect(count).toBe(2); // Hospital + Centro Salud Zaidín
+    });
+
+    test('cuenta centros de salud en Añora (1) - singleton', async () => {
+      const count = await countByType('HEALTH', '14006');
+      expect(count).toBe(1);
+    });
+
+    test('cuenta educación en Sevilla (1)', async () => {
+      const count = await countByType('EDUCATION', '41091');
+      expect(count).toBe(1);
+    });
+
+    test('retorna 0 para municipio inexistente', async () => {
+      const count = await countByType('HEALTH', '99999');
+      expect(count).toBe(0);
+    });
+
+    test('retorna 0 para tipología sin datos locales', async () => {
+      const count = await countByType('CULTURAL', '18087');
+      expect(count).toBe(0);
+    });
+
+    test('acepta tipología en minúsculas', async () => {
+      const count = await countByType('health', '14006');
+      expect(count).toBe(1);
+    });
+
+    test('normaliza código municipio (4 dígitos -> 5)', async () => {
+      // '4016' debería normalizarse a '04016' (Antas)
+      const count = await countByType('HEALTH', '4016');
+      expect(count).toBe(1);
+    });
+  });
+
+  describe('getUniqueByType', () => {
+    test('retorna feature único para singleton (Añora health)', async () => {
+      const feature = await getUniqueByType('HEALTH', '14006');
+      expect(feature).not.toBeNull();
+      expect(feature!.nombre).toContain('Añora');
+      expect(feature!.categoria).toBe('health');
+    });
+
+    test('retorna null para múltiples (Granada health = 2)', async () => {
+      const feature = await getUniqueByType('HEALTH', '18087');
+      expect(feature).toBeNull(); // Tiene 2 centros
+    });
+
+    test('retorna null para cero features', async () => {
+      const feature = await getUniqueByType('HEALTH', '99999');
+      expect(feature).toBeNull();
+    });
+
+    test('retorna null para tipología sin datos locales', async () => {
+      const feature = await getUniqueByType('CULTURAL', '18087');
+      expect(feature).toBeNull();
+    });
+
+    test('retorna feature único para Sevilla municipal', async () => {
+      const feature = await getUniqueByType('MUNICIPAL', '41091');
+      expect(feature).not.toBeNull();
+      expect(feature!.nombre).toContain('Sevilla');
+    });
+
+    test('retorna feature único para Serón seguridad', async () => {
+      const feature = await getUniqueByType('SECURITY', '04083');
+      expect(feature).not.toBeNull();
+      expect(feature!.nombre).toContain('Serón');
+    });
+
+    test('acepta tipología en español (SANITARIO)', async () => {
+      const feature = await getUniqueByType('SANITARIO', '14006');
+      expect(feature).not.toBeNull();
+    });
+  });
+
+  describe('Integración con estrategia singleton', () => {
+    test('flujo completo: detectar singleton y obtener feature', async () => {
+      const codMun = '14006'; // Añora
+      const tipologia = 'HEALTH';
+
+      // 1. Contar
+      const count = await countByType(tipologia, codMun);
+      expect(count).toBe(1);
+
+      // 2. Si es singleton, obtener directamente
+      if (count === 1) {
+        const feature = await getUniqueByType(tipologia, codMun);
+        expect(feature).not.toBeNull();
+        expect(feature!.x).toBeGreaterThan(0);
+        expect(feature!.y).toBeGreaterThan(0);
+      }
+    });
+
+    test('flujo completo: detectar múltiples y requerir desambiguación', async () => {
+      const codMun = '18087'; // Granada
+      const tipologia = 'HEALTH';
+
+      // 1. Contar
+      const count = await countByType(tipologia, codMun);
+      expect(count).toBe(2);
+
+      // 2. Si hay múltiples, getUniqueByType retorna null
+      if (count >= 2) {
+        const feature = await getUniqueByType(tipologia, codMun);
+        expect(feature).toBeNull(); // Requiere desambiguación fuzzy
+      }
     });
   });
 });

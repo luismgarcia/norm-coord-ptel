@@ -8,9 +8,9 @@
 **Objetivo:** +20% score | **Duración:** 2-3 días
 
 ### 1.1 LocalDataService - Métodos Singleton
-- [ ] Implementar `countByType(tipologia: string, codMunicipio: string): Promise<number>`
-- [ ] Implementar `getUniqueByType(tipologia: string, codMunicipio: string): Promise<Feature | null>`
-- [ ] Tests unitarios para singletons
+- [x] Implementar `countByType(tipologia: string, codMunicipio: string): Promise<number>`
+- [x] Implementar `getUniqueByType(tipologia: string, codMunicipio: string): Promise<Feature | null>`
+- [x] Tests unitarios para singletons (12 tests)
 - [ ] Verificar con municipios conocidos (Quéntar: 2 centros, Colomera: 2 centros)
 
 ### 1.2 Clasificador Mejorado
@@ -131,10 +131,10 @@
 
 | Fase | Tareas | Completadas | % |
 |------|--------|-------------|---|
-| Fase 1 | 20 | 0 | 0% |
+| Fase 1 | 20 | 3 | 15% |
 | Fase 2 | 18 | 0 | 0% |
 | Fase 3 | 12 | 0 | 0% |
-| **Total** | **50** | **0** | **0%** |
+| **Total** | **50** | **3** | **6%** |
 
 ---
 
@@ -163,5 +163,5 @@
 
 ---
 
-**Última actualización:** 2025-12-03
+**Última actualización:** 2025-12-03 (Fase 1.1 completada)
 **Próxima revisión:** Al completar Fase 1

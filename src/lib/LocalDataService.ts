@@ -23,6 +23,7 @@
  */
 
 import Fuse from 'fuse.js';
+import { InfrastructureType } from '../types/infrastructure';
 
 // ============================================================================
 // TIPOS
@@ -89,6 +90,73 @@ const DATA_PATHS: Record<InfrastructureCategory, string> = {
   municipal: '/data/dera/municipal.geojson',
   emergency: '/data/dera/emergency.geojson',
   energy: '/data/dera/energy.geojson',
+};
+
+/**
+ * Mapeo de InfrastructureType (clasificador) → InfrastructureCategory (datos locales)
+ * 
+ * Permite usar la tipología del clasificador para buscar en datos DERA.
+ * Tipologías sin categoría local retornan null (no hay datos offline).
+ * 
+ * @see InfrastructureClassifier para tipologías
+ * @see F023 Fase 1.1 - Estrategia Multi-Campo
+ */
+export const TYPOLOGY_TO_CATEGORY: Record<string, InfrastructureCategory | InfrastructureCategory[] | null> = {
+  // Sanitarios → health
+  [InfrastructureType.HEALTH]: 'health',
+  'SANITARIO': 'health',
+  'HEALTH': 'health',
+  
+  // Educativos → education
+  [InfrastructureType.EDUCATION]: 'education',
+  'EDUCATIVO': 'education',
+  'EDUCATION': 'education',
+  
+  // Seguridad → security (agrupa policía + bomberos)
+  [InfrastructureType.POLICE]: 'security',
+  [InfrastructureType.FIRE]: 'security',
+  'POLICIAL': 'security',
+  'BOMBEROS': 'security',
+  'POLICE': 'security',
+  'FIRE': 'security',
+  'SECURITY': 'security',
+  
+  // Municipal → municipal
+  [InfrastructureType.MUNICIPAL]: 'municipal',
+  'MUNICIPAL': 'municipal',
+  'ADMIN': 'municipal',
+  
+  // Emergencias → emergency
+  [InfrastructureType.EMERGENCY]: 'emergency',
+  'EMERGENCIAS': 'emergency',
+  'EMERGENCY': 'emergency',
+  
+  // Energía → energy
+  [InfrastructureType.ENERGY]: 'energy',
+  'ENERGIA': 'energy',
+  'ENERGY': 'energy',
+  
+  // Tipologías SIN datos locales (requieren geocodificación externa)
+  [InfrastructureType.CULTURAL]: null,
+  [InfrastructureType.RELIGIOUS]: null,
+  [InfrastructureType.SPORTS]: null,
+  [InfrastructureType.SOCIAL]: null,
+  [InfrastructureType.FUEL]: null,
+  [InfrastructureType.HYDRAULIC]: null,
+  [InfrastructureType.TELECOM]: null,
+  [InfrastructureType.VIAL]: null,
+  [InfrastructureType.INDUSTRIAL]: null,
+  [InfrastructureType.GENERIC]: null,
+  'CULTURAL': null,
+  'RELIGIOSO': null,
+  'DEPORTIVO': null,
+  'SOCIAL': null,
+  'COMBUSTIBLE': null,
+  'HIDRAULICO': null,
+  'TELECOM': null,
+  'VIAL': null,
+  'INDUSTRIAL': null,
+  'GENERICO': null,
 };
 
 const FUSE_OPTIONS: Fuse.IFuseOptions<LocalFeature> = {
@@ -648,6 +716,174 @@ export async function getFeatureCountByMunicipio(
   return counts;
 }
 
+// ============================================================================
+// F023 FASE 1.1 - MÉTODOS SINGLETON
+// ============================================================================
+
+/** Prefijo para logs/errores de esta fase */
+const F023_1_1 = '[F023-1.1]';
+
+/**
+ * Resuelve una tipología a su(s) categoría(s) local(es)
+ * @internal
+ */
+function resolveTypologyToCategories(tipologia: string): InfrastructureCategory[] {
+  const mapping = TYPOLOGY_TO_CATEGORY[tipologia.toUpperCase()];
+  
+  if (mapping === null || mapping === undefined) {
+    return [];
+  }
+  
+  if (Array.isArray(mapping)) {
+    return mapping;
+  }
+  
+  return [mapping];
+}
+
+/**
+ * Cuenta features de una tipología específica en un municipio.
+ * 
+ * ESTRATEGIA SINGLETON (F023):
+ * - Si retorna 1 → match directo posible (95% confianza)
+ * - Si retorna 0 → escalar a CartoCiudad/CDAU
+ * - Si retorna ≥2 → proceder a desambiguación fuzzy
+ * 
+ * @param tipologia - Tipo de infraestructura (ej: 'HEALTH', 'SANITARIO', 'EDUCATION')
+ * @param codMunicipio - Código INE del municipio (5 dígitos)
+ * @returns Número de features de esa tipología en el municipio
+ * 
+ * @example
+ * ```typescript
+ * const count = await countByType('HEALTH', '18107'); // Quéntar
+ * // count === 2 (tiene 2 centros de salud)
+ * ```
+ * 
+ * @see F023 Fase 1.1 - Estrategia Multi-Campo
+ */
+export async function countByType(
+  tipologia: string,
+  codMunicipio: string
+): Promise<number> {
+  if (!isLoaded) {
+    await loadLocalData();
+  }
+  
+  const normalizedCod = normalizeCodMun(codMunicipio);
+  const categories = resolveTypologyToCategories(tipologia);
+  
+  // Si no hay categoría local para esta tipología, retornar 0
+  if (categories.length === 0) {
+    console.debug(`${F023_1_1} Tipología '${tipologia}' sin datos locales disponibles`);
+    return 0;
+  }
+  
+  const munData = municipioIndex.get(normalizedCod);
+  if (!munData) {
+    console.debug(`${F023_1_1} Municipio ${normalizedCod} no encontrado en índice local`);
+    return 0;
+  }
+  
+  let count = 0;
+  for (const cat of categories) {
+    const features = munData.get(cat);
+    if (features) {
+      count += features.length;
+    }
+  }
+  
+  // Log útil para debugging de estrategia singleton
+  if (count === 1) {
+    console.debug(`${F023_1_1} SINGLETON detectado: ${tipologia} en ${normalizedCod}`);
+  } else if (count >= 2) {
+    console.debug(`${F023_1_1} Múltiples (${count}): ${tipologia} en ${normalizedCod} - requiere desambiguación`);
+  }
+  
+  return count;
+}
+
+/**
+ * Obtiene el feature único si solo hay 1 de esa tipología en el municipio.
+ * 
+ * ESTRATEGIA SINGLETON (F023):
+ * - Si hay exactamente 1 feature → retornarlo (match directo, 95% confianza)
+ * - Si hay 0 o ≥2 → retornar null (requiere otra estrategia)
+ * 
+ * CASOS DE USO:
+ * - 65% de municipios andaluces tienen UN solo centro de salud
+ * - Match directo sin fuzzy matching = máxima precisión
+ * 
+ * @param tipologia - Tipo de infraestructura (ej: 'HEALTH', 'EDUCATION')
+ * @param codMunicipio - Código INE del municipio (5 dígitos)
+ * @returns Feature único si existe exactamente 1, null en caso contrario
+ * 
+ * @example
+ * ```typescript
+ * // Municipio con 1 solo centro de salud
+ * const feature = await getUniqueByType('HEALTH', '14006'); // Añora
+ * // feature !== null → match directo!
+ * 
+ * // Municipio con 2 centros de salud
+ * const feature2 = await getUniqueByType('HEALTH', '18107'); // Quéntar
+ * // feature2 === null → requiere desambiguación
+ * ```
+ * 
+ * @see F023 Fase 1.1 - Estrategia Multi-Campo
+ */
+export async function getUniqueByType(
+  tipologia: string,
+  codMunicipio: string
+): Promise<LocalFeature | null> {
+  if (!isLoaded) {
+    await loadLocalData();
+  }
+  
+  const normalizedCod = normalizeCodMun(codMunicipio);
+  const categories = resolveTypologyToCategories(tipologia);
+  
+  // Si no hay categoría local para esta tipología, retornar null
+  if (categories.length === 0) {
+    console.debug(`${F023_1_1} getUnique: Tipología '${tipologia}' sin categoría local`);
+    return null;
+  }
+  
+  const munData = municipioIndex.get(normalizedCod);
+  if (!munData) {
+    console.debug(`${F023_1_1} getUnique: Municipio ${normalizedCod} sin datos`);
+    return null;
+  }
+  
+  // Recolectar todos los features de las categorías relevantes
+  const allFeatures: LocalFeature[] = [];
+  for (const cat of categories) {
+    const features = munData.get(cat);
+    if (features) {
+      allFeatures.push(...features);
+    }
+  }
+  
+  // Solo retornar si hay exactamente 1
+  if (allFeatures.length === 1) {
+    console.debug(
+      `${F023_1_1} ✅ Match directo singleton: '${allFeatures[0].nombre}' ` +
+      `(${tipologia}, ${normalizedCod}) - 95% confianza`
+    );
+    return allFeatures[0];
+  }
+  
+  // Log específico según caso
+  if (allFeatures.length === 0) {
+    console.debug(`${F023_1_1} getUnique: 0 features para ${tipologia} en ${normalizedCod}`);
+  } else {
+    console.debug(
+      `${F023_1_1} getUnique: ${allFeatures.length} features para ${tipologia} en ${normalizedCod} ` +
+      `- singleton no aplicable, usar desambiguación`
+    );
+  }
+  
+  return null;
+}
+
 /**
  * Lista todos los municipios con datos
  */
@@ -817,6 +1053,11 @@ export default {
   getFeaturesByMunicipio,
   getFeatureCountByMunicipio,
   listMunicipiosConDatos,
+  // F023 Fase 1.1 - Métodos Singleton
+  countByType,
+  getUniqueByType,
+  TYPOLOGY_TO_CATEGORY,
+  // Integración cascade
   toGeocodingResult,
   geocodeWithLocalFallback,
   clearLocalData,
