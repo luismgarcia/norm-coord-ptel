@@ -134,9 +134,6 @@ export default defineConfig({
           // UI y animaciones
           'vendor-ui': ['framer-motion', '@radix-ui/react-dialog', '@radix-ui/react-popover'],
           
-          // Gráficos y visualización
-          'vendor-charts': ['recharts', 'd3'],
-          
           // Utilidades
           'vendor-utils': ['date-fns', 'zod', 'clsx', 'tailwind-merge'],
           
