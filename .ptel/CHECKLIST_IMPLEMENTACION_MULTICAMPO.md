@@ -39,11 +39,12 @@
 - [x] Tests con casos de múltiples candidatos (28 tests)
 
 ### 1.5 Integración en GeocodingOrchestrator
-- [ ] Añadir lógica de detección singleton ANTES de cascada
-- [ ] Si singleton → retorno directo con 95% confianza
-- [ ] Si múltiples → pasar a desambiguación
-- [ ] Si cero → escalar a CartoCiudad/CDAU
-- [ ] Tests de integración
+- [x] Añadir lógica de detección singleton ANTES de cascada
+- [x] Si singleton → retorno directo con 95% confianza
+- [x] Si múltiples → pasar a desambiguación
+- [x] Si cero → escalar a CartoCiudad/CDAU
+- [x] Tests de integración (14 tests)
+- [x] 🐛 Bug fix: Eliminada exclusión incorrecta de HEALTH
 
 ---
 
@@ -134,10 +135,12 @@
 
 | Fase | Tareas | Completadas | % |
 |------|--------|-------------|---|
-| Fase 1 | 20 | 19 | 95% |
+| Fase 1 | 25 | 24 | 96% |
 | Fase 2 | 18 | 0 | 0% |
 | Fase 3 | 12 | 0 | 0% |
-| **Total** | **50** | **19** | **38%** |
+| **Total** | **55** | **24** | **44%** |
+
+> ✅ **Fase 1.5 completada:** 3 Dic 2025 - Bug HEALTH corregido + 14 tests integración
 
 ---
 
