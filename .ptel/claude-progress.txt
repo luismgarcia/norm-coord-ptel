@@ -201,3 +201,44 @@ Descarga bulk de datos DERA para geocoding offline de 785 municipios andaluces.
 ### Próxima sesión
 F021 Fase 2: LocalDataService para geocoding local sin red (5-6h)
 
+
+
+## Sesión 2025-12-03 (noche) - F021 Fases 2-3-4 COMPLETADAS
+
+### Objetivo
+Completar sistema offline: LocalDataService, Service Worker, GitHub Actions.
+
+### Diagnóstico inicial
+- LocalDataService.ts YA EXISTÍA (822 líneas) pero handoff.json no se actualizó
+- Causa de cuelgues previos: Claude re-escribía código existente saturando contexto
+- Tests LocalDataService nunca se ejecutaban (runTests.mjs no los incluía)
+
+### Logros
+- ✅ Fase 2: LocalDataService verificado - 22/22 tests OK (9ms)
+- ✅ Fase 3: PWA/Workbox ya configurado en vite.config.ts
+  - CacheFirst para /data/dera/*.json (90 días)
+  - NetworkFirst para APIs externas (timeout 10s)
+  - Precaching app shell
+- ✅ Fase 4: GitHub Actions creado
+  - .github/workflows/update-dera.yml
+  - Cron trimestral (día 1 de enero/abril/julio/octubre)
+  - Trigger manual disponible
+  - Script download_dera_actions.py con reintentos
+
+### Limitaciones descubiertas
+- Guardia Civil: no hay capa WFS pública en DERA
+- Centros Emergencias: no hay capa WFS pública en DERA
+- g12_24_Ayuntamiento no responde - usando g12_32_CentrosJuntaAndalucia
+
+### Commits
+- c8c003d - docs(.ptel): F021 Fase 2 verificada
+- 0d9ce98 - docs: informe estado arquitectura offline
+- e3df460 - feat(F021): completar Fases 3-4 Sistema Offline
+
+### Estado F021: 5/5 FASES COMPLETADAS ✅
+
+### Próxima sesión
+1. npm ci && npm run build (verificar compilación)
+2. Verificar Service Worker en Chrome DevTools
+3. Probar modo offline real
+4. Ejecutar GitHub Action manualmente

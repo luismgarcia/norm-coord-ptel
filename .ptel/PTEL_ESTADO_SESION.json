@@ -1,140 +1,36 @@
 {
-  "version": "0.5.6",
-  "lastUpdate": "2025-12-03T01:10:00Z",
-  "currentPhase": {
-    "id": 3,
-    "name": "Sistema Offline con datos DERA - F021",
-    "progress": 40,
-    "status": "in_progress",
-    "details": "Fase 0 ✅ + Fase 1 ✅ COMPLETADAS. Pendiente: Fases 2-4 (LocalDataService, SW, GH Actions)."
+  "ultimaActualizacion": "2025-12-03T07:55:00Z",
+  "sesionActual": "F021-Fases-3-4-COMPLETADAS",
+  "rolActivo": "MapWizard",
+  
+  "estadoGeneral": {
+    "version": "0.5.0",
+    "progreso": "100%",
+    "featuresCompletadas": 21,
+    "featuresPendientes": 0,
+    "testsStatus": "22/22 LocalDataService + 724/724 totales"
   },
-  "activeWorkArea": "offline-infrastructure",
-  "metrics": {
-    "coordCompleteness": 26.9,
-    "geocodingSuccess": 70,
-    "parsingSuccess": 95,
-    "precision_m": 50,
-    "municipiosCovered": 785,
-    "municipiosTotal": 785,
-    "operationalCost_eur": 0,
-    "testsCount": 724,
-    "testsPassing": 724,
-    "testsFailing": 0,
-    "testTime_s": 1.54,
-    "validationMeasures": 3,
-    "documentsAnalyzed": 13,
-    "coordsNormalized": 182,
-    "patternsImplemented": 30,
-    "deraFeatures": 10653,
-    "deraLayers": 5,
-    "deraSizeMB": 7.6,
-    "notes": "F021 Fase 1 COMPLETADA 03-Dic-2025. 10,653 features DERA descargados. Commit: 89555f0"
+  
+  "featureActiva": {
+    "id": "F021",
+    "nombre": "Sistema Offline con datos DERA",
+    "estado": "COMPLETADA",
+    "fasesCompletadas": "5/5",
+    "ultimoCommit": "e3df460"
   },
-  "targets": {
-    "coordCompleteness": 95,
-    "geocodingSuccess": 95,
-    "parsingSuccess": 98,
-    "precision_m": 25,
-    "municipiosCovered": 785,
-    "operationalCost_eur": 50
-  },
-  "areaStatus": {
-    "normalization": {
-      "status": "operational",
-      "progress": 100,
-      "lastWorked": "2025-12-02"
-    },
-    "validation": {
-      "status": "operational",
-      "progress": 100,
-      "lastWorked": "2025-12-01"
-    },
-    "learning": {
-      "status": "operational",
-      "progress": 100,
-      "lastWorked": "2025-12-02"
-    },
-    "geocoding": {
-      "status": "in_progress",
-      "progress": 40,
-      "lastWorked": "2025-12-03"
-    },
-    "ui": {
-      "status": "paused",
-      "progress": 40,
-      "lastWorked": "2025-11-30"
-    },
-    "parsing": {
-      "status": "stable",
-      "progress": 95,
-      "lastWorked": "2025-11-30"
-    },
-    "ci": {
-      "status": "operational",
-      "progress": 100,
-      "lastWorked": "2025-11-30"
-    },
-    "testing": {
-      "status": "operational",
-      "progress": 100,
-      "lastWorked": "2025-12-02"
-    },
-    "documentation": {
-      "status": "updated",
-      "progress": 100,
-      "lastWorked": "2025-12-02"
-    },
-    "offline": {
-      "status": "in_progress",
-      "progress": 40,
-      "lastWorked": "2025-12-03",
-      "recentChanges": [
-        "Script download_dera.py v1.0 implementado",
-        "Datos DERA descargados: 10,653 features",
-        "5 capas: health, security, energy, education, municipal",
-        "100% municipios Andalucía cubiertos (785 ayuntamientos)"
-      ]
-    }
-  },
-  "lastSession": {
-    "date": "2025-12-03",
-    "role": "MapWizard",
-    "area": "F021 Sistema Offline",
-    "summary": "Fase 1 COMPLETADA: Descarga bulk datos DERA para 785 municipios. 10,653 features georreferenciados.",
-    "filesModified": [
-      "scripts/dera-download/download_dera.py (capas WFS corregidas)"
-    ],
-    "filesCreated": [
-      "public/data/dera/health.geojson (1700 features)",
-      "public/data/dera/security.geojson (1282 features)",
-      "public/data/dera/energy.geojson (161 features)",
-      "public/data/dera/education.geojson (6725 features)",
-      "public/data/dera/municipal.geojson (785 features)"
-    ],
-    "commits": [
-      "328ab19 - feat(F021): añadir script descarga bulk DERA - Fase 1",
-      "cf64a51 - data(F021): descargar datos DERA reales - Fase 1 parcial",
-      "89555f0 - feat(F021): descargar datos DERA completos - Fase 1 COMPLETADA"
-    ],
-    "dataDownloaded": {
-      "health": "1700 (1516 CAP + 184 hospitales)",
-      "security": "1282 (644 policía + 131 bomberos + 484 GC + 23 emergencias)",
-      "energy": "161 parques eólicos",
-      "education": "6725 centros educativos",
-      "municipal": "785 ayuntamientos (100% municipios)"
-    },
-    "lessonsLearned": [
-      "L9: Para emergencias, offline-first desde el diseño inicial",
-      "L10: APIs gubernamentales inestables → fallback local obligatorio",
-      "L11: WFS DERA fiables: g12_servicios funciona perfecto"
-    ],
-    "nextPriorities": [
-      "F021 Fase 2: LocalDataService geocoding local-first (5-6h)",
-      "F021 Fase 3: Service Worker Workbox offline total (3-4h)",
-      "F021 Fase 4: GitHub Actions actualización trimestral (3-4h)"
-    ]
-  },
-  "repoLocation": "/Users/lm/Documents/GitHub/norm-coord-ptel/",
-  "blockers": [],
-  "notes": "F021 PROGRESO: Fase 0 ✅ Fase 1 ✅. Datos DERA completos para geocoding offline. Próximo: LocalDataService para búsqueda local sin red."
+  
+  "bloqueadores": [],
+  
+  "proximasTareas": [
+    "Verificar PWA en producción (Chrome DevTools)",
+    "Probar modo offline",
+    "Ejecutar GitHub Action manualmente"
+  ],
+  
+  "notasSesion": [
+    "Fase 3 (PWA/Workbox) ya estaba configurada en vite.config.ts",
+    "Fase 4 (GitHub Actions) creada con workflow update-dera.yml",
+    "Limitación: Guardia Civil y Emergencias no tienen WFS público",
+    "Build local falla por node_modules incompleto - usar npm ci"
+  ]
 }

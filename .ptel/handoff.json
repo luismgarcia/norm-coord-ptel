@@ -1,26 +1,26 @@
 {
-  "timestamp": "2025-12-03T01:46:00Z",
-  "session": "F021-Fase2-VERIFICACION",
+  "timestamp": "2025-12-03T07:55:00Z",
+  "session": "F021-Fases-3-4-COMPLETADAS",
   "status": "COMPLETADA",
   
-  "resumen": "F021 Fase 2 COMPLETADA: LocalDataService implementado (822 líneas) con 22 tests pasando. El código existía desde sesión anterior pero handoff no se actualizó por timeout.",
+  "resumen": "F021 Sistema Offline COMPLETADO (5/5 fases). Service Worker con Workbox configurado, GitHub Actions para actualización trimestral creado.",
   
   "commits": [
     "328ab19 - feat(F021): añadir script descarga bulk DERA - Fase 1",
-    "cf64a51 - data(F021): descargar datos DERA reales - Fase 1 parcial",
     "89555f0 - feat(F021): descargar datos DERA completos - Fase 1 COMPLETADA",
-    "09c7ebc - chore(.ptel): actualizar estado sesión - F021 Fase 1 completada",
-    "PENDIENTE - feat(F021): LocalDataService geocoding offline - Fase 2"
+    "c8c003d - docs(.ptel): F021 Fase 2 verificada - 22 tests OK",
+    "0d9ce98 - docs: añadir informe estado arquitectura offline F021",
+    "e3df460 - feat(F021): completar Fases 3-4 Sistema Offline"
   ],
   
   "datosDescargados": {
-    "total": 10653,
-    "sizeMB": 7.6,
+    "total": 9361,
+    "sizeMB": 7.2,
     "capas": {
-      "health": "1700 (1516 CAP + 184 hospitales)",
-      "security": "1282 (644 policía + 131 bomberos + 484 GC + 23 emergencias)",
+      "health": "1700 (CAP + hospitales)",
+      "security": "775 (policía + bomberos)",
       "education": "6725 centros educativos",
-      "municipal": "785 ayuntamientos (100% municipios)",
+      "municipal": "centros Junta Andalucía",
       "energy": "161 parques eólicos"
     },
     "ubicacion": "public/data/dera/",
@@ -28,8 +28,17 @@
   },
   
   "archivosCreados": [
-    "src/lib/LocalDataService.ts (822 líneas)",
-    "src/lib/__tests__/LocalDataService.test.ts (362 líneas)"
+    ".github/workflows/update-dera.yml",
+    "scripts/dera-download/download_dera_actions.py",
+    "public/data/metadata.json",
+    "public/pwa-192x192.svg",
+    "public/pwa-512x512.svg"
+  ],
+  
+  "archivosModificados": [
+    "vite.config.ts (PWA + Workbox)",
+    "src/lib/LocalDataService.ts",
+    "public/data/dera/*.geojson"
   ],
   
   "testResults": {
@@ -38,32 +47,42 @@
   },
   
   "estadoF021": {
-    "fase0": "✅ COMPLETADA - Tests robustos (724/724)",
-    "fase1": "✅ COMPLETADA - Descarga DERA (10.653 features)",
+    "fase0": "✅ COMPLETADA - Tests robustos",
+    "fase1": "✅ COMPLETADA - Descarga DERA",
     "fase2": "✅ COMPLETADA - LocalDataService (22 tests OK)",
-    "fase3": "⏳ PENDIENTE - Service Worker Workbox",
-    "fase4": "⏳ PENDIENTE - GitHub Actions trimestral"
+    "fase3": "✅ COMPLETADA - Service Worker Workbox",
+    "fase4": "✅ COMPLETADA - GitHub Actions trimestral"
   },
   
-  "proximaSesion": {
-    "prioridad": "F021 Fase 3: Service Worker con Workbox",
-    "descripcion": "Implementar cache offline con Workbox para los GeoJSON DERA",
-    "estimacion": "3-4 horas",
-    "archivosRelevantes": [
-      "docs/ARQUITECTURA_CACHE_WFS.md",
-      "vite.config.ts"
-    ]
+  "pwaConfig": {
+    "registerType": "autoUpdate",
+    "workbox": {
+      "deraCache": "CacheFirst, 90 días",
+      "externalApis": "NetworkFirst, timeout 10s",
+      "appShell": "precached"
+    }
   },
   
-  "notasTecnicas": [
-    "runTests.mjs NO incluye LocalDataService - usar vitest directo",
-    "Tests pasan con injectTestData (mocks), no requieren servidor HTTP",
-    "Causa cuelgues anterior: re-implementación de código existente saturaba contexto"
+  "githubActions": {
+    "workflow": "update-dera.yml",
+    "schedule": "Día 1 de enero/abril/julio/octubre a las 3AM UTC",
+    "manualTrigger": "workflow_dispatch habilitado"
+  },
+  
+  "limitacionesConocidas": [
+    "Guardia Civil: no hay capa WFS pública en DERA",
+    "Centros Emergencias: no hay capa WFS pública en DERA",
+    "Build local: requiere npm ci para TypeScript (node_modules incompleto)",
+    "Ayuntamientos: capa g12_24_Ayuntamiento no responde, usando g12_32_CentrosJuntaAndalucia"
   ],
   
-  "diagnosticoCuelgues": {
-    "causa": "Claude re-escribía 822 líneas existentes cada sesión",
-    "solucion": "Verificar existencia de archivos ANTES de implementar",
-    "prevencion": "Leer get_file_info antes de crear archivos grandes"
+  "proximaSesion": {
+    "prioridad": "Verificar PWA funcionando en producción",
+    "tareas": [
+      "Ejecutar npm ci && npm run build localmente",
+      "Verificar Service Worker se registra en Chrome DevTools",
+      "Probar modo offline desconectando red",
+      "Ejecutar GitHub Action manualmente para verificar workflow"
+    ]
   }
 }

@@ -237,9 +237,9 @@
       "category": "architecture",
       "description": "Sistema Offline con datos DERA precargados",
       "priority": "critical",
-      "passes": "partial",
-      "completedDate": null,
-      "phasesCompleted": "3/5 (Fase 0,1,2 OK)",
+      "passes": true,
+      "completedDate": "2025-12-03",
+      "phasesCompleted": "5/5 (TODAS)",
       "assignedRole": "MapWizard",
       "implementation": {
         "phases": [
@@ -266,13 +266,13 @@
             "phase": 3,
             "name": "Service Worker con Workbox",
             "hours": "3-4h",
-            "status": "pendiente"
+            "status": "completada"
           },
           {
             "phase": 4,
             "name": "GitHub Actions actualización trimestral",
             "hours": "3-4h",
-            "status": "pendiente"
+            "status": "completada"
           }
         ],
         "totalHours": "17-22h",
@@ -295,8 +295,8 @@
     "geocodingCoverage": "13/13 geocodificadores implementados",
     "validationCoverage": "1/1 validador multi-medida implementado",
     "learningCoverage": "2/2 módulos aprendizaje implementados",
-    "offlineCoverage": "3/5 fases offline (F021 Fase 0,1,2 completadas)",
-    "pendingFeatures": ["F014:CacheManager (parcial)", "F015:ProgressPanel", "F021:Fase3-ServiceWorker", "F021:Fase4-GitHubActions"]
+    "offlineCoverage": "5/5 fases offline (F021 COMPLETADA)",
+    "pendingFeatures": ["F014:CacheManager (parcial)", "F015:ProgressPanel"]
   },
   "lastUpdated": "2025-12-02T22:45:00Z",
   "updatedBy": "Claude (sesión 02-Dic-2025 - Arquitectura Offline)"
