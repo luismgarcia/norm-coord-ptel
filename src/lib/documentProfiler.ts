@@ -221,16 +221,18 @@ function inicializarEstadisticas(): DetailedStats {
  * Analiza un registro individual
  */
 function analizarRegistro(registro: RegistroCoordenas, stats: DetailedStats): void {
-  const { xOriginal, yOriginal } = registro;
+  // Coerción defensiva a string (pueden llegar números, null, undefined)
+  const xOriginal = registro.xOriginal != null ? String(registro.xOriginal) : '';
+  const yOriginal = registro.yOriginal != null ? String(registro.yOriginal) : '';
   
   // Verificar si está vacío
-  if ((!xOriginal || xOriginal.trim() === '') && (!yOriginal || yOriginal.trim() === '')) {
+  if (xOriginal.trim() === '' && yOriginal.trim() === '') {
     stats.registrosVacios++;
     return;
   }
   
   // Analizar X
-  if (xOriginal && xOriginal.trim() !== '') {
+  if (xOriginal.trim() !== '') {
     analizarCampo(xOriginal, stats, 'X');
     if (!esPlaceholder(xOriginal)) {
       stats.registrosConX++;
@@ -238,7 +240,7 @@ function analizarRegistro(registro: RegistroCoordenas, stats: DetailedStats): vo
   }
   
   // Analizar Y
-  if (yOriginal && yOriginal.trim() !== '') {
+  if (yOriginal.trim() !== '') {
     analizarCampo(yOriginal, stats, 'Y');
     if (!esPlaceholder(yOriginal)) {
       stats.registrosConY++;
@@ -250,7 +252,8 @@ function analizarRegistro(registro: RegistroCoordenas, stats: DetailedStats): vo
  * Analiza un campo de coordenada individual
  */
 function analizarCampo(valor: string, stats: DetailedStats, campo: 'X' | 'Y'): void {
-  const v = valor.trim();
+  // Coerción defensiva a string
+  const v = (valor != null ? String(valor) : '').trim();
   
   // Detectar placeholder
   if (esPlaceholder(v)) {
@@ -314,16 +317,16 @@ function calcularRegistrosCompletos(
   let completos = 0;
   
   for (const registro of registros) {
-    const xValido = registro.xOriginal && 
-                    registro.xOriginal.trim() !== '' && 
-                    !esPlaceholder(registro.xOriginal);
-    const yValido = registro.yOriginal && 
-                    registro.yOriginal.trim() !== '' && 
-                    !esPlaceholder(registro.yOriginal);
+    // Coerción defensiva a string
+    const xStr = registro.xOriginal != null ? String(registro.xOriginal) : '';
+    const yStr = registro.yOriginal != null ? String(registro.yOriginal) : '';
+    
+    const xValido = xStr.trim() !== '' && !esPlaceholder(xStr);
+    const yValido = yStr.trim() !== '' && !esPlaceholder(yStr);
     
     // Caso especial: coordenadas concatenadas o WKT/GeoJSON
     if (xValido && !yValido) {
-      const patron = detectarPatron(registro.xOriginal);
+      const patron = detectarPatron(xStr);
       if (['CONCATENADO', 'WKT_POINT', 'GEOJSON_POINT'].includes(patron)) {
         completos++;
         continue;

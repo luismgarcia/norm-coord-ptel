@@ -248,7 +248,9 @@ const PLACEHOLDERS_NUMERICOS = new Set([
  * Detecta si el valor es un placeholder (texto o numérico)
  */
 export function esPlaceholder(valor: string): boolean {
-  const valorLimpio = valor.trim().toLowerCase();
+  // Coerción defensiva a string
+  const valorStr = valor != null ? String(valor) : '';
+  const valorLimpio = valorStr.trim().toLowerCase();
   
   // Placeholder texto
   if (PLACEHOLDERS_TEXTO.has(valorLimpio)) {
@@ -273,7 +275,9 @@ export function esPlaceholder(valor: string): boolean {
  * Detecta el patrón de formato de la coordenada
  */
 export function detectarPatron(valor: string): PatronDetectado {
-  const v = valor.trim();
+  // Coerción defensiva a string
+  const valorStr = valor != null ? String(valor) : '';
+  const v = valorStr.trim();
   
   if (esPlaceholder(v)) {
     return 'PLACEHOLDER';
@@ -1055,7 +1059,8 @@ export function normalizarCoordenada(input: string): ResultadoNormalizacion {
     errores: [],
   };
   
-  let valor = input;
+  // Coerción defensiva a string (pueden llegar números, null, undefined)
+  let valor = input != null ? String(input) : '';
   
   valor = valor.trim();
   resultado.fasesAplicadas.push('FASE_0_TRIM');
