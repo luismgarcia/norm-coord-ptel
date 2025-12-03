@@ -21,9 +21,18 @@
  * @module lib/documentExtractor
  */
 import JSZip from 'jszip';
-import * as XLSX from 'xlsx';
+// XLSX se carga dinámicamente para reducir bundle inicial
 import { ExtractedInfrastructure, ExtractionStats, DocumentMetadata, AddressType } from '../types/processing';
 import { deconcatenateText } from './textDeconcatenator';
+
+// Lazy-load de xlsx
+let XLSX_CACHE: typeof import('xlsx') | null = null;
+async function getXLSX() {
+  if (!XLSX_CACHE) {
+    XLSX_CACHE = await import('xlsx');
+  }
+  return XLSX_CACHE;
+}
 
 // ============================================================================
 // TIPOS Y CONSTANTES
@@ -643,6 +652,7 @@ export async function extractFromSpreadsheet(
   province?: string
 ): Promise<{ infrastructures: ExtractedInfrastructure[], stats: ExtractionStats }> {
   
+  const XLSX = await getXLSX();
   const buffer = await file.arrayBuffer();
   const workbook = XLSX.read(buffer, { type: 'array' });
   

@@ -24,7 +24,7 @@ import {
   MapPin,
   Buildings
 } from '@phosphor-icons/react'
-import * as XLSX from 'xlsx'
+// XLSX se carga dinámicamente para reducir bundle inicial
 import { Card, CardContent } from './ui/card'
 import { Button } from './ui/button'
 import { ProcessingComplete } from './Step2'
@@ -106,7 +106,8 @@ export default function Step3({ data, onReset }: Step3Props) {
   }
 
   // Descargar como Excel con 3 pestañas
-  const downloadExcel = () => {
+  const downloadExcel = async () => {
+    const XLSX = await import('xlsx')
     const wb = XLSX.utils.book_new()
     
     // Pestaña 1: Resumen - Todos los datos

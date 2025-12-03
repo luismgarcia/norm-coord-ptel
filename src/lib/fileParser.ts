@@ -1,5 +1,14 @@
-import * as XLSX from 'xlsx'
+// XLSX se carga dinámicamente para reducir bundle inicial (7MB)
 import Papa from 'papaparse'
+
+// Lazy-load de xlsx
+let XLSX: typeof import('xlsx') | null = null;
+async function getXLSX() {
+  if (!XLSX) {
+    XLSX = await import('xlsx');
+  }
+  return XLSX;
+}
 
 export interface ParsedFile {
   data: any[]
@@ -65,13 +74,15 @@ async function parseCSV(file: File): Promise<any[]> {
 }
 
 async function parseExcel(file: File): Promise<any[]> {
+  const xlsx = await getXLSX();
+  
   return new Promise((resolve, reject) => {
     const reader = new FileReader()
 
     reader.onload = (e) => {
       try {
         const data = e.target?.result
-        const workbook = XLSX.read(data, { 
+        const workbook = xlsx.read(data, { 
           type: 'array',
           cellDates: true,
           cellNF: false,
@@ -84,7 +95,7 @@ async function parseExcel(file: File): Promise<any[]> {
         }
         
         const firstSheet = workbook.Sheets[workbook.SheetNames[0]]
-        const jsonData = XLSX.utils.sheet_to_json(firstSheet, { 
+        const jsonData = xlsx.utils.sheet_to_json(firstSheet, { 
           defval: '',
           raw: false,
           dateNF: 'yyyy-mm-dd'
@@ -127,7 +138,8 @@ async function parseDocument(file: File): Promise<any[]> {
 
         if (['doc', 'docx', 'odt', 'rtf'].includes(extension)) {
           try {
-            const workbook = XLSX.read(data, { 
+            const xlsx = await getXLSX();
+            const workbook = xlsx.read(data, { 
               type: 'array',
               cellDates: true,
               raw: false
@@ -135,7 +147,7 @@ async function parseDocument(file: File): Promise<any[]> {
             
             if (workbook.SheetNames.length > 0) {
               const firstSheet = workbook.Sheets[workbook.SheetNames[0]]
-              const jsonData = XLSX.utils.sheet_to_json(firstSheet, { 
+              const jsonData = xlsx.utils.sheet_to_json(firstSheet, { 
                 defval: '',
                 raw: false
               })
@@ -282,15 +294,17 @@ export function generateCSV(
   return '\ufeff' + rows.join('\n')
 }
 
-export function generateExcel(
+export async function generateExcel(
   data: any[],
   xColumn: string,
   yColumn: string,
   convertedCoords: Array<{ x: number; y: number; isValid: boolean }>
-): ArrayBuffer {
+): Promise<ArrayBuffer> {
   if (data.length === 0) {
     throw new Error('No hay datos para exportar')
   }
+  
+  const xlsx = await getXLSX();
 
   const allColumns = Object.keys(data[0])
   const otherColumns = allColumns.filter(col => col !== xColumn && col !== yColumn)
@@ -313,11 +327,11 @@ export function generateExcel(
     }
   })
 
-  const worksheet = XLSX.utils.json_to_sheet(exportData)
-  const workbook = XLSX.utils.book_new()
-  XLSX.utils.book_append_sheet(workbook, worksheet, 'UTM30')
+  const worksheet = xlsx.utils.json_to_sheet(exportData)
+  const workbook = xlsx.utils.book_new()
+  xlsx.utils.book_append_sheet(workbook, worksheet, 'UTM30')
   
-  return XLSX.write(workbook, { type: 'array', bookType: 'xlsx' })
+  return xlsx.write(workbook, { type: 'array', bookType: 'xlsx' })
 }
 
 export function generateGeoJSON(
