@@ -21,11 +21,27 @@
  *   γ = 0.25 (peso autoridad de fuentes)
  * 
  * @module services/geocoding/CrossValidator
- * @version 1.0.0
- * @date 2025-12-03
+ * @version 2.0.0 - Integración con algoritmos robustos (huberCentroid, outlier detection)
+ * @date 2025-12-04
  */
 
 import type { GeocodingResult } from '../../types/infrastructure';
+
+// Algoritmos robustos de crossValidation.ts (F023 Fase 2)
+import {
+  huberCentroid,
+  analyzeResultClusters,
+  calculateCompositeScore as calculateEnhancedScore,
+  detectDiscrepancy,
+  generateRecommendation,
+  distanceUTM,
+  SOURCE_AUTHORITY_WEIGHTS as ENHANCED_AUTHORITY_WEIGHTS,
+  DISCREPANCY_THRESHOLDS,
+  type UTMPoint,
+  type ClusterAnalysis,
+  type SourceResult as EnhancedSourceResult,
+  type GeocodingSourceId,
+} from '../../lib/crossValidation';
 
 // ============================================================================
 // TIPOS
@@ -601,6 +617,155 @@ export class CrossValidator {
         bonusApplied: 0,
       },
     };
+  }
+  
+  // ==========================================================================
+  // VALIDACIÓN MEJORADA CON ALGORITMOS ROBUSTOS (F023 Fase 2)
+  // ==========================================================================
+  
+  /**
+   * Valida resultados usando algoritmos robustos de crossValidation.ts
+   * 
+   * Mejoras sobre validate():
+   * - huberCentroid: centroide robusto que reduce influencia de outliers
+   * - analyzeResultClusters: detección automática de discordancias
+   * - detectDiscrepancy: umbrales específicos por tipología
+   * - generateRecommendation: USE_RESULT / MANUAL_REVIEW / REJECT
+   * 
+   * @param results - Resultados de fuentes
+   * @param infrastructureType - Tipología PTEL
+   * @returns Resultado de validación cruzada mejorado
+   */
+  public validateEnhanced(
+    results: SourceResult[],
+    infrastructureType?: string
+  ): CrossValidationResult {
+    const startTime = performance.now();
+    
+    // Filtrar resultados válidos
+    const validResults = results.filter(r => 
+      r.x !== 0 && r.y !== 0 && r.confidence > 0
+    );
+    
+    // Caso: sin resultados
+    if (validResults.length === 0) {
+      return this.createEmptyResult(startTime);
+    }
+    
+    // Mapear a formato EnhancedSourceResult para crossValidation.ts
+    const enhancedResults: EnhancedSourceResult[] = validResults.map(r => ({
+      sourceId: this.mapToEnhancedSourceId(r.source),
+      sourceName: r.source,
+      authorityWeight: ENHANCED_AUTHORITY_WEIGHTS[this.mapToEnhancedSourceId(r.source)] ?? 0.5,
+      result: {
+        coordinates: { x: r.x, y: r.y },
+        matchedName: r.matchedName,
+        matchScore: r.confidence,
+        confidence: r.confidence,
+      },
+      error: undefined, // Sin error para resultados válidos
+      responseTimeMs: r.responseTimeMs,
+      status: 'success' as const,
+    }));
+    
+    // Analizar cluster con algoritmo robusto (huberCentroid)
+    const threshold = DISCREPANCY_THRESHOLDS[infrastructureType?.toUpperCase() ?? ''] 
+      ?? DISCREPANCY_THRESHOLDS.DEFAULT;
+    
+    const clusterAnalysis = analyzeResultClusters(enhancedResults, {
+      concordanceThreshold: threshold
+    });
+    
+    // Si no hay análisis válido
+    if (!clusterAnalysis) {
+      return this.createEmptyResult(startTime);
+    }
+    
+    // Detectar discrepancia
+    const discrepancy = detectDiscrepancy(clusterAnalysis, infrastructureType);
+    
+    // Calcular scores
+    const avgMatchScore = validResults.reduce((sum, r) => sum + r.confidence, 0) / validResults.length;
+    const avgAuthority = enhancedResults
+      .filter(r => !clusterAnalysis.outlierSources.includes(r.sourceId))
+      .reduce((sum, r) => sum + r.authorityWeight, 0) / 
+      Math.max(1, clusterAnalysis.concordantSources);
+    
+    const compositeScore = calculateEnhancedScore(
+      avgMatchScore,
+      clusterAnalysis.concordanceScore,
+      avgAuthority
+    );
+    
+    // Generar recomendación
+    const { recommendation, reason } = generateRecommendation(
+      compositeScore,
+      discrepancy,
+      clusterAnalysis.concordantSources
+    );
+    
+    // Mapear a ValidationStatus
+    const status = this.mapRecommendationToStatus(
+      recommendation, 
+      validResults.length,
+      discrepancy.hasDiscrepancy
+    );
+    
+    // Coordenadas: usar centroide robusto de clusterAnalysis
+    const coordinates = clusterAnalysis.centroid;
+    
+    return {
+      coordinates,
+      compositeScore,
+      status,
+      discrepancyMeters: clusterAnalysis.radiusMeters,
+      sourceResults: validResults,
+      primarySource: this.selectPrimarySource(validResults),
+      totalTimeMs: Math.round(performance.now() - startTime),
+      requiresManualReview: recommendation === 'MANUAL_REVIEW' || recommendation === 'REJECT',
+      reviewReason: recommendation !== 'USE_RESULT' ? reason : undefined,
+      scoreBreakdown: {
+        C_match: avgMatchScore,
+        C_concordance: Math.round(clusterAnalysis.concordanceScore * 100),
+        C_source: Math.round(avgAuthority * 100),
+        bonusApplied: 0,
+      },
+    };
+  }
+  
+  /**
+   * Mapea fuente local a GeocodingSourceId de crossValidation.ts
+   */
+  private mapToEnhancedSourceId(source: GeocodingSource): GeocodingSourceId {
+    const mapping: Record<GeocodingSource, GeocodingSourceId> = {
+      'LOCAL_DERA': 'LOCAL',
+      'WFS_DERA': 'LOCAL',
+      'WFS_SPECIALIZED': 'WFS_HEALTH', // Genérico a health
+      'CDAU': 'CDAU',
+      'CARTOCIUDAD': 'CARTOCIUDAD',
+      'NGA': 'NGA',
+      'IAID': 'WFS_CULTURAL', // Mapear deportes a cultural
+      'OSM': 'OVERPASS',
+      'NOMINATIM': 'NOMINATIM',
+    };
+    return mapping[source] ?? 'NOMINATIM';
+  }
+  
+  /**
+   * Mapea recomendación a ValidationStatus
+   */
+  private mapRecommendationToStatus(
+    recommendation: 'USE_RESULT' | 'MANUAL_REVIEW' | 'REJECT',
+    sourceCount: number,
+    hasDiscrepancy: boolean
+  ): ValidationStatus {
+    if (sourceCount === 1) return 'SINGLE_SOURCE';
+    if (recommendation === 'REJECT') return 'CONFLICT';
+    if (recommendation === 'MANUAL_REVIEW') {
+      return hasDiscrepancy ? 'UNCERTAIN' : 'LIKELY_VALID';
+    }
+    // USE_RESULT
+    return hasDiscrepancy ? 'LIKELY_VALID' : 'CONFIRMED';
   }
   
   /**
