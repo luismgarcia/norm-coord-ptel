@@ -23,20 +23,20 @@
 - [x] Tests con nombres reales de documentos PTEL (143 tests)
 
 ### 1.3 Limpieza de Direcciones (`addressCleaner.ts`)
-- [ ] Crear archivo `src/utils/addressCleaner.ts`
-- [ ] Eliminar horarios: "24h", "L-V 8:00-15:00"
-- [ ] Eliminar teléfonos: "Tel: 950123456"
-- [ ] Eliminar equipamiento: "1 mesa, 2 sillas"
-- [ ] Normalizar abreviaturas: "C/" → "Calle", "Avda." → "Avenida"
-- [ ] Corregir errores comunes: "Garci laso" → "Garcilaso"
-- [ ] Evaluar calidad de dirección (¿geocodificable?)
-- [ ] Tests con direcciones reales de PTEL
+- [x] Crear archivo `src/utils/addressCleaner.ts`
+- [x] Eliminar horarios: "24h", "L-V 8:00-15:00"
+- [x] Eliminar teléfonos: "Tel: 950123456"
+- [x] Eliminar equipamiento: "1 mesa, 2 sillas"
+- [x] Normalizar abreviaturas: "C/" → "Calle", "Avda." → "Avenida"
+- [x] Corregir errores comunes: "Garci laso" → "Garcilaso"
+- [x] Evaluar calidad de dirección (¿geocodificable?)
+- [x] Tests con direcciones reales de PTEL (54 tests)
 
 ### 1.4 Desambiguación Multi-Campo (`multiFieldStrategy.ts`)
-- [ ] Crear archivo `src/lib/multiFieldStrategy.ts`
-- [ ] Definir pesos por tipología (HEALTH, EDUCATION, SECURITY, etc.)
-- [ ] Implementar scoring combinado: nombre + dirección + localidad
-- [ ] Tests con casos de múltiples candidatos
+- [x] Crear archivo `src/lib/multiFieldStrategy.ts`
+- [x] Definir pesos por tipología (HEALTH, EDUCATION, SECURITY, etc.)
+- [x] Implementar scoring combinado: nombre + dirección + localidad
+- [x] Tests con casos de múltiples candidatos (28 tests)
 
 ### 1.5 Integración en GeocodingOrchestrator
 - [ ] Añadir lógica de detección singleton ANTES de cascada
@@ -134,10 +134,10 @@
 
 | Fase | Tareas | Completadas | % |
 |------|--------|-------------|---|
-| Fase 1 | 20 | 10 | 50% |
+| Fase 1 | 20 | 19 | 95% |
 | Fase 2 | 18 | 0 | 0% |
 | Fase 3 | 12 | 0 | 0% |
-| **Total** | **50** | **10** | **20%** |
+| **Total** | **50** | **19** | **38%** |
 
 ---
 
@@ -166,5 +166,5 @@
 
 ---
 
-**Última actualización:** 2025-12-03 (Fase 1.2 completada)
+**Última actualización:** 2025-12-03 (Fase 1.3 completada)
 **Próxima revisión:** Al completar Fase 1

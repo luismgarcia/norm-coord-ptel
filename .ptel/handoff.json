@@ -1,10 +1,10 @@
 {
-  "fecha": "2025-12-03T19:05:00Z",
-  "sesionAnterior": "F023 Fase 1.2 completada - Clasificador Mejorado con preprocesamiento",
-  "commitFinal": "09d1800",
+  "fecha": "2025-12-03T19:53:00Z",
+  "sesionAnterior": "F023 Fase 1.4 completada - Desambiguación Multi-Campo (multiFieldStrategy.ts)",
+  "commitFinal": "pendiente",
   
   "proximaSesion": {
-    "objetivo": "Implementar FASE 1.3: Limpieza de Direcciones (addressCleaner.ts)",
+    "objetivo": "Implementar FASE 1.5: Integración en GeocodingOrchestrator",
     "rol": "MapWizard",
     "duracionEstimada": "1-2 horas"
   },
@@ -30,38 +30,68 @@
       "status": "✅ COMPLETADO",
       "items": [
         "preprocessText() reescrito con flujo correcto",
-        "CONCATENATIONS: 11 patrones (centrosalud, guardiacivil, etc.)",
-        "COMMON_TYPOS: 14 patrones (sanitariode, trasformador, etc.)",
-        "ACCENT_CORRECTIONS: restauración de tildes (policía, depósito, etc.)",
-        "Separación camelCase: SevillanaEndesa → Sevillana Endesa",
-        "Separación números pegados: Trasformador60822 → Trasformador 60822",
-        "Patrón gasolinera/garolinera actualizado",
-        "143 tests InfrastructureClassifier pasando"
+        "CONCATENATIONS: 11 patrones",
+        "COMMON_TYPOS: 14 patrones",
+        "ACCENT_CORRECTIONS: restauración de tildes",
+        "Separación camelCase y números pegados",
+        "143 tests InfrastructureClassifier"
       ],
       "tests": "143 passed"
+    },
+    "fase1_3": {
+      "status": "✅ COMPLETADO",
+      "items": [
+        "addressCleaner.ts con limpieza completa",
+        "Eliminación teléfonos, horarios, equipamiento",
+        "Normalización abreviaturas (C/→Calle, Avd→Avenida)",
+        "Corrección errores: Garci laso→Garcilaso, etc.",
+        "Separación número-localidad (5granada→5, Granada)",
+        "calculateAddressQuality() score 0-100",
+        "54 tests addressCleaner"
+      ],
+      "tests": "54 passed"
+    },
+    "fase1_4": {
+      "status": "✅ COMPLETADO",
+      "items": [
+        "multiFieldStrategy.ts con desambiguación completa",
+        "WEIGHTS_BY_TYPOLOGY: pesos por tipología",
+        "scoreCandidate(): scoring por campo",
+        "disambiguate(): selección mejor candidato",
+        "Confianza HIGH/MEDIUM/LOW/NONE",
+        "28 tests multiFieldStrategy"
+      ],
+      "tests": "28 passed"
+    },
+    "fase1_5": {
+      "status": "⏳ PENDIENTE",
+      "items": [
+        "Añadir lógica singleton ANTES de cascada",
+        "Si singleton → retorno 95% confianza",
+        "Si múltiples → desambiguación",
+        "Si cero → escalar a CartoCiudad/CDAU",
+        "Tests de integración"
+      ]
     }
   },
   
   "tareasInmediatas": [
-    "1.3: Crear src/utils/addressCleaner.ts",
-    "1.3: Eliminar horarios (24h, L-V 8:00-15:00)",
-    "1.3: Eliminar teléfonos (Tel: 950123456)",
-    "1.3: Normalizar abreviaturas (C/ → Calle)",
-    "1.3: Evaluar calidad de dirección"
+    "Integrar multiFieldStrategy en GeocodingOrchestrator",
+    "Añadir detección singleton antes de cascada",
+    "Tests de integración completos"
   ],
   
-  "recordatorios": [
-    "Fase 2: Implementar sistema completo errores tipados (GeocodingErrors.ts)",
-    "Verificar Quéntar/Colomera con datos reales cuando se despliegue"
-  ],
-  
-  "contextoRapido": {
-    "problema": "Score 65%, solo usa NOMBRE para buscar",
-    "solucion": "Explotar TIPO+MUNICIPIO+NOMBRE+DIRECCIÓN",
-    "hallazgoClave": "65% municipios tienen 1 sola infraestructura de cada tipo → match directo",
-    "objetivo": "Score 92-98%",
-    "progreso": "20% (10/50 tareas)"
+  "estadoTests": {
+    "total": 917,
+    "passed": 917,
+    "failed": 0,
+    "archivos": 25
   },
   
-  "promptInicio": "Continuar F023 Geocodificación Multi-Campo. Rol: MapWizard. Leer .ptel/CHECKLIST_IMPLEMENTACION_MULTICAMPO.md. Empezar Fase 1.3: Limpieza de Direcciones (crear addressCleaner.ts)"
+  "progresoF023": {
+    "fase1": "95% (19/20 tareas)",
+    "fase2": "0% (0/18 tareas)",
+    "fase3": "0% (0/12 tareas)",
+    "total": "38% (19/50 tareas)"
+  }
 }
