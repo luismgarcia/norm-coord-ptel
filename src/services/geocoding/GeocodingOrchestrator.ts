@@ -781,12 +781,17 @@ export class GeocodingOrchestrator {
 
       const processingTime = Date.now() - startTime;
 
-      // ===== VALIDACIÓN CRUZADA MULTI-FUENTE (v3.0) =====
+      // ===== VALIDACIÓN CRUZADA MULTI-FUENTE (v3.0 Enhanced) =====
       const crossValidate = options.crossValidate !== false; // Default: true
       
       if (crossValidate && sourceResults.length > 0) {
         const validator = getCrossValidator();
-        const validationResult = validator.validate(
+        // F023 Fase 2: Usar validateEnhanced() con algoritmos robustos
+        // - huberCentroid: centroide robusto (reduce outliers)
+        // - analyzeResultClusters: detección automática discordancias
+        // - detectDiscrepancy: umbrales específicos por tipología
+        // - generateRecommendation: USE_RESULT / MANUAL_REVIEW / REJECT
+        const validationResult = validator.validateEnhanced(
           sourceResults,
           classification.type
         );
