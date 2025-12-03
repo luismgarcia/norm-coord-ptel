@@ -1,42 +1,43 @@
 {
-  "fecha": "2025-12-03T22:08:00Z",
-  "sesionCompletada": "F023-FASE1-DOCUMENTACION",
-  "commitFinal": "63faf44",
+  "fecha": "2025-12-03T22:20:00Z",
+  "sesionCompletada": "F023-PREPARACION-FASE2",
+  "commitFinal": "be09fcd",
   
   "logros": [
-    "✅ DOCUMENTACION_FASE1_COMPLETA.md creado (739 líneas)",
-    "✅ Índice de documentación actualizado",
-    "✅ 4 secciones de ejemplos prácticos",
-    "✅ 4 casos de uso validados documentados",
-    "✅ Guía de debugging con prefijos [F023-1.x]",
-    "✅ FAQ técnico con 8 preguntas frecuentes"
+    "✅ Documentación Fase 1 completa (739 líneas)",
+    "✅ Mapa de sesiones Fase 2 creado",
+    "✅ Prompt sesión 2A listo para usar"
   ],
   
-  "documentacionCreada": {
-    "archivo": ".ptel/DOCUMENTACION_FASE1_COMPLETA.md",
-    "lineas": 739,
-    "tamanio": "~24KB",
-    "secciones": [
-      "1. Visión General - Problema y solución",
-      "2. Arquitectura - Flujo de decisión y archivos",
-      "3. Componentes - LocalDataService, Clasificador, AddressCleaner, MultiField",
-      "4. Ejemplos de Código - 4 snippets listos para usar",
-      "5. Casos Validados - Colomera, Hornos, Berja, Tíjola",
-      "6. Debugging - Prefijos, logs comunes, investigación",
-      "7. Métricas - Tiempos, memoria, cobertura tests",
-      "8. FAQ - 8 preguntas técnicas respondidas"
-    ]
+  "planFase2": {
+    "sesiones": 3,
+    "tareasTotal": 18,
+    "estructura": {
+      "2A": {
+        "nombre": "Fundamentos",
+        "tareas": ["GeocodingErrors", "distanceUTM", "queryMultipleSources"],
+        "tiempo": "~1.5h",
+        "prompt": ".ptel/PROMPT_SESION_2A.md"
+      },
+      "2B": {
+        "nombre": "Algoritmos", 
+        "tareas": ["analyzeResultClusters", "huberCentroid"],
+        "tiempo": "~1.5h"
+      },
+      "2C": {
+        "nombre": "Integración",
+        "tareas": ["compositeScore", "detectDiscrepancy", "integrar Orchestrator"],
+        "tiempo": "~1.5h"
+      }
+    }
   },
   
   "proximaSesion": {
-    "objetivo": "F023 Fase 2: Validación Cruzada Multi-Fuente",
+    "id": "2A",
+    "nombre": "Fundamentos Validación Cruzada",
+    "prompt": ".ptel/PROMPT_SESION_2A.md",
+    "mapa": ".ptel/MAPA_SESIONES_FASE2.md",
     "rol": "MapWizard",
-    "prioridades": [
-      "2.1 GeocodingErrors.ts - Sistema errores tipados",
-      "2.2 Integración CartoCiudad paralela",
-      "2.3 Validación cruzada clusters + centroide Huber"
-    ],
-    "scoreActual": "75-80%",
-    "scoreObjetivo": "92-98%"
+    "comandoInicio": "cd /Users/lm/Documents/GitHub/norm-coord-ptel && git pull && cat .ptel/PROMPT_SESION_2A.md"
   }
 }
