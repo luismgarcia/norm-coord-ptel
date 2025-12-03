@@ -437,14 +437,17 @@ const PATTERNS: Record<InfrastructureType, PatternConfig[]> = {
  * // → { type: 'EDUCATIVO', confidence: 'MEDIA', matchedPattern: 'docente', matchedField: 'uso', ... }
  */
 export function classifyInfrastructure(input: InfrastructureInput): ClassificationResult {
-  const { nombre, tipo = '', uso = '' } = input;
+  // Coerción defensiva a string (pueden llegar números de ODT)
+  const nombre = input.nombre != null ? String(input.nombre) : '';
+  const tipo = input.tipo != null ? String(input.tipo) : '';
+  const uso = input.uso != null ? String(input.uso) : '';
   
   // Campos a buscar en orden de prioridad
   const fieldsToSearch: Array<{ field: 'uso' | 'tipo' | 'nombre'; value: string }> = [
     { field: 'uso', value: uso },
     { field: 'tipo', value: tipo },
     { field: 'nombre', value: nombre },
-  ].filter(f => f.value && f.value.trim().length > 0);
+  ].filter(f => f.value.trim().length > 0);
 
   // Orden de tipos por prioridad (críticos primero)
   // NOTA: RELIGIOSO antes de CULTURAL porque edificios de culto históricos son primero religiosos

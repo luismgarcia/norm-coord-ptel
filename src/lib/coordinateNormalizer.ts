@@ -1342,8 +1342,12 @@ export function procesarParCoordenadas(
     epsgAsumido = 25830,
   } = opciones;
   
-  let normX = normalizarCoordenada(xInput);
-  let normY = normalizarCoordenada(yInput);
+  // Coerción defensiva a string
+  const xStr = xInput != null ? String(xInput) : '';
+  const yStr = yInput != null ? String(yInput) : '';
+  
+  let normX = normalizarCoordenada(xStr);
+  let normY = normalizarCoordenada(yStr);
   
   let x = normX.valorNormalizado;
   let y = normY.valorNormalizado;
@@ -1355,7 +1359,7 @@ export function procesarParCoordenadas(
   // Detectar coordenadas concatenadas
   if (detectarConcatenacion) {
     if (normX.patronDetectado === 'CONCATENADO' && 
-        (normY.patronDetectado === 'PLACEHOLDER' || yInput.trim() === '')) {
+        (normY.patronDetectado === 'PLACEHOLDER' || yStr.trim() === '')) {
       const yExtraida = (normX as any)._yExtraida;
       if (yExtraida !== undefined) {
         y = yExtraida;
@@ -1368,8 +1372,8 @@ export function procesarParCoordenadas(
     }
     
     if (normY.patronDetectado === 'CONCATENADO' && 
-        (normX.patronDetectado === 'PLACEHOLDER' || xInput.trim() === '')) {
-      const separacion = separarCoordenadasConcatenadas(yInput);
+        (normX.patronDetectado === 'PLACEHOLDER' || xStr.trim() === '')) {
+      const separacion = separarCoordenadasConcatenadas(yStr);
       if (separacion.esConcatenado) {
         x = separacion.valorX;
         y = separacion.valorY;
@@ -1381,8 +1385,8 @@ export function procesarParCoordenadas(
       }
     }
     
-    if (xInput.trim() === yInput.trim() && normX.patronDetectado === 'CONCATENADO') {
-      const separacion = separarCoordenadasConcatenadas(xInput);
+    if (xStr.trim() === yStr.trim() && normX.patronDetectado === 'CONCATENADO') {
+      const separacion = separarCoordenadasConcatenadas(xStr);
       if (separacion.esConcatenado) {
         x = separacion.valorX;
         y = separacion.valorY;
@@ -1399,7 +1403,7 @@ export function procesarParCoordenadas(
   const esFormatoEspacialX = normX.patronDetectado === 'WKT_POINT' || normX.patronDetectado === 'GEOJSON_POINT';
   const esFormatoEspacialY = normY.patronDetectado === 'WKT_POINT' || normY.patronDetectado === 'GEOJSON_POINT';
   
-  if (esFormatoEspacialX && (normY.patronDetectado === 'PLACEHOLDER' || yInput.trim() === '')) {
+  if (esFormatoEspacialX && (normY.patronDetectado === 'PLACEHOLDER' || yStr.trim() === '')) {
     const yExtraida = (normX as any)._yExtraida;
     if (yExtraida !== undefined) {
       y = yExtraida;
@@ -1410,8 +1414,8 @@ export function procesarParCoordenadas(
     }
   }
   
-  if (esFormatoEspacialY && (normX.patronDetectado === 'PLACEHOLDER' || xInput.trim() === '')) {
-    const espacial = detectarFormatoEspacial(yInput);
+  if (esFormatoEspacialY && (normX.patronDetectado === 'PLACEHOLDER' || xStr.trim() === '')) {
+    const espacial = detectarFormatoEspacial(yStr);
     if (espacial.esEspacial) {
       x = espacial.valorX;
       y = espacial.valorY;
@@ -1422,8 +1426,8 @@ export function procesarParCoordenadas(
     }
   }
   
-  if (xInput.trim() === yInput.trim() && esFormatoEspacialX) {
-    const espacial = detectarFormatoEspacial(xInput);
+  if (xStr.trim() === yStr.trim() && esFormatoEspacialX) {
+    const espacial = detectarFormatoEspacial(xStr);
     if (espacial.esEspacial) {
       x = espacial.valorX;
       y = espacial.valorY;
@@ -1476,8 +1480,8 @@ export function procesarParCoordenadas(
   return {
     x,
     y,
-    xOriginal: xInput,
-    yOriginal: yInput,
+    xOriginal: xStr,
+    yOriginal: yStr,
     normalizacionX: normX,
     normalizacionY: normY,
     validacionX: validX,
