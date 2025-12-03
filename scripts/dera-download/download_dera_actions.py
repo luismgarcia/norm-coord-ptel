@@ -42,20 +42,26 @@ WFS_LAYERS = {
          "DERA_g12_servicios:g12_26_Policia", "Policía"),
         ("https://www.ideandalucia.es/services/DERA_g12_servicios/wfs",
          "DERA_g12_servicios:g12_29_ParqueBomberos", "Bomberos"),
-        # Nota: Guardia Civil y Emergencias no tienen capa WFS pública
-        # Los datos existentes en security.geojson se mantienen
+        ("https://www.ideandalucia.es/services/DERA_g12_servicios/wfs",
+         "DERA_g12_servicios:g12_34_GuardiaCivil", "Guardia Civil"),
     ],
     "education": [
         ("https://www.ideandalucia.es/services/DERA_g12_servicios/wfs",
-         "DERA_g12_servicios:g12_03_CentroEducativo", "Centros Educativos"),
+         "DERA_g12_servicios:g12_05_CentroEducativo", "Centros Educativos"),
     ],
     "municipal": [
         ("https://www.ideandalucia.es/services/DERA_g12_servicios/wfs",
          "DERA_g12_servicios:g12_32_CentrosJuntaAndalucia", "Centros Junta"),
+        ("https://www.ideandalucia.es/services/DERA_g12_servicios/wfs",
+         "DERA_g12_servicios:g12_11_Ayuntamiento", "Ayuntamientos"),
+    ],
+    "emergency": [
+        ("https://www.ideandalucia.es/services/DERA_g12_servicios/wfs",
+         "DERA_g12_servicios:g12_35_GestionEmergencias", "Centros Emergencias"),
     ],
     "energy": [
         ("https://www.ideandalucia.es/services/DERA_g10_infra_energetica/wfs",
-         "DERA_g10_infra_energetica:g10_05_ParqueEolico", "Parques Eólicos"),
+         "DERA_g10_infra_energetica:g10_02_ParqueEolico", "Parques Eólicos"),
     ],
 }
 

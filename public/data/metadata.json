@@ -1,13 +1,14 @@
 {
-  "lastUpdate": "2025-12-03T07:44:12.010219",
+  "lastUpdate": "2025-12-03T08:25:47.739721",
   "source": "IDEAndalucía DERA WFS",
   "crs": "EPSG:25830",
   "layers": {
     "health": 1700,
-    "security": 775,
-    "education": 0,
-    "municipal": 0,
-    "energy": 0
+    "security": 1259,
+    "education": 6725,
+    "municipal": 1414,
+    "emergency": 23,
+    "energy": 161
   },
-  "totalFeatures": 2475
+  "totalFeatures": 11282
 }
