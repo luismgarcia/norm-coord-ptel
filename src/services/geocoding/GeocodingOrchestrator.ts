@@ -42,9 +42,22 @@ import {
   isDataLoaded,
   loadLocalData,
   toGeocodingResult,
+  // F023 Fase 1.5 - Métodos singleton
+  countByType,
+  getUniqueByType,
+  getFeaturesByMunicipio,
   type InfrastructureCategory,
-  type LocalSearchResult
+  type LocalSearchResult,
+  type LocalFeature
 } from '../../lib/LocalDataService';
+
+// F023 Fase 1.4 - Desambiguación multi-campo
+import {
+  disambiguate,
+  type GeocodingCandidate,
+  type PTELRecord,
+  type DisambiguationResult
+} from '../../lib/multiFieldStrategy';
 
 // Geocodificadores especializados WFS
 import {
@@ -339,10 +352,167 @@ export class GeocodingOrchestrator {
       let geocodingResult: GeocodingResult | null = null;
       let geocoderUsed = 'none';
 
-      // ===== NIVEL 0: LOCAL_DERA - DATOS OFFLINE (F021 Fase 2) =====
+      // ===== F023 FASE 1.5: DETECCIÓN SINGLETON ANTES DE CASCADA =====
+      // Si hay código INE, intentar estrategia singleton primero (más precisa)
       const useLocalData = options.useLocalData !== false;
       
-      if (useLocalData) {
+      if (useLocalData && options.codMun) {
+        attempts.push('singleton_check');
+        try {
+          const localCategories = this.mapTypeToLocalCategories(classification.type);
+          
+          // F023-1.5: Intentar singleton para TODAS las tipologías con datos locales
+          // (health, security, education, municipal, energy)
+          // El 65% de los casos son singleton → match directo sin fuzzy
+          if (localCategories.length > 0 && localCategories.length <= 2) {
+            // Solo para tipologías con categoría específica (no 'all')
+            const count = await countByType(classification.type, options.codMun);
+            
+            if (count === 1) {
+              // ===== SINGLETON DETECTADO → RETORNO DIRECTO 95% =====
+              const singletonFeature = await getUniqueByType(classification.type, options.codMun);
+              
+              if (singletonFeature) {
+                console.log(
+                  `[F023-1.5] ✅ SINGLETON: ${classification.type} en ${options.codMun} → ` +
+                  `"${singletonFeature.nombre}" (95% confianza)`
+                );
+                
+                geocodingResult = {
+                  x: singletonFeature.x,
+                  y: singletonFeature.y,
+                  confidence: 95, // Máxima confianza para singleton
+                  source: `SINGLETON_${singletonFeature.categoria.toUpperCase()}`,
+                  matchedName: singletonFeature.nombre,
+                  municipality: options.municipality,
+                  province: options.province
+                };
+                geocoderUsed = `singleton:${singletonFeature.categoria}`;
+                
+                // Añadir a sourceResults para posible validación cruzada
+                const sourceResults: SourceResult[] = [{
+                  source: 'LOCAL_DERA' as GeocodingSource,
+                  x: singletonFeature.x,
+                  y: singletonFeature.y,
+                  confidence: 95,
+                  matchedName: singletonFeature.nombre,
+                  responseTimeMs: Date.now() - startTime,
+                }];
+                
+                // Para singleton, saltamos directamente al final con score alto
+                const processingTime = Date.now() - startTime;
+                return {
+                  geocoding: geocodingResult,
+                  classification,
+                  geocoderUsed,
+                  processingTime,
+                  errors,
+                  attempts,
+                  crossValidationScore: 95,
+                  validationStatus: 'CONFIRMED',
+                  discrepancyMeters: null,
+                  requiresManualReview: false,
+                  sourcesConsulted: sourceResults.map(s => ({
+                    source: s.source,
+                    x: s.x,
+                    y: s.y,
+                    confidence: s.confidence,
+                    responseTimeMs: s.responseTimeMs,
+                  })),
+                };
+              }
+            } else if (count >= 2) {
+              // ===== MÚLTIPLES CANDIDATOS → DESAMBIGUACIÓN =====
+              console.log(
+                `[F023-1.5] 🔄 Múltiples (${count}): ${classification.type} en ${options.codMun} → desambiguación`
+              );
+              
+              // Obtener todos los candidatos del municipio para esta tipología
+              const allFeatures = await getFeaturesByMunicipio(
+                options.codMun,
+                localCategories
+              );
+              
+              if (allFeatures.length >= 2) {
+                // Convertir a formato de candidatos para desambiguación
+                const candidates: GeocodingCandidate[] = allFeatures.map(f => ({
+                  id: f.id,
+                  nombre: f.nombre,
+                  direccion: f.direccion,
+                  municipio: f.municipio,
+                  codMunicipio: f.codMun,
+                  utmX: f.x,
+                  utmY: f.y,
+                  tipologia: classification.type,
+                  subtipo: f.tipo,
+                }));
+                
+                // Crear registro PTEL para desambiguación
+                const ptelRecord: PTELRecord = {
+                  nombre: options.name,
+                  direccion: options.address,
+                  localidad: options.municipality,
+                  codMunicipio: options.codMun,
+                };
+                
+                // Ejecutar desambiguación multi-campo
+                const disambResult = disambiguate(candidates, ptelRecord, classification.type);
+                
+                if (disambResult.selected && disambResult.confidence !== 'NONE') {
+                  console.log(
+                    `[F023-1.5] 📊 Desambiguación: "${disambResult.selected.nombre}" ` +
+                    `(score=${disambResult.score}, conf=${disambResult.confidence})`
+                  );
+                  
+                  // Determinar confianza basada en resultado de desambiguación
+                  const disambConfidence = 
+                    disambResult.confidence === 'HIGH' ? 90 :
+                    disambResult.confidence === 'MEDIUM' ? 75 :
+                    60;
+                  
+                  geocodingResult = {
+                    x: disambResult.selected.utmX,
+                    y: disambResult.selected.utmY,
+                    confidence: disambConfidence,
+                    source: `DISAMBIGUATED_LOCAL`,
+                    matchedName: disambResult.selected.nombre,
+                    municipality: options.municipality,
+                    province: options.province
+                  };
+                  geocoderUsed = 'disambiguated:local';
+                  
+                  // Si confianza es HIGH, podemos retornar directamente
+                  if (disambResult.confidence === 'HIGH') {
+                    const processingTime = Date.now() - startTime;
+                    return {
+                      geocoding: geocodingResult,
+                      classification,
+                      geocoderUsed,
+                      processingTime,
+                      errors,
+                      attempts,
+                      crossValidationScore: disambConfidence,
+                      validationStatus: 'CONFIRMED',
+                      discrepancyMeters: null,
+                      requiresManualReview: false,
+                    };
+                  }
+                  // Si es MEDIUM o LOW, continuamos con la cascada para validación cruzada
+                }
+              }
+            }
+            // Si count === 0, continuar con cascada normal (L0-L7)
+          }
+        } catch (err) {
+          errors.push(`SINGLETON_CHECK: ${err}`);
+          console.warn('[F023-1.5] Error en detección singleton:', err);
+        }
+      }
+
+      // ===== NIVEL 0: LOCAL_DERA - DATOS OFFLINE (F021 Fase 2) =====
+      // (Se ejecuta si singleton no encontró match o para validación cruzada)
+      
+      if (useLocalData && !geocodingResult) {
         attempts.push('local_dera');
         try {
           // Mapear tipo a categorías locales
