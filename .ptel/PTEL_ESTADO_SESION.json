@@ -1,64 +1,105 @@
 {
-  "ultimaActualizacion": "2025-12-03T11:30:00Z",
-  "sesionActual": "INVESTIGACION-GEOCODIFICACION",
+  "ultimaActualizacion": "2025-12-03T19:30:00Z",
+  "sesionActual": "DOCUMENTACION-PLAN-CONSOLIDADO",
   "rolActivo": "MapWizard",
   
   "estadoGeneral": {
     "version": "0.5.0",
     "progreso": "100%",
     "featuresCompletadas": 21,
-    "featuresPendientes": 0,
+    "featuresPendientes": 1,
     "testsStatus": "22/22 LocalDataService + 724/724 totales"
   },
   
   "featureActiva": {
-    "id": "F022-PROPUESTA",
-    "nombre": "Mejora geocodificación por tipo+municipio",
-    "estado": "ANALIZADO",
-    "documentacion": [
+    "id": "F023",
+    "nombre": "Geocodificación Multi-Campo + Validación Cruzada",
+    "estado": "DOCUMENTADO - LISTO PARA IMPLEMENTAR",
+    "prioridad": "CRÍTICA",
+    "scoreActual": "65%",
+    "scoreObjetivo": "92-98%",
+    "fases": [
+      "FASE 1: Multi-campo (match singleton 65% casos, desambiguación pesos, limpieza direcciones)",
+      "FASE 2: Validación cruzada completa (consulta paralela, clusters, Huber centroid, discrepancias)",
+      "FASE 3: Optimizaciones (uFuzzy 400x, Flatbush R-tree, normalización española completa)"
+    ],
+    "documentacionMaestra": ".ptel/PLAN_IMPLEMENTACION_GEOCODIFICACION_v2.md",
+    "documentacionRelacionada": [
+      ".ptel/INDICE_DOCUMENTACION_GEOCODIFICACION.md",
+      ".ptel/ESTRATEGIA_MULTICAMPO_MULTIFUENTE_2025-12-03.md",
+      ".ptel/CHECKLIST_IMPLEMENTACION_MULTICAMPO.md",
+      ".ptel/DECISION_VALIDACION_CRUZADA_2025-12-03.md",
       ".ptel/DIAGNOSTICO_GEOCODIFICACION_2025-12-03.md",
-      ".ptel/ANALISIS_MEJORAS_GEOCODIFICACION_2025-12-03.md",
-      ".ptel/INDICE_DOCUMENTACION_GEOCODIFICACION.md"
+      ".ptel/ANALISIS_MEJORAS_GEOCODIFICACION_2025-12-03.md"
     ]
+  },
+  
+  "resumenEjecutivo": {
+    "problema": "Score 65%, sin detección de errores, solo usa campo NOMBRE",
+    "solucion": "Multi-campo (TIPO+MUNICIPIO+NOMBRE+DIRECCIÓN) + validación cruzada multi-fuente",
+    "impacto": "Score 92-98%, detección 95% errores, coste €0",
+    "principiosClave": [
+      "65% casos = singleton → match directo sin fuzzy (95% confianza)",
+      "35% casos = desambiguación con pesos por tipología",
+      "SIEMPRE consultar 2+ fuentes para validación cruzada",
+      "NO propagar errores: discrepancia > umbral → MANUAL_REVIEW"
+    ]
+  },
+  
+  "decisiones": {
+    "validacionCruzada": {
+      "tipo": "COMPLETA (siempre consultar segunda fuente)",
+      "justificacion": "Sistema emergencias - errores pueden costar vidas",
+      "tradeoff": "+6-9 min tiempo a cambio de score 92-98%",
+      "aprobadoPor": "Luis Muñoz",
+      "fecha": "2025-12-03"
+    },
+    "umbralesDiscrepancia": {
+      "HEALTH": "25m",
+      "SECURITY": "25m",
+      "EDUCATION": "50m",
+      "ADMIN": "100m",
+      "SPORTS": "100m",
+      "CULTURAL": "75m"
+    }
+  },
+  
+  "archivosACrear": [
+    "src/lib/crossValidation.ts - Validación cruzada completa",
+    "src/lib/multiFieldStrategy.ts - Desambiguación multi-campo",
+    "src/utils/addressCleaner.ts - Limpieza direcciones",
+    "src/utils/spanishNormalizer.ts - Normalización española"
+  ],
+  
+  "archivosAModificar": [
+    "src/lib/LocalDataService.ts - añadir countByType(), getUniqueByType()",
+    "src/services/geocoding/GeocodingOrchestrator.ts - integrar estrategia completa",
+    "src/services/classification/InfrastructureClassifier.ts - regex concatenaciones",
+    "package.json - reemplazar fuse.js por @leeoniya/ufuzzy, añadir flatbush"
+  ],
+  
+  "checklistProgreso": {
+    "fase1": { "total": 20, "completadas": 0, "porcentaje": "0%" },
+    "fase2": { "total": 18, "completadas": 0, "porcentaje": "0%" },
+    "fase3": { "total": 12, "completadas": 0, "porcentaje": "0%" },
+    "global": { "total": 50, "completadas": 0, "porcentaje": "0%" }
+  },
+  
+  "tiempoEstimado": {
+    "fase1": "2-3 días",
+    "fase2": "3-4 días", 
+    "fase3": "2-3 días",
+    "total": "8-10 días"
   },
   
   "bloqueadores": [],
   
-  "investigacionRealizada": {
-    "documentosAnalizados": 8,
-    "hallazgoClave": "65% municipios tienen 1 solo centro salud → match directo sin fuzzy posible",
-    "mejoraEstimada": "+40-50% tasa geocodificación",
-    "tiempoImplementacion": "5-6h para 3 niveles"
-  },
-  
-  "documentacionExistente": {
-    "diagnosticos": [
-      "DIAGNOSTICO_GEOCODIFICACION_2025-12-03.md",
-      "ANALISIS_MEJORAS_GEOCODIFICACION_2025-12-03.md"
-    ],
-    "guiasTecnicas": [
-      "docs/GEOCODIFICADORES_ESPECIALIZADOS.md",
-      "docs/PLAN_IMPLEMENTACION_GEOCODIFICADORES.md",
-      "docs/GUIA_GEOCODIFICACION_SIN_DIRECCION_POSTAL.md",
-      "docs/RECURSOS_API_GEOCODIFICACION.md"
-    ],
-    "solucionesProblemas": [
-      "SOLUCION_CODIGOS_INE.md",
-      "LECCIONES_APRENDIDAS.md"
-    ]
-  },
-  
-  "proximasTareas": [
-    "Implementar geocodeByTypeAndMunicipio() en LocalDataService.ts",
-    "Crear AddressCleaner.ts para limpieza de direcciones",
-    "Mejorar regex del InfrastructureClassifier",
-    "Tests con datos reales Colomera, Tíjola, Quéntar"
-  ],
-  
   "notasSesion": [
-    "Documentación de geocodificación muy completa (8 documentos)",
-    "Arquitectura cascada L0-L5 ya diseñada en detalle",
-    "Solo falta implementar estrategia UNIQUE_IN_MUNICIPIO",
-    "LocalDataService tiene getFeatureCountByMunicipio() listo para usar"
+    "2025-12-03: Sesión de diseño arquitectónico completa",
+    "2025-12-03: Investigación profunda técnicas fuzzy/consenso/fuentes",
+    "2025-12-03: Luis aprobó validación cruzada COMPLETA",
+    "2025-12-03: Plan consolidado documentado en PLAN_IMPLEMENTACION_GEOCODIFICACION_v2.md",
+    "2025-12-03: Checklist detallado con 50 tareas en 3 fases",
+    "SIGUIENTE: Comenzar implementación Fase 1"
   ]
 }
