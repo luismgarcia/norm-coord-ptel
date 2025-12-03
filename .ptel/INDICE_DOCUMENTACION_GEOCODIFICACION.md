@@ -10,6 +10,13 @@
 |-----------|-------------|--------|
 | **[PLAN_IMPLEMENTACION_GEOCODIFICACION_v2.md](PLAN_IMPLEMENTACION_GEOCODIFICACION_v2.md)** | Plan maestro consolidado con fases, checklist y métricas | ✅ ACTUAL |
 
+### Documentación por Fase
+| Documento | Descripción | Estado |
+|-----------|-------------|--------|
+| **[DOCUMENTACION_FASE1_COMPLETA.md](DOCUMENTACION_FASE1_COMPLETA.md)** | Guía técnica completa Fase 1: arquitectura, ejemplos, casos validados, debugging, FAQ | ✅ NUEVO |
+| [FASE1_RESUMEN_IMPLEMENTACION.md](FASE1_RESUMEN_IMPLEMENTACION.md) | Resumen ejecutivo de Fase 1 | ✅ ACTUAL |
+| [CHECKLIST_IMPLEMENTACION_MULTICAMPO.md](CHECKLIST_IMPLEMENTACION_MULTICAMPO.md) | Progreso detallado por tarea | ✅ ACTUAL |
+
 ### Estrategia Técnica
 | Documento | Descripción | Estado |
 |-----------|-------------|--------|
