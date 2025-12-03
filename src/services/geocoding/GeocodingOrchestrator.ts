@@ -74,6 +74,15 @@ import {
 } from './ineValidator';
 import { getCodigoINE } from '../../utils/codigosINEDerivados';
 
+// Validación Cruzada Multi-Fuente (v3.0)
+import {
+  CrossValidator,
+  getCrossValidator,
+  type SourceResult,
+  type CrossValidationResult,
+  type GeocodingSource,
+} from './CrossValidator';
+
 /**
  * Opciones para geocodificación orquestada
  */
@@ -113,6 +122,17 @@ export interface OrchestrationOptions {
   
   /** Timeout total en ms */
   timeout?: number;
+  
+  /** 
+   * VALIDACIÓN CRUZADA MULTI-FUENTE (v3.0)
+   * Consulta múltiples fuentes y calcula score compuesto
+   * Score objetivo: 92-98% con detección errores ~95%
+   * Default: true (siempre validar)
+   */
+  crossValidate?: boolean;
+  
+  /** Mínimo de fuentes a consultar para validación (default: 2) */
+  minValidationSources?: number;
 }
 
 /**
@@ -136,6 +156,40 @@ export interface OrchestrationResult {
   
   /** Intentos realizados */
   attempts: string[];
+  
+  // ========== VALIDACIÓN CRUZADA (v3.0) ==========
+  
+  /** Score compuesto de validación cruzada (0-100) */
+  crossValidationScore?: number;
+  
+  /** Estado de validación: CONFIRMED | LIKELY_VALID | UNCERTAIN | CONFLICT | SINGLE_SOURCE */
+  validationStatus?: string;
+  
+  /** Discrepancia entre fuentes en metros */
+  discrepancyMeters?: number | null;
+  
+  /** Requiere revisión manual */
+  requiresManualReview?: boolean;
+  
+  /** Razón de revisión manual */
+  reviewReason?: string;
+  
+  /** Desglose del score */
+  scoreBreakdown?: {
+    C_match: number;
+    C_concordance: number;
+    C_source: number;
+    bonusApplied: number;
+  };
+  
+  /** Resultados de cada fuente consultada */
+  sourcesConsulted?: Array<{
+    source: string;
+    x: number;
+    y: number;
+    confidence: number;
+    responseTimeMs: number;
+  }>;
 }
 
 /**
@@ -318,18 +372,9 @@ export class GeocodingOrchestrator {
             };
             geocoderUsed = 'local_dera';
             
-            // Retorno temprano para offline-first
-            if (localResult.matchScore >= 85) {
-              const processingTime = Date.now() - startTime;
-              return {
-                geocoding: geocodingResult,
-                classification,
-                geocoderUsed: 'local_dera:high_confidence',
-                processingTime,
-                errors,
-                attempts
-              };
-            }
+            // Retorno temprano DESACTIVADO para validación cruzada
+            // El sistema ahora siempre consulta múltiples fuentes
+            // if (localResult.matchScore >= 85) { ... }
           }
         } catch (err) {
           // Local data no disponible, continuar con cascada online
@@ -337,16 +382,45 @@ export class GeocodingOrchestrator {
         }
       }
 
-      // ===== NIVEL 1: GEOCODIFICADOR ESPECIALIZADO WFS =====
+      // ===== RECOPILAR RESULTADOS PARA VALIDACIÓN CRUZADA =====
+      const sourceResults: SourceResult[] = [];
+      
+      // Añadir resultado LOCAL_DERA si existe
+      if (geocodingResult && geocoderUsed === 'local_dera') {
+        sourceResults.push({
+          source: 'LOCAL_DERA' as GeocodingSource,
+          x: geocodingResult.x,
+          y: geocodingResult.y,
+          confidence: geocodingResult.confidence,
+          matchedName: geocodingResult.matchedName,
+          responseTimeMs: Date.now() - startTime,
+        });
+      }
+
+      // ===== NIVEL 1: GEOCODIFICADOR ESPECIALIZADO WFS (SIEMPRE EJECUTAR) =====
+      // Para validación cruzada, SIEMPRE consultamos WFS aunque L0 tenga resultado
       const specializedResult = await this.trySpecializedGeocoder(
         classification.type,
         searchOptions,
         attempts
       );
 
-      if (specializedResult.result && specializedResult.result.confidence >= 70) {
-        geocodingResult = specializedResult.result;
-        geocoderUsed = specializedResult.geocoder;
+      if (specializedResult.result && specializedResult.result.confidence >= 50) {
+        // Añadir a sourceResults para validación cruzada
+        sourceResults.push({
+          source: 'WFS_SPECIALIZED' as GeocodingSource,
+          x: specializedResult.result.x,
+          y: specializedResult.result.y,
+          confidence: specializedResult.result.confidence,
+          matchedName: specializedResult.result.matchedName,
+          responseTimeMs: Date.now() - startTime,
+        });
+        
+        // Si no teníamos resultado previo, usar este
+        if (!geocodingResult || specializedResult.result.confidence > geocodingResult.confidence) {
+          geocodingResult = specializedResult.result;
+          geocoderUsed = specializedResult.geocoder;
+        }
       }
 
       // ===== NIVEL 2: NGA - NOMENCLÁTOR GEOGRÁFICO (para topónimos) =====
@@ -537,6 +611,54 @@ export class GeocodingOrchestrator {
 
       const processingTime = Date.now() - startTime;
 
+      // ===== VALIDACIÓN CRUZADA MULTI-FUENTE (v3.0) =====
+      const crossValidate = options.crossValidate !== false; // Default: true
+      
+      if (crossValidate && sourceResults.length > 0) {
+        const validator = getCrossValidator();
+        const validationResult = validator.validate(
+          sourceResults,
+          classification.type
+        );
+        
+        // Usar coordenadas validadas si están disponibles
+        if (validationResult.coordinates) {
+          geocodingResult = {
+            x: validationResult.coordinates.x,
+            y: validationResult.coordinates.y,
+            confidence: validationResult.compositeScore,
+            source: validationResult.primarySource || 'cross_validated',
+            matchedName: geocodingResult?.matchedName || options.name,
+            municipality: options.municipality,
+            province: options.province
+          };
+        }
+        
+        return {
+          geocoding: geocodingResult,
+          classification,
+          geocoderUsed: sourceResults.length > 1 ? 'cross_validated' : geocoderUsed,
+          processingTime,
+          errors,
+          attempts,
+          // Campos de validación cruzada
+          crossValidationScore: validationResult.compositeScore,
+          validationStatus: validationResult.status,
+          discrepancyMeters: validationResult.discrepancyMeters,
+          requiresManualReview: validationResult.requiresManualReview,
+          reviewReason: validationResult.reviewReason,
+          scoreBreakdown: validationResult.scoreBreakdown,
+          sourcesConsulted: sourceResults.map(s => ({
+            source: s.source,
+            x: s.x,
+            y: s.y,
+            confidence: s.confidence,
+            responseTimeMs: s.responseTimeMs,
+          })),
+        };
+      }
+
+      // Sin validación cruzada: comportamiento legacy
       return {
         geocoding: geocodingResult,
         classification,

@@ -1,10 +1,10 @@
 {
-  "fecha": "2025-12-03T18:45:00Z",
-  "sesionAnterior": "F023 Fase 1.1 completada - Métodos singleton con trazabilidad",
-  "commitFinal": "3edd8bb",
+  "fecha": "2025-12-03T19:05:00Z",
+  "sesionAnterior": "F023 Fase 1.2 completada - Clasificador Mejorado con preprocesamiento",
+  "commitFinal": "pendiente",
   
   "proximaSesion": {
-    "objetivo": "Implementar FASE 1.2: Clasificador Mejorado",
+    "objetivo": "Implementar FASE 1.3: Limpieza de Direcciones (addressCleaner.ts)",
     "rol": "MapWizard",
     "duracionEstimada": "1-2 horas"
   },
@@ -25,14 +25,29 @@
         "TYPOLOGY_TO_CATEGORY mapping"
       ],
       "tests": "42 passed"
+    },
+    "fase1_2": {
+      "status": "✅ COMPLETADO",
+      "items": [
+        "preprocessText() reescrito con flujo correcto",
+        "CONCATENATIONS: 11 patrones (centrosalud, guardiacivil, etc.)",
+        "COMMON_TYPOS: 14 patrones (sanitariode, trasformador, etc.)",
+        "ACCENT_CORRECTIONS: restauración de tildes (policía, depósito, etc.)",
+        "Separación camelCase: SevillanaEndesa → Sevillana Endesa",
+        "Separación números pegados: Trasformador60822 → Trasformador 60822",
+        "Patrón gasolinera/garolinera actualizado",
+        "143 tests InfrastructureClassifier pasando"
+      ],
+      "tests": "143 passed"
     }
   },
   
   "tareasInmediatas": [
-    "1.2: Detectar concatenaciones (CENTROSALUD → CENTRO SALUD)",
-    "1.2: Detectar typos comunes (SANITARIODE → SANITARIO DE)",
-    "1.2: Ampliar keywords por tipología",
-    "1.2: Tests con nombres reales PTEL"
+    "1.3: Crear src/utils/addressCleaner.ts",
+    "1.3: Eliminar horarios (24h, L-V 8:00-15:00)",
+    "1.3: Eliminar teléfonos (Tel: 950123456)",
+    "1.3: Normalizar abreviaturas (C/ → Calle)",
+    "1.3: Evaluar calidad de dirección"
   ],
   
   "recordatorios": [
@@ -45,8 +60,8 @@
     "solucion": "Explotar TIPO+MUNICIPIO+NOMBRE+DIRECCIÓN",
     "hallazgoClave": "65% municipios tienen 1 sola infraestructura de cada tipo → match directo",
     "objetivo": "Score 92-98%",
-    "progreso": "6% (3/50 tareas)"
+    "progreso": "20% (10/50 tareas)"
   },
   
-  "promptInicio": "Continuar F023 Geocodificación Multi-Campo. Rol: MapWizard. Leer .ptel/CHECKLIST_IMPLEMENTACION_MULTICAMPO.md. Empezar Fase 1.2: Clasificador Mejorado (concatenaciones y typos en InfrastructureClassifier.ts)"
+  "promptInicio": "Continuar F023 Geocodificación Multi-Campo. Rol: MapWizard. Leer .ptel/CHECKLIST_IMPLEMENTACION_MULTICAMPO.md. Empezar Fase 1.3: Limpieza de Direcciones (crear addressCleaner.ts)"
 }

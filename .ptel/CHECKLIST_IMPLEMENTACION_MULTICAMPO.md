@@ -14,10 +14,13 @@
 - [ ] Verificar con municipios conocidos (Quéntar: 2 centros, Colomera: 2 centros)
 
 ### 1.2 Clasificador Mejorado
-- [ ] Detectar concatenaciones: "CENTROSALUD" → "CENTRO SALUD" → HEALTH
-- [ ] Detectar typos comunes: "SANITARIODE" → "SANITARIO DE"
-- [ ] Ampliar keywords por tipología
-- [ ] Tests con nombres reales de documentos PTEL
+- [x] Detectar concatenaciones: "CENTROSALUD" → "CENTRO SALUD" → HEALTH
+- [x] Detectar typos comunes: "SANITARIODE" → "SANITARIO DE"
+- [x] Separación camelCase: "SevillanaEndesa" → "Sevillana Endesa"
+- [x] Separación números pegados: "Trasformador60822" → "Trasformador 60822"
+- [x] Restauración tildes: "policia" → "policía" (para matching con patrones)
+- [x] Ampliar keywords por tipología (gasolinera/garolinera)
+- [x] Tests con nombres reales de documentos PTEL (143 tests)
 
 ### 1.3 Limpieza de Direcciones (`addressCleaner.ts`)
 - [ ] Crear archivo `src/utils/addressCleaner.ts`
@@ -131,10 +134,10 @@
 
 | Fase | Tareas | Completadas | % |
 |------|--------|-------------|---|
-| Fase 1 | 20 | 3 | 15% |
+| Fase 1 | 20 | 10 | 50% |
 | Fase 2 | 18 | 0 | 0% |
 | Fase 3 | 12 | 0 | 0% |
-| **Total** | **50** | **3** | **6%** |
+| **Total** | **50** | **10** | **20%** |
 
 ---
 
@@ -163,5 +166,5 @@
 
 ---
 
-**Última actualización:** 2025-12-03 (Fase 1.1 completada)
+**Última actualización:** 2025-12-03 (Fase 1.2 completada)
 **Próxima revisión:** Al completar Fase 1

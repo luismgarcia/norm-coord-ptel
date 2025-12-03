@@ -548,4 +548,133 @@ describe('InfrastructureClassifier', () => {
     });
   });
 
+  // ═══════════════════════════════════════════════════════════════════════════
+  // F023 FASE 1.2 - PREPROCESAMIENTO DE TEXTO
+  // ═══════════════════════════════════════════════════════════════════════════
+  describe('F023-1.2 Preprocesamiento', () => {
+    
+    describe('Concatenaciones', () => {
+      test('CENTROSALUD → CENTRO SALUD → SANITARIO', () => {
+        const result = classifyInfrastructure({ nombre: 'CENTROSALUD' });
+        expect(result.type).toBe('SANITARIO');
+        expect(result.wasPreprocessed).toBe(true);
+        expect(result.preprocessingNotes).toContain('concatenación: "centrosalud" → "centro salud"');
+      });
+
+      test('GUARDIACIVIL → GUARDIA CIVIL → SEGURIDAD', () => {
+        const result = classifyInfrastructure({ nombre: 'GUARDIACIVIL' });
+        expect(result.type).toBe('SEGURIDAD');
+        expect(result.wasPreprocessed).toBe(true);
+      });
+
+      test('PISCINAMUNICIPAL → PISCINA MUNICIPAL → DEPORTIVO', () => {
+        const result = classifyInfrastructure({ nombre: 'PISCINAMUNICIPAL' });
+        expect(result.type).toBe('DEPORTIVO');
+        expect(result.wasPreprocessed).toBe(true);
+      });
+
+      test('POLICIALOCAL → POLICIA LOCAL → SEGURIDAD', () => {
+        const result = classifyInfrastructure({ nombre: 'POLICIALOCAL' });
+        expect(result.type).toBe('SEGURIDAD');
+        expect(result.wasPreprocessed).toBe(true);
+      });
+
+      test('DEPOSITOAGUA → DEPOSITO AGUA → HIDRAULICO', () => {
+        const result = classifyInfrastructure({ nombre: 'DEPOSITOAGUA' });
+        expect(result.type).toBe('HIDRAULICO');
+        expect(result.wasPreprocessed).toBe(true);
+      });
+
+      test('CASACULTURA → CASA CULTURA → CULTURAL', () => {
+        const result = classifyInfrastructure({ nombre: 'CASACULTURA' });
+        expect(result.type).toBe('CULTURAL');
+        expect(result.wasPreprocessed).toBe(true);
+      });
+    });
+
+    describe('Typos comunes', () => {
+      test('SANITARIODE Centro → SANITARIO DE Centro', () => {
+        const result = classifyInfrastructure({ nombre: 'SANITARIODE Centro' });
+        expect(result.type).toBe('SANITARIO');
+        expect(result.wasPreprocessed).toBe(true);
+        expect(result.preprocessingNotes).toContain('typo: "sanitariode" → "sanitario de"');
+      });
+
+      test('GAROLINERA → GASOLINERA (aunque está en patrones)', () => {
+        // El typo garolinera ya está en patrones, pero también lo normalizamos
+        const result = classifyInfrastructure({ nombre: 'GAROLINERA Municipal' });
+        expect(result.type).toBe('TRANSPORTE');
+      });
+
+      test('IGLESIADE San Juan → IGLESIA DE San Juan', () => {
+        const result = classifyInfrastructure({ nombre: 'IGLESIADE San Juan' });
+        expect(result.type).toBe('RELIGIOSO');
+        expect(result.wasPreprocessed).toBe(true);
+      });
+    });
+
+    describe('Separación de números pegados', () => {
+      test('Trasformador60822 → Trasformador 60822 → ENERGIA', () => {
+        const result = classifyInfrastructure({ nombre: 'Trasformador60822' });
+        expect(result.type).toBe('ENERGIA');
+        expect(result.wasPreprocessed).toBe(true);
+        expect(result.preprocessingNotes?.some(n => n.includes('número pegado'))).toBe(true);
+      });
+
+      test('CT123Endesa → CT 123 Endesa → ENERGIA', () => {
+        const result = classifyInfrastructure({ nombre: 'CT123Endesa' });
+        expect(result.type).toBe('ENERGIA');
+        expect(result.wasPreprocessed).toBe(true);
+      });
+    });
+
+    describe('Separación camelCase', () => {
+      test('SevillanaEndesa → Sevillana Endesa → ENERGIA', () => {
+        const result = classifyInfrastructure({ nombre: 'SevillanaEndesa' });
+        expect(result.type).toBe('ENERGIA');
+        expect(result.wasPreprocessed).toBe(true);
+        expect(result.preprocessingNotes?.some(n => n.includes('camelCase'))).toBe(true);
+      });
+    });
+
+    describe('Casos reales Berja', () => {
+      test('Trasformador60822SevillanaEndesa → ENERGIA', () => {
+        // Caso real de Berja con múltiples problemas:
+        // 1. Typo: Trasformador
+        // 2. Número pegado: 60822
+        // 3. CamelCase: SevillanaEndesa
+        const result = classifyInfrastructure({ nombre: 'Trasformador60822SevillanaEndesa' });
+        expect(result.type).toBe('ENERGIA');
+        expect(result.wasPreprocessed).toBe(true);
+        // Debe tener al menos 2 modificaciones
+        expect(result.preprocessingNotes?.length).toBeGreaterThanOrEqual(2);
+      });
+    });
+
+    describe('Sin preprocesamiento necesario', () => {
+      test('Texto normal no se marca como preprocesado', () => {
+        const result = classifyInfrastructure({ nombre: 'Centro de Salud Municipal' });
+        expect(result.type).toBe('SANITARIO');
+        expect(result.wasPreprocessed).toBe(false);
+        expect(result.preprocessingNotes).toBeUndefined();
+      });
+
+      test('Texto vacío maneja gracefully', () => {
+        const result = classifyInfrastructure({ nombre: '' });
+        expect(result.type).toBe('OTROS');
+        expect(result.wasPreprocessed).toBe(false);
+      });
+    });
+
+    describe('Trazabilidad [F023-1.2]', () => {
+      test('preprocessingNotes incluye todas las modificaciones', () => {
+        // Crear caso con múltiples modificaciones
+        const result = classifyInfrastructure({ nombre: 'CENTROSALUD123Municipal' });
+        expect(result.wasPreprocessed).toBe(true);
+        // Debe tener: concatenación + número pegado
+        expect(result.preprocessingNotes?.length).toBeGreaterThanOrEqual(2);
+      });
+    });
+  });
+
 }); // fin describe principal

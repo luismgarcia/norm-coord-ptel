@@ -46,6 +46,10 @@ export interface ClassificationResult {
   matchedField: 'nombre' | 'tipo' | 'uso' | null;
   suggestedWFS: string | null;
   alternativeTypes: InfrastructureType[];
+  /** F023-1.2: Indica si el texto fue preprocesado antes de clasificar */
+  wasPreprocessed?: boolean;
+  /** F023-1.2: Modificaciones aplicadas durante preprocesamiento */
+  preprocessingNotes?: string[];
 }
 
 export interface InfrastructureInput {
@@ -59,6 +63,187 @@ interface PatternConfig {
   confidence: 'ALTA' | 'MEDIA' | 'BAJA';
   wfs: string | null;
   description?: string; // Para debugging
+}
+
+// ============================================================================
+// F023 FASE 1.2 - PREPROCESAMIENTO DE TEXTO
+// ============================================================================
+
+/** Prefijo para logs/errores de esta fase */
+const F023_1_2 = '[F023-1.2]';
+
+/**
+ * Diccionario de concatenaciones comunes en documentos PTEL.
+ * Casos reales extraídos de Berja, Colomera, etc.
+ * 
+ * Formato: texto_concatenado → texto_separado
+ */
+const CONCATENATIONS: Record<string, string> = {
+  // Sanitario
+  'centrosalud': 'centro salud',
+  'centrodesalud': 'centro de salud',
+  'consultoriomedico': 'consultorio medico',
+  'centromedico': 'centro medico',
+  // Educativo
+  'centroeducativo': 'centro educativo',
+  'colegiopublico': 'colegio publico',
+  'escuelainfantil': 'escuela infantil',
+  // Seguridad
+  'guardiacivil': 'guardia civil',
+  'policialocal': 'policia local',
+  'proteccioncivil': 'proteccion civil',
+  'parquebomberos': 'parque bomberos',
+  // Cultural
+  'casacultura': 'casa cultura',
+  'centrocultural': 'centro cultural',
+  // Servicios
+  'centrosocial': 'centro social',
+  'hogarpensionista': 'hogar pensionista',
+  // Deportivo
+  'piscinamunicipal': 'piscina municipal',
+  'campofutbol': 'campo futbol',
+  // Hidráulico
+  'depositoagua': 'deposito agua',
+  // Energía (caso Berja: "Trasformador60822SevillanaEndesa")
+  'centrotransformacion': 'centro transformacion',
+};
+
+/**
+ * Diccionario de typos comunes en documentos PTEL.
+ * 
+ * Formato: typo → corrección
+ */
+const COMMON_TYPOS: Record<string, string> = {
+  // Preposiciones pegadas
+  'sanitariode': 'sanitario de',
+  'centrode': 'centro de',
+  'casade': 'casa de',
+  'campode': 'campo de',
+  'piscinade': 'piscina de',
+  'depositode': 'deposito de',
+  'estacionde': 'estacion de',
+  'parquede': 'parque de',
+  'hogardel': 'hogar del',
+  'casadel': 'casa del',
+  // Artículos pegados
+  'centroela': 'centro el a',
+  'delala': 'de la la',
+  // Typos ortográficos comunes
+  'trasformador': 'transformador',  // Ya está en patrones pero lo normalizamos
+  'garolinera': 'gasolinera',
+  'iglesiade': 'iglesia de',
+  'ermitade': 'ermita de',
+  // Espacios faltantes con números (Berja: "Trasformador60822")
+  // Se manejan con regex especial abajo
+};
+
+/**
+ * Diccionario de palabras comunes sin tilde → con tilde.
+ * Para que el texto normalizado matchee con los patrones que usan tildes.
+ */
+const ACCENT_CORRECTIONS: Record<string, string> = {
+  'policia': 'policía',
+  'deposito': 'depósito',
+  'gasolinera': 'gasolinera', // ya correcta
+  'estacion': 'estación',
+  'proteccion': 'protección',
+  'educacion': 'educación',
+  'piscina': 'piscina', // ya correcta
+  'medico': 'médico',
+  'consultorio': 'consultorio', // ya correcta
+  'electrica': 'eléctrica',
+  'hidraulica': 'hidráulica',
+  'hidraulico': 'hidráulico',
+};
+
+/**
+ * Preprocesa texto para mejorar clasificación.
+ * 
+ * Flujo de normalización:
+ * 1. Separar camelCase ANTES de convertir a minúsculas ("SevillanaEndesa" → "Sevillana Endesa")
+ * 2. Separar números pegados ("Trasformador60822" → "Trasformador 60822")
+ * 3. Convertir a minúsculas
+ * 4. Aplicar concatenaciones conocidas ("centrosalud" → "centro salud")
+ * 5. Corregir typos ("trasformador" → "transformador")
+ * 6. Restaurar tildes comunes ("policia" → "policía")
+ * 
+ * @param text - Texto original
+ * @returns Texto normalizado y flag indicando si hubo cambios
+ * 
+ * @see F023 Fase 1.2 - Clasificador Mejorado
+ */
+export function preprocessText(text: string): { normalized: string; wasModified: boolean; modifications: string[] } {
+  if (!text || typeof text !== 'string') {
+    return { normalized: '', wasModified: false, modifications: [] };
+  }
+  
+  const modifications: string[] = [];
+  let workingText = text;
+  
+  // 1. PRIMERO: Separar camelCase usando texto original con mayúsculas
+  // Regex: minúscula seguida de mayúscula → "aB" → "a B"
+  const camelCaseSeparated = workingText.replace(/([a-záéíóúñ])([A-ZÁÉÍÓÚÑ])/g, '$1 $2');
+  if (camelCaseSeparated !== workingText) {
+    modifications.push('separación camelCase');
+    workingText = camelCaseSeparated;
+  }
+  
+  // 2. Separar números pegados a letras (ej: "Trasformador60822" → "Trasformador 60822")
+  const numberSeparated = workingText.replace(/([a-záéíóúñA-ZÁÉÍÓÚÑ])(\d)/gi, '$1 $2');
+  if (numberSeparated !== workingText) {
+    modifications.push('separación número pegado');
+    workingText = numberSeparated;
+  }
+  
+  // 3. Convertir a minúsculas DESPUÉS de separar camelCase
+  workingText = workingText.toLowerCase();
+  
+  // 4. Buscar concatenaciones conocidas
+  for (const [concat, separated] of Object.entries(CONCATENATIONS)) {
+    if (workingText.includes(concat)) {
+      workingText = workingText.replace(new RegExp(concat, 'g'), separated);
+      modifications.push(`concatenación: "${concat}" → "${separated}"`);
+    }
+  }
+  
+  // 5. Buscar typos conocidos
+  for (const [typo, correction] of Object.entries(COMMON_TYPOS)) {
+    if (workingText.includes(typo)) {
+      workingText = workingText.replace(new RegExp(typo, 'g'), correction);
+      modifications.push(`typo: "${typo}" → "${correction}"`);
+    }
+  }
+  
+  // 6. Restaurar tildes en palabras comunes para que matcheen con patrones
+  for (const [withoutAccent, withAccent] of Object.entries(ACCENT_CORRECTIONS)) {
+    if (withoutAccent !== withAccent && workingText.includes(withoutAccent)) {
+      // Solo reemplazar si la palabra sin tilde no es igual a la palabra con tilde
+      const regex = new RegExp(`\\b${withoutAccent}\\b`, 'g');
+      if (regex.test(workingText)) {
+        workingText = workingText.replace(regex, withAccent);
+        // No añadir a modifications para no saturar logs (es normalización interna)
+      }
+    }
+  }
+  
+  // 7. Normalizar espacios múltiples
+  workingText = workingText.replace(/\s+/g, ' ').trim();
+  
+  // Determinar si hubo cambios significativos
+  const wasModified = modifications.length > 0;
+  
+  if (wasModified) {
+    console.debug(
+      `${F023_1_2} Preprocesado: "${text.substring(0, 50)}${text.length > 50 ? '...' : ''}" → ` +
+      `"${workingText.substring(0, 50)}${workingText.length > 50 ? '...' : ''}" [${modifications.join(', ')}]`
+    );
+  }
+  
+  return {
+    normalized: workingText,
+    wasModified,
+    modifications,
+  };
 }
 
 // ============================================================================
@@ -316,7 +501,7 @@ const PATTERNS: Record<InfrastructureType, PatternConfig[]> = {
     { pattern: /\baeródromo\b/i, confidence: 'ALTA', wfs: 'ENAIRE' },
     { pattern: /\bhelisuperficie\b/i, confidence: 'ALTA', wfs: 'ENAIRE' },
     // Gasolineras
-    { pattern: /\bgarolinera\b/i, confidence: 'ALTA', wfs: 'MITECO' },
+    { pattern: /\bg[ar]solinera\b/i, confidence: 'ALTA', wfs: 'MITECO', description: 'Incluye typo garolinera' },
     { pattern: /\bestación\s*(de\s*)?servicio\b/i, confidence: 'ALTA', wfs: 'MITECO' },
     { pattern: /\bárea\s*(de\s*)?servicio\b/i, confidence: 'ALTA', wfs: 'MITECO' },
     // Parking
@@ -438,15 +623,25 @@ const PATTERNS: Record<InfrastructureType, PatternConfig[]> = {
  */
 export function classifyInfrastructure(input: InfrastructureInput): ClassificationResult {
   // Coerción defensiva a string (pueden llegar números de ODT)
-  const nombre = input.nombre != null ? String(input.nombre) : '';
-  const tipo = input.tipo != null ? String(input.tipo) : '';
-  const uso = input.uso != null ? String(input.uso) : '';
+  const nombreRaw = input.nombre != null ? String(input.nombre) : '';
+  const tipoRaw = input.tipo != null ? String(input.tipo) : '';
+  const usoRaw = input.uso != null ? String(input.uso) : '';
+  
+  // F023-1.2: Preprocesar texto para detectar concatenaciones y typos
+  const nombrePrep = preprocessText(nombreRaw);
+  const tipoPrep = preprocessText(tipoRaw);
+  const usoPrep = preprocessText(usoRaw);
+  
+  // Usar texto preprocesado para búsqueda
+  const nombre = nombrePrep.normalized || nombreRaw;
+  const tipo = tipoPrep.normalized || tipoRaw;
+  const uso = usoPrep.normalized || usoRaw;
   
   // Campos a buscar en orden de prioridad
-  const fieldsToSearch: Array<{ field: 'uso' | 'tipo' | 'nombre'; value: string }> = [
-    { field: 'uso', value: uso },
-    { field: 'tipo', value: tipo },
-    { field: 'nombre', value: nombre },
+  const fieldsToSearch: Array<{ field: 'uso' | 'tipo' | 'nombre'; value: string; wasPreprocessed: boolean }> = [
+    { field: 'uso', value: uso, wasPreprocessed: usoPrep.wasModified },
+    { field: 'tipo', value: tipo, wasPreprocessed: tipoPrep.wasModified },
+    { field: 'nombre', value: nombre, wasPreprocessed: nombrePrep.wasModified },
   ].filter(f => f.value.trim().length > 0);
 
   // Orden de tipos por prioridad (críticos primero)
@@ -471,6 +666,14 @@ export function classifyInfrastructure(input: InfrastructureInput): Classificati
 
   let bestMatch: ClassificationResult | null = null;
   const alternativeTypes: InfrastructureType[] = [];
+  
+  // F023-1.2: Recopilar notas de preprocesamiento para trazabilidad
+  const allPreprocessingNotes: string[] = [
+    ...nombrePrep.modifications,
+    ...tipoPrep.modifications,
+    ...usoPrep.modifications,
+  ];
+  const wasAnyPreprocessed = nombrePrep.wasModified || tipoPrep.wasModified || usoPrep.wasModified;
 
   // Buscar en cada campo
   for (const { field, value } of fieldsToSearch) {
@@ -493,6 +696,9 @@ export function classifyInfrastructure(input: InfrastructureInput): Classificati
           if (config.confidence === 'ALTA') {
             // Buscar alternativas para enriquecer resultado
             match.alternativeTypes = findAlternativeTypes(nombre, infraType);
+            // F023-1.2: Añadir info de preprocesamiento
+            match.wasPreprocessed = wasAnyPreprocessed;
+            match.preprocessingNotes = allPreprocessingNotes.length > 0 ? allPreprocessingNotes : undefined;
             return match;
           }
 
@@ -513,6 +719,9 @@ export function classifyInfrastructure(input: InfrastructureInput): Classificati
   // Retornar mejor match o fallback a OTROS
   if (bestMatch) {
     bestMatch.alternativeTypes = alternativeTypes.filter(t => t !== bestMatch!.type);
+    // F023-1.2: Añadir info de preprocesamiento
+    bestMatch.wasPreprocessed = wasAnyPreprocessed;
+    bestMatch.preprocessingNotes = allPreprocessingNotes.length > 0 ? allPreprocessingNotes : undefined;
     return bestMatch;
   }
 
@@ -524,6 +733,8 @@ export function classifyInfrastructure(input: InfrastructureInput): Classificati
     matchedField: null,
     suggestedWFS: null,
     alternativeTypes: [],
+    wasPreprocessed: wasAnyPreprocessed,
+    preprocessingNotes: allPreprocessingNotes.length > 0 ? allPreprocessingNotes : undefined,
   };
 }
 
@@ -633,4 +844,6 @@ export default {
   getWFSForType,
   getAvailableTypes,
   getPatternsForType,
+  // F023-1.2: Preprocesamiento
+  preprocessText,
 };
