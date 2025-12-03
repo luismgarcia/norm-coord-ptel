@@ -816,3 +816,388 @@ describe('analyzeResultClusters', () => {
     expect(analysis!.concordanceScore).toBe(1);
   });
 });
+
+
+// ============================================================================
+// SESIÓN 2C: Tests de Integración
+// ============================================================================
+
+import {
+  calculateCompositeScore,
+  getDiscrepancyThreshold,
+  detectDiscrepancy,
+  generateRecommendation,
+  performCrossValidation,
+  SOURCE_AUTHORITY_WEIGHTS,
+  DISCREPANCY_THRESHOLDS,
+  type ClusterAnalysis,
+  type CrossValidationResult
+} from '../crossValidation';
+
+describe('SOURCE_AUTHORITY_WEIGHTS', () => {
+  it('LOCAL tiene el peso más alto', () => {
+    expect(SOURCE_AUTHORITY_WEIGHTS.LOCAL).toBe(0.95);
+  });
+
+  it('NOMINATIM tiene el peso más bajo', () => {
+    expect(SOURCE_AUTHORITY_WEIGHTS.NOMINATIM).toBe(0.55);
+  });
+
+  it('WFS especializados tienen peso alto', () => {
+    expect(SOURCE_AUTHORITY_WEIGHTS.WFS_HEALTH).toBeGreaterThanOrEqual(0.85);
+    expect(SOURCE_AUTHORITY_WEIGHTS.WFS_EDUCATION).toBeGreaterThanOrEqual(0.85);
+  });
+});
+
+describe('calculateCompositeScore', () => {
+  it('devuelve 100 con scores perfectos', () => {
+    const score = calculateCompositeScore(100, 1, 1);
+    expect(score).toBe(100);
+  });
+
+  it('devuelve 0 con scores nulos', () => {
+    const score = calculateCompositeScore(0, 0, 0);
+    expect(score).toBe(0);
+  });
+
+  it('pondera correctamente los componentes', () => {
+    // Solo match score (100), resto 0
+    const matchOnly = calculateCompositeScore(100, 0, 0);
+    expect(matchOnly).toBe(35); // 0.35 * 100
+
+    // Solo concordance (1), resto 0
+    const concordanceOnly = calculateCompositeScore(0, 1, 0);
+    expect(concordanceOnly).toBe(40); // 0.40 * 100
+
+    // Solo authority (1), resto 0
+    const authorityOnly = calculateCompositeScore(0, 0, 1);
+    expect(authorityOnly).toBe(25); // 0.25 * 100
+  });
+
+  it('maneja scores normalizados (0-1)', () => {
+    const score = calculateCompositeScore(0.8, 0.9, 0.95);
+    // 0.35*0.8 + 0.40*0.9 + 0.25*0.95 = 0.28 + 0.36 + 0.2375 = 0.8775
+    expect(score).toBeCloseTo(88, 0);
+  });
+});
+
+describe('getDiscrepancyThreshold', () => {
+  it('devuelve umbral específico para SANITARIO', () => {
+    expect(getDiscrepancyThreshold('SANITARIO')).toBe(50);
+  });
+
+  it('devuelve umbral específico para TRANSPORTE', () => {
+    expect(getDiscrepancyThreshold('TRANSPORTE')).toBe(150);
+  });
+
+  it('devuelve DEFAULT para tipología desconocida', () => {
+    expect(getDiscrepancyThreshold('DESCONOCIDA')).toBe(DISCREPANCY_THRESHOLDS.DEFAULT);
+  });
+
+  it('devuelve DEFAULT sin tipología', () => {
+    expect(getDiscrepancyThreshold()).toBe(DISCREPANCY_THRESHOLDS.DEFAULT);
+    expect(getDiscrepancyThreshold(undefined)).toBe(DISCREPANCY_THRESHOLDS.DEFAULT);
+  });
+
+  it('es case-insensitive', () => {
+    expect(getDiscrepancyThreshold('sanitario')).toBe(50);
+    expect(getDiscrepancyThreshold('Sanitario')).toBe(50);
+  });
+});
+
+
+describe('detectDiscrepancy', () => {
+  const baseCluster: ClusterAnalysis = {
+    centroid: { x: 524538, y: 4229920 },
+    radiusMeters: 30,
+    concordantSources: 3,
+    outlierSources: [],
+    concordanceScore: 0.95
+  };
+
+  it('no detecta discrepancia con cluster compacto', () => {
+    const result = detectDiscrepancy(baseCluster, 'SANITARIO');
+    expect(result.hasDiscrepancy).toBe(false);
+  });
+
+  it('detecta discrepancia por radio alto (severity medium)', () => {
+    const cluster: ClusterAnalysis = {
+      ...baseCluster,
+      radiusMeters: 75 // > 50 (umbral SANITARIO)
+    };
+    const result = detectDiscrepancy(cluster, 'SANITARIO');
+    expect(result.hasDiscrepancy).toBe(true);
+    expect(result.severity).toBe('medium');
+  });
+
+  it('detecta discrepancia crítica por radio muy alto (severity high)', () => {
+    const cluster: ClusterAnalysis = {
+      ...baseCluster,
+      radiusMeters: 150 // > 100 (umbral SANITARIO * 2)
+    };
+    const result = detectDiscrepancy(cluster, 'SANITARIO');
+    expect(result.hasDiscrepancy).toBe(true);
+    expect(result.severity).toBe('high');
+  });
+
+  it('detecta discrepancia por outliers autoritativos', () => {
+    const cluster: ClusterAnalysis = {
+      ...baseCluster,
+      outlierSources: ['CARTOCIUDAD'] // Peso 0.80 >= 0.80
+    };
+    const result = detectDiscrepancy(cluster, 'SANITARIO');
+    expect(result.hasDiscrepancy).toBe(true);
+    expect(result.severity).toBe('medium');
+  });
+
+  it('no detecta discrepancia por outliers de baja autoridad', () => {
+    const cluster: ClusterAnalysis = {
+      ...baseCluster,
+      outlierSources: ['NOMINATIM'] // Peso 0.55 < 0.80
+    };
+    const result = detectDiscrepancy(cluster, 'SANITARIO');
+    expect(result.hasDiscrepancy).toBe(false);
+  });
+
+  it('detecta discrepancia por concordancia baja', () => {
+    const cluster: ClusterAnalysis = {
+      ...baseCluster,
+      concordanceScore: 0.5 // < 0.6
+    };
+    const result = detectDiscrepancy(cluster, 'SANITARIO');
+    expect(result.hasDiscrepancy).toBe(true);
+    expect(result.severity).toBe('low');
+  });
+
+  it('usa umbral correcto para TRANSPORTE', () => {
+    const cluster: ClusterAnalysis = {
+      ...baseCluster,
+      radiusMeters: 120 // < 150 (umbral TRANSPORTE)
+    };
+    const result = detectDiscrepancy(cluster, 'TRANSPORTE');
+    expect(result.hasDiscrepancy).toBe(false);
+  });
+});
+
+describe('generateRecommendation', () => {
+  it('recomienda REJECT con score muy bajo', () => {
+    const result = generateRecommendation(30, { hasDiscrepancy: false, severity: 'low' }, 2);
+    expect(result.recommendation).toBe('REJECT');
+  });
+
+  it('recomienda REJECT con discrepancia severa', () => {
+    const result = generateRecommendation(75, { hasDiscrepancy: true, severity: 'high' }, 2);
+    expect(result.recommendation).toBe('REJECT');
+  });
+
+  it('recomienda MANUAL_REVIEW con score moderado', () => {
+    const result = generateRecommendation(55, { hasDiscrepancy: false, severity: 'low' }, 2);
+    expect(result.recommendation).toBe('MANUAL_REVIEW');
+  });
+
+  it('recomienda MANUAL_REVIEW con discrepancia media', () => {
+    const result = generateRecommendation(80, { hasDiscrepancy: true, severity: 'medium' }, 3);
+    expect(result.recommendation).toBe('MANUAL_REVIEW');
+  });
+
+  it('recomienda MANUAL_REVIEW con una sola fuente', () => {
+    const result = generateRecommendation(85, { hasDiscrepancy: false, severity: 'low' }, 1);
+    expect(result.recommendation).toBe('MANUAL_REVIEW');
+  });
+
+  it('recomienda USE_RESULT con score alto y sin discrepancias', () => {
+    const result = generateRecommendation(90, { hasDiscrepancy: false, severity: 'low' }, 3);
+    expect(result.recommendation).toBe('USE_RESULT');
+  });
+
+  it('recomienda USE_RESULT con score bueno y discrepancia menor', () => {
+    const result = generateRecommendation(75, { hasDiscrepancy: true, severity: 'low' }, 2);
+    expect(result.recommendation).toBe('USE_RESULT');
+  });
+});
+
+
+describe('performCrossValidation - E2E', () => {
+  const mockQuery: GeocodingQuery = {
+    nombre: 'Centro de Salud Berja',
+    codMun: '04029',
+    municipio: 'Berja',
+    tipologia: 'SANITARIO'
+  };
+
+  beforeEach(() => {
+    vi.useFakeTimers();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it('devuelve REJECT cuando ninguna fuente responde', async () => {
+    const sources: GeocodingSource[] = [
+      {
+        id: 'LOCAL',
+        name: 'Local',
+        authorityWeight: 0.95,
+        geocode: vi.fn().mockResolvedValue(null)
+      },
+      {
+        id: 'CARTOCIUDAD',
+        name: 'CartoCiudad',
+        authorityWeight: 0.80,
+        geocode: vi.fn().mockResolvedValue(null)
+      }
+    ];
+
+    const promise = performCrossValidation(mockQuery, sources);
+    await vi.runAllTimersAsync();
+    const result = await promise;
+
+    expect(result.recommendation).toBe('REJECT');
+    expect(result.compositeScore).toBe(0);
+    expect(result.recommendedCoordinate).toBeNull();
+  });
+
+  it('devuelve USE_RESULT con fuentes concordantes', async () => {
+    const sources: GeocodingSource[] = [
+      {
+        id: 'LOCAL',
+        name: 'Local',
+        authorityWeight: 0.95,
+        geocode: vi.fn().mockResolvedValue({
+          coordinates: { x: 524538, y: 4229920 },
+          matchScore: 95
+        })
+      },
+      {
+        id: 'CARTOCIUDAD',
+        name: 'CartoCiudad',
+        authorityWeight: 0.80,
+        geocode: vi.fn().mockResolvedValue({
+          coordinates: { x: 524540, y: 4229922 },
+          matchScore: 90
+        })
+      },
+      {
+        id: 'CDAU',
+        name: 'CDAU',
+        authorityWeight: 0.80,
+        geocode: vi.fn().mockResolvedValue({
+          coordinates: { x: 524535, y: 4229918 },
+          matchScore: 88
+        })
+      }
+    ];
+
+    const promise = performCrossValidation(mockQuery, sources);
+    await vi.runAllTimersAsync();
+    const result = await promise;
+
+    expect(result.recommendation).toBe('USE_RESULT');
+    expect(result.compositeScore).toBeGreaterThan(80);
+    expect(result.recommendedCoordinate).not.toBeNull();
+    expect(result.clusterAnalysis?.concordantSources).toBe(3);
+  });
+
+  it('detecta outlier y ajusta recomendación', async () => {
+    const sources: GeocodingSource[] = [
+      {
+        id: 'LOCAL',
+        name: 'Local',
+        authorityWeight: 0.95,
+        geocode: vi.fn().mockResolvedValue({
+          coordinates: { x: 524538, y: 4229920 },
+          matchScore: 95
+        })
+      },
+      {
+        id: 'CARTOCIUDAD',
+        name: 'CartoCiudad',
+        authorityWeight: 0.80,
+        geocode: vi.fn().mockResolvedValue({
+          coordinates: { x: 524540, y: 4229922 },
+          matchScore: 90
+        })
+      },
+      {
+        id: 'NOMINATIM',
+        name: 'Nominatim',
+        authorityWeight: 0.55,
+        geocode: vi.fn().mockResolvedValue({
+          coordinates: { x: 526000, y: 4231000 }, // ~2km lejos
+          matchScore: 60
+        })
+      }
+    ];
+
+    const promise = performCrossValidation(mockQuery, sources);
+    await vi.runAllTimersAsync();
+    const result = await promise;
+
+    expect(result.clusterAnalysis?.outlierSources).toContain('NOMINATIM');
+    // El centroide debe estar cerca de LOCAL y CARTO, no del outlier (~2km)
+    // Tolerancia de 10m es aceptable para el centroide robusto
+    expect(result.recommendedCoordinate?.x).toBeGreaterThan(524530);
+    expect(result.recommendedCoordinate?.x).toBeLessThan(524550);
+  });
+
+  it('maneja timeout de fuentes sin bloquear otras', async () => {
+    const sources: GeocodingSource[] = [
+      {
+        id: 'LOCAL',
+        name: 'Local',
+        authorityWeight: 0.95,
+        geocode: vi.fn().mockResolvedValue({
+          coordinates: { x: 524538, y: 4229920 },
+          matchScore: 95
+        })
+      },
+      {
+        id: 'WFS_HEALTH',
+        name: 'WFS Salud',
+        authorityWeight: 0.90,
+        timeoutMs: 100,
+        geocode: vi.fn().mockImplementation(
+          () => new Promise(resolve => setTimeout(() => resolve({
+            coordinates: { x: 524540, y: 4229922 }
+          }), 200))
+        )
+      }
+    ];
+
+    const promise = performCrossValidation(mockQuery, sources);
+    await vi.runAllTimersAsync();
+    const result = await promise;
+
+    // LOCAL debería haber respondido, WFS_HEALTH timeout
+    expect(result.sourceResults[0].status).toBe('success');
+    expect(result.sourceResults[1].status).toBe('timeout');
+    // Debería funcionar con una sola fuente
+    expect(result.recommendedCoordinate).not.toBeNull();
+  });
+
+  it('incluye metadata completa en resultado', async () => {
+    const sources: GeocodingSource[] = [
+      {
+        id: 'LOCAL',
+        name: 'Local',
+        authorityWeight: 0.95,
+        geocode: vi.fn().mockResolvedValue({
+          coordinates: { x: 524538, y: 4229920 },
+          matchScore: 95
+        })
+      }
+    ];
+
+    const promise = performCrossValidation(mockQuery, sources);
+    await vi.runAllTimersAsync();
+    const result = await promise;
+
+    // Verificar estructura completa
+    expect(result.query).toEqual(mockQuery);
+    expect(result.sourceResults).toHaveLength(1);
+    expect(result.timestamp).toBeInstanceOf(Date);
+    expect(result.recommendationReason).toBeTruthy();
+    expect(typeof result.compositeScore).toBe('number');
+  });
+});

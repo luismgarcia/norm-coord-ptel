@@ -740,3 +740,349 @@ export function analyzeResultClusters(
     concordanceScore
   };
 }
+
+
+// ============================================================================
+// SESIÓN 2C: INTEGRACIÓN - SCORE COMPUESTO Y RECOMENDACIONES
+// ============================================================================
+
+/** Pesos de autoridad por fuente */
+export const SOURCE_AUTHORITY_WEIGHTS: Record<GeocodingSourceId, number> = {
+  LOCAL: 0.95,        // Datos DERA offline - máxima autoridad
+  WFS_HEALTH: 0.90,   // WFS especializado sanitario
+  WFS_EDUCATION: 0.90,
+  WFS_CULTURAL: 0.85,
+  WFS_SECURITY: 0.85,
+  CARTOCIUDAD: 0.80,  // IGN CartoCiudad
+  CDAU: 0.80,         // Callejero Andalucía
+  NGA: 0.75,          // Nomenclátor Geográfico
+  OVERPASS: 0.60,     // OpenStreetMap Overpass
+  NOMINATIM: 0.55     // OpenStreetMap Nominatim
+};
+
+/** Umbrales de distancia (metros) por tipología para detectar discrepancias */
+export const DISCREPANCY_THRESHOLDS: Record<string, number> = {
+  // Infraestructuras puntuales - umbral bajo
+  SANITARIO: 50,
+  EDUCATIVO: 50,
+  SEGURIDAD: 50,
+  SERVICIOS_BASICOS: 75,
+  
+  // Infraestructuras de área - umbral medio
+  DEPORTIVO: 100,
+  CULTURAL: 100,
+  ADMINISTRATIVO: 75,
+  
+  // Infraestructuras lineales/extensas - umbral alto
+  TRANSPORTE: 150,
+  HIDRAULICO: 200,
+  ENERGIA: 200,
+  
+  // Default para tipologías no especificadas
+  DEFAULT: 100
+};
+
+/** Pesos para el score compuesto */
+const COMPOSITE_WEIGHTS = {
+  /** Peso del match de nombre (0-1) */
+  matchScore: 0.35,
+  /** Peso de la concordancia entre fuentes (0-1) */
+  concordanceScore: 0.40,
+  /** Peso de la autoridad de la fuente principal (0-1) */
+  authorityScore: 0.25
+};
+
+
+/**
+ * Calcula el score compuesto de validación cruzada.
+ * 
+ * Fórmula: α×matchScore + β×concordanceScore + γ×authorityScore
+ * donde α=0.35, β=0.40, γ=0.25
+ * 
+ * @param matchScore - Score de coincidencia de nombre (0-100)
+ * @param concordanceScore - Score de concordancia entre fuentes (0-1)
+ * @param authorityScore - Peso de autoridad promedio de fuentes concordantes (0-1)
+ * @returns Score compuesto (0-100)
+ */
+export function calculateCompositeScore(
+  matchScore: number,
+  concordanceScore: number,
+  authorityScore: number
+): number {
+  // Normalizar matchScore a 0-1 si viene en escala 0-100
+  const normalizedMatch = matchScore > 1 ? matchScore / 100 : matchScore;
+  
+  const composite = 
+    COMPOSITE_WEIGHTS.matchScore * normalizedMatch +
+    COMPOSITE_WEIGHTS.concordanceScore * concordanceScore +
+    COMPOSITE_WEIGHTS.authorityScore * authorityScore;
+  
+  // Devolver en escala 0-100
+  return Math.round(composite * 100);
+}
+
+/**
+ * Obtiene el umbral de discrepancia para una tipología.
+ * 
+ * @param tipologia - Tipología PTEL
+ * @returns Umbral en metros
+ */
+export function getDiscrepancyThreshold(tipologia?: string): number {
+  if (!tipologia) return DISCREPANCY_THRESHOLDS.DEFAULT;
+  
+  const upper = tipologia.toUpperCase();
+  return DISCREPANCY_THRESHOLDS[upper] ?? DISCREPANCY_THRESHOLDS.DEFAULT;
+}
+
+/**
+ * Detecta si hay discrepancia significativa entre fuentes.
+ * 
+ * Una discrepancia existe cuando:
+ * - El radio del cluster excede el umbral para la tipología
+ * - O hay outliers con peso alto (fuentes autoritativas discrepantes)
+ * 
+ * @param clusterAnalysis - Análisis del cluster
+ * @param tipologia - Tipología de la infraestructura
+ * @returns Objeto con detección y razón
+ */
+export function detectDiscrepancy(
+  clusterAnalysis: ClusterAnalysis,
+  tipologia?: string
+): { hasDiscrepancy: boolean; reason: string; severity: 'low' | 'medium' | 'high' } {
+  const threshold = getDiscrepancyThreshold(tipologia);
+  
+  // Verificar radio del cluster
+  if (clusterAnalysis.radiusMeters > threshold * 2) {
+    return {
+      hasDiscrepancy: true,
+      reason: `Radio del cluster (${Math.round(clusterAnalysis.radiusMeters)}m) excede umbral crítico (${threshold * 2}m)`,
+      severity: 'high'
+    };
+  }
+  
+  if (clusterAnalysis.radiusMeters > threshold) {
+    return {
+      hasDiscrepancy: true,
+      reason: `Radio del cluster (${Math.round(clusterAnalysis.radiusMeters)}m) excede umbral (${threshold}m)`,
+      severity: 'medium'
+    };
+  }
+  
+  // Verificar outliers de fuentes autoritativas
+  const authoritativeOutliers = clusterAnalysis.outlierSources.filter(
+    id => SOURCE_AUTHORITY_WEIGHTS[id] >= 0.80
+  );
+  
+  if (authoritativeOutliers.length > 0) {
+    return {
+      hasDiscrepancy: true,
+      reason: `Fuentes autoritativas discrepantes: ${authoritativeOutliers.join(', ')}`,
+      severity: 'medium'
+    };
+  }
+  
+  // Verificar concordancia baja
+  if (clusterAnalysis.concordanceScore < 0.6) {
+    return {
+      hasDiscrepancy: true,
+      reason: `Concordancia baja entre fuentes (${Math.round(clusterAnalysis.concordanceScore * 100)}%)`,
+      severity: 'low'
+    };
+  }
+  
+  return {
+    hasDiscrepancy: false,
+    reason: 'Todas las fuentes concuerdan dentro del umbral',
+    severity: 'low'
+  };
+}
+
+
+/**
+ * Genera una recomendación basada en el análisis de validación cruzada.
+ * 
+ * @param compositeScore - Score compuesto (0-100)
+ * @param discrepancy - Resultado de detección de discrepancia
+ * @param concordantSources - Número de fuentes que concuerdan
+ * @returns Recomendación y razón
+ */
+export function generateRecommendation(
+  compositeScore: number,
+  discrepancy: { hasDiscrepancy: boolean; severity: 'low' | 'medium' | 'high' },
+  concordantSources: number
+): { recommendation: CrossValidationResult['recommendation']; reason: string } {
+  
+  // REJECT: Score muy bajo o discrepancia severa
+  if (compositeScore < 40) {
+    return {
+      recommendation: 'REJECT',
+      reason: `Score muy bajo (${compositeScore}%) - datos insuficientes o conflictivos`
+    };
+  }
+  
+  if (discrepancy.hasDiscrepancy && discrepancy.severity === 'high') {
+    return {
+      recommendation: 'REJECT',
+      reason: 'Discrepancia severa entre fuentes - requiere verificación manual antes de uso'
+    };
+  }
+  
+  // MANUAL_REVIEW: Score medio o discrepancia moderada
+  if (compositeScore < 70) {
+    return {
+      recommendation: 'MANUAL_REVIEW',
+      reason: `Score moderado (${compositeScore}%) - revisar coordenadas manualmente`
+    };
+  }
+  
+  if (discrepancy.hasDiscrepancy && discrepancy.severity === 'medium') {
+    return {
+      recommendation: 'MANUAL_REVIEW',
+      reason: 'Discrepancia moderada - verificar ubicación en mapa'
+    };
+  }
+  
+  if (concordantSources < 2) {
+    return {
+      recommendation: 'MANUAL_REVIEW',
+      reason: 'Solo una fuente disponible - confirmar con otra fuente si es posible'
+    };
+  }
+  
+  // USE_RESULT: Score alto y sin discrepancias significativas
+  if (compositeScore >= 85 && !discrepancy.hasDiscrepancy) {
+    return {
+      recommendation: 'USE_RESULT',
+      reason: `Alta confianza (${compositeScore}%) - ${concordantSources} fuentes concuerdan`
+    };
+  }
+  
+  // Caso intermedio: score bueno pero con alguna incertidumbre
+  if (compositeScore >= 70) {
+    if (discrepancy.hasDiscrepancy && discrepancy.severity === 'low') {
+      return {
+        recommendation: 'USE_RESULT',
+        reason: `Confianza aceptable (${compositeScore}%) con discrepancia menor`
+      };
+    }
+    return {
+      recommendation: 'USE_RESULT',
+      reason: `Confianza buena (${compositeScore}%) - ${concordantSources} fuentes concuerdan`
+    };
+  }
+  
+  // Default: revisar manualmente
+  return {
+    recommendation: 'MANUAL_REVIEW',
+    reason: 'Revisar coordenadas manualmente por precaución'
+  };
+}
+
+
+/**
+ * Realiza la validación cruzada completa de una geocodificación.
+ * 
+ * Esta es la función principal que:
+ * 1. Consulta múltiples fuentes en paralelo
+ * 2. Analiza el cluster de resultados
+ * 3. Calcula score compuesto
+ * 4. Detecta discrepancias
+ * 5. Genera recomendación
+ * 
+ * @param query - Query de geocodificación
+ * @param sources - Fuentes a consultar
+ * @param options - Opciones de configuración
+ * @returns Resultado completo de validación cruzada
+ * 
+ * @example
+ * const result = await performCrossValidation(
+ *   { nombre: 'Centro de Salud', codMun: '04013', tipologia: 'SANITARIO' },
+ *   [localSource, cartoCiudadSource, cdauSource]
+ * );
+ * 
+ * if (result.recommendation === 'USE_RESULT') {
+ *   console.log('Coordenada confiable:', result.recommendedCoordinate);
+ * }
+ */
+export async function performCrossValidation(
+  query: GeocodingQuery,
+  sources: GeocodingSource[],
+  options: {
+    /** Timeout global en ms */
+    timeoutMs?: number;
+    /** Umbral de concordancia personalizado */
+    concordanceThreshold?: number;
+  } = {}
+): Promise<CrossValidationResult> {
+  const timestamp = new Date();
+  
+  // 1. Consultar múltiples fuentes en paralelo
+  const sourceResults = await queryMultipleSources(query, sources, options.timeoutMs);
+  
+  // 2. Analizar cluster de resultados
+  const clusterAnalysis = analyzeResultClusters(sourceResults, {
+    concordanceThreshold: options.concordanceThreshold ?? getDiscrepancyThreshold(query.tipologia)
+  });
+  
+  // Si no hay resultados exitosos
+  if (!clusterAnalysis) {
+    return {
+      query,
+      sourceResults,
+      clusterAnalysis: null,
+      compositeScore: 0,
+      recommendedCoordinate: null,
+      recommendation: 'REJECT',
+      recommendationReason: 'Ninguna fuente devolvió resultados válidos',
+      timestamp
+    };
+  }
+  
+  // 3. Calcular scores
+  const successful = getSuccessfulResults(sourceResults);
+  
+  // Calcular matchScore promedio ponderado
+  let totalMatchScore = 0;
+  let totalWeight = 0;
+  for (const r of successful) {
+    const matchScore = r.result?.matchScore ?? 70; // Default 70 si no hay score
+    totalMatchScore += matchScore * r.authorityWeight;
+    totalWeight += r.authorityWeight;
+  }
+  const avgMatchScore = totalWeight > 0 ? totalMatchScore / totalWeight : 0;
+  
+  // Calcular authorityScore de fuentes concordantes
+  const concordantResults = successful.filter(
+    r => !clusterAnalysis.outlierSources.includes(r.sourceId)
+  );
+  const avgAuthority = concordantResults.length > 0
+    ? concordantResults.reduce((sum, r) => sum + r.authorityWeight, 0) / concordantResults.length
+    : 0;
+  
+  const compositeScore = calculateCompositeScore(
+    avgMatchScore,
+    clusterAnalysis.concordanceScore,
+    avgAuthority
+  );
+  
+  // 4. Detectar discrepancias
+  const discrepancy = detectDiscrepancy(clusterAnalysis, query.tipologia);
+  
+  // 5. Generar recomendación
+  const { recommendation, reason } = generateRecommendation(
+    compositeScore,
+    discrepancy,
+    clusterAnalysis.concordantSources
+  );
+  
+  return {
+    query,
+    sourceResults,
+    clusterAnalysis,
+    compositeScore,
+    recommendedCoordinate: clusterAnalysis.centroid,
+    recommendation,
+    recommendationReason: reason,
+    timestamp
+  };
+}

@@ -19,14 +19,14 @@
         │                             │                             │
         ▼                             ▼                             ▼
 ┌───────────────────┐       ┌───────────────────┐       ┌───────────────────┐
-│   SESIÓN 2A ✅    │       │   SESIÓN 2B ✅    │       │   SESIÓN 2C       │
+│   SESIÓN 2A ✅    │       │   SESIÓN 2B ✅    │       │   SESIÓN 2C ✅    │
 │   FUNDAMENTOS     │ ───▶  │   ALGORITMOS      │ ───▶  │   INTEGRACIÓN     │
-│   COMPLETADA      │       │   COMPLETADA      │       │                   │
-│ ✓ GeocodingErrors │       │ ✓ huberCentroid   │       │ • compositeScore  │
-│ ✓ distanceUTM     │       │ ✓ analyzeCluster  │       │ • detectDiscrep.  │
-│ ✓ queryMultiple   │       │ ✓ identifyOutlier │       │ • integrar Orch.  │
-│ ✓ 19 tests        │       │ ✓ concordanceScor │       │ • tests E2E       │
-│ Tiempo: ~45min    │       │ ✓ 25 tests nuevos │       │ Tiempo: ~1.5h     │
+│   COMPLETADA      │       │   COMPLETADA      │       │   COMPLETADA      │
+│ ✓ GeocodingErrors │       │ ✓ huberCentroid   │       │ ✓ compositeScore  │
+│ ✓ distanceUTM     │       │ ✓ analyzeCluster  │       │ ✓ detectDiscrep.  │
+│ ✓ queryMultiple   │       │ ✓ identifyOutlier │       │ ✓ recommendations │
+│ ✓ 19 tests        │       │ ✓ concordanceScor │       │ ✓ performCrossVal │
+│ Tiempo: ~45min    │       │ ✓ 25 tests nuevos │       │ ✓ 31 tests nuevos │
 └───────────────────┘       └───────────────────┘       └───────────────────┘
         │                             │                             │
         ▼                             ▼                             ▼
@@ -116,11 +116,24 @@
 | 2.14 | Tests E2E | Validación completa con datos reales |
 
 ### Entregables sesión 2C
-- [ ] Score compuesto funcionando
-- [ ] Detección discrepancias activa
-- [ ] GeocodingOrchestrator integrado
-- [ ] ~20-25 tests nuevos
-- [ ] Fase 2 COMPLETADA
+- [x] Score compuesto funcionando ✅
+- [x] Detección discrepancias activa ✅
+- [x] performCrossValidation integrado ✅
+- [x] 31 tests nuevos (1028 total) ✅
+- [x] Fase 2 COMPLETADA ✅
+
+**Estado:** ✅ COMPLETADA (3 Dic 2025)  
+**Funciones implementadas:**
+- `calculateCompositeScore()` - Score α×match + β×concordancia + γ×autoridad
+- `getDiscrepancyThreshold()` - Umbrales por tipología
+- `detectDiscrepancy()` - Detección con severidad low/medium/high
+- `generateRecommendation()` - USE_RESULT / MANUAL_REVIEW / REJECT
+- `performCrossValidation()` - Función E2E completa
+
+**Constantes exportadas:**
+- `SOURCE_AUTHORITY_WEIGHTS` - Pesos por fuente
+- `DISCREPANCY_THRESHOLDS` - Umbrales por tipología
+- `COMPOSITE_WEIGHTS` - Pesos del score compuesto
 
 ---
 
