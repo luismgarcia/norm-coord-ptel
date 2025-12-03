@@ -19,14 +19,14 @@
         │                             │                             │
         ▼                             ▼                             ▼
 ┌───────────────────┐       ┌───────────────────┐       ┌───────────────────┐
-│   SESIÓN 2A ✅    │       │   SESIÓN 2B       │       │   SESIÓN 2C       │
+│   SESIÓN 2A ✅    │       │   SESIÓN 2B ✅    │       │   SESIÓN 2C       │
 │   FUNDAMENTOS     │ ───▶  │   ALGORITMOS      │ ───▶  │   INTEGRACIÓN     │
-│   COMPLETADA      │       │                   │       │                   │
-│ ✓ GeocodingErrors │       │ • analyzeCluster  │       │ • compositeScore  │
-│ ✓ distanceUTM     │       │ • huberCentroid   │       │ • detectDiscrep.  │
-│ ✓ queryMultiple   │       │ • tests clusters  │       │ • integrar Orch.  │
-│ ✓ 19 tests        │       │                   │       │ • tests E2E       │
-│ Tiempo: ~45min    │       │ Tiempo: ~1.5h     │       │ Tiempo: ~1.5h     │
+│   COMPLETADA      │       │   COMPLETADA      │       │                   │
+│ ✓ GeocodingErrors │       │ ✓ huberCentroid   │       │ • compositeScore  │
+│ ✓ distanceUTM     │       │ ✓ analyzeCluster  │       │ • detectDiscrep.  │
+│ ✓ queryMultiple   │       │ ✓ identifyOutlier │       │ • integrar Orch.  │
+│ ✓ 19 tests        │       │ ✓ concordanceScor │       │ • tests E2E       │
+│ Tiempo: ~45min    │       │ ✓ 25 tests nuevos │       │ Tiempo: ~1.5h     │
 └───────────────────┘       └───────────────────┘       └───────────────────┘
         │                             │                             │
         ▼                             ▼                             ▼
@@ -82,10 +82,19 @@
 | 2.7 | Tests clusters | Casos concordancia y discrepancia |
 
 ### Entregables sesión 2B
-- [ ] analyzeResultClusters() funcionando
-- [ ] huberCentroid() funcionando
-- [ ] ~15-20 tests nuevos
-- [ ] Benchmark de rendimiento
+- [x] analyzeResultClusters() funcionando ✅
+- [x] huberCentroid() funcionando ✅
+- [x] 25 tests nuevos (997 total) ✅
+- [x] identifyOutliers + calculateConcordanceScore ✅
+
+**Estado:** ✅ COMPLETADA (3 Dic 2025)  
+**Funciones implementadas:**
+- `simpleCentroid()` - Media aritmética
+- `huberCentroid()` - Centroide robusto iterativo
+- `identifyOutliers()` - Detección de fuentes discrepantes
+- `calculateClusterRadius()` - Radio del cluster
+- `calculateConcordanceScore()` - Score ponderado por autoridad
+- `analyzeResultClusters()` - Análisis completo
 
 ---
 

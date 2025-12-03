@@ -375,3 +375,368 @@ export function extractCoordinates(results: SourceResult[]): UTMPoint[] {
 export function getTotalResponseTime(results: SourceResult[]): number {
   return Math.max(...results.map(r => r.responseTimeMs), 0);
 }
+
+
+// ============================================================================
+// SESIÓN 2B: ALGORITMOS DE CLUSTERING
+// ============================================================================
+
+/** Umbral por defecto para considerar puntos concordantes (metros) */
+const DEFAULT_CONCORDANCE_THRESHOLD_METERS = 100;
+
+/** Constante k para el estimador de Huber (típicamente 1.345 para 95% eficiencia) */
+const HUBER_K = 1.345;
+
+/** Máximo de iteraciones para convergencia del centroide */
+const MAX_HUBER_ITERATIONS = 20;
+
+/** Tolerancia para convergencia (metros) */
+const CONVERGENCE_TOLERANCE = 0.1;
+
+/** Escala mínima para considerar outliers (metros). 
+ * Si la MAD es menor, todos los puntos se consideran concordantes. */
+const MIN_SCALE_FOR_OUTLIERS = 10;
+
+/**
+ * Calcula el centroide simple (media aritmética) de un conjunto de puntos.
+ * 
+ * @param points - Array de puntos UTM
+ * @returns Centroide simple
+ */
+export function simpleCentroid(points: UTMPoint[]): UTMPoint {
+  if (points.length === 0) {
+    throw new Error('No se puede calcular centroide de array vacío');
+  }
+  
+  if (points.length === 1) {
+    return { ...points[0] };
+  }
+  
+  const sumX = points.reduce((sum, p) => sum + p.x, 0);
+  const sumY = points.reduce((sum, p) => sum + p.y, 0);
+  
+  return {
+    x: sumX / points.length,
+    y: sumY / points.length
+  };
+}
+
+/**
+ * Calcula la mediana de un array de números.
+ * 
+ * @param values - Array de valores numéricos
+ * @returns Mediana
+ */
+function median(values: number[]): number {
+  if (values.length === 0) return 0;
+  
+  const sorted = [...values].sort((a, b) => a - b);
+  const mid = Math.floor(sorted.length / 2);
+  
+  if (sorted.length % 2 === 0) {
+    return (sorted[mid - 1] + sorted[mid]) / 2;
+  }
+  return sorted[mid];
+}
+
+/**
+ * Calcula la MAD (Median Absolute Deviation) como estimador robusto de escala.
+ * 
+ * @param values - Array de valores
+ * @param center - Valor central (típicamente la mediana)
+ * @returns MAD escalada (multiplicada por 1.4826 para consistencia con desviación estándar)
+ */
+function mad(values: number[], center: number): number {
+  if (values.length === 0) return 0;
+  
+  const deviations = values.map(v => Math.abs(v - center));
+  // Factor 1.4826 para que MAD sea consistente con desviación estándar en distribución normal
+  return median(deviations) * 1.4826;
+}
+
+
+/**
+ * Calcula el centroide robusto usando el estimador de Huber.
+ * 
+ * El estimador de Huber reduce la influencia de outliers:
+ * - Puntos cercanos al centro contribuyen normalmente
+ * - Puntos lejanos (outliers) tienen peso reducido
+ * 
+ * Algoritmo iterativo:
+ * 1. Inicializar con centroide simple
+ * 2. Calcular distancias y MAD como escala robusta
+ * 3. Aplicar pesos de Huber según distancia
+ * 4. Recalcular centroide ponderado
+ * 5. Repetir hasta convergencia
+ * 
+ * @param points - Array de puntos UTM (mínimo 1)
+ * @returns Centroide robusto y pesos finales de cada punto
+ * 
+ * @example
+ * const { centroid, weights } = huberCentroid([
+ *   { x: 524538, y: 4229920 },  // Punto normal
+ *   { x: 524540, y: 4229925 },  // Punto normal
+ *   { x: 525000, y: 4230500 }   // Outlier - tendrá peso bajo
+ * ]);
+ */
+export function huberCentroid(
+  points: UTMPoint[]
+): { centroid: UTMPoint; weights: number[] } {
+  if (points.length === 0) {
+    throw new Error('No se puede calcular centroide de array vacío');
+  }
+  
+  if (points.length === 1) {
+    return { centroid: { ...points[0] }, weights: [1] };
+  }
+  
+  if (points.length === 2) {
+    // Con 2 puntos, el centroide simple es óptimo
+    return { 
+      centroid: simpleCentroid(points), 
+      weights: [1, 1] 
+    };
+  }
+  
+  // Inicializar con centroide simple
+  let currentCentroid = simpleCentroid(points);
+  let weights = new Array(points.length).fill(1);
+  
+  for (let iteration = 0; iteration < MAX_HUBER_ITERATIONS; iteration++) {
+    // Calcular distancias al centroide actual
+    const distances = points.map(p => distanceUTM(p, currentCentroid));
+    
+    // Calcular escala robusta (MAD de las distancias)
+    const medianDist = median(distances);
+    const scale = mad(distances, medianDist);
+    
+    // Si la escala es muy pequeña, verificar si TODOS los puntos están cercanos
+    // Si el radio máximo es pequeño, considerar todos concordantes
+    if (scale < MIN_SCALE_FOR_OUTLIERS) {
+      const maxDist = Math.max(...distances);
+      if (maxDist < MIN_SCALE_FOR_OUTLIERS) {
+        // Todos los puntos están muy cercanos - considerarlos concordantes
+        weights = new Array(points.length).fill(1);
+        break;
+      }
+      // Hay outliers pero la escala es pequeña - usar una escala mínima
+      // y CONTINUAR iterando para que el centroide converja
+      const effectiveScale = Math.max(scale, MIN_SCALE_FOR_OUTLIERS);
+      weights = distances.map(d => {
+        if (d === 0) return 1;
+        const u = d / effectiveScale;
+        if (u <= HUBER_K) {
+          return 1;
+        }
+        return HUBER_K / u;
+      });
+      // NO hacer break - continuar iterando para convergencia
+    } else {
+      // Calcular pesos de Huber normalmente
+      weights = distances.map(d => {
+        if (d === 0) return 1;
+        const u = d / scale;
+        if (u <= HUBER_K) {
+          return 1; // Dentro del umbral: peso completo
+        }
+        return HUBER_K / u; // Fuera: peso reducido proporcionalmente
+      });
+    }
+    
+    // Calcular nuevo centroide ponderado
+    const totalWeight = weights.reduce((sum, w) => sum + w, 0);
+    const newCentroid: UTMPoint = {
+      x: points.reduce((sum, p, i) => sum + p.x * weights[i], 0) / totalWeight,
+      y: points.reduce((sum, p, i) => sum + p.y * weights[i], 0) / totalWeight
+    };
+    
+    // Verificar convergencia
+    const shift = distanceUTM(currentCentroid, newCentroid);
+    currentCentroid = newCentroid;
+    
+    if (shift < CONVERGENCE_TOLERANCE) {
+      break;
+    }
+  }
+  
+  return { centroid: currentCentroid, weights };
+}
+
+
+/**
+ * Identifica qué fuentes son outliers (discrepantes) del cluster principal.
+ * 
+ * Un punto es outlier si:
+ * - Su peso de Huber es menor a 0.5 (contribuyó poco al centroide)
+ * - O su distancia al centroide excede el umbral de concordancia
+ * 
+ * @param results - Resultados exitosos con coordenadas
+ * @param centroid - Centroide calculado
+ * @param weights - Pesos de Huber
+ * @param thresholdMeters - Umbral de distancia para concordancia
+ * @returns Array de IDs de fuentes outlier
+ */
+export function identifyOutliers(
+  results: SourceResult[],
+  centroid: UTMPoint,
+  weights: number[],
+  thresholdMeters: number = DEFAULT_CONCORDANCE_THRESHOLD_METERS
+): GeocodingSourceId[] {
+  const outliers: GeocodingSourceId[] = [];
+  
+  results.forEach((r, i) => {
+    if (r.result) {
+      const distance = distanceUTM(r.result.coordinates, centroid);
+      const weight = weights[i] ?? 1;
+      
+      // Outlier si peso bajo O distancia alta
+      if (weight < 0.5 || distance > thresholdMeters) {
+        outliers.push(r.sourceId);
+      }
+    }
+  });
+  
+  return outliers;
+}
+
+/**
+ * Calcula el radio del cluster como la distancia máxima al centroide
+ * de los puntos concordantes (no outliers).
+ * 
+ * @param points - Puntos del cluster
+ * @param centroid - Centroide
+ * @param weights - Pesos de Huber (opcional, para excluir outliers)
+ * @returns Radio en metros
+ */
+export function calculateClusterRadius(
+  points: UTMPoint[],
+  centroid: UTMPoint,
+  weights?: number[]
+): number {
+  if (points.length === 0) return 0;
+  
+  const distances = points.map((p, i) => {
+    // Si hay pesos y el punto es outlier (peso < 0.5), excluirlo
+    if (weights && weights[i] < 0.5) {
+      return 0;
+    }
+    return distanceUTM(p, centroid);
+  });
+  
+  return Math.max(...distances, 0);
+}
+
+
+/**
+ * Calcula el score de concordancia basado en:
+ * - Proporción de fuentes concordantes vs total
+ * - Ponderado por autoridad de las fuentes
+ * 
+ * @param results - Todos los resultados
+ * @param outlierIds - IDs de fuentes outlier
+ * @returns Score de concordancia (0-1)
+ */
+export function calculateConcordanceScore(
+  results: SourceResult[],
+  outlierIds: GeocodingSourceId[]
+): number {
+  const successful = getSuccessfulResults(results);
+  
+  if (successful.length === 0) return 0;
+  if (successful.length === 1) return 1; // Un solo resultado = concordancia perfecta consigo mismo
+  
+  // Calcular peso total de concordantes vs total
+  let concordantWeight = 0;
+  let totalWeight = 0;
+  
+  for (const r of successful) {
+    totalWeight += r.authorityWeight;
+    if (!outlierIds.includes(r.sourceId)) {
+      concordantWeight += r.authorityWeight;
+    }
+  }
+  
+  return totalWeight > 0 ? concordantWeight / totalWeight : 0;
+}
+
+/**
+ * Analiza el cluster de resultados de geocodificación.
+ * 
+ * Esta es la función principal de la sesión 2B que:
+ * 1. Extrae coordenadas de resultados exitosos
+ * 2. Calcula centroide robusto (Huber)
+ * 3. Identifica outliers
+ * 4. Calcula radio del cluster
+ * 5. Calcula score de concordancia
+ * 
+ * @param results - Array de resultados de múltiples fuentes
+ * @param options - Opciones de configuración
+ * @returns Análisis del cluster o null si no hay suficientes datos
+ * 
+ * @example
+ * const analysis = analyzeResultClusters(sourceResults);
+ * if (analysis && analysis.concordanceScore > 0.8) {
+ *   // Alta concordancia - usar el centroide
+ *   console.log('Coordenada confiable:', analysis.centroid);
+ * }
+ */
+export function analyzeResultClusters(
+  results: SourceResult[],
+  options: {
+    /** Umbral de distancia para concordancia (metros) */
+    concordanceThreshold?: number;
+  } = {}
+): ClusterAnalysis | null {
+  const { 
+    concordanceThreshold = DEFAULT_CONCORDANCE_THRESHOLD_METERS 
+  } = options;
+  
+  // Filtrar resultados exitosos
+  const successful = getSuccessfulResults(results);
+  
+  if (successful.length === 0) {
+    return null;
+  }
+  
+  // Extraer coordenadas
+  const coordinates = successful.map(r => r.result!.coordinates);
+  
+  // Caso especial: un solo resultado
+  if (coordinates.length === 1) {
+    return {
+      centroid: { ...coordinates[0] },
+      radiusMeters: 0,
+      concordantSources: 1,
+      outlierSources: [],
+      concordanceScore: 1 // Concordancia perfecta consigo mismo
+    };
+  }
+  
+  // Calcular centroide robusto
+  const { centroid, weights } = huberCentroid(coordinates);
+  
+  // Identificar outliers
+  const outlierSources = identifyOutliers(
+    successful, 
+    centroid, 
+    weights, 
+    concordanceThreshold
+  );
+  
+  // Calcular radio del cluster (excluyendo outliers)
+  const radiusMeters = calculateClusterRadius(coordinates, centroid, weights);
+  
+  // Calcular score de concordancia
+  const concordanceScore = calculateConcordanceScore(successful, outlierSources);
+  
+  // Contar fuentes concordantes
+  const concordantSources = successful.length - outlierSources.length;
+  
+  return {
+    centroid,
+    radiusMeters,
+    concordantSources,
+    outlierSources,
+    concordanceScore
+  };
+}
