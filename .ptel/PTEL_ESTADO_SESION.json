@@ -1,6 +1,6 @@
 {
-  "ultimaActualizacion": "2025-12-03T07:55:00Z",
-  "sesionActual": "F021-Fases-3-4-COMPLETADAS",
+  "ultimaActualizacion": "2025-12-03T11:30:00Z",
+  "sesionActual": "INVESTIGACION-GEOCODIFICACION",
   "rolActivo": "MapWizard",
   
   "estadoGeneral": {
@@ -12,25 +12,53 @@
   },
   
   "featureActiva": {
-    "id": "F021",
-    "nombre": "Sistema Offline con datos DERA",
-    "estado": "COMPLETADA",
-    "fasesCompletadas": "5/5",
-    "ultimoCommit": "e3df460"
+    "id": "F022-PROPUESTA",
+    "nombre": "Mejora geocodificación por tipo+municipio",
+    "estado": "ANALIZADO",
+    "documentacion": [
+      ".ptel/DIAGNOSTICO_GEOCODIFICACION_2025-12-03.md",
+      ".ptel/ANALISIS_MEJORAS_GEOCODIFICACION_2025-12-03.md",
+      ".ptel/INDICE_DOCUMENTACION_GEOCODIFICACION.md"
+    ]
   },
   
   "bloqueadores": [],
   
+  "investigacionRealizada": {
+    "documentosAnalizados": 8,
+    "hallazgoClave": "65% municipios tienen 1 solo centro salud → match directo sin fuzzy posible",
+    "mejoraEstimada": "+40-50% tasa geocodificación",
+    "tiempoImplementacion": "5-6h para 3 niveles"
+  },
+  
+  "documentacionExistente": {
+    "diagnosticos": [
+      "DIAGNOSTICO_GEOCODIFICACION_2025-12-03.md",
+      "ANALISIS_MEJORAS_GEOCODIFICACION_2025-12-03.md"
+    ],
+    "guiasTecnicas": [
+      "docs/GEOCODIFICADORES_ESPECIALIZADOS.md",
+      "docs/PLAN_IMPLEMENTACION_GEOCODIFICADORES.md",
+      "docs/GUIA_GEOCODIFICACION_SIN_DIRECCION_POSTAL.md",
+      "docs/RECURSOS_API_GEOCODIFICACION.md"
+    ],
+    "solucionesProblemas": [
+      "SOLUCION_CODIGOS_INE.md",
+      "LECCIONES_APRENDIDAS.md"
+    ]
+  },
+  
   "proximasTareas": [
-    "Verificar PWA en producción (Chrome DevTools)",
-    "Probar modo offline",
-    "Ejecutar GitHub Action manualmente"
+    "Implementar geocodeByTypeAndMunicipio() en LocalDataService.ts",
+    "Crear AddressCleaner.ts para limpieza de direcciones",
+    "Mejorar regex del InfrastructureClassifier",
+    "Tests con datos reales Colomera, Tíjola, Quéntar"
   ],
   
   "notasSesion": [
-    "Fase 3 (PWA/Workbox) ya estaba configurada en vite.config.ts",
-    "Fase 4 (GitHub Actions) creada con workflow update-dera.yml",
-    "Limitación: Guardia Civil y Emergencias no tienen WFS público",
-    "Build local falla por node_modules incompleto - usar npm ci"
+    "Documentación de geocodificación muy completa (8 documentos)",
+    "Arquitectura cascada L0-L5 ya diseñada en detalle",
+    "Solo falta implementar estrategia UNIQUE_IN_MUNICIPIO",
+    "LocalDataService tiene getFeatureCountByMunicipio() listo para usar"
   ]
 }
