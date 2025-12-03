@@ -37,10 +37,11 @@ jobs:
         with:
           python-version: '3.11'
           cache: 'pip'
+          cache-dependency-path: 'scripts/dera-download/requirements.txt'
       
       - name: Instalar dependencias Python
         run: |
-          pip install requests
+          pip install -r scripts/dera-download/requirements.txt
       
       - name: Descargar datos DERA
         run: python scripts/dera-download/download_dera_actions.py
