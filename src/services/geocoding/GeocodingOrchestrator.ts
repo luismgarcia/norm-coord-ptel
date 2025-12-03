@@ -1,22 +1,32 @@
 /**
- * Orquestador de Geocodificación Especializada v2.0
+ * Orquestador de Geocodificación Especializada v2.1
  * 
  * Integra clasificación tipológica con geocodificadores especializados WFS,
- * NGA (topónimos), IAID (deportes), Overpass (OSM) y fallbacks genéricos
- * (CDAU, CartoCiudad) para máxima precisión y cobertura en infraestructuras
- * PTEL Andalucía.
+ * datos locales DERA (offline), NGA (topónimos), IAID (deportes), 
+ * Overpass (OSM) y fallbacks genéricos (CDAU, CartoCiudad) para máxima 
+ * precisión y cobertura en infraestructuras PTEL Andalucía.
  * 
- * Cascada de geocodificación (10 niveles):
- * L1. Geocodificador especializado WFS según tipología (DERA)
+ * Cascada de geocodificación (8 niveles - OFFLINE-FIRST):
+ * L0. LOCAL_DERA - Datos pre-descargados (10.653 features, offline)
+ * L1. Geocodificador especializado WFS según tipología (DERA online)
  * L2. NGA - Nomenclátor Geográfico Andalucía (topónimos: parajes, cerros)
  * L3. IAID - Instalaciones Deportivas (piscinas, campos)
  * L4. Overpass/OSM - OpenStreetMap (antenas, industrias, varios)
  * L5. CDAU - Callejero Digital Andalucía
  * L6. CartoCiudad - IGN (fallback universal España)
+ * L7. Nominatim - OSM (último recurso)
  * 
- * Cobertura esperada: ~85-92% con todos los geocodificadores activos
+ * F021 Fase 2: Sistema offline-first con datos DERA locales
+ * - health.geojson:     1,700 centros (CAP + hospitales)
+ * - security.geojson:   1,282 (policía, bomberos, GC, emergencias)
+ * - education.geojson:  6,725 centros educativos
+ * - municipal.geojson:    785 ayuntamientos (100% municipios)
+ * - energy.geojson:       161 parques eólicos
+ * 
+ * Cobertura esperada: ~90-95% con L0 + cascada completa
  * 
  * @module services/geocoding
+ * @version 2.1.0 - F021 Fase 2 LocalData integration
  */
 
 import { InfrastructureClassifier } from '../classification/InfrastructureClassifier';
@@ -25,6 +35,16 @@ import {
   GeocodingResult,
   ClassificationResult 
 } from '../../types/infrastructure';
+
+// LocalDataService - L0 Geocoding offline (F021 Fase 2)
+import {
+  searchLocal,
+  isDataLoaded,
+  loadLocalData,
+  toGeocodingResult,
+  type InfrastructureCategory,
+  type LocalSearchResult
+} from '../../lib/LocalDataService';
 
 // Geocodificadores especializados WFS
 import {
@@ -67,11 +87,17 @@ export interface OrchestrationOptions {
   /** Provincia */
   province: string;
   
+  /** Código INE del municipio (5 dígitos) - mejora precisión */
+  codMun?: string;
+  
   /** Dirección postal (para fallbacks genéricos) */
   address?: string;
   
   /** Tipo forzado (omitir clasificación automática) */
   forceType?: InfrastructureType;
+  
+  /** Usar datos locales DERA primero (L0 offline) - default: true */
+  useLocalData?: boolean;
   
   /** Usar fallback genérico si falla especializado */
   useGenericFallback?: boolean;
@@ -160,6 +186,9 @@ export class GeocodingOrchestrator {
   // Geocodificadores genéricos (fallback)
   private cdauGeocoder: CDAUGeocoder;
   private cartoCiudadGeocoder: CartoCiudadGeocoder;
+  
+  // Estado de datos locales (L0)
+  private localDataPreloaded = false;
 
   constructor() {
     // Inicializar clasificador
@@ -184,6 +213,42 @@ export class GeocodingOrchestrator {
     // Inicializar geocodificadores genéricos
     this.cdauGeocoder = new CDAUGeocoder();
     this.cartoCiudadGeocoder = new CartoCiudadGeocoder();
+  }
+
+  /**
+   * Precarga datos locales DERA para geocodificación offline (L0)
+   * Llamar al inicio de la app para evitar latencia en primera búsqueda
+   * 
+   * @returns Stats de carga (total features, por categoría, tiempo)
+   */
+  public async preloadLocalData(): Promise<{
+    totalFeatures: number;
+    byCategory: Record<string, number>;
+    loadTimeMs: number;
+    municipiosIndexados: number;
+  }> {
+    if (this.localDataPreloaded && isDataLoaded()) {
+      console.log('[GeocodingOrchestrator] Datos locales ya cargados');
+      return loadLocalData();
+    }
+    
+    console.log('[GeocodingOrchestrator] Precargando datos DERA locales...');
+    const stats = await loadLocalData();
+    this.localDataPreloaded = true;
+    
+    console.log(
+      `[GeocodingOrchestrator] L0 ready: ${stats.totalFeatures} features ` +
+      `(${stats.municipiosIndexados} municipios) en ${stats.loadTimeMs}ms`
+    );
+    
+    return stats;
+  }
+
+  /**
+   * Verifica si datos locales están disponibles
+   */
+  public isLocalDataReady(): boolean {
+    return isDataLoaded();
   }
 
   /**
@@ -219,6 +284,58 @@ export class GeocodingOrchestrator {
 
       let geocodingResult: GeocodingResult | null = null;
       let geocoderUsed = 'none';
+
+      // ===== NIVEL 0: LOCAL_DERA - DATOS OFFLINE (F021 Fase 2) =====
+      const useLocalData = options.useLocalData !== false;
+      
+      if (useLocalData) {
+        attempts.push('local_dera');
+        try {
+          // Mapear tipo a categorías locales
+          const localCategories = this.mapTypeToLocalCategories(classification.type);
+          
+          // Buscar en datos locales
+          const localResult = await searchLocal({
+            nombre: options.name,
+            codMun: options.codMun,
+            municipio: options.municipality,
+            provincia: options.province,
+            categorias: localCategories,
+            threshold: 0.35,  // Más estricto para evitar falsos positivos
+          });
+          
+          // Aceptar si match >= 70% (alta confianza)
+          if (localResult.success && localResult.bestMatch && localResult.matchScore >= 70) {
+            const converted = toGeocodingResult(localResult.bestMatch, localResult.matchScore);
+            geocodingResult = {
+              x: converted.x,
+              y: converted.y,
+              confidence: localResult.matchScore,
+              source: converted.source,
+              matchedName: converted.matchedName,
+              municipality: options.municipality,
+              province: options.province
+            };
+            geocoderUsed = 'local_dera';
+            
+            // Retorno temprano para offline-first
+            if (localResult.matchScore >= 85) {
+              const processingTime = Date.now() - startTime;
+              return {
+                geocoding: geocodingResult,
+                classification,
+                geocoderUsed: 'local_dera:high_confidence',
+                processingTime,
+                errors,
+                attempts
+              };
+            }
+          }
+        } catch (err) {
+          // Local data no disponible, continuar con cascada online
+          errors.push(`LOCAL_DERA: ${err}`);
+        }
+      }
 
       // ===== NIVEL 1: GEOCODIFICADOR ESPECIALIZADO WFS =====
       const specializedResult = await this.trySpecializedGeocoder(
@@ -522,6 +639,42 @@ export class GeocodingOrchestrator {
     }
 
     return { result, geocoder };
+  }
+
+  /**
+   * Mapea InfrastructureType a categorías LocalDataService
+   * Usado por L0 (LOCAL_DERA) para filtrar búsqueda
+   */
+  private mapTypeToLocalCategories(type: InfrastructureType): InfrastructureCategory[] {
+    switch (type) {
+      case InfrastructureType.HEALTH:
+        return ['health'];
+      
+      case InfrastructureType.EDUCATION:
+        return ['education'];
+      
+      case InfrastructureType.POLICE:
+      case InfrastructureType.FIRE:
+      case InfrastructureType.EMERGENCY:
+        return ['security'];
+      
+      case InfrastructureType.ENERGY:
+        return ['energy'];
+      
+      case InfrastructureType.MUNICIPAL:
+        return ['municipal'];
+      
+      // Tipos sin datos locales específicos: buscar en todo
+      case InfrastructureType.CULTURAL:
+      case InfrastructureType.SPORTS:
+      case InfrastructureType.HYDRAULIC:
+      case InfrastructureType.TELECOM:
+      case InfrastructureType.VIAL:
+      case InfrastructureType.INDUSTRIAL:
+      case InfrastructureType.GENERIC:
+      default:
+        return ['health', 'security', 'education', 'municipal', 'energy'];
+    }
   }
 
   /**

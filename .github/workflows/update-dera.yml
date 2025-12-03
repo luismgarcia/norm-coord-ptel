@@ -1,0 +1,91 @@
+# Actualización automática de datos DERA
+# Ejecuta trimestralmente para mantener datos geográficos actualizados
+# También puede ejecutarse manualmente desde la UI de GitHub
+
+name: Actualizar datos DERA
+
+on:
+  schedule:
+    # Día 1 de cada trimestre a las 3:00 AM UTC
+    # Enero, Abril, Julio, Octubre
+    - cron: '0 3 1 1,4,7,10 *'
+  
+  # Permite ejecución manual desde GitHub UI
+  workflow_dispatch:
+    inputs:
+      force_update:
+        description: 'Forzar actualización aunque no haya cambios'
+        required: false
+        default: 'false'
+        type: boolean
+
+permissions:
+  contents: write
+
+jobs:
+  fetch-dera:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repositorio
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Configurar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+      
+      - name: Instalar dependencias Python
+        run: |
+          pip install requests
+      
+      - name: Descargar datos DERA
+        run: python scripts/dera-download/download_dera_actions.py
+        env:
+          FORCE_UPDATE: ${{ github.event.inputs.force_update || 'false' }}
+      
+      - name: Verificar cambios
+        id: verify
+        run: |
+          if git diff --quiet public/data/dera/; then
+            echo "changed=false" >> $GITHUB_OUTPUT
+            echo "📊 Sin cambios en datos DERA"
+          else
+            echo "changed=true" >> $GITHUB_OUTPUT
+            echo "📊 Detectados cambios en datos DERA"
+          fi
+      
+      - name: Commit y push
+        if: steps.verify.outputs.changed == 'true' || github.event.inputs.force_update == 'true'
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email 'github-actions[bot]@users.noreply.github.com'
+          
+          # Añadir archivos modificados
+          git add public/data/dera/
+          git add public/data/metadata.json
+          
+          # Commit con fecha
+          DATE=$(date +'%Y-%m-%d')
+          git commit -m "chore(data): actualizar DERA ${DATE}
+
+          - Actualización automática trimestral
+          - Fuente: IDEAndalucía WFS DERA
+          - Workflow: update-dera.yml" || echo "Nada que commitear"
+          
+          git push
+      
+      - name: Resumen
+        run: |
+          echo "## 📊 Resumen actualización DERA" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Archivo | Tamaño |" >> $GITHUB_STEP_SUMMARY
+          echo "|---------|--------|" >> $GITHUB_STEP_SUMMARY
+          for f in public/data/dera/*.geojson; do
+            SIZE=$(du -h "$f" | cut -f1)
+            NAME=$(basename "$f")
+            echo "| $NAME | $SIZE |" >> $GITHUB_STEP_SUMMARY
+          done

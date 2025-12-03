@@ -1,16 +1,27 @@
 /**
- * Servicio de Geocodificación Automática PTEL v3.3
+ * Servicio de Geocodificación Automática PTEL v3.4
  * 
  * CORRECCIONES APLICADAS:
  * 1. Nombres de capas WFS IECA actualizados
  * 2. Filtrado en cliente en lugar de CQL_FILTER
  * 3. Cache de capas para evitar múltiples descargas
  * 4. Fallback mejorado cuando servicios están caídos
+ * 5. [v3.4] INTEGRACIÓN LocalDataService - F021 Fase 2
+ *    → Búsqueda offline primero (L0) con 10.653 features DERA
+ *    → Solo llama APIs externas si no hay match local ≥60%
  * 
  * @module services/AutoGeocodingService
  */
 
 import Fuse from 'fuse.js';
+import {
+  loadLocalData,
+  isDataLoaded,
+  searchLocal,
+  getLoadStats,
+  type InfrastructureCategory,
+  type LocalSearchResult,
+} from './LocalDataService';
 
 // ============================================================================
 // TIPOS
@@ -352,6 +363,69 @@ async function geocodeTelecomWithOverpass(
 
 type InfraType = 'HEALTH' | 'EDUCATION' | 'CULTURAL' | 'TELECOM' | 'SPORTS' | 'ADMIN' | 'GENERIC';
 
+/**
+ * Mapea tipo de infraestructura a categorías de LocalDataService
+ */
+function mapTypeToLocalCategories(tipo: InfraType): InfrastructureCategory[] {
+  switch (tipo) {
+    case 'HEALTH':
+      return ['health'];
+    case 'EDUCATION':
+      return ['education'];
+    case 'ADMIN':
+      return ['municipal', 'security'];
+    case 'TELECOM':
+      return ['energy']; // Parques eólicos pueden tener infraestructura telecom
+    case 'SPORTS':
+    case 'CULTURAL':
+    case 'GENERIC':
+    default:
+      return ['health', 'security', 'education', 'municipal', 'energy'];
+  }
+}
+
+/**
+ * Geocodifica usando LocalDataService (datos offline DERA)
+ * NIVEL 0: Primera línea de búsqueda antes de APIs externas
+ */
+async function geocodeWithLocalData(
+  infra: InfrastructureToGeocode,
+  tipo: InfraType
+): Promise<GeocodingResult | null> {
+  // Asegurar que datos estén cargados
+  if (!isDataLoaded()) {
+    try {
+      await loadLocalData();
+    } catch (err) {
+      console.warn('[L0:Local] Error cargando datos:', err);
+      return null;
+    }
+  }
+  
+  const categorias = mapTypeToLocalCategories(tipo);
+  
+  const localResult: LocalSearchResult = await searchLocal({
+    nombre: infra.nombre,
+    municipio: infra.municipio,
+    categorias,
+    threshold: 0.35, // Más estricto para evitar falsos positivos
+    maxResults: 3,
+  });
+  
+  if (localResult.success && localResult.bestMatch && localResult.matchScore >= 55) {
+    return {
+      x: localResult.bestMatch.x,
+      y: localResult.bestMatch.y,
+      confidence: Math.min(95, localResult.matchScore), // Cap en 95%
+      source: `local:${localResult.bestMatch.categoria}`,
+      matchedName: localResult.bestMatch.nombre,
+      crs: 'EPSG:25830',
+    };
+  }
+  
+  return null;
+}
+
 function classifyInfrastructure(nombre: string): InfraType {
   const n = nombre.toLowerCase();
   
@@ -388,6 +462,13 @@ function classifyInfrastructure(nombre: string): InfraType {
 
 /**
  * Geocodifica una infraestructura usando la cascada completa
+ * 
+ * CASCADA DE GEOCODIFICACIÓN:
+ * L0: LocalDataService (offline, 10.653 features DERA)
+ * L1: WFS Especializado (online, cuando L0 no tiene match ≥60%)
+ * L2: Overpass para telecom
+ * L3: CartoCiudad con dirección
+ * L4: CartoCiudad con nombre
  */
 export async function geocodeInfrastructure(
   infra: InfrastructureToGeocode
@@ -401,7 +482,20 @@ export async function geocodeInfrastructure(
   const direccion = infra.direccion || '';
   
   try {
-    // NIVEL 1: WFS Especializado según tipo
+    // ================================================================
+    // NIVEL 0: LocalDataService (OFFLINE) - F021 Fase 2
+    // Busca en datos DERA pre-descargados antes de llamar APIs
+    // ================================================================
+    attempts.push('L0:Local_DERA');
+    result = await geocodeWithLocalData(infra, tipo);
+    if (result && result.confidence >= 60) {
+      return { infrastructure: infra, result, attempts };
+    }
+    
+    // ================================================================
+    // NIVEL 1: WFS Especializado según tipo (ONLINE)
+    // Solo si L0 no encontró match con ≥60% confianza
+    // ================================================================
     if (tipo === 'HEALTH') {
       attempts.push('L1:WFS_Health');
       result = await geocodeWithWFS(infra, WFS_CONFIG.layers.HEALTH_CENTER);
@@ -445,6 +539,15 @@ export async function geocodeInfrastructure(
       }
     }
     
+    // ================================================================
+    // FALLBACK: Si L0 tiene resultado con menor confianza, usarlo
+    // ================================================================
+    const localFallback = await geocodeWithLocalData(infra, tipo);
+    if (localFallback) {
+      attempts.push('L5:Local_Fallback');
+      return { infrastructure: infra, result: localFallback, attempts };
+    }
+    
     // Sin resultado
     return {
       infrastructure: infra,
@@ -474,8 +577,17 @@ export async function geocodeBatch(
   const results: AutoGeocodingResult[] = [];
   const total = infrastructures.length;
   
-  // Pre-cargar capas WFS comunes
-  console.log('[Batch] Pre-cargando capas WFS...');
+  // Pre-cargar datos locales DERA (L0 - prioridad máxima)
+  console.log('[Batch] Pre-cargando datos locales DERA...');
+  try {
+    const localStats = await loadLocalData();
+    console.log(`[Batch] Datos locales listos: ${localStats.totalFeatures} features`);
+  } catch (err) {
+    console.warn('[Batch] Datos locales no disponibles, usando solo APIs:', err);
+  }
+  
+  // Pre-cargar capas WFS comunes (fallback)
+  console.log('[Batch] Pre-cargando capas WFS (fallback)...');
   await Promise.all([
     loadWFSLayer(WFS_CONFIG.layers.HEALTH_CENTER),
     loadWFSLayer(WFS_CONFIG.layers.EDUCATION)
@@ -507,12 +619,27 @@ export function clearWFSCache(): void {
 }
 
 /**
- * Obtiene estadísticas de la caché
+ * Obtiene estadísticas de la caché (WFS + Local)
  */
-export function getCacheStats(): { layers: string[], totalFeatures: number } {
-  const layers = Array.from(wfsCache.keys());
-  const totalFeatures = Array.from(wfsCache.values())
+export function getCacheStats(): {
+  wfs: { layers: string[]; totalFeatures: number };
+  local: { loaded: boolean; totalFeatures: number; byCategory: Record<string, number> | null };
+} {
+  const wfsLayers = Array.from(wfsCache.keys());
+  const wfsTotalFeatures = Array.from(wfsCache.values())
     .reduce((sum, features) => sum + features.length, 0);
   
-  return { layers, totalFeatures };
+  const localStats = getLoadStats();
+  
+  return {
+    wfs: {
+      layers: wfsLayers,
+      totalFeatures: wfsTotalFeatures,
+    },
+    local: {
+      loaded: isDataLoaded(),
+      totalFeatures: localStats?.totalFeatures || 0,
+      byCategory: localStats?.byCategory || null,
+    },
+  };
 }
