@@ -172,32 +172,7 @@
       "priority": "high",
       "passes": true,
       "completedDate": "2025-12-02",
-      "assignedRole": "MapWizard",
-      "implementation": {
-        "file": "src/lib/PatternLearningStore.ts",
-        "linesOfCode": 580,
-        "features": [
-          "IndexedDB persistente con Dexie.js",
-          "Migración automática desde localStorage",
-          "Cache LRU (100 entradas, 5min TTL)",
-          "Tablas: patterns, profiles, municipioStats, events",
-          "Estadísticas por municipio (785 andaluces)",
-          "Exportación/importación de patrones"
-        ],
-        "functions": [
-          "saveLearnedPattern",
-          "getPattern",
-          "getAllPatterns",
-          "getStablePatterns",
-          "getPatternsByMunicipio",
-          "updatePatternUsage",
-          "saveDocumentProfile",
-          "getMunicipioStats",
-          "exportLearningData",
-          "importLearningData"
-        ]
-      },
-      "notes": "Implementado como parte de Opción C (Sistema Adaptativo)."
+      "assignedRole": "MapWizard"
     },
     {
       "id": "F020",
@@ -206,31 +181,7 @@
       "priority": "high",
       "passes": true,
       "completedDate": "2025-12-02",
-      "assignedRole": "MapWizard",
-      "implementation": {
-        "file": "src/lib/documentProfiler.ts",
-        "linesOfCode": 620,
-        "features": [
-          "Análisis completo de documentos PTEL",
-          "Detección formato decimal (coma/punto/mixto)",
-          "Detección separador miles (punto/espacio/ninguno)",
-          "Identificación corrupción UTF-8",
-          "Estadísticas por patrón detectado",
-          "Recomendaciones automáticas de estrategia",
-          "Integración con PatternLearningStore"
-        ],
-        "functions": [
-          "analizarDocumento",
-          "analizarDocumentoRapido",
-          "sugerirEstrategia"
-        ],
-        "outputs": [
-          "DocumentProfile con patronesPredominantes",
-          "DetailedStats con conteos por tipo",
-          "ProfileRecommendation[] con acciones sugeridas"
-        ]
-      },
-      "notes": "Implementado como parte de Opción C (Sistema Adaptativo)."
+      "assignedRole": "MapWizard"
     },
     {
       "id": "F021",
@@ -240,64 +191,82 @@
       "passes": true,
       "completedDate": "2025-12-03",
       "phasesCompleted": "5/5 (TODAS)",
+      "assignedRole": "MapWizard"
+    },
+    {
+      "id": "F022",
+      "category": "geocoding",
+      "description": "Estrategia Multi-Campo (TIPO+MUNICIPIO+NOMBRE+DIRECCIÓN)",
+      "priority": "critical",
+      "passes": true,
+      "completedDate": "2025-12-03",
+      "assignedRole": "MapWizard",
+      "implementation": {
+        "files": [
+          "src/utils/addressCleaner.ts",
+          "src/lib/multiFieldStrategy.ts"
+        ],
+        "features": [
+          "Detección singleton (65% casos → match directo 95% confianza)",
+          "Desambiguación con pesos por tipología",
+          "Limpieza direcciones (teléfonos, horarios, abreviaturas)",
+          "Scoring multi-campo (nombre, dirección, tipo, municipio)"
+        ],
+        "tests": 281
+      },
+      "notes": "Parte de F023 - Fase 1 completada"
+    },
+    {
+      "id": "F023",
+      "category": "geocoding",
+      "description": "Geocodificación Multi-Campo + Validación Cruzada",
+      "priority": "critical",
+      "passes": false,
+      "completedDate": null,
       "assignedRole": "MapWizard",
       "implementation": {
         "phases": [
           {
-            "phase": 0,
-            "name": "Corregir 13 tests actuales",
-            "hours": "2-3h",
-            "status": "completada"
-          },
-          {
             "phase": 1,
-            "name": "Descarga bulk DERA (785 municipios)",
-            "hours": "4-5h",
-            "status": "completada"
+            "name": "Multi-campo (singleton + desambiguación + limpieza)",
+            "status": "completada",
+            "progress": "96%",
+            "tests": 281
           },
           {
             "phase": 2,
-            "name": "LocalDataService (geocoding local-first)",
-            "hours": "5-6h",
-            "status": "completada",
-            "tests": "22 passed (vitest)"
+            "name": "Validación cruzada multi-fuente",
+            "status": "pendiente",
+            "progress": "0%",
+            "estimatedHours": "3-4h"
           },
           {
             "phase": 3,
-            "name": "Service Worker con Workbox",
-            "hours": "3-4h",
-            "status": "completada"
-          },
-          {
-            "phase": 4,
-            "name": "GitHub Actions actualización trimestral",
-            "hours": "3-4h",
-            "status": "completada"
+            "name": "Optimizaciones (uFuzzy, Flatbush, normalización)",
+            "status": "pendiente",
+            "progress": "0%",
+            "estimatedHours": "2-3h"
           }
         ],
-        "totalHours": "17-22h",
-        "documentation": "docs/ARQUITECTURA_CACHE_WFS.md",
-        "expectedImpact": {
-          "testsTarget": "724/724 (100%)",
-          "municipiosCoverage": "785 (100% Andalucía)",
-          "offlineCapability": "100%",
-          "appScoreTarget": "9.2-9.5/10"
-        }
+        "totalProgress": "44%",
+        "scoreActual": "65%",
+        "scoreObjetivo": "92-98%"
       },
-      "notes": "Arquitectura offline-first para sistema de emergencias. Planificado 02-Dic-2025."
+      "notes": "Decisión: Validación cruzada COMPLETA aprobada por Luis (siempre 2+ fuentes)"
     }
   ],
   "summary": {
-    "completedCount": 18,
+    "completedCount": 20,
     "pendingCount": 3,
-    "totalCount": 21,
-    "completionRate": "85.7%",
-    "geocodingCoverage": "13/13 geocodificadores implementados",
+    "totalCount": 23,
+    "completionRate": "87%",
+    "geocodingCoverage": "14/14 geocodificadores implementados",
     "validationCoverage": "1/1 validador multi-medida implementado",
     "learningCoverage": "2/2 módulos aprendizaje implementados",
     "offlineCoverage": "5/5 fases offline (F021 COMPLETADA)",
-    "pendingFeatures": ["F014:CacheManager (parcial)", "F015:ProgressPanel"]
+    "multiFieldCoverage": "Fase 1 completa, Fase 2-3 pendientes (F023)",
+    "pendingFeatures": ["F014:CacheManager (parcial)", "F015:ProgressPanel", "F023:Fase2-3"]
   },
-  "lastUpdated": "2025-12-02T22:45:00Z",
-  "updatedBy": "Claude (sesión 02-Dic-2025 - Arquitectura Offline)"
+  "lastUpdated": "2025-12-03T22:30:00Z",
+  "updatedBy": "Claude (sesión 03-Dic-2025 - Cierre F023 Fase 1)"
 }

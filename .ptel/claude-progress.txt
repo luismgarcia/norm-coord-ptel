@@ -203,6 +203,55 @@ F021 Fase 2: LocalDataService para geocoding local sin red (5-6h)
 
 
 
+## Sesión 2025-12-03 (22:30) - F023 Fase 1 COMPLETADA
+
+### Objetivo
+Completar implementación multi-campo y preparar Fase 2 (Validación Cruzada).
+
+### Trabajo realizado (sesiones previas hoy)
+1. **F023 Fase 1.5 COMPLETADA** - Integración en GeocodingOrchestrator
+   - Lógica singleton integrada (95% confianza si único resultado)
+   - Bug HEALTH corregido (no excluir de singleton detection)
+   - 14 tests de integración añadidos
+   - Checklist actualizado al 96%
+
+2. **Documentación F023** consolidada
+   - PLAN_IMPLEMENTACION_GEOCODIFICACION_v2.md
+   - CHECKLIST_IMPLEMENTACION_MULTICAMPO.md
+   - DECISION_VALIDACION_CRUZADA aprobada por Luis
+
+### Commits del día
+- `4f75d7e` - fix(F023-1.5): Remove incorrect HEALTH exclusion
+- `930907f` - docs(F023): Update checklist - Phase 1.5 complete (96%)
+
+### Estado F023 Fase 1
+| Subfase | Estado | Tests |
+|---------|--------|-------|
+| 1.1 Singleton | ✅ | 42 |
+| 1.2 Preprocesamiento | ✅ | 143 |
+| 1.3 AddressCleaner | ✅ | 54 |
+| 1.4 MultiFieldStrategy | ✅ | 28 |
+| 1.5 Integración | ✅ | 14 |
+| **Total** | **96%** | **281** |
+
+### Próxima sesión: F023 FASE 2
+**Validación Cruzada Multi-Fuente** (3-4 horas)
+
+1. Crear `src/lib/crossValidation.ts`
+2. Consulta paralela 2+ fuentes (DERA + CartoCiudad)
+3. Algoritmo clusters para outliers
+4. Huber centroid para consenso
+5. Umbrales discrepancia por tipología
+6. Flag MANUAL_REVIEW si discrepancia > umbral
+
+### Decisión arquitectónica clave
+Luis aprobó **Validación Cruzada COMPLETA** (siempre 2+ fuentes):
+- Trade-off: +6-9 min tiempo a cambio de score 92-98%
+- Justificación: Sistema emergencias - errores cuestan vidas
+- Preferir falsos negativos a falsos positivos
+
+---
+
 ## Sesión 2025-12-03 (noche) - F021 Fases 2-3-4 COMPLETADAS
 
 ### Objetivo
