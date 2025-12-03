@@ -4,11 +4,12 @@
  * Servicio de geocodificación offline usando datos DERA pre-descargados.
  * Primera línea de búsqueda antes de llamar APIs externas.
  * 
- * DATOS LOCALES:
+ * DATOS LOCALES (11,282 features total):
  * - health.geojson:     1,700 centros (CAP + hospitales)
- * - security.geojson:   1,282 (policía, bomberos, GC, emergencias)
+ * - security.geojson:   1,259 (policía, bomberos, Guardia Civil)
  * - education.geojson:  6,725 centros educativos
- * - municipal.geojson:    785 ayuntamientos (100% municipios)
+ * - municipal.geojson:  1,414 (ayuntamientos + centros Junta)
+ * - emergency.geojson:     23 centros gestión emergencias
  * - energy.geojson:       161 parques eólicos
  * 
  * CARACTERÍSTICAS:
@@ -17,7 +18,7 @@
  * - Fuzzy matching con Fuse.js para nombres
  * - Coordenadas ya en EPSG:25830 (UTM30 ETRS89)
  * 
- * @version 1.0.0
+ * @version 1.1.0
  * @date 2025-12-03
  */
 
@@ -32,6 +33,7 @@ export type InfrastructureCategory =
   | 'security' 
   | 'education' 
   | 'municipal' 
+  | 'emergency'
   | 'energy';
 
 export interface LocalFeature {
@@ -85,6 +87,7 @@ const DATA_PATHS: Record<InfrastructureCategory, string> = {
   security: '/data/dera/security.geojson',
   education: '/data/dera/education.geojson',
   municipal: '/data/dera/municipal.geojson',
+  emergency: '/data/dera/emergency.geojson',
   energy: '/data/dera/energy.geojson',
 };
 
