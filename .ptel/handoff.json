@@ -1,15 +1,16 @@
 {
-  "timestamp": "2025-12-03T01:15:00Z",
-  "session": "F021-Fase1-DERA-Download",
+  "timestamp": "2025-12-03T01:46:00Z",
+  "session": "F021-Fase2-VERIFICACION",
   "status": "COMPLETADA",
   
-  "resumen": "F021 Fase 1 completada: descarga bulk de datos DERA para los 785 municipios de Andalucía. 10.653 features georreferenciados listos para geocoding offline.",
+  "resumen": "F021 Fase 2 COMPLETADA: LocalDataService implementado (822 líneas) con 22 tests pasando. El código existía desde sesión anterior pero handoff no se actualizó por timeout.",
   
   "commits": [
     "328ab19 - feat(F021): añadir script descarga bulk DERA - Fase 1",
     "cf64a51 - data(F021): descargar datos DERA reales - Fase 1 parcial",
     "89555f0 - feat(F021): descargar datos DERA completos - Fase 1 COMPLETADA",
-    "09c7ebc - chore(.ptel): actualizar estado sesión - F021 Fase 1 completada"
+    "09c7ebc - chore(.ptel): actualizar estado sesión - F021 Fase 1 completada",
+    "PENDIENTE - feat(F021): LocalDataService geocoding offline - Fase 2"
   ],
   
   "datosDescargados": {
@@ -26,41 +27,43 @@
     "formato": "GeoJSON EPSG:25830"
   },
   
-  "archivosModificados": [
-    "scripts/dera-download/download_dera.py"
+  "archivosCreados": [
+    "src/lib/LocalDataService.ts (822 líneas)",
+    "src/lib/__tests__/LocalDataService.test.ts (362 líneas)"
   ],
   
-  "archivosCreados": [
-    "public/data/dera/health.geojson",
-    "public/data/dera/security.geojson", 
-    "public/data/dera/energy.geojson",
-    "public/data/dera/education.geojson",
-    "public/data/dera/municipal.geojson"
-  ],
+  "testResults": {
+    "LocalDataService": "22 passed, 0 failed (9ms)",
+    "runner": "npx vitest run src/lib/__tests__/LocalDataService.test.ts"
+  },
   
   "estadoF021": {
     "fase0": "✅ COMPLETADA - Tests robustos (724/724)",
     "fase1": "✅ COMPLETADA - Descarga DERA (10.653 features)",
-    "fase2": "⏳ PENDIENTE - LocalDataService geocoding local",
+    "fase2": "✅ COMPLETADA - LocalDataService (22 tests OK)",
     "fase3": "⏳ PENDIENTE - Service Worker Workbox",
     "fase4": "⏳ PENDIENTE - GitHub Actions trimestral"
   },
   
   "proximaSesion": {
-    "prioridad": "F021 Fase 2: LocalDataService",
-    "descripcion": "Implementar servicio TypeScript para búsqueda local en datos DERA sin conexión a red",
-    "estimacion": "5-6 horas",
+    "prioridad": "F021 Fase 3: Service Worker con Workbox",
+    "descripcion": "Implementar cache offline con Workbox para los GeoJSON DERA",
+    "estimacion": "3-4 horas",
     "archivosRelevantes": [
       "docs/ARQUITECTURA_CACHE_WFS.md",
-      "public/data/dera/*.geojson",
-      "src/lib/geocoding/"
+      "vite.config.ts"
     ]
   },
   
   "notasTecnicas": [
-    "WFS DERA g12_servicios funciona perfectamente - usar este endpoint",
-    "ISE/wfs devuelve 404 - no usar",
-    "Centrales térmicas no devuelven JSON - omitido",
-    "Todos los datos ya en EPSG:25830 - sin conversión necesaria"
-  ]
+    "runTests.mjs NO incluye LocalDataService - usar vitest directo",
+    "Tests pasan con injectTestData (mocks), no requieren servidor HTTP",
+    "Causa cuelgues anterior: re-implementación de código existente saturaba contexto"
+  ],
+  
+  "diagnosticoCuelgues": {
+    "causa": "Claude re-escribía 822 líneas existentes cada sesión",
+    "solucion": "Verificar existencia de archivos ANTES de implementar",
+    "prevencion": "Leer get_file_info antes de crear archivos grandes"
+  }
 }
