@@ -1,14 +1,14 @@
 {
-  "ultimaActualizacion": "2025-12-05T00:32:00Z",
-  "sesionActual": "F025-PASOS-4-7-COMPLETADOS",
+  "ultimaActualizacion": "2025-12-05T00:45:00Z",
+  "sesionActual": "F025-PASOS-3-7-COMPLETADOS",
   "rolActivo": "MapWizard",
   
   "estadoGeneral": {
-    "version": "0.6.3",
-    "progreso": "F025 Pasos 3, 4 y 7 completados",
+    "version": "0.6.4",
+    "progreso": "F025 Pasos 3-7 completados (excepto 8)",
     "featuresCompletadas": 23,
     "featuresPendientes": 1,
-    "testsStatus": "40/63 addressExtractor (63.5%)"
+    "testsStatus": "47/63 addressExtractor (74.6%)"
   },
   
   "featureActiva": {
@@ -16,81 +16,32 @@
     "nombre": "Address Extractor - Preprocesador de Direcciones",
     "estado": "EN_PROGRESO",
     "pasosCompletados": [
-      {
-        "paso": 1,
-        "nombre": "Detectar NO geocodificable",
-        "estado": "COMPLETADO",
-        "testsVerdes": 5,
-        "testsTotal": 5,
-        "valoracion": "100%"
-      },
-      {
-        "paso": 2,
-        "nombre": "Corregir OCR/UTF-8",
-        "estado": "COMPLETADO",
-        "testsVerdes": 2,
-        "testsTotal": 2,
-        "valoracion": "100%"
-      },
-      {
-        "paso": 3,
-        "nombre": "Eliminar prefijos de infraestructura",
-        "estado": "COMPLETADO",
-        "testsVerdes": 12,
-        "testsTotal": 12,
-        "valoracion": "100%",
-        "commit": "6f40e2d"
-      },
-      {
-        "paso": 4,
-        "nombre": "Eliminar sufijos (horarios, teléfonos)",
-        "estado": "COMPLETADO",
-        "testsVerdes": 9,
-        "testsTotal": 9,
-        "valoracion": "100%",
-        "commit": "f7a9d6f"
-      },
-      {
-        "paso": 7,
-        "nombre": "Capitalización inteligente",
-        "estado": "COMPLETADO",
-        "testsVerdes": 6,
-        "testsTotal": 6,
-        "valoracion": "100%",
-        "commit": "0f4d9f4"
-      }
+      {"paso": 1, "nombre": "Detectar NO geocodificable", "valoracion": "100%"},
+      {"paso": 2, "nombre": "Corregir OCR/UTF-8", "valoracion": "100%"},
+      {"paso": 3, "nombre": "Eliminar prefijos infraestructura", "valoracion": "100%", "commit": "6f40e2d"},
+      {"paso": 4, "nombre": "Eliminar sufijos", "valoracion": "100%", "commit": "f7a9d6f"},
+      {"paso": 5, "nombre": "Expandir abreviaturas de vía", "valoracion": "100%", "commit": "eb7774a"},
+      {"paso": 6, "nombre": "Normalizar formato de número", "valoracion": "100%", "commit": "7142395"},
+      {"paso": 7, "nombre": "Capitalización inteligente", "valoracion": "100%", "commit": "0f4d9f4"}
     ],
     "pasosPendientes": [
-      {
-        "paso": 5,
-        "nombre": "Expandir abreviaturas de vía",
-        "tests": ["C23", "B26", "B27", "B28", "D37"]
-      },
-      {
-        "paso": 6,
-        "nombre": "Normalizar formato de número",
-        "tests": ["B24", "B31", "D34", "D38", "S41", "S44"]
-      },
-      {
-        "paso": 8,
-        "nombre": "Detección múltiples direcciones",
-        "tests": ["C16", "C17", "C19"]
-      }
+      {"paso": 8, "nombre": "Detección múltiples direcciones", "tests": ["C16", "C17", "C19"]}
     ]
   },
   
   "metricas": {
     "testsInicioSesion": 28,
-    "testsActuales": 40,
-    "mejoraSesion": "+12 tests (+42.9%)",
-    "progresoTotal": "63.5% (40/63)"
+    "testsActuales": 47,
+    "mejoraSesion": "+19 tests (+67.9%)",
+    "progresoTotal": "74.6% (47/63)"
   },
   
-  "proximaSesion": {
-    "objetivo": "F025 Paso 5 - Expandir abreviaturas de vía",
-    "archivos": [
-      "src/utils/addressExtractor.ts",
-      "src/utils/addressExtractor.patterns.ts"
-    ]
+  "testsFallando": {
+    "multiplesDirecciones": ["C16", "C17", "C19"],
+    "casosEspeciales": ["T07", "T08", "D35", "D36", "D38"],
+    "prefijosComplejos": ["B29", "B30"],
+    "codigosPostalesTel": ["B24", "B25"],
+    "ordenElementos": ["S41", "S43", "S44"],
+    "confianza": ["C20"]
   }
 }
