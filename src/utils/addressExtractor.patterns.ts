@@ -275,11 +275,13 @@ export const OCR_UTF8_CORRECTIONS: Array<[RegExp | string, string]> = [
  * Patrones regex para sufijos que deben eliminarse de las direcciones.
  */
 export const SUFFIX_PATTERNS: RegExp[] = [
-  // Horarios y disponibilidad
-  /,?\s*(disponible\s+)?24\s*h(oras)?/gi,
-  /,?\s*disponibilidad\s+24\s*h(oras)?/gi,
-  /,?\s*l-v\s+\d+-\d+/gi,
-  /,?\s*horario[:\s].*/gi,
+  // Horarios y disponibilidad (varios formatos de separador)
+  // Primero los patrones más completos
+  /[.,\-–]?\s*disponibilidad\s+24\s*h(oras)?\.?/gi,
+  /[.,\-–]?\s*(disponible\s+)?24\s*h(oras)?\.?/gi,
+  /[.,\-–]?\s*disponibilidad\.?\s*$/gi,  // "Disponibilidad" sola al final
+  /[.,\-–]?\s*horario.*$/gi,  // "horario" seguido de cualquier cosa hasta el final
+  /[.,\-–]?\s*l-v\s+\d+-\d+/gi,
   
   // Teléfonos (varios formatos)
   /,?\s*tel[éef]?[.:]\s*[\d\s-]+/gi,
