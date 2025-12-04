@@ -327,29 +327,23 @@ function normalizePunctuation(text: string, transformations: string[]): string {
 // ============================================================================
 
 function smartCapitalize(text: string, transformations: string[]): string {
-  // Si no está todo en mayúsculas, probablemente ya tiene capitalización correcta
-  if (text !== text.toUpperCase() && text !== text.toLowerCase()) {
-    // Solo ajustar primera letra de cada palabra si es necesario
-    return text;
-  }
-  
+  // Dividir en palabras
   const words = text.split(/\s+/);
+  let changed = false;
+  
   const result = words.map((word, index) => {
-    const lowerWord = word.toLowerCase();
-    
-    // Preservar palabras que deben ir en minúscula (excepto al inicio)
-    if (index > 0 && LOWERCASE_WORDS.has(lowerWord)) {
-      return lowerWord;
+    // Si la palabra contiene coma u otro separador, procesarla por partes
+    if (word.includes(',')) {
+      const parts = word.split(',');
+      return parts.map((part, partIndex) => {
+        if (part.length === 0) return '';
+        const prevWord = partIndex === 0 && index > 0 ? words[index - 1].toLowerCase() : '';
+        return capitalizeWord(part, index === 0 && partIndex === 0, prevWord);
+      }).join(',');
     }
     
-    // Preservar s/n en minúscula
-    if (lowerWord === 's/n') {
-      return 's/n';
-    }
-    
-    // Title case: primera letra mayúscula, resto minúscula
-    if (word.length === 0) return word;
-    return word[0].toUpperCase() + word.slice(1).toLowerCase();
+    const prevWord = index > 0 ? words[index - 1].toLowerCase() : '';
+    return capitalizeWord(word, index === 0, prevWord);
   }).join(' ');
   
   if (result !== text) {
@@ -357,6 +351,45 @@ function smartCapitalize(text: string, transformations: string[]): string {
   }
   
   return result;
+}
+
+/**
+ * Capitaliza una palabra individual aplicando reglas inteligentes.
+ */
+function capitalizeWord(word: string, isFirst: boolean, prevWord: string = ''): string {
+  if (word.length === 0) return word;
+  
+  const lowerWord = word.toLowerCase();
+  
+  // Preservar s/n en minúscula
+  if (lowerWord === 's/n') {
+    return 's/n';
+  }
+  
+  // Artículos/preposiciones siempre en minúscula
+  const alwaysLower = new Set(['de', 'del', 'y', 'e', 'a', 'en', 'con', 'sin']);
+  if (!isFirst && alwaysLower.has(lowerWord)) {
+    return lowerWord;
+  }
+  
+  // "la", "el", "los", "las" en minúscula SOLO después de "de" o "del"
+  const articlesAfterDe = new Set(['la', 'el', 'los', 'las']);
+  if (!isFirst && articlesAfterDe.has(lowerWord) && (prevWord === 'de' || prevWord === 'del')) {
+    return lowerWord;
+  }
+  
+  // Si la palabra está toda en mayúsculas (más de 1 letra), convertir a Title Case
+  if (word.length > 1 && word === word.toUpperCase() && /[A-ZÁÉÍÓÚÑ]/.test(word)) {
+    return word[0].toUpperCase() + word.slice(1).toLowerCase();
+  }
+  
+  // Si la palabra está toda en minúsculas, convertir a Title Case
+  if (word === word.toLowerCase() && /[a-záéíóúñ]/.test(word[0])) {
+    return word[0].toUpperCase() + word.slice(1);
+  }
+  
+  // Devolver sin cambios
+  return word;
 }
 
 // ============================================================================
