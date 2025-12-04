@@ -13,7 +13,7 @@
  * @see F023 Fase 1.4
  */
 
-import Fuse from 'fuse.js';
+import { calculateSimilarity } from './fuzzySearch';
 import { cleanAddress } from '../utils/addressCleaner';
 
 /** Prefijo para logs de esta fase */
@@ -185,38 +185,11 @@ export function getWeightsForTypology(tipologia: string): FieldWeights {
 }
 
 /**
- * Calcula score de similaridad usando Fuse.js (0-100)
+ * Calcula score de similaridad usando uFuzzy (0-100)
+ * Optimizado: 10-100x más rápido que Fuse.js
  */
 function calculateSimilarityScore(query: string, target: string): number {
-  if (!query || !target) return 0;
-  
-  const normalizedQuery = query.toLowerCase().trim();
-  const normalizedTarget = target.toLowerCase().trim();
-  
-  // Match exacto
-  if (normalizedQuery === normalizedTarget) return 100;
-  
-  // Uno contiene al otro
-  if (normalizedTarget.includes(normalizedQuery) || normalizedQuery.includes(normalizedTarget)) {
-    const ratio = Math.min(normalizedQuery.length, normalizedTarget.length) / 
-                  Math.max(normalizedQuery.length, normalizedTarget.length);
-    return Math.round(70 + (ratio * 30)); // 70-100
-  }
-  
-  // Usar Fuse.js para fuzzy matching
-  const fuse = new Fuse([target], {
-    includeScore: true,
-    threshold: 0.7, // Más permisivo
-    ignoreLocation: true,
-    minMatchCharLength: 2,
-  });
-  
-  const results = fuse.search(query);
-  if (results.length === 0) return 0;
-  
-  // Fuse score: 0 = match perfecto, 1 = sin match
-  const fuseScore = results[0].score ?? 1;
-  return Math.round((1 - fuseScore) * 100);
+  return calculateSimilarity(query, target);
 }
 
 

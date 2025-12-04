@@ -180,6 +180,142 @@ const OTHER_ABBREVIATIONS: Record<string, string> = {
 };
 
 // ============================================================================
+// NORMALIZACIÓN DE NOMBRES DE INFRAESTRUCTURAS (F023 Fase 3)
+// ============================================================================
+
+/**
+ * Sinónimos de nombres de infraestructuras PTEL.
+ * Normaliza variantes a forma canónica para mejor matching.
+ * 
+ * Formato: forma variante (lowercase) → forma canónica
+ * 
+ * @see F023 Fase 3 - Optimizaciones
+ */
+export const INFRASTRUCTURE_SYNONYMS: Record<string, string> = {
+  // Centros de Salud
+  'c.s.': 'Centro de Salud',
+  'c.s': 'Centro de Salud',
+  'cs': 'Centro de Salud',
+  'cs.': 'Centro de Salud',
+  'centro salud': 'Centro de Salud',
+  'consultorio': 'Consultorio',
+  'consultorio local': 'Consultorio Local',
+  'cons.': 'Consultorio',
+  'cons. local': 'Consultorio Local',
+  
+  // Hospitales
+  'hosp.': 'Hospital',
+  'hosp': 'Hospital',
+  'h.': 'Hospital',
+  'h. comarcal': 'Hospital Comarcal',
+  'h. regional': 'Hospital Regional',
+  'h. general': 'Hospital General',
+  
+  // Educación - Colegios
+  'c.p.': 'Colegio Público',
+  'c.p': 'Colegio Público',
+  'cp': 'Colegio Público',
+  'cp.': 'Colegio Público',
+  'ceip': 'CEIP',
+  'c.e.i.p.': 'CEIP',
+  'c.e.i.p': 'CEIP',
+  'col.': 'Colegio',
+  'col': 'Colegio',
+  'colegio publico': 'Colegio Público',
+  
+  // Educación - Institutos
+  'i.e.s.': 'IES',
+  'i.e.s': 'IES',
+  'ies': 'IES',
+  'instituto': 'Instituto',
+  'inst.': 'Instituto',
+  
+  // Educación - Infantil
+  'e.i.': 'Escuela Infantil',
+  'e.i': 'Escuela Infantil',
+  'ei': 'Escuela Infantil',
+  'guarderia': 'Guardería',
+  'guardería': 'Guardería',
+  
+  // Seguridad - Policía
+  'comisaria': 'Comisaría',
+  'comisaría': 'Comisaría',
+  'com.': 'Comisaría',
+  'policia local': 'Policía Local',
+  'policía local': 'Policía Local',
+  'pol. local': 'Policía Local',
+  'pol.local': 'Policía Local',
+  'p.l.': 'Policía Local',
+  'p.l': 'Policía Local',
+  'pl': 'Policía Local',
+  
+  // Seguridad - Guardia Civil
+  'g.c.': 'Guardia Civil',
+  'g.c': 'Guardia Civil',
+  'gc': 'Guardia Civil',
+  'guardia civil': 'Guardia Civil',
+  'cuartel gc': 'Cuartel Guardia Civil',
+  'cuartel g.c.': 'Cuartel Guardia Civil',
+  'casa cuartel': 'Casa Cuartel',
+  
+  // Bomberos
+  'parque bomberos': 'Parque de Bomberos',
+  'parque de bomberos': 'Parque de Bomberos',
+  'p. bomberos': 'Parque de Bomberos',
+  'p.bomberos': 'Parque de Bomberos',
+  
+  // Municipal
+  'ayto.': 'Ayuntamiento',
+  'ayto': 'Ayuntamiento',
+  'ayunt.': 'Ayuntamiento',
+  'ayunt': 'Ayuntamiento',
+  'ayuntamiento': 'Ayuntamiento',
+  'casa consistorial': 'Casa Consistorial',
+  
+  // Deportivo
+  'pabellon': 'Pabellón',
+  'pabellón': 'Pabellón',
+  'pab.': 'Pabellón',
+  'polideportivo': 'Polideportivo',
+  'polidep.': 'Polideportivo',
+  'piscina municipal': 'Piscina Municipal',
+  'pisc. mpal.': 'Piscina Municipal',
+  'campo futbol': 'Campo de Fútbol',
+  'campo de futbol': 'Campo de Fútbol',
+  'campo de fútbol': 'Campo de Fútbol',
+  
+  // Cultural/Religioso
+  'igl.': 'Iglesia',
+  'iglesia': 'Iglesia',
+  'ermita': 'Ermita',
+  'biblioteca': 'Biblioteca',
+  'bibl.': 'Biblioteca',
+  'bib.': 'Biblioteca',
+  'casa cultura': 'Casa de la Cultura',
+  'casa de cultura': 'Casa de la Cultura',
+  'c. cultura': 'Casa de la Cultura',
+  
+  // Hidráulico
+  'dep.': 'Depósito',
+  'deposito': 'Depósito',
+  'depósito': 'Depósito',
+  'etap': 'ETAP',
+  'e.t.a.p.': 'ETAP',
+  'edar': 'EDAR',
+  'e.d.a.r.': 'EDAR',
+  'depuradora': 'Depuradora',
+  
+  // Energía
+  'c.t.': 'Centro de Transformación',
+  'ct': 'Centro de Transformación',
+  'subestacion': 'Subestación',
+  'subestación': 'Subestación',
+  's.e.': 'Subestación Eléctrica',
+  'parque eolico': 'Parque Eólico',
+  'parque eólico': 'Parque Eólico',
+};
+
+// ============================================================================
 // CORRECCIÓN DE ERRORES COMUNES
 // ============================================================================
 
@@ -669,6 +805,65 @@ export function cleanAddressBatch(addresses: string[]): CleanedAddress[] {
   return addresses.map(cleanAddress);
 }
 
+/**
+ * Normaliza nombre de infraestructura usando diccionario de sinónimos.
+ * Expande abreviaturas y unifica variantes para mejor matching.
+ * 
+ * @param name - Nombre original de la infraestructura
+ * @returns Nombre normalizado
+ * 
+ * @example
+ * normalizeInfrastructureName("C.S. Virgen de la Cabeza")
+ * // → "Centro de Salud Virgen de la Cabeza"
+ * 
+ * @example
+ * normalizeInfrastructureName("CEIP San José")
+ * // → "CEIP San José" (ya normalizado)
+ * 
+ * @see F023 Fase 3 - Optimizaciones
+ */
+export function normalizeInfrastructureName(name: string): string {
+  if (!name) return '';
+  
+  let normalized = name.trim();
+  
+  // Ordenar sinónimos por longitud descendente para evitar reemplazos parciales
+  const sortedSynonyms = Object.entries(INFRASTRUCTURE_SYNONYMS)
+    .sort((a, b) => b[0].length - a[0].length);
+  
+  for (const [variant, canonical] of sortedSynonyms) {
+    // Crear patrón que respete límites de palabra
+    const escapedVariant = variant.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const pattern = new RegExp(`\\b${escapedVariant}\\b`, 'gi');
+    
+    if (pattern.test(normalized)) {
+      normalized = normalized.replace(pattern, canonical);
+    }
+  }
+  
+  // Limpiar espacios múltiples
+  normalized = normalized.replace(/\s+/g, ' ').trim();
+  
+  return normalized;
+}
+
+/**
+ * Normaliza texto para comparación fuzzy (elimina acentos, minúsculas)
+ * 
+ * @param text - Texto a normalizar
+ * @returns Texto normalizado para comparación
+ */
+export function normalizeForComparison(text: string): string {
+  if (!text) return '';
+  return text
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')  // Eliminar acentos
+    .replace(/[^a-z0-9\s]/g, ' ')     // Solo alfanuméricos
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
 // ============================================================================
 // EXPORTS
 // ============================================================================
@@ -677,4 +872,7 @@ export default {
   cleanAddress,
   cleanAddressBatch,
   isGeocodable,
+  normalizeInfrastructureName,
+  normalizeForComparison,
+  INFRASTRUCTURE_SYNONYMS,
 };
