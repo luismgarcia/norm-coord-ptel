@@ -254,20 +254,61 @@
         "scoreObjetivo": "92-98%"
       },
       "notes": "Fase 2 completada: validación cruzada con huberCentroid, detección discrepancias, recomendaciones"
+    },
+    {
+      "id": "F025",
+      "category": "geocoding",
+      "description": "Address Extractor - Extracción direcciones geocodificables de texto libre",
+      "priority": "critical",
+      "passes": false,
+      "completedDate": null,
+      "assignedRole": "MapWizard",
+      "implementation": {
+        "phases": [
+          {
+            "phase": 1,
+            "name": "Análisis exhaustivo documentos PTEL",
+            "status": "completada",
+            "progress": "100%",
+            "documentosAnalizados": 12,
+            "casosTest": 63
+          },
+          {
+            "phase": 2,
+            "name": "Implementación addressExtractor.ts",
+            "status": "pendiente",
+            "progress": "0%"
+          },
+          {
+            "phase": 3,
+            "name": "Integración GeocodingOrchestrator",
+            "status": "pendiente",
+            "progress": "0%"
+          }
+        ],
+        "hallazgos": {
+          "problemaPrincipal": "addressCleaner.ts existe pero NO se usa en flujo de geocodificación",
+          "tiposVia": 47,
+          "prefijosInfraestructura": 51,
+          "casosNoGeocodificables": 52,
+          "telefonosEmbebidos": 111
+        }
+      },
+      "notes": "Análisis completado 04-Dic-2025. Especificación en docs/analisis/F025_ADDRESS_EXTRACTOR_SPEC.md"
     }
   ],
   "summary": {
     "completedCount": 22,
-    "pendingCount": 1,
-    "totalCount": 23,
-    "completionRate": "96%",
+    "pendingCount": 2,
+    "totalCount": 24,
+    "completionRate": "92%",
     "geocodingCoverage": "14/14 geocodificadores implementados",
     "validationCoverage": "2/2 validadores implementados (multi-medida + cruzada)",
     "learningCoverage": "2/2 módulos aprendizaje implementados",
     "offlineCoverage": "5/5 fases offline (F021 COMPLETADA)",
     "multiFieldCoverage": "Fase 1-2 completas, Fase 3 opcional (F023)",
-    "pendingFeatures": ["F014:CacheManager (parcial)", "F015:ProgressPanel"]
+    "pendingFeatures": ["F014:CacheManager (parcial)", "F015:ProgressPanel", "F025:AddressExtractor"]
   },
-  "lastUpdated": "2025-12-04T00:00:00Z",
-  "updatedBy": "Claude (sesión 03-Dic-2025 - F023 Fase 2 COMPLETADA)"
+  "lastUpdated": "2025-12-04T19:30:00Z",
+  "updatedBy": "Claude (sesión 04-Dic-2025 - F025 Análisis completado)"
 }
