@@ -254,6 +254,9 @@ function expandStreetTypes(text: string, transformations: string[]): string {
 function normalizeNumber(text: string, transformations: string[]): string {
   let result = text;
   
+  // PRIMERO: nave N.º: "NAVE N.º 11" -> "nave 11" (antes de procesar N.º genérico)
+  result = result.replace(/\bnave\s+N\.?º?\s*(\d+)/gi, 'nave $1');
+  
   // n/ con espacio: "n/ 1" -> ", 1"
   result = result.replace(/\bn\/\s*(\d+)/gi, ', $1');
   
@@ -266,17 +269,29 @@ function normalizeNumber(text: string, transformations: string[]): string {
   // Número pegado a texto municipio: "2Colomera" -> "2, Colomera"
   result = result.replace(/(\d+)([A-Z][a-záéíóúñ]+)/g, '$1, $2');
   
-  // nave N.º: "NAVE N.º 11" -> "nave 11"
-  result = result.replace(/\bnave\s+N\.?º?\s*(\d+)/gi, 'nave $1');
-  
   // Guion como separador: "- 2" -> ", 2"
   result = result.replace(/\s+-\s*(\d+)\b/g, ', $1');
   
   // Número después de punto sin espacio: "1.  Berja" -> "1, Berja"
   result = result.replace(/(\d+)\.\s+([A-Z])/g, '$1, $2');
   
-  // Normalizar s/n
+  // Normalizar s/n a formato estándar
   result = result.replace(SN_PATTERN, 's/n');
+  
+  // NUEVO: Añadir coma antes de s/n si falta (palabra + espacio + s/n)
+  result = result.replace(/([a-záéíóúñA-ZÁÉÍÓÚÑ])\s+(s\/n)\b/gi, '$1, $2');
+  
+  // NUEVO: Añadir coma antes de número final si falta (palabra + espacio + número)
+  result = result.replace(/([a-záéíóúñA-ZÁÉÍÓÚÑ])\s+(\d+)$/gi, '$1, $2');
+  
+  // NUEVO: Añadir coma antes de nave si falta (palabra + espacio + Nave)
+  result = result.replace(/([a-záéíóúñA-ZÁÉÍÓÚÑ])\s+(nave,?\s*\d+)/gi, '$1, $2');
+  
+  // NUEVO: "nave, 11" o "Nave, 11" -> "nave 11" (quitar coma después de nave)
+  result = result.replace(/\bnave,\s*(\d+)/gi, 'nave $1');
+  
+  // NUEVO: Añadir coma después de Polígono si no hay
+  result = result.replace(/\b(Polígono)\s+([A-Z])/g, '$1, $2');
   
   // Limpiar comas duplicadas
   result = result.replace(/,\s*,/g, ',');
@@ -367,7 +382,7 @@ function capitalizeWord(word: string, isFirst: boolean, prevWord: string = ''): 
   }
   
   // Artículos/preposiciones siempre en minúscula
-  const alwaysLower = new Set(['de', 'del', 'y', 'e', 'a', 'en', 'con', 'sin']);
+  const alwaysLower = new Set(['de', 'del', 'y', 'e', 'a', 'en', 'con', 'sin', 'nave']);
   if (!isFirst && alwaysLower.has(lowerWord)) {
     return lowerWord;
   }
