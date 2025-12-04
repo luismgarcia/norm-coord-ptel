@@ -1,43 +1,32 @@
 {
-  "fecha": "2025-12-03T22:20:00Z",
-  "sesionCompletada": "F023-PREPARACION-FASE2",
-  "commitFinal": "be09fcd",
+  "fecha": "2025-12-04",
+  "sesion": "DIAGNOSTICO-PARONES",
+  "rolActivo": "MapWizard",
   
-  "logros": [
-    "✅ Documentación Fase 1 completa (739 líneas)",
-    "✅ Mapa de sesiones Fase 2 creado",
-    "✅ Prompt sesión 2A listo para usar"
-  ],
+  "estadoActual": {
+    "version": "0.5.2",
+    "tests": "1037/1044 passed",
+    "ultimoCommit": "0eb0b1a",
+    "featureActiva": "F023 Fase 3"
+  },
   
-  "planFase2": {
-    "sesiones": 3,
-    "tareasTotal": 18,
-    "estructura": {
-      "2A": {
-        "nombre": "Fundamentos",
-        "tareas": ["GeocodingErrors", "distanceUTM", "queryMultipleSources"],
-        "tiempo": "~1.5h",
-        "prompt": ".ptel/PROMPT_SESION_2A.md"
-      },
-      "2B": {
-        "nombre": "Algoritmos", 
-        "tareas": ["analyzeResultClusters", "huberCentroid"],
-        "tiempo": "~1.5h"
-      },
-      "2C": {
-        "nombre": "Integración",
-        "tareas": ["compositeScore", "detectDiscrepancy", "integrar Orchestrator"],
-        "tiempo": "~1.5h"
-      }
-    }
+  "problemaIdentificado": {
+    "descripcion": "F023 Fase 3 intentada ~5 veces sin completarse",
+    "causa": "Tareas demasiado grandes, exceso de análisis previo",
+    "solucion": "Dividir en tareas atómicas de 1 librería por sesión"
   },
   
   "proximaSesion": {
-    "id": "2A",
-    "nombre": "Fundamentos Validación Cruzada",
-    "prompt": ".ptel/PROMPT_SESION_2A.md",
-    "mapa": ".ptel/MAPA_SESIONES_FASE2.md",
-    "rol": "MapWizard",
-    "comandoInicio": "cd /Users/lm/Documents/GitHub/norm-coord-ptel && git pull && cat .ptel/PROMPT_SESION_2A.md"
-  }
+    "tarea": "F023 Fase 3.1: SOLO uFuzzy",
+    "prompt": "MapWizard: Ejecuta SOLO esto, sin leer documentos:\n1. npm install @leeoniya/ufuzzy\n2. Editar src/lib/multiFieldStrategy.ts para usar uFuzzy\n3. npm test\n4. git commit + push\nNO hagas nada más.",
+    "archivoAModificar": "src/lib/multiFieldStrategy.ts",
+    "duracionEstimada": "15 minutos máximo"
+  },
+  
+  "noHacer": [
+    "No leer HANDOFF_F023_FASE3.md (ya lo sabemos)",
+    "No hacer diagnóstico",
+    "No instalar Flatbush (será Fase 3.2)",
+    "No mejorar normalización (será Fase 3.3)"
+  ]
 }

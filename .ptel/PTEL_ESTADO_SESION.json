@@ -1,20 +1,20 @@
 {
-  "ultimaActualizacion": "2025-12-04T11:00:00Z",
-  "sesionActual": "F023-INTEGRACION-COMPLETA",
+  "ultimaActualizacion": "2025-12-04T12:00:00Z",
+  "sesionActual": "DIAGNOSTICO-PARONES",
   "rolActivo": "MapWizard",
   
   "estadoGeneral": {
     "version": "0.5.2",
-    "progreso": "100%",
+    "progreso": "85%",
     "featuresCompletadas": 22,
-    "featuresPendientes": 0,
+    "featuresPendientes": 1,
     "testsStatus": "1037/1044 passed (7 skipped)"
   },
   
   "featureActiva": {
     "id": "F023",
     "nombre": "Geocodificación Multi-Campo + Validación Cruzada",
-    "estado": "FASE 2 INTEGRADA EN ORCHESTRATOR ✅",
+    "estado": "FASE 3 PENDIENTE - REQUIERE NUEVA ESTRATEGIA",
     "fases": {
       "fase1": {
         "nombre": "Multi-campo (singleton + desambiguación)",
@@ -24,68 +24,31 @@
       "fase2": {
         "nombre": "Validación cruzada multi-fuente",
         "estado": "COMPLETADA + INTEGRADA",
-        "progreso": "100%",
-        "sesiones": {
-          "2A": {
-            "nombre": "Fundamentos",
-            "estado": "COMPLETADA",
-            "testsNuevos": 19
-          },
-          "2B": {
-            "nombre": "Algoritmos",
-            "estado": "COMPLETADA",
-            "testsNuevos": 25
-          },
-          "2C": {
-            "nombre": "Integración",
-            "estado": "COMPLETADA",
-            "testsNuevos": 31
-          },
-          "2D": {
-            "nombre": "Orchestrator Integration",
-            "estado": "COMPLETADA",
-            "cambios": "geocode() ahora usa validateEnhanced() por defecto"
-          }
-        },
-        "testsTotal": 75,
-        "funcionesPrincipales": [
-          "queryMultipleSources",
-          "huberCentroid",
-          "analyzeResultClusters",
-          "calculateCompositeScore",
-          "detectDiscrepancy",
-          "generateRecommendation",
-          "performCrossValidation",
-          "validateEnhanced"
-        ]
+        "progreso": "100%"
+      },
+      "fase3": {
+        "nombre": "Optimizaciones (uFuzzy, Flatbush, normalización)",
+        "estado": "PENDIENTE - BLOQUEADA POR PARONES",
+        "progreso": "0%",
+        "estrategiaNueva": "Hacer UNA tarea por chat, no las 3 juntas"
       }
     }
   },
   
-  "cambiosRealizados": {
-    "archivo": "src/services/geocoding/GeocodingOrchestrator.ts",
-    "linea": "~790",
-    "cambio": "validate() → validateEnhanced()",
-    "beneficios": [
-      "huberCentroid: centroide robusto que reduce outliers",
-      "analyzeResultClusters: detección automática discordancias", 
-      "detectDiscrepancy: umbrales específicos por tipología",
-      "generateRecommendation: USE_RESULT / MANUAL_REVIEW / REJECT"
-    ]
-  },
-  
-  "metricas": {
-    "testsTotales": 1037,
-    "testsSkipped": 7,
-    "cobertura": "~96%",
-    "scoreObjetivo": "92-98%"
+  "problemasIdentificados": {
+    "descripcion": "Múltiples intentos de ejecutar Fase 3 sin éxito",
+    "causa": "Parones inexplicados del sistema, posiblemente por exceso de análisis previo",
+    "solucionPropuesta": "Tareas atómicas: 1 librería por sesión, acción directa sin diagnóstico"
   },
   
   "proximaSesion": {
-    "opciones": [
-      "Fase 3 F023: Optimizaciones (uFuzzy, Flatbush, normalización)",
-      "Nueva feature F024: UI Panel de progreso geocodificación",
-      "Validación con datos reales de nuevo municipio"
+    "tarea": "F023 Fase 3.1: SOLO instalar uFuzzy",
+    "enfoque": "Acción directa, sin lectura de documentos",
+    "pasos": [
+      "npm install @leeoniya/ufuzzy",
+      "Modificar UN archivo: multiFieldStrategy.ts",
+      "npm test",
+      "commit + push"
     ]
   }
 }
