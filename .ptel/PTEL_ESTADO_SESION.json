@@ -1,76 +1,75 @@
 {
-  "ultimaActualizacion": "2025-12-04T19:30:00Z",
+  "ultimaActualizacion": "2025-12-04T20:30:00Z",
   "sesionActual": "F025-ANALISIS-COMPLETADO",
   "rolActivo": "MapWizard",
   
   "estadoGeneral": {
-    "version": "0.6.0",
-    "progreso": "96%",
+    "version": "0.6.1",
+    "progreso": "Análisis F025 completado, implementación pendiente",
     "featuresCompletadas": 23,
     "featuresPendientes": 1,
-    "testsStatus": "npm test pasa"
+    "testsStatus": "npm test pasa (tests F025 pendientes)"
   },
   
   "featureActiva": {
     "id": "F025",
-    "nombre": "Address Extractor - Extracción direcciones geocodificables",
-    "estado": "ANÁLISIS COMPLETADO - PENDIENTE IMPLEMENTACIÓN",
+    "nombre": "Address Extractor - Preprocesador de Direcciones",
+    "estado": "ANALISIS_COMPLETADO",
     "fases": {
-      "analisis": {
+      "fase1": {
         "nombre": "Análisis exhaustivo documentos PTEL",
         "estado": "COMPLETADA",
         "progreso": "100%",
         "documentosAnalizados": 12,
         "casosTestGenerados": 63
       },
-      "especificacion": {
+      "fase2": {
         "nombre": "Especificación técnica y casos de test",
         "estado": "COMPLETADA",
         "progreso": "100%",
-        "archivosCreados": [
+        "archivos": [
           "docs/analisis/F025_ADDRESS_EXTRACTOR_SPEC.md",
-          "src/utils/__tests__/addressExtractor.testCases.ts"
+          "docs/analisis/addressExtractor.testCases.ts"
         ]
       },
-      "implementacion": {
+      "fase3": {
         "nombre": "Implementación addressExtractor.ts",
         "estado": "PENDIENTE",
         "progreso": "0%"
       },
-      "integracion": {
+      "fase4": {
         "nombre": "Integración en GeocodingOrchestrator",
+        "estado": "PENDIENTE",
+        "progreso": "0%"
+      },
+      "fase5": {
+        "nombre": "Validación con documentos reales",
         "estado": "PENDIENTE",
         "progreso": "0%"
       }
     }
   },
   
-  "hito": {
-    "descripcion": "F025 Análisis completado - 63 casos de test documentados",
-    "hallazgos": [
-      "addressCleaner.ts existe pero NO se usa en geocodificación principal",
-      "13 infraestructuras con direcciones en Tíjola no geocodifican",
-      "111 casos con teléfonos embebidos detectados",
-      "52 casos no geocodificables identificados",
-      "47 tipos de vía catalogados",
-      "51 prefijos de infraestructura documentados"
-    ],
-    "archivosNuevos": [
-      "docs/analisis/F025_ADDRESS_EXTRACTOR_SPEC.md",
-      "src/utils/__tests__/addressExtractor.testCases.ts"
-    ]
+  "hallazgos": {
+    "problemaCritico": "addressCleaner.ts existe (879 líneas) pero NO se usa en flujo principal de geocodificación",
+    "ubicacionProblema": "GeocodingOrchestrator.ts línea ~720",
+    "impacto": "Direcciones con formato problemático fallan al geocodificar (~65% de casos con direcciones)",
+    "solucion": "Crear addressExtractor.ts nuevo e integrarlo antes de geocodificar"
   },
   
   "proximaSesion": {
-    "feature": "F025",
-    "fase": "implementacion",
+    "objetivo": "Implementar F025 Fase 3-5",
     "tareas": [
       "1. Crear src/utils/addressExtractor.ts",
-      "2. Crear src/utils/__tests__/addressExtractor.test.ts",
-      "3. Ejecutar tests y ajustar hasta ≥85% acierto",
-      "4. Integrar en GeocodingOrchestrator.ts línea ~710",
-      "5. Probar con documentos PTEL reales"
+      "2. Crear src/utils/addressExtractor.patterns.ts",
+      "3. Copiar tests a src/utils/__tests__/addressExtractor.test.ts",
+      "4. Ejecutar tests hasta 100% verde",
+      "5. Integrar en GeocodingOrchestrator.ts",
+      "6. Validar con documentos PTEL subidos"
     ],
-    "referencia": "docs/analisis/F025_ADDRESS_EXTRACTOR_SPEC.md"
+    "archivosReferencia": [
+      "docs/analisis/F025_ADDRESS_EXTRACTOR_SPEC.md",
+      "docs/analisis/addressExtractor.testCases.ts"
+    ]
   }
 }

@@ -390,3 +390,152 @@ export function extractStreetAddress(
 **Última actualización**: 2025-12-04  
 **Autor**: Claude (sesión análisis addressExtractor)  
 **Estado**: Análisis completado, pendiente implementación
+
+
+## 5. Algoritmo Propuesto
+
+### 5.1 Flujo de Procesamiento (8 pasos)
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│ PASO 1: Detectar NO geocodificable                          │
+│   - Patrones negativos → return { address: null, conf: 0 }  │
+│   - Múltiples C/ → return null                              │
+│   - Parcelas catastrales → return null                      │
+├─────────────────────────────────────────────────────────────┤
+│ PASO 2: Corregir errores OCR/UTF-8                          │
+│   - NÂº → Nº, Ã± → ñ, s7n → s/n, etc.                       │
+├─────────────────────────────────────────────────────────────┤
+│ PASO 3: Eliminar prefijos de infraestructura                │
+│   - 51 prefijos, ordenados por longitud (más largos primero)│
+│   - Limpiar comas/espacios iniciales residuales             │
+├─────────────────────────────────────────────────────────────┤
+│ PASO 4: Eliminar sufijos no deseados                        │
+│   - Horarios, teléfonos, pisos, provincias, CP              │
+├─────────────────────────────────────────────────────────────┤
+│ PASO 5: Expandir abreviaturas de vía                        │
+│   - C/ → Calle, Avd → Avenida, etc. (47 variantes)          │
+│   - Con límites de palabra para evitar conflictos           │
+├─────────────────────────────────────────────────────────────┤
+│ PASO 6: Normalizar formato de número                        │
+│   - "n/ 1" → "1", "N.º 15" → "15", "N4" → "4"               │
+│   - "2Colomera" → "2, Colomera"                             │
+├─────────────────────────────────────────────────────────────┤
+│ PASO 7: Normalizar puntuación y espacios                    │
+│   - ". " → ", ", " - " → ", ", múltiples espacios → uno     │
+├─────────────────────────────────────────────────────────────┤
+│ PASO 8: Capitalización inteligente                          │
+│   - MAYÚSCULAS → Title Case                                 │
+│   - Preservar: de, del, la, el, los, las, y, e, a           │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### 5.2 Interfaz de Salida
+
+```typescript
+interface AddressExtractionResult {
+  /** Dirección limpia lista para geocodificar, null si no geocodificable */
+  address: string | null;
+  
+  /** Nivel de confianza 0-100 */
+  confidence: number;
+  
+  /** Razón si no geocodificable */
+  reason?: 'not_geocodable' | 'multiple_addresses' | 'cadastral' | 'description_only';
+  
+  /** Transformaciones aplicadas para debug */
+  transformations?: string[];
+}
+```
+
+### 5.3 Niveles de Confianza
+
+| Confidence | Criterio | Acción |
+|------------|----------|--------|
+| 90-100 | Tipo vía + nombre + número/s/n | Geocodificar directamente |
+| 60-89 | Tipo vía + nombre, sin número | Geocodificar con warning |
+| 40-59 | Formato parcial reconocible | Intentar fuzzy matching |
+| 1-39 | Formato dudoso | Log para revisión manual |
+| 0 | No geocodificable | Marcar "Requiere revisión" |
+
+
+
+## 6. Estrategia de Implementación
+
+### 6.1 Decisión Arquitectónica
+
+**CREAR NUEVO** `addressExtractor.ts` en lugar de modificar `addressCleaner.ts`:
+
+| Razón | Beneficio |
+|-------|-----------|
+| Fácil rollback | Si falla, se desactiva sin afectar código existente |
+| addressCleaner sigue funcionando | multiFieldStrategy.ts no se ve afectado |
+| Testeable independientemente | Suite de tests separada |
+| Separación de responsabilidades | Extractor (nuevo) vs Limpiador (existente) |
+
+### 6.2 Archivos a Crear/Modificar
+
+```
+src/utils/
+├── addressExtractor.ts          ← NUEVO (módulo principal)
+├── addressExtractor.patterns.ts ← NUEVO (constantes y regex)
+└── __tests__/
+    └── addressExtractor.test.ts ← NUEVO (63 casos de test)
+
+src/lib/
+└── GeocodingOrchestrator.ts     ← MODIFICAR (línea ~720)
+```
+
+### 6.3 Integración en Orquestador
+
+```typescript
+// GeocodingOrchestrator.ts - ANTES (línea ~720)
+const address = options.address 
+  ? `${options.address}, ${options.municipality}`
+  : `${options.name}, ${options.municipality}`;
+
+// DESPUÉS
+import { extractStreetAddress } from '../utils/addressExtractor';
+
+const rawText = options.address || options.name;
+const extraction = extractStreetAddress(rawText, options.municipality);
+
+if (extraction.confidence === 0) {
+  // Log para revisión manual, no geocodificar
+  this.logSkipped(options, extraction.reason);
+  return null;
+}
+
+const address = extraction.address 
+  ? `${extraction.address}, ${options.municipality}`
+  : `${options.name}, ${options.municipality}`;  // Fallback seguro
+```
+
+## 7. Métricas de Éxito
+
+### 7.1 Objetivo
+
+| Métrica | Actual | Objetivo |
+|---------|--------|----------|
+| Tasa geocodificación direcciones Tíjola | ~35% | ≥85% |
+| Falsos positivos (geocodifica basura) | ~15% | ≤2% |
+| Tiempo procesamiento por dirección | N/A | <10ms |
+
+### 7.2 Criterios de Aceptación
+
+- [ ] 63 casos de test pasan (39 reales + 24 sintéticos)
+- [ ] No regresiones en tests existentes (npm test pasa)
+- [ ] Integración en GeocodingOrchestrator sin romper flujo
+- [ ] Documentación actualizada
+
+## 8. Referencias
+
+- `addressCleaner.ts`: src/utils/addressCleaner.ts (879 líneas)
+- `multiFieldStrategy.ts`: src/lib/multiFieldStrategy.ts (línea 213-214)
+- `GeocodingOrchestrator.ts`: src/lib/GeocodingOrchestrator.ts (línea ~720)
+- Documentos analizados: /mnt/user-data/uploads/*.odt, *.docx, *.dbf, *.ods
+
+---
+
+*Documento generado: 2025-12-04*  
+*Próximo paso: Implementación según esta especificación*
