@@ -1,14 +1,14 @@
 {
-  "ultimaActualizacion": "2025-12-05T00:15:00Z",
-  "sesionActual": "F025-PASO3-COMPLETADO",
+  "ultimaActualizacion": "2025-12-05T00:32:00Z",
+  "sesionActual": "F025-PASOS-4-7-COMPLETADOS",
   "rolActivo": "MapWizard",
   
   "estadoGeneral": {
-    "version": "0.6.2",
-    "progreso": "F025 Paso 3 completado, continuando implementación",
+    "version": "0.6.3",
+    "progreso": "F025 Pasos 3, 4 y 7 completados",
     "featuresCompletadas": 23,
     "featuresPendientes": 1,
-    "testsStatus": "32/63 addressExtractor (50.8%)"
+    "testsStatus": "40/63 addressExtractor (63.5%)"
   },
   
   "featureActiva": {
@@ -17,35 +17,59 @@
     "estado": "EN_PROGRESO",
     "pasosCompletados": [
       {
+        "paso": 1,
+        "nombre": "Detectar NO geocodificable",
+        "estado": "COMPLETADO",
+        "testsVerdes": 5,
+        "testsTotal": 5,
+        "valoracion": "100%"
+      },
+      {
+        "paso": 2,
+        "nombre": "Corregir OCR/UTF-8",
+        "estado": "COMPLETADO",
+        "testsVerdes": 2,
+        "testsTotal": 2,
+        "valoracion": "100%"
+      },
+      {
         "paso": 3,
         "nombre": "Eliminar prefijos de infraestructura",
         "estado": "COMPLETADO",
-        "progreso": "100%",
         "testsVerdes": 12,
         "testsTotal": 12,
+        "valoracion": "100%",
         "commit": "6f40e2d"
-      }
-    ],
-    "pasosPendientes": [
+      },
       {
         "paso": 4,
         "nombre": "Eliminar sufijos (horarios, teléfonos)",
-        "tests": ["S55", "S56", "S57", "S58", "S59", "S63"]
-      },
-      {
-        "paso": 5,
-        "nombre": "Expandir abreviaturas de vía",
-        "tests": ["C23", "B26", "B27", "B28"]
-      },
-      {
-        "paso": 6,
-        "nombre": "Normalizar formato de número",
-        "tests": ["B24", "B31", "D37", "S41", "S44"]
+        "estado": "COMPLETADO",
+        "testsVerdes": 9,
+        "testsTotal": 9,
+        "valoracion": "100%",
+        "commit": "f7a9d6f"
       },
       {
         "paso": 7,
         "nombre": "Capitalización inteligente",
-        "tests": ["C14", "C22", "D33", "D34", "D35", "D38", "D39", "B32"]
+        "estado": "COMPLETADO",
+        "testsVerdes": 6,
+        "testsTotal": 6,
+        "valoracion": "100%",
+        "commit": "0f4d9f4"
+      }
+    ],
+    "pasosPendientes": [
+      {
+        "paso": 5,
+        "nombre": "Expandir abreviaturas de vía",
+        "tests": ["C23", "B26", "B27", "B28", "D37"]
+      },
+      {
+        "paso": 6,
+        "nombre": "Normalizar formato de número",
+        "tests": ["B24", "B31", "D34", "D38", "S41", "S44"]
       },
       {
         "paso": 8,
@@ -56,14 +80,14 @@
   },
   
   "metricas": {
-    "testsAntes": 28,
-    "testsDespues": 32,
-    "mejora": "+4 tests (+14.3%)",
-    "paso3Acierto": "100% (12/12)"
+    "testsInicioSesion": 28,
+    "testsActuales": 40,
+    "mejoraSesion": "+12 tests (+42.9%)",
+    "progresoTotal": "63.5% (40/63)"
   },
   
   "proximaSesion": {
-    "objetivo": "F025 Paso 4 - Eliminar sufijos",
+    "objetivo": "F025 Paso 5 - Expandir abreviaturas de vía",
     "archivos": [
       "src/utils/addressExtractor.ts",
       "src/utils/addressExtractor.patterns.ts"
