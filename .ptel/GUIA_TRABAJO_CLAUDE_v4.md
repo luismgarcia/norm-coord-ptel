@@ -1,5 +1,5 @@
 # Guía de Trabajo con Claude para el Proyecto PTEL
-## Versión 4.1 - Actualizada 2025-12-02
+## Versión 4.2 - Actualizada 2025-12-04
 
 ---
 
@@ -78,7 +78,7 @@ INICIO SESIÓN PTEL
 Proyecto: norm-coord-ptel
 Ya sincronicé y los tests pasan.
 
-Activa rol [DataMaster / MapWizard / DesignCraft / GitMaster].
+Activa rol [DataMaster / MapWizard / DesignCraft / GitMaster / DevManager / Validator].
 Localiza el repositorio, lee .ptel/ y dime el estado del proyecto.
 ```
 
@@ -183,6 +183,8 @@ Cuando supere ~400 líneas:
 | **MapWizard** | React/TypeScript, APIs geoespaciales | Geocodificadores, integración APIs, lógica negocio |
 | **DesignCraft** | UI/UX, Tailwind CSS, componentes | Interfaz usuario, estilos, accesibilidad |
 | **GitMaster** | Git, GitHub, CI/CD, sincronización | Commits, conflictos, releases, multi-dispositivo |
+| **DevManager** | Arquitectura, decisiones técnicas | Evaluar herramientas/MCPs, dependencias, migraciones |
+| **Validator** | Testing, QA, verificación end-to-end | Tests integración, validación con datos reales, casos edge |
 
 ### Activar un rol
 ```
@@ -398,6 +400,7 @@ Estas lecciones se mantienen siempre visibles:
 | L6 | Commits frecuentes | Evitan perder visibilidad del progreso |
 | L7 | Timeouts ocultan causa raíz | Con mocks se ven problemas reales |
 | L8 | Tests integridad previenen errores silenciosos | 233 validaciones estructurales |
+| L9 | Si funciona, no lo toques | Cambiar solo cuando hay beneficio medible (DevManager) |
 
 ---
 
@@ -414,6 +417,6 @@ Estas lecciones se mantienen siempre visibles:
 
 ---
 
-*Última actualización: 2025-12-02*
-*Versión: 4.1*
+*Última actualización: 2025-12-04*
+*Versión: 4.2*
 *Proyecto PTEL - 860/921 tests passing (93%)*
