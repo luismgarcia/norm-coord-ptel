@@ -279,20 +279,28 @@ describe('B.5 - Tests E2E BBDD Local', () => {
       expect(result.count).toBe(3);
     });
 
-    it('Granada: getCandidatesByNombre permite desambiguar', async () => {
+    it('Granada: getCandidatesByNombre ordena hospitales primero', async () => {
       // Nota: getCandidatesByNombre(codMun, tipologia, nombreBuscado)
+      // Devuelve TODOS los candidatos, ordenados por score de similitud
       const candidates = await getCandidatesByNombre(
         '18087',
         'SANITARIO', 
         'Hospital'
       );
       
-      expect(candidates.length).toBe(2);
-      expect(candidates.map(c => c.nombre)).toContain('Hospital Universitario San Cecilio');
-      expect(candidates.map(c => c.nombre)).toContain('Hospital Virgen de las Nieves');
+      // Devuelve los 3 sanitarios de Granada, ordenados por relevancia
+      expect(candidates.length).toBe(3);
+      
+      // Los 2 primeros deben ser hospitales (mejor score por contener "Hospital")
+      const primeros2 = candidates.slice(0, 2).map(c => c.nombre);
+      expect(primeros2).toContain('Hospital Universitario San Cecilio');
+      expect(primeros2).toContain('Hospital Virgen de las Nieves');
+      
+      // El tercero es el Centro de Salud (peor score)
+      expect(candidates[2].nombre).toBe('Centro de Salud Zaidín');
     });
 
-    it('Granada: búsqueda específica reduce candidatos', async () => {
+    it('Granada: búsqueda específica pone Zaidín primero', async () => {
       // Buscar "Zaidín" específicamente
       const candidates = await getCandidatesByNombre(
         '18087',
@@ -300,8 +308,8 @@ describe('B.5 - Tests E2E BBDD Local', () => {
         'Zaidín'
       );
       
-      expect(candidates.length).toBeGreaterThanOrEqual(1);
-      // El primero debería ser Zaidín por mejor score
+      // Devuelve todos pero Zaidín está primero (mejor score)
+      expect(candidates.length).toBe(3);
       expect(candidates[0].nombre).toBe('Centro de Salud Zaidín');
       expect(candidates[0].x).toBe(445800);
       expect(candidates[0].y).toBe(4112500);
