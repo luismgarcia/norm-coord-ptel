@@ -1,36 +1,38 @@
 {
   "lastSession": {
     "date": "2025-12-05",
-    "feature": "S1.2",
-    "task": "Test E2E flujo completo ODT → coordenadas normalizadas",
-    "result": "COMPLETADO - Suite E2E verificada y corregida",
-    "archivosModificados": [
-      "src/__tests__/e2e/documentFlow.e2e.test.ts",
-      "src/__tests__/e2e/fixtures/ptelData.ts"
+    "feature": "S1.3",
+    "task": "Crear suite benchmark con Vitest bench",
+    "result": "COMPLETADO - 20 benchmarks configurados con resultados excelentes",
+    "archivosCreados": [
+      "vitest.bench.config.ts",
+      "src/__benchmarks__/geocoding.bench.ts"
     ],
-    "testsE2E": 19,
+    "commit": "94e87f1",
+    "benchmarkResults": {
+      "address_extraction": "0.13ms (objetivo <5ms) - 38x mejor",
+      "coordinate_normalization": "0.001ms (objetivo <1ms) - 1000x mejor",
+      "singleton_detection": "0.18ms (objetivo <50ms) - 277x mejor"
+    },
     "observaciones": [
-      "Suite E2E ya existía con 19 tests",
-      "Fixture 'Fuera de rango' tenía coordenadas dentro de rango (100000 = X_MIN)",
-      "Corregido a 50000/3900000 (realmente fuera de rango)",
-      "Añadida lógica para reportar errores cuando X/Y no normalizables",
-      "Test Quéntar sigue fallando (programado para S1.5)"
+      "Suite con 6 grupos de benchmarks: F025, Normalization, DMS/NMEA, LocalData, F023, Pipeline",
+      "Todos los baselines superados ampliamente",
+      "Ejecutar: npx vitest bench --config vitest.bench.config.ts --run"
     ]
   },
   "nextSession": {
-    "feature": "S1.3",
-    "task": "Crear suite benchmark con Vitest bench",
+    "feature": "S1.4",
+    "task": "Snapshot tests para AddressExtractor (63 casos)",
     "plan": ".ptel/PLAN_TRABAJO_DICIEMBRE_2025.md",
     "rol": "MapWizard",
     "duracion": "1h",
-    "criterio": "Suite benchmarks configurada, baselines definidos",
+    "criterio": "Snapshots generados para detectar regresiones en F025",
     "archivos": [
-      "src/__benchmarks__/geocoding.bench.ts (crear)",
-      "vitest.bench.config.ts (crear)"
+      "src/utils/__tests__/addressExtractor.snapshot.test.ts (crear)"
     ],
     "notas": [
-      "Instalar @vitest/coverage-c8 si no está",
-      "Baseline objetivo: singleton <50ms, extraction <5ms, normalization <1ms"
+      "Usar casos existentes de addressExtractor.test.ts como base",
+      "Snapshots detectan cambios inesperados en transformaciones"
     ]
   },
   "projectStatus": {
@@ -39,10 +41,11 @@
     "pendingFeatures": ["F014:CacheManager", "F015:ProgressPanel"],
     "testsStatus": "1181/1182 (99.9%)",
     "testsFallando": 1,
-    "testPendiente": "multiFieldStrategy.test.ts: Quéntar (S1.5)"
+    "testPendiente": "multiFieldStrategy.test.ts: Quéntar (S1.5)",
+    "benchmarksConfigured": true
   },
   "planResumen": {
-    "fase1": "6-8 Dic: Consolidación (6 sesiones) - S1.1 ✅, S1.2 ✅",
+    "fase1": "6-8 Dic: Consolidación (6 sesiones) - S1.1 ✅, S1.2 ✅, S1.3 ✅",
     "fase2": "9-12 Dic: Validación municipal (8 sesiones)",
     "fase3": "13-15 Dic: Features pendientes (6 sesiones)",
     "fase4": "16-18 Dic: Testing avanzado (6 sesiones)",

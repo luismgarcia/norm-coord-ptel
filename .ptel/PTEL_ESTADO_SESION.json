@@ -1,15 +1,16 @@
 {
   "fecha": "2025-12-05",
   "version": "0.4.1",
-  "sesion": "S1.2",
+  "sesion": "S1.3",
   "estado": "COMPLETADO",
   "metricas": {
     "tests_totales": "1181/1182 (99.9%)",
     "features_completadas": "23/24 (96%)",
     "municipios_validados": 5,
-    "plan_sesiones": 33
+    "plan_sesiones": 33,
+    "benchmarks_configurados": true
   },
-  "ultimo_commit": "pendiente",
+  "ultimo_commit": "94e87f1",
   "plan_trabajo": {
     "archivo": ".ptel/PLAN_TRABAJO_DICIEMBRE_2025.md",
     "fases": 5,
@@ -19,8 +20,8 @@
     "objetivo_version": "0.5.0"
   },
   "siguiente_sesion": {
-    "id": "S1.3",
-    "feature": "Crear suite benchmark con Vitest bench",
+    "id": "S1.4",
+    "feature": "Snapshot tests para AddressExtractor (63 casos)",
     "rol": "MapWizard",
     "duracion_estimada": "1h"
   },
@@ -29,8 +30,7 @@
       "tarea": "Integrar F025 AddressExtractor en GeocodingOrchestrator",
       "resultado": "COMPLETADO - Integración ya existía, creado test de integración",
       "archivo_creado": "src/services/geocoding/__tests__/F025.integration.test.ts",
-      "tests_nuevos": 11,
-      "tests_pasando": "1162/1170"
+      "tests_nuevos": 11
     },
     "S1.2": {
       "tarea": "Test E2E flujo completo ODT → coordenadas normalizadas",
@@ -39,12 +39,31 @@
         "src/__tests__/e2e/documentFlow.e2e.test.ts",
         "src/__tests__/e2e/fixtures/ptelData.ts"
       ],
-      "correcciones": [
-        "Fixture 'Fuera de rango' con coordenadas realmente fuera de rango",
-        "Añadida lógica para reportar errores de coordenadas no normalizables"
+      "tests_e2e": 19
+    },
+    "S1.3": {
+      "tarea": "Crear suite benchmark con Vitest bench",
+      "resultado": "COMPLETADO - Suite con 20 benchmarks configurada",
+      "archivos_creados": [
+        "vitest.bench.config.ts",
+        "src/__benchmarks__/geocoding.bench.ts"
       ],
-      "tests_e2e": 19,
-      "tests_pasando": "1181/1182"
+      "baselines": {
+        "address_extraction": "0.13ms (<5ms objetivo) ✅",
+        "coordinate_normalization": "0.001ms (<1ms objetivo) ✅",
+        "singleton_detection": "0.18ms (<50ms objetivo) ✅"
+      }
+    }
+  },
+  "benchmarks": {
+    "grupos": 6,
+    "total_benchmarks": 20,
+    "resultados": {
+      "address_extraction_ms": 0.13,
+      "coordinate_normalization_ms": 0.001,
+      "singleton_detection_ms": 0.18,
+      "parse_dms_ms": 0.0004,
+      "parse_nmea_ms": 0.0003
     }
   }
 }

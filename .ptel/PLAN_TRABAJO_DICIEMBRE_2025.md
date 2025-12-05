@@ -334,7 +334,7 @@ npm install -D @vitest/coverage-istanbul  # alternativa a c8
 |:--|:--|:--:|:--|:--|
 | 1 | S1.1 | ✅ | 2025-12-05 | Test integración F025 creado (11 tests) |
 | 1 | S1.2 | ✅ | 2025-12-05 | Suite E2E verificada, fixtures corregidos (19 tests) |
-| 1 | S1.3 | ⬜ | — | — |
+| 1 | S1.3 | ✅ | 2025-12-05 | Suite benchmark creada (20 benchmarks, baselines superados) |
 | 1 | S1.4 | ⬜ | — | — |
 | 1 | S1.5 | ⬜ | — | — |
 | 1 | S1.6 | ⬜ | — | — |
