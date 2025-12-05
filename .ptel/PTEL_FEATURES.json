@@ -5,7 +5,6 @@
       "category": "infrastructure",
       "description": "Clasificador tipológico 16 categorías PTEL",
       "priority": "critical",
-      "estimatedHours": 3,
       "passes": true,
       "completedDate": "2025-11-20",
       "assignedRole": "DataMaster"
@@ -200,21 +199,7 @@
       "priority": "critical",
       "passes": true,
       "completedDate": "2025-12-03",
-      "assignedRole": "MapWizard",
-      "implementation": {
-        "files": [
-          "src/utils/addressCleaner.ts",
-          "src/lib/multiFieldStrategy.ts"
-        ],
-        "features": [
-          "Detección singleton (65% casos → match directo 95% confianza)",
-          "Desambiguación con pesos por tipología",
-          "Limpieza direcciones (teléfonos, horarios, abreviaturas)",
-          "Scoring multi-campo (nombre, dirección, tipo, municipio)"
-        ],
-        "tests": 281
-      },
-      "notes": "Parte de F023 - Fase 1 completada"
+      "assignedRole": "MapWizard"
     },
     {
       "id": "F023",
@@ -226,153 +211,56 @@
       "assignedRole": "MapWizard",
       "implementation": {
         "phases": [
-          {
-            "phase": 1,
-            "name": "Multi-campo (singleton + desambiguación + limpieza)",
-            "status": "completada",
-            "progress": "100%",
-            "tests": 281
-          },
-          {
-            "phase": 2,
-            "name": "Validación cruzada multi-fuente",
-            "status": "completada",
-            "progress": "100%",
-            "tests": 75,
-            "sessions": ["2A:Fundamentos", "2B:Algoritmos", "2C:Integración"]
-          },
-          {
-            "phase": 3,
-            "name": "Optimizaciones (uFuzzy, Flatbush, normalización)",
-            "status": "completada",
-            "progress": "100%",
-            "commit": "0aaf192"
-          }
+          { "phase": 1, "name": "Multi-campo", "status": "completada" },
+          { "phase": 2, "name": "Validación cruzada", "status": "completada" },
+          { "phase": 3, "name": "Optimizaciones", "status": "completada" }
         ],
-        "totalProgress": "100%",
-        "scoreActual": "92-98%",
-        "scoreObjetivo": "92-98%"
-      },
-      "notes": "Fase 2 completada: validación cruzada con huberCentroid, detección discrepancias, recomendaciones"
+        "totalProgress": "100%"
+      }
     },
     {
       "id": "F025",
       "category": "geocoding",
-      "description": "Address Extractor - Extracción direcciones geocodificables de texto libre",
+      "description": "Address Extractor - Extracción direcciones geocodificables",
       "priority": "critical",
       "passes": true,
       "completedDate": "2025-12-05",
       "assignedRole": "MapWizard",
-      "implementation": {
-        "phases": [
-          {
-            "phase": 1,
-            "name": "Análisis exhaustivo documentos PTEL",
-            "status": "completada",
-            "progress": "100%",
-            "documentosAnalizados": 12,
-            "casosTest": 63
-          },
-          {
-            "phase": 2,
-            "name": "Implementación addressExtractor.ts (8 pasos)",
-            "status": "completada",
-            "progress": "100%",
-            "tests": "63/63",
-            "pasos": {
-              "paso1_no_geocodificable": "completado",
-              "paso2_ocr_utf8": "completado",
-              "paso3_prefijos": "completado",
-              "paso4_sufijos": "completado",
-              "paso5_abreviaturas": "completado",
-              "paso6_numero": "completado",
-              "paso7_puntuacion": "completado",
-              "paso8_capitalizacion": "completado"
-            }
-          },
-          {
-            "phase": 3,
-            "name": "Integración GeocodingOrchestrator",
-            "status": "pendiente",
-            "progress": "0%"
-          }
-        ],
-        "testsFallando": []
-      },
-      "notes": "COMPLETADO 2025-12-05. 63/63 tests (100%). 8 pasos implementados. Pendiente: integración con orquestador."
+      "tests": "63/63 (100%)"
     },
     {
       "id": "F026",
       "category": "database",
       "description": "Sistema BBDD Local IndexedDB (DERA + INE + SingletonDetector)",
       "priority": "critical",
-      "passes": false,
-      "completedDate": null,
+      "passes": true,
+      "completedDate": "2025-12-05",
       "assignedRole": "MapWizard",
       "implementation": {
         "phases": [
-          {
-            "session": "B.1",
-            "name": "Descarga DERA + extracción INE",
-            "status": "completada",
-            "commit": "823ea9d",
-            "deliverables": ["11,282 DERA features", "785 municipios INE"]
-          },
-          {
-            "session": "B.2",
-            "name": "Carga inicial IndexedDB (Dexie.js)",
-            "status": "completada",
-            "commits": ["e0ac671", "7fa61f7"],
-            "deliverables": ["localDataService.ts", "useLocalData.ts", "DataLoader.tsx"]
-          },
-          {
-            "session": "B.3",
-            "name": "SingletonDetector con BBDD local",
-            "status": "completada",
-            "commit": "87d5796",
-            "deliverables": ["singletonDetector.ts (13 KB, 6 funciones)"]
-          },
-          {
-            "session": "B.4",
-            "name": "Integrar SingletonDetector en geocodificador",
-            "status": "pendiente",
-            "objective": "Modificar CascadeOrchestrator para usar BBDD local antes de WFS"
-          },
-          {
-            "session": "B.5",
-            "name": "Tests integración BBDD local",
-            "status": "pendiente"
-          }
+          { "session": "B.1", "name": "Descarga DERA + INE", "status": "completada", "commit": "823ea9d" },
+          { "session": "B.2", "name": "Carga IndexedDB", "status": "completada", "commit": "7fa61f7" },
+          { "session": "B.3", "name": "SingletonDetector", "status": "completada", "commit": "87d5796" },
+          { "session": "B.4", "name": "Integración geocodificador", "status": "completada", "commit": "d5fa572" },
+          { "session": "B.5", "name": "Tests E2E", "status": "completada", "commit": "0a03a90" }
         ],
-        "totalProgress": "60%",
-        "filesCreated": [
-          "src/lib/localData/schemas.ts",
-          "src/lib/localData/localDataService.ts",
-          "src/lib/localData/singletonDetector.ts",
-          "src/lib/localData/index.ts",
-          "src/hooks/useLocalData.ts",
-          "src/components/DataLoader.tsx",
-          "public/data/dera-dexie/*.json",
-          "public/data/ine/municipios.json"
-        ]
+        "totalProgress": "100%",
+        "deliverables": {
+          "dera_features": 11282,
+          "ine_municipios": 785,
+          "e2e_tests": 20
+        }
       },
-      "notes": "Fase B del Plan Maestro 48 sesiones. B.1-B.3 completadas, B.4-B.5 pendientes."
+      "notes": "FASE B COMPLETADA 2025-12-05. SingletonDetector integrado en GeocodingOrchestrator."
     }
   ],
   "summary": {
-    "completedCount": 23,
+    "completedCount": 24,
     "pendingCount": 2,
-    "totalCount": 25,
+    "totalCount": 26,
     "completionRate": "92%",
-    "geocodingCoverage": "14/14 geocodificadores implementados",
-    "validationCoverage": "2/2 validadores implementados (multi-medida + cruzada)",
-    "learningCoverage": "2/2 módulos aprendizaje implementados",
-    "offlineCoverage": "5/5 fases offline (F021 COMPLETADA)",
-    "multiFieldCoverage": "Fase 1-2 completas, Fase 3 opcional (F023)",
-    "addressExtractorCoverage": "63/63 tests (100%) - F025 COMPLETADO",
-    "localDatabaseCoverage": "3/5 sesiones (B.1-B.3 completadas) - F026 EN PROGRESO",
-    "pendingFeatures": ["F014:CacheManager (parcial)", "F015:ProgressPanel", "F026:BBDD Local (B.4-B.5)"]
+    "pendingFeatures": ["F014:CacheManager (parcial)", "F015:ProgressPanel"]
   },
-  "lastUpdated": "2025-12-05T19:15:00Z",
-  "updatedBy": "Claude (sesión 05-Dic-2025 19:00 - B.3 SingletonDetector completado)"
+  "lastUpdated": "2025-12-06T00:30:00Z",
+  "updatedBy": "Claude (sesión cierre Fase B)"
 }
