@@ -224,7 +224,29 @@ export function fuzzySearchStrings(
 }
 
 /**
+ * Calcula coeficiente de Jaccard entre dos conjuntos de palabras (0-1)
+ */
+function jaccardSimilarity(wordsA: Set<string>, wordsB: Set<string>): number {
+  if (wordsA.size === 0 && wordsB.size === 0) return 1;
+  if (wordsA.size === 0 || wordsB.size === 0) return 0;
+  
+  let intersection = 0;
+  for (const word of wordsA) {
+    if (wordsB.has(word)) intersection++;
+  }
+  
+  const union = wordsA.size + wordsB.size - intersection;
+  return union > 0 ? intersection / union : 0;
+}
+
+/**
  * Calcula score de similaridad entre dos strings (0-100)
+ * 
+ * Estrategia multi-nivel:
+ * 1. Match exacto → 100
+ * 2. Uno contiene al otro → 70-100
+ * 3. Alta similaridad de palabras (Jaccard) → 60-95
+ * 4. uFuzzy para match parcial → 0-60
  */
 export function calculateSimilarity(a: string, b: string): number {
   if (!a || !b) return 0;
@@ -242,19 +264,39 @@ export function calculateSimilarity(a: string, b: string): number {
     return Math.round(70 + (ratio * 30));
   }
   
-  // uFuzzy para match parcial
+  // Similaridad basada en palabras (Jaccard)
+  // Ideal para nombres españoles con "de", "la", "el" variables
+  const wordsA = new Set(normalizedA.split(/\s+/).filter(w => w.length > 1));
+  const wordsB = new Set(normalizedB.split(/\s+/).filter(w => w.length > 1));
+  const jaccard = jaccardSimilarity(wordsA, wordsB);
+  
+  // Si Jaccard es alto (>0.7), dar score alto sin necesidad de uFuzzy
+  // Ej: "centro de salud de quentar" vs "centro de salud quentar" = 4/5 = 0.8 Jaccard
+  if (jaccard >= 0.8) {
+    return Math.round(85 + (jaccard - 0.8) * 75); // 85-100
+  }
+  if (jaccard >= 0.6) {
+    return Math.round(60 + (jaccard - 0.6) * 125); // 60-85
+  }
+  
+  // uFuzzy para match parcial (casos con baja similaridad de palabras)
   const uf = new uFuzzy(UFUZZY_OPTIONS);
   const [idxs, info, order] = uf.search([normalizedB], normalizedA);
   
-  if (!idxs || idxs.length === 0) return 0;
-  
-  // Convertir score uFuzzy a 0-100
-  if (info && order && order.length > 0) {
-    const rawScore = info.idx?.[order[0]] ?? 50;
-    return Math.max(0, Math.min(100, 100 - rawScore));
+  if (!idxs || idxs.length === 0) {
+    // Sin match uFuzzy, usar Jaccard si hay algo
+    return jaccard > 0 ? Math.round(jaccard * 50) : 0;
   }
   
-  return 50; // Match básico
+  // Convertir score uFuzzy a 0-100 y combinar con Jaccard
+  if (info && order && order.length > 0) {
+    const rawScore = info.idx?.[order[0]] ?? 50;
+    const ufuzzyScore = Math.max(0, Math.min(60, 60 - rawScore * 0.6));
+    // Combinar: máximo entre uFuzzy y Jaccard escalado
+    return Math.max(ufuzzyScore, Math.round(jaccard * 55));
+  }
+  
+  return Math.max(40, Math.round(jaccard * 50)); // Match básico
 }
 
 // ============================================================================
