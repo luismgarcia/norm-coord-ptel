@@ -96,6 +96,12 @@ import {
   type GeocodingSource,
 } from './CrossValidator';
 
+// F025: Extractor de direcciones normalizadas
+import {
+  extractStreetAddress,
+  type AddressExtractionResult,
+} from '../../utils/addressExtractor';
+
 /**
  * Opciones para geocodificación orquestada
  */
@@ -203,6 +209,20 @@ export interface OrchestrationResult {
     confidence: number;
     responseTimeMs: number;
   }>;
+  
+  // ========== F025 ADDRESS EXTRACTION ==========
+  
+  /** Resultado de extracción de dirección F025 */
+  addressExtraction?: {
+    /** Dirección original antes de normalizar */
+    originalAddress: string;
+    /** Dirección normalizada (null si no geocodificable) */
+    normalizedAddress: string | null;
+    /** Confianza de la dirección extraída (0-100) */
+    confidence: number;
+    /** Transformaciones aplicadas (debug) */
+    transformations: string[];
+  };
 }
 
 /**
@@ -340,6 +360,38 @@ export class GeocodingOrchestrator {
             keywords: [] 
           }
         : this.classifier.classify(options.name);
+
+      // ===== PASO 1.5: PRE-PROCESAR DIRECCIÓN CON F025 AddressExtractor =====
+      // Normalizar dirección antes de geocodificar para mejorar match rate
+      let addressExtractionResult: AddressExtractionResult | null = null;
+      const originalAddress = options.address;
+      
+      if (options.address && options.address.trim().length > 0) {
+        attempts.push('f025_address_extraction');
+        try {
+          addressExtractionResult = extractStreetAddress(
+            options.address,
+            options.municipality
+          );
+          
+          if (addressExtractionResult.address) {
+            // Usar dirección normalizada para el resto del flujo
+            options.address = addressExtractionResult.address;
+            console.log(
+              `[F025] ✅ Dirección normalizada: "${originalAddress}" → "${addressExtractionResult.address}" ` +
+              `(confianza: ${addressExtractionResult.confidence}%)`
+            );
+          } else {
+            console.log(
+              `[F025] ⚠️ Dirección no geocodificable: "${originalAddress}" ` +
+              `(razón: ${addressExtractionResult.reason})`
+            );
+          }
+        } catch (err) {
+          errors.push(`F025_EXTRACT: ${err}`);
+          console.warn('[F025] Error en extracción de dirección:', err);
+        }
+      }
 
       // Paso 2: Preparar opciones de búsqueda
       const searchOptions: WFSSearchOptions = {
@@ -830,6 +882,15 @@ export class GeocodingOrchestrator {
             confidence: s.confidence,
             responseTimeMs: s.responseTimeMs,
           })),
+          // F025: Información de extracción de dirección
+          ...(addressExtractionResult && originalAddress ? {
+            addressExtraction: {
+              originalAddress,
+              normalizedAddress: addressExtractionResult.address,
+              confidence: addressExtractionResult.confidence,
+              transformations: addressExtractionResult.transformations || [],
+            }
+          } : {}),
         };
       }
 
@@ -840,7 +901,16 @@ export class GeocodingOrchestrator {
         geocoderUsed,
         processingTime,
         errors,
-        attempts
+        attempts,
+        // F025: Información de extracción de dirección
+        ...(addressExtractionResult && originalAddress ? {
+          addressExtraction: {
+            originalAddress,
+            normalizedAddress: addressExtractionResult.address,
+            confidence: addressExtractionResult.confidence,
+            transformations: addressExtractionResult.transformations || [],
+          }
+        } : {}),
       };
 
     } catch (error) {

@@ -1,32 +1,46 @@
 {
   "lastSession": {
     "date": "2025-12-05",
-    "feature": "PLAN_TRABAJO",
-    "task": "Generación Plan de Trabajo Diciembre 2025",
-    "result": "COMPLETADO - 5 fases, 33 sesiones planificadas",
-    "commits": ["696f450", "92ef605", "f096861", "ae12cf7", "0924c03"]
-  },
-  "nextSession": {
     "feature": "S1.1",
     "task": "Integrar F025 AddressExtractor en GeocodingOrchestrator",
+    "result": "COMPLETADO - Integración ya existía en código, creado test de verificación",
+    "archivosCreados": [
+      "src/services/geocoding/__tests__/F025.integration.test.ts"
+    ],
+    "testsNuevos": 11,
+    "observaciones": [
+      "La integración F025 → GeocodingOrchestrator ya estaba implementada (líneas 365-390)",
+      "Creado test de integración que verifica el flujo completo",
+      "11 tests nuevos pasan correctamente",
+      "Test Quéntar sigue fallando (programado para S1.5)"
+    ]
+  },
+  "nextSession": {
+    "feature": "S1.2",
+    "task": "Test E2E: flujo completo ODT → coordenadas normalizadas",
     "plan": ".ptel/PLAN_TRABAJO_DICIEMBRE_2025.md",
     "rol": "MapWizard",
-    "duracion": "1-2h",
-    "criterio": "Test E2E pasa con documento real",
+    "duracion": "1h",
+    "criterio": "Test E2E procesa documento real y normaliza coordenadas",
     "archivos": [
-      "src/services/geocoding/GeocodingOrchestrator.ts (modificar)",
-      "src/__tests__/e2e/geocoding.e2e.test.ts (crear)"
+      "src/__tests__/e2e/documentFlow.e2e.test.ts (crear)",
+      "src/__tests__/e2e/fixtures/ (crear con documento PTEL real)"
+    ],
+    "notas": [
+      "Necesita documento PTEL real como fixture",
+      "Flujo: ODT → parse → extracción → normalización → geocodificación"
     ]
   },
   "projectStatus": {
     "version": "0.4.1",
     "featuresCompleted": "23/24 (96%)",
     "pendingFeatures": ["F014:CacheManager", "F015:ProgressPanel"],
-    "testsStatus": "1151/1159 (99.9%)",
-    "planTrabajo": "PLAN_TRABAJO_DICIEMBRE_2025.md"
+    "testsStatus": "1162/1170 (99.3%)",
+    "testsFallando": 1,
+    "testPendiente": "multiFieldStrategy.test.ts: Quéntar (S1.5)"
   },
   "planResumen": {
-    "fase1": "6-8 Dic: Consolidación (6 sesiones)",
+    "fase1": "6-8 Dic: Consolidación (6 sesiones) - S1.1 ✅",
     "fase2": "9-12 Dic: Validación municipal (8 sesiones)",
     "fase3": "13-15 Dic: Features pendientes (6 sesiones)",
     "fase4": "16-18 Dic: Testing avanzado (6 sesiones)",

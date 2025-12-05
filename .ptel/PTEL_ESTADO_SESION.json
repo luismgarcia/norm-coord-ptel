@@ -1,15 +1,15 @@
 {
   "fecha": "2025-12-05",
   "version": "0.4.1",
-  "sesion": "PLAN_TRABAJO_GENERADO",
+  "sesion": "S1.1",
   "estado": "COMPLETADO",
   "metricas": {
-    "tests_totales": "1151/1159 (99.9%)",
+    "tests_totales": "1162/1170 (99.3%)",
     "features_completadas": "23/24 (96%)",
     "municipios_validados": 5,
     "plan_sesiones": 33
   },
-  "ultimo_commit": "0924c03",
+  "ultimo_commit": "pendiente",
   "plan_trabajo": {
     "archivo": ".ptel/PLAN_TRABAJO_DICIEMBRE_2025.md",
     "fases": 5,
@@ -19,9 +19,18 @@
     "objetivo_version": "0.5.0"
   },
   "siguiente_sesion": {
-    "id": "S1.1",
-    "feature": "Integración F025 → GeocodingOrchestrator",
+    "id": "S1.2",
+    "feature": "Test E2E flujo completo ODT → coordenadas normalizadas",
     "rol": "MapWizard",
-    "duracion_estimada": "1-2h"
+    "duracion_estimada": "1h"
+  },
+  "notas_sesion": {
+    "S1.1": {
+      "tarea": "Integrar F025 AddressExtractor en GeocodingOrchestrator",
+      "resultado": "COMPLETADO - Integración ya existía, creado test de integración",
+      "archivo_creado": "src/services/geocoding/__tests__/F025.integration.test.ts",
+      "tests_nuevos": 11,
+      "tests_pasando": "1162/1170"
+    }
   }
 }
