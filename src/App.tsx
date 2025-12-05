@@ -3,6 +3,7 @@ import { MapPin, SpinnerGap } from '@phosphor-icons/react'
 import { motion } from 'framer-motion'
 import StepIndicator from './components/StepIndicator'
 import Step1, { ExtractionResult } from './components/Step1'
+import DataLoader from './components/DataLoader'
 
 // Lazy loading de Step2 y Step3
 const Step2 = lazy(() => import('./components/Step2'))
@@ -23,6 +24,7 @@ function App() {
   const [completedSteps, setCompletedSteps] = useState<number[]>([])
   const [extractionData, setExtractionData] = useState<ExtractionResult | null>(null)
   const [processedData, setProcessedData] = useState<any>(null)
+  const [dataReady, setDataReady] = useState(false)
 
   const handleStep1Complete = (data: ExtractionResult) => {
     setExtractionData(data)
@@ -55,6 +57,13 @@ function App() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background via-background to-secondary/10">
+      {/* DataLoader - carga inicial de datos DERA/INE */}
+      <DataLoader 
+        onReady={() => setDataReady(true)}
+        autoLoad={true}
+        modal={true}
+      />
+
       <div className="container mx-auto px-4 py-6 max-w-5xl">
         {/* Header compacto */}
         <header className="text-center mb-8">
@@ -118,6 +127,14 @@ function App() {
               </svg>
               ETRS89 / UTM30N
             </span>
+            {dataReady && (
+              <span className="flex items-center gap-1.5 px-3 py-1 bg-green-500/10 border border-green-500/30 rounded-full text-xs text-green-600 dark:text-green-400">
+                <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+                </svg>
+                BBDD Local activa
+              </span>
+            )}
           </motion.div>
         </header>
 
@@ -158,7 +175,7 @@ function App() {
           <a href="https://qgis.org" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
             QGIS
           </a>
-          {' '}· Salida ETRS89 / UTM30N · v2.0 con geocodificación
+          {' '}· Salida ETRS89 / UTM30N · v2.1 con BBDD local
         </footer>
       </div>
     </div>
