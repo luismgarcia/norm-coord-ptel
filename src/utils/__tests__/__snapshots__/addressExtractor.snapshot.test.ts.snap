@@ -1,0 +1,4354 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`AddressExtractor Regresión - Casos Críticos > regresión: casos NO geocodificables 1`] = `
+[
+  {
+    "id": "TIJ-09",
+    "input": "Lugar más próximo donde se localice la emergencia",
+    "municipality": undefined,
+    "result": {
+      "address": null,
+      "confidence": 0,
+      "reason": "not_geocodable",
+      "transformations": [
+        "Detected as non-geocodable",
+      ],
+    },
+  },
+  {
+    "id": "TIJ-10",
+    "input": "3,- Cargos Políticos, 3,- Funcionarios de Ayuntamiento Tíjola",
+    "municipality": undefined,
+    "result": {
+      "address": null,
+      "confidence": 0,
+      "reason": "not_geocodable",
+      "transformations": [
+        "Detected as non-geocodable",
+      ],
+    },
+  },
+  {
+    "id": "COL-03",
+    "input": "CONSULTORIO MÉDICO DE COLOMERA Y DEL CONSULTORIO AUXILIAR DEL CAURO",
+    "municipality": undefined,
+    "result": {
+      "address": null,
+      "confidence": 0,
+      "reason": "not_geocodable",
+      "transformations": [
+        "Detected as non-geocodable",
+      ],
+    },
+  },
+  {
+    "id": "COL-04",
+    "input": "Avd. Benalua C/ Paz 1 C/ Amapola 8",
+    "municipality": undefined,
+    "result": {
+      "address": null,
+      "confidence": 0,
+      "reason": "multiple_addresses",
+      "transformations": [
+        "Detected as non-geocodable",
+      ],
+    },
+  },
+  {
+    "id": "COL-05",
+    "input": "Pol 14- P 146",
+    "municipality": undefined,
+    "result": {
+      "address": null,
+      "confidence": 0,
+      "reason": "cadastral",
+      "transformations": [
+        "Detected as non-geocodable",
+      ],
+    },
+  },
+  {
+    "id": "COL-06",
+    "input": "C/ Pilarillo s/n C/ Cuesta de las Fuentes s/n",
+    "municipality": undefined,
+    "result": {
+      "address": null,
+      "confidence": 0,
+      "reason": "multiple_addresses",
+      "transformations": [
+        "Detected as non-geocodable",
+      ],
+    },
+  },
+]
+`;
+
+exports[`AddressExtractor Regresión - Casos Críticos > regresión: expansión de abreviaturas (C/ → Calle) 1`] = `
+[
+  {
+    "id": "TIJ-03",
+    "input": "C/Garcilaso de la Vega, n/ 5, bajo, Tíjola, disponible 24 horas",
+    "municipality": "Tíjola",
+    "result": {
+      "address": "Calle Garcilaso de la Vega, 5, Tíjola",
+      "confidence": 100,
+      "reason": undefined,
+      "transformations": [
+        "Suffix removed: [.,\\-–]?\\s*(disponible\\s+)?24\\...",
+        "Suffix removed: ,?\\s*\\b(bajo|alto|izq(da)?\\.?|...",
+        "Expanded: "C/" → "Calle"",
+        "Number format normalized",
+      ],
+    },
+  },
+  {
+    "id": "TIJ-04",
+    "input": "Policía Local, C/Garcilaso de la Vega, n/ 5, bajo, Tíjola",
+    "municipality": "Tíjola",
+    "result": {
+      "address": "Calle Garcilaso de la Vega, 5, Tíjola",
+      "confidence": 100,
+      "reason": undefined,
+      "transformations": [
+        "Prefix+name removed: "Policía Local,"",
+        "Suffix removed: ,?\\s*\\b(bajo|alto|izq(da)?\\.?|...",
+        "Expanded: "C/" → "Calle"",
+        "Number format normalized",
+      ],
+    },
+  },
+  {
+    "id": "TIJ-05",
+    "input": "Consorcio de Bomberos Levante Almeriense, Avda. De la Estación s/n, Albox (Almería)",
+    "municipality": "Albox",
+    "result": {
+      "address": "Avenida de la Estación, s/n, Albox",
+      "confidence": 100,
+      "reason": undefined,
+      "transformations": [
+        "Prefix+name removed: "Consorcio de Bomberos Levante Almeriense,"",
+        "Suffix removed: \\s*\\((almería|granada|jaén|cór...",
+        "Expanded: "Avda." → "Avenida"",
+        "Number format normalized",
+        "Smart capitalization applied",
+      ],
+    },
+  },
+  {
+    "id": "TIJ-06",
+    "input": "Pabellón Municipal de Deportes, C/ Francisco Quevedo, s/n, Tíjola",
+    "municipality": "Tíjola",
+    "result": {
+      "address": "Calle Francisco Quevedo, s/n, Tíjola",
+      "confidence": 100,
+      "reason": undefined,
+      "transformations": [
+        "Prefix removed: "Pabellón Municipal de Deportes"",
+        "Expanded: "C/" → "Calle"",
+      ],
+    },
+  },
+  {
+    "id": "TIJ-11",
+    "input": "Avda José Antonio, n/ 18, Tíjola",
+    "municipality": "Tíjola",
+    "result": {
+      "address": "Avenida José Antonio, 18, Tíjola",
+      "confidence": 100,
+      "reason": undefined,
+      "transformations": [
+        "Expanded: "Avda" → "Avenida"",
+        "Number format normalized",
+      ],
+    },
+  },
+  {
+    "id": "TIJ-12",
+    "input": "C/ Santa María, n/ 1",
+    "municipality": undefined,
+    "result": {
+      "address": "Calle Santa María, 1",
+      "confidence": 90,
+      "reason": undefined,
+      "transformations": [
+        "Expanded: "C/" → "Calle"",
+        "Number format normalized",
+      ],
+    },
+  },
+  {
+    "id": "TIJ-13",
+    "input": "C/ Enriqueta Reche, s7n",
+    "municipality": undefined,
+    "result": {
+      "address": "Calle Enriqueta Reche, s/n",
+      "confidence": 80,
+      "reason": undefined,
+      "transformations": [
+        "OCR: "s7n" → "s/n"",
+        "Expanded: "C/" → "Calle"",
+      ],
+    },
+  },
+  {
+    "id": "COL-01",
+    "input": "C/ erillas, 2Colomera",
+    "municipality": "Colomera",
+    "result": {
+      "address": "Calle Erillas, 2, Colomera",
+      "confidence": 100,
+      "reason": undefined,
+      "transformations": [
+        "Expanded: "C/" → "Calle"",
+        "Number format normalized",
+        "Smart capitalization applied",
+      ],
+    },
+  },
+  {
+    "id": "COL-02",
+    "input": "Avd Virgen de la Cabeza, 9. Colomera",
+    "municipality": "Colomera",
+    "result": {
+      "address": "Avenida Virgen de la Cabeza, 9, Colomera",
+      "confidence": 100,
+      "reason": undefined,
+      "transformations": [
+        "Expanded: "Avd" → "Avenida"",
+        "Number format normalized",
+      ],
+    },
+  },
+  {
+    "id": "COL-04",
+    "input": "Avd. Benalua C/ Paz 1 C/ Amapola 8",
+    "municipality": undefined,
+    "result": {
+      "address": null,
+      "confidence": 0,
+      "reason": "multiple_addresses",
+      "transformations": [
+        "Detected as non-geocodable",
+      ],
+    },
+  },
+  {
+    "id": "COL-06",
+    "input": "C/ Pilarillo s/n C/ Cuesta de las Fuentes s/n",
+    "municipality": undefined,
+    "result": {
+      "address": null,
+      "confidence": 0,
+      "reason": "multiple_addresses",
+      "transformations": [
+        "Detected as non-geocodable",
+      ],
+    },
+  },
+  {
+    "id": "COL-10",
+    "input": "AV. Benalúa s/n",
+    "municipality": undefined,
+    "result": {
+      "address": "Avenida Benalúa, s/n",
+      "confidence": 80,
+      "reason": undefined,
+      "transformations": [
+        "Expanded: "Av." → "Avenida"",
+        "Number format normalized",
+      ],
+    },
+  },
+  {
+    "id": "BER-02",
+    "input": "C/ Carretera de Adra s/n Berja. Teléfono. 600 10 90 00",
+    "municipality": "Berja",
+    "result": {
+      "address": "Calle Carretera de Adra, s/n, Berja",
+      "confidence": 100,
+      "reason": undefined,
+      "transformations": [
+        "Suffix removed: [.,-]?\\s*teléfono\\.?\\s*[\\d\\s]+...",
+        "Expanded: "C/" → "Calle"",
+        "Number format normalized",
+        "Punctuation normalized",
+      ],
+    },
+  },
+  {
+    "id": "BER-03",
+    "input": "C/LOS ACTECAS NAVE N.º 11",
+    "municipality": undefined,
+    "result": {
+      "address": "Calle Los Aztecas, nave 11",
+      "confidence": 80,
+      "reason": undefined,
+      "transformations": [
+        "OCR: "N.º" → "Nº"",
+        "OCR: "/ACTECAS/g" → "Aztecas"",
+        "Expanded: "C/" → "Calle"",
+        "Number format normalized",
+        "Smart capitalization applied",
+      ],
+    },
+  },
+  {
+    "id": "BER-04",
+    "input": "POLIGONO C/ QUINTA AVENIDA S/N",
+    "municipality": undefined,
+    "result": {
+      "address": "Polígono, Calle Quinta Avenida, s/n",
+      "confidence": 70,
+      "reason": undefined,
+      "transformations": [
+        "Expanded: "POLIGONO" → "Polígono"",
+        "Expanded: "AVENIDA" → "Avenida"",
+        "Expanded: "C/" → "Calle"",
+        "Number format normalized",
+        "Smart capitalization applied",
+      ],
+    },
+  },
+  {
+    "id": "BER-05",
+    "input": "C/ PLAZA DE LA CONSTITUCIÓN N.º 6",
+    "municipality": undefined,
+    "result": {
+      "address": "Plaza de la Constitución, 6",
+      "confidence": 90,
+      "reason": undefined,
+      "transformations": [
+        "OCR: "N.º" → "Nº"",
+        "Number format normalized",
+        "Punctuation normalized",
+        "Smart capitalization applied",
+      ],
+    },
+  },
+  {
+    "id": "BER-07",
+    "input": "Consultorio Centro de Salud de Berja - URGENCIAS. C/ Carretera de Adra s/n Berja",
+    "municipality": "Berja",
+    "result": {
+      "address": "Calle Carretera de Adra, s/n, Berja",
+      "confidence": 100,
+      "reason": undefined,
+      "transformations": [
+        "Prefix removed: "Consultorio Centro de Salud"",
+        "Mid-prefix removed: "URGENCIAS."",
+        "Expanded: "C/" → "Calle"",
+        "Number format normalized",
+        "Punctuation normalized",
+      ],
+    },
+  },
+  {
+    "id": "BER-09",
+    "input": "C/ LOS Geranios - 2",
+    "municipality": undefined,
+    "result": {
+      "address": "Calle Los Geranios, 2",
+      "confidence": 90,
+      "reason": undefined,
+      "transformations": [
+        "Expanded: "C/" → "Calle"",
+        "Number format normalized",
+        "Smart capitalization applied",
+      ],
+    },
+  },
+  {
+    "id": "SYN-03",
+    "input": "C/Mayor, 15, Villanueva",
+    "municipality": undefined,
+    "result": {
+      "address": "Calle Mayor, 15, Villanueva",
+      "confidence": 100,
+      "reason": undefined,
+      "transformations": [
+        "Expanded: "C/" → "Calle"",
+      ],
+    },
+  },
+]
+`;
+
+exports[`AddressExtractor Regresión - Casos Críticos > regresión: formato s/n y números 1`] = `
+[
+  {
+    "id": "TIJ-05",
+    "input": "Consorcio de Bomberos Levante Almeriense, Avda. De la Estación s/n, Albox (Almería)",
+    "municipality": "Albox",
+    "result": {
+      "address": "Avenida de la Estación, s/n, Albox",
+      "confidence": 100,
+      "reason": undefined,
+      "transformations": [
+        "Prefix+name removed: "Consorcio de Bomberos Levante Almeriense,"",
+        "Suffix removed: \\s*\\((almería|granada|jaén|cór...",
+        "Expanded: "Avda." → "Avenida"",
+        "Number format normalized",
+        "Smart capitalization applied",
+      ],
+    },
+  },
+  {
+    "id": "TIJ-06",
+    "input": "Pabellón Municipal de Deportes, C/ Francisco Quevedo, s/n, Tíjola",
+    "municipality": "Tíjola",
+    "result": {
+      "address": "Calle Francisco Quevedo, s/n, Tíjola",
+      "confidence": 100,
+      "reason": undefined,
+      "transformations": [
+        "Prefix removed: "Pabellón Municipal de Deportes"",
+        "Expanded: "C/" → "Calle"",
+      ],
+    },
+  },
+  {
+    "id": "TIJ-07",
+    "input": "Poligono Industrial Tíjola, s/n, Diponibilidad 24 horas",
+    "municipality": "Tíjola",
+    "result": {
+      "address": "Polígono Industrial, s/n, Tíjola",
+      "confidence": 100,
+      "reason": undefined,
+      "transformations": [
+        "OCR: "/diponibilidad/gi" → "disponibilidad"",
+        "Suffix removed: [.,\\-–]?\\s*disponibilidad\\s+24...",
+        "Expanded: "POLIGONO" → "Polígono"",
+        "T07: Polígono Industrial + municipality separated",
+        "Punctuation normalized",
+      ],
+    },
+  },
+  {
+    "id": "TIJ-13",
+    "input": "C/ Enriqueta Reche, s7n",
+    "municipality": undefined,
+    "result": {
+      "address": "Calle Enriqueta Reche, s/n",
+      "confidence": 80,
+      "reason": undefined,
+      "transformations": [
+        "OCR: "s7n" → "s/n"",
+        "Expanded: "C/" → "Calle"",
+      ],
+    },
+  },
+  {
+    "id": "COL-06",
+    "input": "C/ Pilarillo s/n C/ Cuesta de las Fuentes s/n",
+    "municipality": undefined,
+    "result": {
+      "address": null,
+      "confidence": 0,
+      "reason": "multiple_addresses",
+      "transformations": [
+        "Detected as non-geocodable",
+      ],
+    },
+  },
+  {
+    "id": "COL-10",
+    "input": "AV. Benalúa s/n",
+    "municipality": undefined,
+    "result": {
+      "address": "Avenida Benalúa, s/n",
+      "confidence": 80,
+      "reason": undefined,
+      "transformations": [
+        "Expanded: "Av." → "Avenida"",
+        "Number format normalized",
+      ],
+    },
+  },
+  {
+    "id": "BER-02",
+    "input": "C/ Carretera de Adra s/n Berja. Teléfono. 600 10 90 00",
+    "municipality": "Berja",
+    "result": {
+      "address": "Calle Carretera de Adra, s/n, Berja",
+      "confidence": 100,
+      "reason": undefined,
+      "transformations": [
+        "Suffix removed: [.,-]?\\s*teléfono\\.?\\s*[\\d\\s]+...",
+        "Expanded: "C/" → "Calle"",
+        "Number format normalized",
+        "Punctuation normalized",
+      ],
+    },
+  },
+  {
+    "id": "BER-04",
+    "input": "POLIGONO C/ QUINTA AVENIDA S/N",
+    "municipality": undefined,
+    "result": {
+      "address": "Polígono, Calle Quinta Avenida, s/n",
+      "confidence": 70,
+      "reason": undefined,
+      "transformations": [
+        "Expanded: "POLIGONO" → "Polígono"",
+        "Expanded: "AVENIDA" → "Avenida"",
+        "Expanded: "C/" → "Calle"",
+        "Number format normalized",
+        "Smart capitalization applied",
+      ],
+    },
+  },
+  {
+    "id": "BER-07",
+    "input": "Consultorio Centro de Salud de Berja - URGENCIAS. C/ Carretera de Adra s/n Berja",
+    "municipality": "Berja",
+    "result": {
+      "address": "Calle Carretera de Adra, s/n, Berja",
+      "confidence": 100,
+      "reason": undefined,
+      "transformations": [
+        "Prefix removed: "Consultorio Centro de Salud"",
+        "Mid-prefix removed: "URGENCIAS."",
+        "Expanded: "C/" → "Calle"",
+        "Number format normalized",
+        "Punctuation normalized",
+      ],
+    },
+  },
+  {
+    "id": "DBF-02",
+    "input": "CUESTA MATUETE S/N",
+    "municipality": undefined,
+    "result": {
+      "address": "Cuesta Matuete, s/n",
+      "confidence": 80,
+      "reason": undefined,
+      "transformations": [
+        "Expanded: "CUESTA" → "Cuesta"",
+        "Number format normalized",
+        "Smart capitalization applied",
+      ],
+    },
+  },
+  {
+    "id": "DBF-07",
+    "input": "CAMINO CAMPO DE FÚTBOL N4",
+    "municipality": undefined,
+    "result": {
+      "address": "Camino Campo de Fútbol, 4",
+      "confidence": 90,
+      "reason": undefined,
+      "transformations": [
+        "Expanded: "CAMINO" → "Camino"",
+        "Number format normalized",
+        "Punctuation normalized",
+        "Smart capitalization applied",
+      ],
+    },
+  },
+  {
+    "id": "SYN-10",
+    "input": "Consultorio Local, Plaza Mayor, s/n",
+    "municipality": undefined,
+    "result": {
+      "address": "Plaza Mayor, s/n",
+      "confidence": 80,
+      "reason": undefined,
+      "transformations": [
+        "Prefix+name removed: "Consultorio Local,"",
+      ],
+    },
+  },
+]
+`;
+
+exports[`AddressExtractor Regresión - Casos Críticos > regresión: normalización UTF-8/OCR 1`] = `
+[
+  {
+    "id": "TIJ-01",
+    "input": "Centro de Salud Tíjola, Plaza Luis Gonzaga, n/ 1, de Tíjola, disponible 24 horas",
+    "municipality": "Tíjola",
+    "result": {
+      "address": "Plaza Luis Gonzaga, 1, Tíjola",
+      "confidence": 100,
+      "reason": undefined,
+      "transformations": [
+        "Prefix+name removed: "Centro de Salud Tíjola,"",
+        "Suffix removed: [.,\\-–]?\\s*(disponible\\s+)?24\\...",
+        "Number format normalized",
+        "Punctuation normalized",
+      ],
+    },
+  },
+  {
+    "id": "TIJ-02",
+    "input": "Ayuntamiento de Tíjola, despachos municipales, Plaza de España, n/ 1, Tíjola, 950420300- Disponible 24 horas",
+    "municipality": "Tíjola",
+    "result": {
+      "address": "Plaza de España, 1, Tíjola",
+      "confidence": 100,
+      "reason": undefined,
+      "transformations": [
+        "Prefix removed: "Ayuntamiento"",
+        "Pre-street cleanup: "despachos municipales,"",
+        "Suffix removed: [.,\\-–]?\\s*(disponible\\s+)?24\\...",
+        "Suffix removed: ,?\\s*\\d{9}\\s*-?\\s*(disponible)...",
+        "Number format normalized",
+      ],
+    },
+  },
+  {
+    "id": "TIJ-03",
+    "input": "C/Garcilaso de la Vega, n/ 5, bajo, Tíjola, disponible 24 horas",
+    "municipality": "Tíjola",
+    "result": {
+      "address": "Calle Garcilaso de la Vega, 5, Tíjola",
+      "confidence": 100,
+      "reason": undefined,
+      "transformations": [
+        "Suffix removed: [.,\\-–]?\\s*(disponible\\s+)?24\\...",
+        "Suffix removed: ,?\\s*\\b(bajo|alto|izq(da)?\\.?|...",
+        "Expanded: "C/" → "Calle"",
+        "Number format normalized",
+      ],
+    },
+  },
+  {
+    "id": "TIJ-04",
+    "input": "Policía Local, C/Garcilaso de la Vega, n/ 5, bajo, Tíjola",
+    "municipality": "Tíjola",
+    "result": {
+      "address": "Calle Garcilaso de la Vega, 5, Tíjola",
+      "confidence": 100,
+      "reason": undefined,
+      "transformations": [
+        "Prefix+name removed: "Policía Local,"",
+        "Suffix removed: ,?\\s*\\b(bajo|alto|izq(da)?\\.?|...",
+        "Expanded: "C/" → "Calle"",
+        "Number format normalized",
+      ],
+    },
+  },
+  {
+    "id": "TIJ-11",
+    "input": "Avda José Antonio, n/ 18, Tíjola",
+    "municipality": "Tíjola",
+    "result": {
+      "address": "Avenida José Antonio, 18, Tíjola",
+      "confidence": 100,
+      "reason": undefined,
+      "transformations": [
+        "Expanded: "Avda" → "Avenida"",
+        "Number format normalized",
+      ],
+    },
+  },
+  {
+    "id": "TIJ-12",
+    "input": "C/ Santa María, n/ 1",
+    "municipality": undefined,
+    "result": {
+      "address": "Calle Santa María, 1",
+      "confidence": 90,
+      "reason": undefined,
+      "transformations": [
+        "Expanded: "C/" → "Calle"",
+        "Number format normalized",
+      ],
+    },
+  },
+  {
+    "id": "BER-03",
+    "input": "C/LOS ACTECAS NAVE N.º 11",
+    "municipality": undefined,
+    "result": {
+      "address": "Calle Los Aztecas, nave 11",
+      "confidence": 80,
+      "reason": undefined,
+      "transformations": [
+        "OCR: "N.º" → "Nº"",
+        "OCR: "/ACTECAS/g" → "Aztecas"",
+        "Expanded: "C/" → "Calle"",
+        "Number format normalized",
+        "Smart capitalization applied",
+      ],
+    },
+  },
+  {
+    "id": "BER-05",
+    "input": "C/ PLAZA DE LA CONSTITUCIÓN N.º 6",
+    "municipality": undefined,
+    "result": {
+      "address": "Plaza de la Constitución, 6",
+      "confidence": 90,
+      "reason": undefined,
+      "transformations": [
+        "OCR: "N.º" → "Nº"",
+        "Number format normalized",
+        "Punctuation normalized",
+        "Smart capitalization applied",
+      ],
+    },
+  },
+  {
+    "id": "DBF-01",
+    "input": "CALLE ESCUELAS NÂº 1",
+    "municipality": undefined,
+    "result": {
+      "address": "Calle Escuelas, 1",
+      "confidence": 90,
+      "reason": undefined,
+      "transformations": [
+        "OCR: "NÂº" → "Nº"",
+        "Expanded: "CALLE" → "Calle"",
+        "Number format normalized",
+        "Punctuation normalized",
+        "Smart capitalization applied",
+      ],
+    },
+  },
+  {
+    "id": "SYN-06",
+    "input": "Calle Mayor, n/ 15, Villanueva",
+    "municipality": undefined,
+    "result": {
+      "address": "Calle Mayor, 15, Villanueva",
+      "confidence": 100,
+      "reason": undefined,
+      "transformations": [
+        "Number format normalized",
+      ],
+    },
+  },
+]
+`;
+
+exports[`AddressExtractor Regresión - Casos Críticos > regresión: prefijos de infraestructura 1`] = `
+[
+  {
+    "id": "TIJ-01",
+    "input": "Centro de Salud Tíjola, Plaza Luis Gonzaga, n/ 1, de Tíjola, disponible 24 horas",
+    "municipality": "Tíjola",
+    "result": {
+      "address": "Plaza Luis Gonzaga, 1, Tíjola",
+      "confidence": 100,
+      "reason": undefined,
+      "transformations": [
+        "Prefix+name removed: "Centro de Salud Tíjola,"",
+        "Suffix removed: [.,\\-–]?\\s*(disponible\\s+)?24\\...",
+        "Number format normalized",
+        "Punctuation normalized",
+      ],
+    },
+  },
+  {
+    "id": "TIJ-02",
+    "input": "Ayuntamiento de Tíjola, despachos municipales, Plaza de España, n/ 1, Tíjola, 950420300- Disponible 24 horas",
+    "municipality": "Tíjola",
+    "result": {
+      "address": "Plaza de España, 1, Tíjola",
+      "confidence": 100,
+      "reason": undefined,
+      "transformations": [
+        "Prefix removed: "Ayuntamiento"",
+        "Pre-street cleanup: "despachos municipales,"",
+        "Suffix removed: [.,\\-–]?\\s*(disponible\\s+)?24\\...",
+        "Suffix removed: ,?\\s*\\d{9}\\s*-?\\s*(disponible)...",
+        "Number format normalized",
+      ],
+    },
+  },
+  {
+    "id": "TIJ-04",
+    "input": "Policía Local, C/Garcilaso de la Vega, n/ 5, bajo, Tíjola",
+    "municipality": "Tíjola",
+    "result": {
+      "address": "Calle Garcilaso de la Vega, 5, Tíjola",
+      "confidence": 100,
+      "reason": undefined,
+      "transformations": [
+        "Prefix+name removed: "Policía Local,"",
+        "Suffix removed: ,?\\s*\\b(bajo|alto|izq(da)?\\.?|...",
+        "Expanded: "C/" → "Calle"",
+        "Number format normalized",
+      ],
+    },
+  },
+  {
+    "id": "TIJ-10",
+    "input": "3,- Cargos Políticos, 3,- Funcionarios de Ayuntamiento Tíjola",
+    "municipality": undefined,
+    "result": {
+      "address": null,
+      "confidence": 0,
+      "reason": "not_geocodable",
+      "transformations": [
+        "Detected as non-geocodable",
+      ],
+    },
+  },
+  {
+    "id": "BER-06",
+    "input": "Policía Local Municipal. Jefatura: Plaza de la Constitución 1.  Berja 04760",
+    "municipality": "Berja",
+    "result": {
+      "address": "Plaza de la Constitución, 1, Berja",
+      "confidence": 100,
+      "reason": undefined,
+      "transformations": [
+        "Prefix removed: "Policía Local Municipal"",
+        "Prefix+name removed: "Jefatura:"",
+        "Suffix removed: ,?\\s*\\b(04|18|14|29|11|21|41|2...",
+        "Number format normalized",
+        "Punctuation normalized",
+      ],
+    },
+  },
+  {
+    "id": "BER-07",
+    "input": "Consultorio Centro de Salud de Berja - URGENCIAS. C/ Carretera de Adra s/n Berja",
+    "municipality": "Berja",
+    "result": {
+      "address": "Calle Carretera de Adra, s/n, Berja",
+      "confidence": 100,
+      "reason": undefined,
+      "transformations": [
+        "Prefix removed: "Consultorio Centro de Salud"",
+        "Mid-prefix removed: "URGENCIAS."",
+        "Expanded: "C/" → "Calle"",
+        "Number format normalized",
+        "Punctuation normalized",
+      ],
+    },
+  },
+  {
+    "id": "SYN-08",
+    "input": "Centro de Salud, Calle Real, 1",
+    "municipality": undefined,
+    "result": {
+      "address": "Calle Real, 1",
+      "confidence": 90,
+      "reason": undefined,
+      "transformations": [
+        "Prefix+name removed: "Centro de Salud,"",
+      ],
+    },
+  },
+  {
+    "id": "SYN-09",
+    "input": "Centro de Salud de Villanueva, Calle Real, 1",
+    "municipality": undefined,
+    "result": {
+      "address": "Calle Real, 1",
+      "confidence": 90,
+      "reason": undefined,
+      "transformations": [
+        "Prefix+name removed: "Centro de Salud de Villanueva,"",
+      ],
+    },
+  },
+  {
+    "id": "SYN-10",
+    "input": "Consultorio Local, Plaza Mayor, s/n",
+    "municipality": undefined,
+    "result": {
+      "address": "Plaza Mayor, s/n",
+      "confidence": 80,
+      "reason": undefined,
+      "transformations": [
+        "Prefix+name removed: "Consultorio Local,"",
+      ],
+    },
+  },
+  {
+    "id": "SYN-11",
+    "input": "CEIP San Juan, Avenida de la Paz, 5",
+    "municipality": undefined,
+    "result": {
+      "address": "Avenida de la Paz, 5",
+      "confidence": 90,
+      "reason": undefined,
+      "transformations": [
+        "Prefix+name removed: "CEIP San Juan,"",
+      ],
+    },
+  },
+  {
+    "id": "SYN-13",
+    "input": "Policía Local, Calle Guardia, 3",
+    "municipality": undefined,
+    "result": {
+      "address": "Calle Guardia, 3",
+      "confidence": 90,
+      "reason": undefined,
+      "transformations": [
+        "Prefix+name removed: "Policía Local,"",
+      ],
+    },
+  },
+  {
+    "id": "SYN-14",
+    "input": "Ayuntamiento, Plaza de España, 1",
+    "municipality": undefined,
+    "result": {
+      "address": "Plaza de España, 1",
+      "confidence": 90,
+      "reason": undefined,
+      "transformations": [
+        "Prefix+name removed: "Ayuntamiento,"",
+      ],
+    },
+  },
+  {
+    "id": "SYN-15",
+    "input": "Ayuntamiento de Villanueva, Plaza de España, 1",
+    "municipality": undefined,
+    "result": {
+      "address": "Plaza de España, 1",
+      "confidence": 90,
+      "reason": undefined,
+      "transformations": [
+        "Prefix+name removed: "Ayuntamiento de Villanueva,"",
+      ],
+    },
+  },
+]
+`;
+
+exports[`AddressExtractor Regresión - Casos Críticos > regresión: sufijos (horarios, teléfonos, CP) 1`] = `
+[
+  {
+    "id": "TIJ-01",
+    "input": "Centro de Salud Tíjola, Plaza Luis Gonzaga, n/ 1, de Tíjola, disponible 24 horas",
+    "municipality": "Tíjola",
+    "result": {
+      "address": "Plaza Luis Gonzaga, 1, Tíjola",
+      "confidence": 100,
+      "reason": undefined,
+      "transformations": [
+        "Prefix+name removed: "Centro de Salud Tíjola,"",
+        "Suffix removed: [.,\\-–]?\\s*(disponible\\s+)?24\\...",
+        "Number format normalized",
+        "Punctuation normalized",
+      ],
+    },
+  },
+  {
+    "id": "TIJ-02",
+    "input": "Ayuntamiento de Tíjola, despachos municipales, Plaza de España, n/ 1, Tíjola, 950420300- Disponible 24 horas",
+    "municipality": "Tíjola",
+    "result": {
+      "address": "Plaza de España, 1, Tíjola",
+      "confidence": 100,
+      "reason": undefined,
+      "transformations": [
+        "Prefix removed: "Ayuntamiento"",
+        "Pre-street cleanup: "despachos municipales,"",
+        "Suffix removed: [.,\\-–]?\\s*(disponible\\s+)?24\\...",
+        "Suffix removed: ,?\\s*\\d{9}\\s*-?\\s*(disponible)...",
+        "Number format normalized",
+      ],
+    },
+  },
+  {
+    "id": "TIJ-03",
+    "input": "C/Garcilaso de la Vega, n/ 5, bajo, Tíjola, disponible 24 horas",
+    "municipality": "Tíjola",
+    "result": {
+      "address": "Calle Garcilaso de la Vega, 5, Tíjola",
+      "confidence": 100,
+      "reason": undefined,
+      "transformations": [
+        "Suffix removed: [.,\\-–]?\\s*(disponible\\s+)?24\\...",
+        "Suffix removed: ,?\\s*\\b(bajo|alto|izq(da)?\\.?|...",
+        "Expanded: "C/" → "Calle"",
+        "Number format normalized",
+      ],
+    },
+  },
+  {
+    "id": "TIJ-05",
+    "input": "Consorcio de Bomberos Levante Almeriense, Avda. De la Estación s/n, Albox (Almería)",
+    "municipality": "Albox",
+    "result": {
+      "address": "Avenida de la Estación, s/n, Albox",
+      "confidence": 100,
+      "reason": undefined,
+      "transformations": [
+        "Prefix+name removed: "Consorcio de Bomberos Levante Almeriense,"",
+        "Suffix removed: \\s*\\((almería|granada|jaén|cór...",
+        "Expanded: "Avda." → "Avenida"",
+        "Number format normalized",
+        "Smart capitalization applied",
+      ],
+    },
+  },
+  {
+    "id": "TIJ-07",
+    "input": "Poligono Industrial Tíjola, s/n, Diponibilidad 24 horas",
+    "municipality": "Tíjola",
+    "result": {
+      "address": "Polígono Industrial, s/n, Tíjola",
+      "confidence": 100,
+      "reason": undefined,
+      "transformations": [
+        "OCR: "/diponibilidad/gi" → "disponibilidad"",
+        "Suffix removed: [.,\\-–]?\\s*disponibilidad\\s+24...",
+        "Expanded: "POLIGONO" → "Polígono"",
+        "T07: Polígono Industrial + municipality separated",
+        "Punctuation normalized",
+      ],
+    },
+  },
+  {
+    "id": "BER-01",
+    "input": "Plaza de la Constitución 1.  Berja 04760",
+    "municipality": "Berja",
+    "result": {
+      "address": "Plaza de la Constitución, 1, Berja",
+      "confidence": 100,
+      "reason": undefined,
+      "transformations": [
+        "Suffix removed: ,?\\s*\\b(04|18|14|29|11|21|41|2...",
+        "Number format normalized",
+        "Punctuation normalized",
+      ],
+    },
+  },
+  {
+    "id": "BER-02",
+    "input": "C/ Carretera de Adra s/n Berja. Teléfono. 600 10 90 00",
+    "municipality": "Berja",
+    "result": {
+      "address": "Calle Carretera de Adra, s/n, Berja",
+      "confidence": 100,
+      "reason": undefined,
+      "transformations": [
+        "Suffix removed: [.,-]?\\s*teléfono\\.?\\s*[\\d\\s]+...",
+        "Expanded: "C/" → "Calle"",
+        "Number format normalized",
+        "Punctuation normalized",
+      ],
+    },
+  },
+  {
+    "id": "BER-06",
+    "input": "Policía Local Municipal. Jefatura: Plaza de la Constitución 1.  Berja 04760",
+    "municipality": "Berja",
+    "result": {
+      "address": "Plaza de la Constitución, 1, Berja",
+      "confidence": 100,
+      "reason": undefined,
+      "transformations": [
+        "Prefix removed: "Policía Local Municipal"",
+        "Prefix+name removed: "Jefatura:"",
+        "Suffix removed: ,?\\s*\\b(04|18|14|29|11|21|41|2...",
+        "Number format normalized",
+        "Punctuation normalized",
+      ],
+    },
+  },
+  {
+    "id": "SYN-16",
+    "input": "Calle Real, 1, disponible 24 horas",
+    "municipality": undefined,
+    "result": {
+      "address": "Calle Real, 1",
+      "confidence": 90,
+      "reason": undefined,
+      "transformations": [
+        "Suffix removed: [.,\\-–]?\\s*(disponible\\s+)?24\\...",
+      ],
+    },
+  },
+  {
+    "id": "SYN-17",
+    "input": "Calle Real, 1. Disponibilidad 24 horas.",
+    "municipality": undefined,
+    "result": {
+      "address": "Calle Real, 1",
+      "confidence": 90,
+      "reason": undefined,
+      "transformations": [
+        "Suffix removed: [.,\\-–]?\\s*disponibilidad\\s+24...",
+      ],
+    },
+  },
+  {
+    "id": "SYN-19",
+    "input": "Calle Real, 1. Tel: 958123456",
+    "municipality": undefined,
+    "result": {
+      "address": "Calle Real, 1",
+      "confidence": 90,
+      "reason": undefined,
+      "transformations": [
+        "Suffix removed: ,?\\s*tel[éef]?[.:]\\s*[\\d\\s-]+...",
+      ],
+    },
+  },
+  {
+    "id": "SYN-21",
+    "input": "Calle Real, 1, Villanueva (Almería)",
+    "municipality": undefined,
+    "result": {
+      "address": "Calle Real, 1, Villanueva",
+      "confidence": 100,
+      "reason": undefined,
+      "transformations": [
+        "Suffix removed: \\s*\\((almería|granada|jaén|cór...",
+      ],
+    },
+  },
+  {
+    "id": "SYN-23",
+    "input": "Calle Real, 1, Villanueva, 04760",
+    "municipality": undefined,
+    "result": {
+      "address": "Calle Real, 1, Villanueva",
+      "confidence": 100,
+      "reason": undefined,
+      "transformations": [
+        "Suffix removed: ,?\\s*\\b(04|18|14|29|11|21|41|2...",
+      ],
+    },
+  },
+]
+`;
+
+exports[`AddressExtractor Regresión - Casos Críticos > regresión: transformaciones F025 Step 7 (puntuación) 1`] = `
+[
+  {
+    "id": "COL-01",
+    "input": "C/ erillas, 2Colomera",
+    "municipality": "Colomera",
+    "result": {
+      "address": "Calle Erillas, 2, Colomera",
+      "confidence": 100,
+      "reason": undefined,
+      "transformations": [
+        "Expanded: "C/" → "Calle"",
+        "Number format normalized",
+        "Smart capitalization applied",
+      ],
+    },
+  },
+  {
+    "id": "COL-02",
+    "input": "Avd Virgen de la Cabeza, 9. Colomera",
+    "municipality": "Colomera",
+    "result": {
+      "address": "Avenida Virgen de la Cabeza, 9, Colomera",
+      "confidence": 100,
+      "reason": undefined,
+      "transformations": [
+        "Expanded: "Avd" → "Avenida"",
+        "Number format normalized",
+      ],
+    },
+  },
+  {
+    "id": "BER-01",
+    "input": "Plaza de la Constitución 1.  Berja 04760",
+    "municipality": "Berja",
+    "result": {
+      "address": "Plaza de la Constitución, 1, Berja",
+      "confidence": 100,
+      "reason": undefined,
+      "transformations": [
+        "Suffix removed: ,?\\s*\\b(04|18|14|29|11|21|41|2...",
+        "Number format normalized",
+        "Punctuation normalized",
+      ],
+    },
+  },
+  {
+    "id": "SYN-04",
+    "input": "Villanueva, Calle Mayor, 15",
+    "municipality": undefined,
+    "result": {
+      "address": "Calle Mayor, 15",
+      "confidence": 90,
+      "reason": undefined,
+      "transformations": [
+        "Pre-street cleanup: "Villanueva,"",
+      ],
+    },
+  },
+  {
+    "id": "SYN-05",
+    "input": "Calle Mayor. 15. Villanueva",
+    "municipality": undefined,
+    "result": {
+      "address": "Calle Mayor, 15, Villanueva",
+      "confidence": 100,
+      "reason": undefined,
+      "transformations": [
+        "Number format normalized",
+        "Punctuation normalized",
+      ],
+    },
+  },
+]
+`;
+
+exports[`AddressExtractor Snapshots - Berja (9) > [BER-01] dir+cp 1`] = `
+{
+  "id": "BER-01",
+  "input": "Plaza de la Constitución 1.  Berja 04760",
+  "municipality": "Berja",
+  "result": {
+    "address": "Plaza de la Constitución, 1, Berja",
+    "confidence": 100,
+    "reason": undefined,
+    "transformations": [
+      "Suffix removed: ,?\\s*\\b(04|18|14|29|11|21|41|2...",
+      "Number format normalized",
+      "Punctuation normalized",
+    ],
+  },
+}
+`;
+
+exports[`AddressExtractor Snapshots - Berja (9) > [BER-02] dir+telefono 1`] = `
+{
+  "id": "BER-02",
+  "input": "C/ Carretera de Adra s/n Berja. Teléfono. 600 10 90 00",
+  "municipality": "Berja",
+  "result": {
+    "address": "Calle Carretera de Adra, s/n, Berja",
+    "confidence": 100,
+    "reason": undefined,
+    "transformations": [
+      "Suffix removed: [.,-]?\\s*teléfono\\.?\\s*[\\d\\s]+...",
+      "Expanded: "C/" → "Calle"",
+      "Number format normalized",
+      "Punctuation normalized",
+    ],
+  },
+}
+`;
+
+exports[`AddressExtractor Snapshots - Berja (9) > [BER-03] nave+typo 1`] = `
+{
+  "id": "BER-03",
+  "input": "C/LOS ACTECAS NAVE N.º 11",
+  "municipality": undefined,
+  "result": {
+    "address": "Calle Los Aztecas, nave 11",
+    "confidence": 80,
+    "reason": undefined,
+    "transformations": [
+      "OCR: "N.º" → "Nº"",
+      "OCR: "/ACTECAS/g" → "Aztecas"",
+      "Expanded: "C/" → "Calle"",
+      "Number format normalized",
+      "Smart capitalization applied",
+    ],
+  },
+}
+`;
+
+exports[`AddressExtractor Snapshots - Berja (9) > [BER-04] poligono+calle 1`] = `
+{
+  "id": "BER-04",
+  "input": "POLIGONO C/ QUINTA AVENIDA S/N",
+  "municipality": undefined,
+  "result": {
+    "address": "Polígono, Calle Quinta Avenida, s/n",
+    "confidence": 70,
+    "reason": undefined,
+    "transformations": [
+      "Expanded: "POLIGONO" → "Polígono"",
+      "Expanded: "AVENIDA" → "Avenida"",
+      "Expanded: "C/" → "Calle"",
+      "Number format normalized",
+      "Smart capitalization applied",
+    ],
+  },
+}
+`;
+
+exports[`AddressExtractor Snapshots - Berja (9) > [BER-05] c_plaza_redundante 1`] = `
+{
+  "id": "BER-05",
+  "input": "C/ PLAZA DE LA CONSTITUCIÓN N.º 6",
+  "municipality": undefined,
+  "result": {
+    "address": "Plaza de la Constitución, 6",
+    "confidence": 90,
+    "reason": undefined,
+    "transformations": [
+      "OCR: "N.º" → "Nº"",
+      "Number format normalized",
+      "Punctuation normalized",
+      "Smart capitalization applied",
+    ],
+  },
+}
+`;
+
+exports[`AddressExtractor Snapshots - Berja (9) > [BER-06] nombre+jefatura+dir 1`] = `
+{
+  "id": "BER-06",
+  "input": "Policía Local Municipal. Jefatura: Plaza de la Constitución 1.  Berja 04760",
+  "municipality": "Berja",
+  "result": {
+    "address": "Plaza de la Constitución, 1, Berja",
+    "confidence": 100,
+    "reason": undefined,
+    "transformations": [
+      "Prefix removed: "Policía Local Municipal"",
+      "Prefix+name removed: "Jefatura:"",
+      "Suffix removed: ,?\\s*\\b(04|18|14|29|11|21|41|2...",
+      "Number format normalized",
+      "Punctuation normalized",
+    ],
+  },
+}
+`;
+
+exports[`AddressExtractor Snapshots - Berja (9) > [BER-07] nombre_largo+dir 1`] = `
+{
+  "id": "BER-07",
+  "input": "Consultorio Centro de Salud de Berja - URGENCIAS. C/ Carretera de Adra s/n Berja",
+  "municipality": "Berja",
+  "result": {
+    "address": "Calle Carretera de Adra, s/n, Berja",
+    "confidence": 100,
+    "reason": undefined,
+    "transformations": [
+      "Prefix removed: "Consultorio Centro de Salud"",
+      "Mid-prefix removed: "URGENCIAS."",
+      "Expanded: "C/" → "Calle"",
+      "Number format normalized",
+      "Punctuation normalized",
+    ],
+  },
+}
+`;
+
+exports[`AddressExtractor Snapshots - Berja (9) > [BER-08] minusculas 1`] = `
+{
+  "id": "BER-08",
+  "input": "c/ llano Vilches 21",
+  "municipality": undefined,
+  "result": {
+    "address": "Calle Llano Vilches, 21",
+    "confidence": 90,
+    "reason": undefined,
+    "transformations": [
+      "Expanded: "C/" → "Calle"",
+      "Number format normalized",
+      "Smart capitalization applied",
+    ],
+  },
+}
+`;
+
+exports[`AddressExtractor Snapshots - Berja (9) > [BER-09] guion_numero 1`] = `
+{
+  "id": "BER-09",
+  "input": "C/ LOS Geranios - 2",
+  "municipality": undefined,
+  "result": {
+    "address": "Calle Los Geranios, 2",
+    "confidence": 90,
+    "reason": undefined,
+    "transformations": [
+      "Expanded: "C/" → "Calle"",
+      "Number format normalized",
+      "Smart capitalization applied",
+    ],
+  },
+}
+`;
+
+exports[`AddressExtractor Snapshots - Colomera (10) > [COL-01] numero_pegado 1`] = `
+{
+  "id": "COL-01",
+  "input": "C/ erillas, 2Colomera",
+  "municipality": "Colomera",
+  "result": {
+    "address": "Calle Erillas, 2, Colomera",
+    "confidence": 100,
+    "reason": undefined,
+    "transformations": [
+      "Expanded: "C/" → "Calle"",
+      "Number format normalized",
+      "Smart capitalization applied",
+    ],
+  },
+}
+`;
+
+exports[`AddressExtractor Snapshots - Colomera (10) > [COL-02] punto_vs_coma 1`] = `
+{
+  "id": "COL-02",
+  "input": "Avd Virgen de la Cabeza, 9. Colomera",
+  "municipality": "Colomera",
+  "result": {
+    "address": "Avenida Virgen de la Cabeza, 9, Colomera",
+    "confidence": 100,
+    "reason": undefined,
+    "transformations": [
+      "Expanded: "Avd" → "Avenida"",
+      "Number format normalized",
+    ],
+  },
+}
+`;
+
+exports[`AddressExtractor Snapshots - Colomera (10) > [COL-03] solo_nombre 1`] = `
+{
+  "id": "COL-03",
+  "input": "CONSULTORIO MÉDICO DE COLOMERA Y DEL CONSULTORIO AUXILIAR DEL CAURO",
+  "municipality": undefined,
+  "result": {
+    "address": null,
+    "confidence": 0,
+    "reason": "not_geocodable",
+    "transformations": [
+      "Detected as non-geocodable",
+    ],
+  },
+}
+`;
+
+exports[`AddressExtractor Snapshots - Colomera (10) > [COL-04] multiples_direcciones 1`] = `
+{
+  "id": "COL-04",
+  "input": "Avd. Benalua C/ Paz 1 C/ Amapola 8",
+  "municipality": undefined,
+  "result": {
+    "address": null,
+    "confidence": 0,
+    "reason": "multiple_addresses",
+    "transformations": [
+      "Detected as non-geocodable",
+    ],
+  },
+}
+`;
+
+exports[`AddressExtractor Snapshots - Colomera (10) > [COL-05] parcela_catastral 1`] = `
+{
+  "id": "COL-05",
+  "input": "Pol 14- P 146",
+  "municipality": undefined,
+  "result": {
+    "address": null,
+    "confidence": 0,
+    "reason": "cadastral",
+    "transformations": [
+      "Detected as non-geocodable",
+    ],
+  },
+}
+`;
+
+exports[`AddressExtractor Snapshots - Colomera (10) > [COL-06] multiples_direcciones 1`] = `
+{
+  "id": "COL-06",
+  "input": "C/ Pilarillo s/n C/ Cuesta de las Fuentes s/n",
+  "municipality": undefined,
+  "result": {
+    "address": null,
+    "confidence": 0,
+    "reason": "multiple_addresses",
+    "transformations": [
+      "Detected as non-geocodable",
+    ],
+  },
+}
+`;
+
+exports[`AddressExtractor Snapshots - Colomera (10) > [COL-07] direccion_limpia 1`] = `
+{
+  "id": "COL-07",
+  "input": "Calle Iglesia, 1",
+  "municipality": undefined,
+  "result": {
+    "address": "Calle Iglesia, 1",
+    "confidence": 90,
+    "reason": undefined,
+    "transformations": [],
+  },
+}
+`;
+
+exports[`AddressExtractor Snapshots - Colomera (10) > [COL-08] vereda_sin_num 1`] = `
+{
+  "id": "COL-08",
+  "input": "Vereda del Camino Real de Madrid",
+  "municipality": undefined,
+  "result": {
+    "address": "Vereda del Camino Real de Madrid",
+    "confidence": 50,
+    "reason": undefined,
+    "transformations": [],
+  },
+}
+`;
+
+exports[`AddressExtractor Snapshots - Colomera (10) > [COL-09] paraje 1`] = `
+{
+  "id": "COL-09",
+  "input": "Paraje cortijo el chopo",
+  "municipality": undefined,
+  "result": {
+    "address": "Paraje Cortijo El Chopo",
+    "confidence": 50,
+    "reason": undefined,
+    "transformations": [
+      "Smart capitalization applied",
+    ],
+  },
+}
+`;
+
+exports[`AddressExtractor Snapshots - Colomera (10) > [COL-10] mayusculas 1`] = `
+{
+  "id": "COL-10",
+  "input": "AV. Benalúa s/n",
+  "municipality": undefined,
+  "result": {
+    "address": "Avenida Benalúa, s/n",
+    "confidence": 80,
+    "reason": undefined,
+    "transformations": [
+      "Expanded: "Av." → "Avenida"",
+      "Number format normalized",
+    ],
+  },
+}
+`;
+
+exports[`AddressExtractor Snapshots - Consolidado > snapshot completo de los 63 casos 1`] = `
+[
+  {
+    "id": "TIJ-01",
+    "input": "Centro de Salud Tíjola, Plaza Luis Gonzaga, n/ 1, de Tíjola, disponible 24 horas",
+    "municipality": "Tíjola",
+    "result": {
+      "address": "Plaza Luis Gonzaga, 1, Tíjola",
+      "confidence": 100,
+      "reason": undefined,
+      "transformations": [
+        "Prefix+name removed: "Centro de Salud Tíjola,"",
+        "Suffix removed: [.,\\-–]?\\s*(disponible\\s+)?24\\...",
+        "Number format normalized",
+        "Punctuation normalized",
+      ],
+    },
+  },
+  {
+    "id": "TIJ-02",
+    "input": "Ayuntamiento de Tíjola, despachos municipales, Plaza de España, n/ 1, Tíjola, 950420300- Disponible 24 horas",
+    "municipality": "Tíjola",
+    "result": {
+      "address": "Plaza de España, 1, Tíjola",
+      "confidence": 100,
+      "reason": undefined,
+      "transformations": [
+        "Prefix removed: "Ayuntamiento"",
+        "Pre-street cleanup: "despachos municipales,"",
+        "Suffix removed: [.,\\-–]?\\s*(disponible\\s+)?24\\...",
+        "Suffix removed: ,?\\s*\\d{9}\\s*-?\\s*(disponible)...",
+        "Number format normalized",
+      ],
+    },
+  },
+  {
+    "id": "TIJ-03",
+    "input": "C/Garcilaso de la Vega, n/ 5, bajo, Tíjola, disponible 24 horas",
+    "municipality": "Tíjola",
+    "result": {
+      "address": "Calle Garcilaso de la Vega, 5, Tíjola",
+      "confidence": 100,
+      "reason": undefined,
+      "transformations": [
+        "Suffix removed: [.,\\-–]?\\s*(disponible\\s+)?24\\...",
+        "Suffix removed: ,?\\s*\\b(bajo|alto|izq(da)?\\.?|...",
+        "Expanded: "C/" → "Calle"",
+        "Number format normalized",
+      ],
+    },
+  },
+  {
+    "id": "TIJ-04",
+    "input": "Policía Local, C/Garcilaso de la Vega, n/ 5, bajo, Tíjola",
+    "municipality": "Tíjola",
+    "result": {
+      "address": "Calle Garcilaso de la Vega, 5, Tíjola",
+      "confidence": 100,
+      "reason": undefined,
+      "transformations": [
+        "Prefix+name removed: "Policía Local,"",
+        "Suffix removed: ,?\\s*\\b(bajo|alto|izq(da)?\\.?|...",
+        "Expanded: "C/" → "Calle"",
+        "Number format normalized",
+      ],
+    },
+  },
+  {
+    "id": "TIJ-05",
+    "input": "Consorcio de Bomberos Levante Almeriense, Avda. De la Estación s/n, Albox (Almería)",
+    "municipality": "Albox",
+    "result": {
+      "address": "Avenida de la Estación, s/n, Albox",
+      "confidence": 100,
+      "reason": undefined,
+      "transformations": [
+        "Prefix+name removed: "Consorcio de Bomberos Levante Almeriense,"",
+        "Suffix removed: \\s*\\((almería|granada|jaén|cór...",
+        "Expanded: "Avda." → "Avenida"",
+        "Number format normalized",
+        "Smart capitalization applied",
+      ],
+    },
+  },
+  {
+    "id": "TIJ-06",
+    "input": "Pabellón Municipal de Deportes, C/ Francisco Quevedo, s/n, Tíjola",
+    "municipality": "Tíjola",
+    "result": {
+      "address": "Calle Francisco Quevedo, s/n, Tíjola",
+      "confidence": 100,
+      "reason": undefined,
+      "transformations": [
+        "Prefix removed: "Pabellón Municipal de Deportes"",
+        "Expanded: "C/" → "Calle"",
+      ],
+    },
+  },
+  {
+    "id": "TIJ-07",
+    "input": "Poligono Industrial Tíjola, s/n, Diponibilidad 24 horas",
+    "municipality": "Tíjola",
+    "result": {
+      "address": "Polígono Industrial, s/n, Tíjola",
+      "confidence": 100,
+      "reason": undefined,
+      "transformations": [
+        "OCR: "/diponibilidad/gi" → "disponibilidad"",
+        "Suffix removed: [.,\\-–]?\\s*disponibilidad\\s+24...",
+        "Expanded: "POLIGONO" → "Polígono"",
+        "T07: Polígono Industrial + municipality separated",
+        "Punctuation normalized",
+      ],
+    },
+  },
+  {
+    "id": "TIJ-08",
+    "input": "Carretera 334, frente Cuartel Guardia Civil, Tíjola",
+    "municipality": "Tíjola",
+    "result": {
+      "address": "Carretera 334, Tíjola",
+      "confidence": 100,
+      "reason": undefined,
+      "transformations": [
+        "Suffix removed: ,?\\s*\\bfrente\\s+(a(l)?\\s+)?[A-...",
+      ],
+    },
+  },
+  {
+    "id": "TIJ-09",
+    "input": "Lugar más próximo donde se localice la emergencia",
+    "municipality": undefined,
+    "result": {
+      "address": null,
+      "confidence": 0,
+      "reason": "not_geocodable",
+      "transformations": [
+        "Detected as non-geocodable",
+      ],
+    },
+  },
+  {
+    "id": "TIJ-10",
+    "input": "3,- Cargos Políticos, 3,- Funcionarios de Ayuntamiento Tíjola",
+    "municipality": undefined,
+    "result": {
+      "address": null,
+      "confidence": 0,
+      "reason": "not_geocodable",
+      "transformations": [
+        "Detected as non-geocodable",
+      ],
+    },
+  },
+  {
+    "id": "TIJ-11",
+    "input": "Avda José Antonio, n/ 18, Tíjola",
+    "municipality": "Tíjola",
+    "result": {
+      "address": "Avenida José Antonio, 18, Tíjola",
+      "confidence": 100,
+      "reason": undefined,
+      "transformations": [
+        "Expanded: "Avda" → "Avenida"",
+        "Number format normalized",
+      ],
+    },
+  },
+  {
+    "id": "TIJ-12",
+    "input": "C/ Santa María, n/ 1",
+    "municipality": undefined,
+    "result": {
+      "address": "Calle Santa María, 1",
+      "confidence": 90,
+      "reason": undefined,
+      "transformations": [
+        "Expanded: "C/" → "Calle"",
+        "Number format normalized",
+      ],
+    },
+  },
+  {
+    "id": "TIJ-13",
+    "input": "C/ Enriqueta Reche, s7n",
+    "municipality": undefined,
+    "result": {
+      "address": "Calle Enriqueta Reche, s/n",
+      "confidence": 80,
+      "reason": undefined,
+      "transformations": [
+        "OCR: "s7n" → "s/n"",
+        "Expanded: "C/" → "Calle"",
+      ],
+    },
+  },
+  {
+    "id": "COL-01",
+    "input": "C/ erillas, 2Colomera",
+    "municipality": "Colomera",
+    "result": {
+      "address": "Calle Erillas, 2, Colomera",
+      "confidence": 100,
+      "reason": undefined,
+      "transformations": [
+        "Expanded: "C/" → "Calle"",
+        "Number format normalized",
+        "Smart capitalization applied",
+      ],
+    },
+  },
+  {
+    "id": "COL-02",
+    "input": "Avd Virgen de la Cabeza, 9. Colomera",
+    "municipality": "Colomera",
+    "result": {
+      "address": "Avenida Virgen de la Cabeza, 9, Colomera",
+      "confidence": 100,
+      "reason": undefined,
+      "transformations": [
+        "Expanded: "Avd" → "Avenida"",
+        "Number format normalized",
+      ],
+    },
+  },
+  {
+    "id": "COL-03",
+    "input": "CONSULTORIO MÉDICO DE COLOMERA Y DEL CONSULTORIO AUXILIAR DEL CAURO",
+    "municipality": undefined,
+    "result": {
+      "address": null,
+      "confidence": 0,
+      "reason": "not_geocodable",
+      "transformations": [
+        "Detected as non-geocodable",
+      ],
+    },
+  },
+  {
+    "id": "COL-04",
+    "input": "Avd. Benalua C/ Paz 1 C/ Amapola 8",
+    "municipality": undefined,
+    "result": {
+      "address": null,
+      "confidence": 0,
+      "reason": "multiple_addresses",
+      "transformations": [
+        "Detected as non-geocodable",
+      ],
+    },
+  },
+  {
+    "id": "COL-05",
+    "input": "Pol 14- P 146",
+    "municipality": undefined,
+    "result": {
+      "address": null,
+      "confidence": 0,
+      "reason": "cadastral",
+      "transformations": [
+        "Detected as non-geocodable",
+      ],
+    },
+  },
+  {
+    "id": "COL-06",
+    "input": "C/ Pilarillo s/n C/ Cuesta de las Fuentes s/n",
+    "municipality": undefined,
+    "result": {
+      "address": null,
+      "confidence": 0,
+      "reason": "multiple_addresses",
+      "transformations": [
+        "Detected as non-geocodable",
+      ],
+    },
+  },
+  {
+    "id": "COL-07",
+    "input": "Calle Iglesia, 1",
+    "municipality": undefined,
+    "result": {
+      "address": "Calle Iglesia, 1",
+      "confidence": 90,
+      "reason": undefined,
+      "transformations": [],
+    },
+  },
+  {
+    "id": "COL-08",
+    "input": "Vereda del Camino Real de Madrid",
+    "municipality": undefined,
+    "result": {
+      "address": "Vereda del Camino Real de Madrid",
+      "confidence": 50,
+      "reason": undefined,
+      "transformations": [],
+    },
+  },
+  {
+    "id": "COL-09",
+    "input": "Paraje cortijo el chopo",
+    "municipality": undefined,
+    "result": {
+      "address": "Paraje Cortijo El Chopo",
+      "confidence": 50,
+      "reason": undefined,
+      "transformations": [
+        "Smart capitalization applied",
+      ],
+    },
+  },
+  {
+    "id": "COL-10",
+    "input": "AV. Benalúa s/n",
+    "municipality": undefined,
+    "result": {
+      "address": "Avenida Benalúa, s/n",
+      "confidence": 80,
+      "reason": undefined,
+      "transformations": [
+        "Expanded: "Av." → "Avenida"",
+        "Number format normalized",
+      ],
+    },
+  },
+  {
+    "id": "BER-01",
+    "input": "Plaza de la Constitución 1.  Berja 04760",
+    "municipality": "Berja",
+    "result": {
+      "address": "Plaza de la Constitución, 1, Berja",
+      "confidence": 100,
+      "reason": undefined,
+      "transformations": [
+        "Suffix removed: ,?\\s*\\b(04|18|14|29|11|21|41|2...",
+        "Number format normalized",
+        "Punctuation normalized",
+      ],
+    },
+  },
+  {
+    "id": "BER-02",
+    "input": "C/ Carretera de Adra s/n Berja. Teléfono. 600 10 90 00",
+    "municipality": "Berja",
+    "result": {
+      "address": "Calle Carretera de Adra, s/n, Berja",
+      "confidence": 100,
+      "reason": undefined,
+      "transformations": [
+        "Suffix removed: [.,-]?\\s*teléfono\\.?\\s*[\\d\\s]+...",
+        "Expanded: "C/" → "Calle"",
+        "Number format normalized",
+        "Punctuation normalized",
+      ],
+    },
+  },
+  {
+    "id": "BER-03",
+    "input": "C/LOS ACTECAS NAVE N.º 11",
+    "municipality": undefined,
+    "result": {
+      "address": "Calle Los Aztecas, nave 11",
+      "confidence": 80,
+      "reason": undefined,
+      "transformations": [
+        "OCR: "N.º" → "Nº"",
+        "OCR: "/ACTECAS/g" → "Aztecas"",
+        "Expanded: "C/" → "Calle"",
+        "Number format normalized",
+        "Smart capitalization applied",
+      ],
+    },
+  },
+  {
+    "id": "BER-04",
+    "input": "POLIGONO C/ QUINTA AVENIDA S/N",
+    "municipality": undefined,
+    "result": {
+      "address": "Polígono, Calle Quinta Avenida, s/n",
+      "confidence": 70,
+      "reason": undefined,
+      "transformations": [
+        "Expanded: "POLIGONO" → "Polígono"",
+        "Expanded: "AVENIDA" → "Avenida"",
+        "Expanded: "C/" → "Calle"",
+        "Number format normalized",
+        "Smart capitalization applied",
+      ],
+    },
+  },
+  {
+    "id": "BER-05",
+    "input": "C/ PLAZA DE LA CONSTITUCIÓN N.º 6",
+    "municipality": undefined,
+    "result": {
+      "address": "Plaza de la Constitución, 6",
+      "confidence": 90,
+      "reason": undefined,
+      "transformations": [
+        "OCR: "N.º" → "Nº"",
+        "Number format normalized",
+        "Punctuation normalized",
+        "Smart capitalization applied",
+      ],
+    },
+  },
+  {
+    "id": "BER-06",
+    "input": "Policía Local Municipal. Jefatura: Plaza de la Constitución 1.  Berja 04760",
+    "municipality": "Berja",
+    "result": {
+      "address": "Plaza de la Constitución, 1, Berja",
+      "confidence": 100,
+      "reason": undefined,
+      "transformations": [
+        "Prefix removed: "Policía Local Municipal"",
+        "Prefix+name removed: "Jefatura:"",
+        "Suffix removed: ,?\\s*\\b(04|18|14|29|11|21|41|2...",
+        "Number format normalized",
+        "Punctuation normalized",
+      ],
+    },
+  },
+  {
+    "id": "BER-07",
+    "input": "Consultorio Centro de Salud de Berja - URGENCIAS. C/ Carretera de Adra s/n Berja",
+    "municipality": "Berja",
+    "result": {
+      "address": "Calle Carretera de Adra, s/n, Berja",
+      "confidence": 100,
+      "reason": undefined,
+      "transformations": [
+        "Prefix removed: "Consultorio Centro de Salud"",
+        "Mid-prefix removed: "URGENCIAS."",
+        "Expanded: "C/" → "Calle"",
+        "Number format normalized",
+        "Punctuation normalized",
+      ],
+    },
+  },
+  {
+    "id": "BER-08",
+    "input": "c/ llano Vilches 21",
+    "municipality": undefined,
+    "result": {
+      "address": "Calle Llano Vilches, 21",
+      "confidence": 90,
+      "reason": undefined,
+      "transformations": [
+        "Expanded: "C/" → "Calle"",
+        "Number format normalized",
+        "Smart capitalization applied",
+      ],
+    },
+  },
+  {
+    "id": "BER-09",
+    "input": "C/ LOS Geranios - 2",
+    "municipality": undefined,
+    "result": {
+      "address": "Calle Los Geranios, 2",
+      "confidence": 90,
+      "reason": undefined,
+      "transformations": [
+        "Expanded: "C/" → "Calle"",
+        "Number format normalized",
+        "Smart capitalization applied",
+      ],
+    },
+  },
+  {
+    "id": "DBF-01",
+    "input": "CALLE ESCUELAS NÂº 1",
+    "municipality": undefined,
+    "result": {
+      "address": "Calle Escuelas, 1",
+      "confidence": 90,
+      "reason": undefined,
+      "transformations": [
+        "OCR: "NÂº" → "Nº"",
+        "Expanded: "CALLE" → "Calle"",
+        "Number format normalized",
+        "Punctuation normalized",
+        "Smart capitalization applied",
+      ],
+    },
+  },
+  {
+    "id": "DBF-02",
+    "input": "CUESTA MATUETE S/N",
+    "municipality": undefined,
+    "result": {
+      "address": "Cuesta Matuete, s/n",
+      "confidence": 80,
+      "reason": undefined,
+      "transformations": [
+        "Expanded: "CUESTA" → "Cuesta"",
+        "Number format normalized",
+        "Smart capitalization applied",
+      ],
+    },
+  },
+  {
+    "id": "DBF-03",
+    "input": "AUTOVIA A-92 DIRECCION GRANADA",
+    "municipality": undefined,
+    "result": {
+      "address": "Autovía A-92, dirección Granada",
+      "confidence": 80,
+      "reason": undefined,
+      "transformations": [
+        "Expanded: "AUTOVIA" → "Autovía"",
+        "Punctuation normalized",
+        "Smart capitalization applied",
+      ],
+    },
+  },
+  {
+    "id": "DBF-04",
+    "input": "Moredal, 15",
+    "municipality": undefined,
+    "result": {
+      "address": "Moredal, 15",
+      "confidence": 60,
+      "reason": undefined,
+      "transformations": [],
+    },
+  },
+  {
+    "id": "DBF-05",
+    "input": "CL. Ramón y Cajal 5.",
+    "municipality": undefined,
+    "result": {
+      "address": "Calle Ramón y Cajal, 5",
+      "confidence": 90,
+      "reason": undefined,
+      "transformations": [
+        "Expanded: "CL." → "Calle"",
+        "Number format normalized",
+      ],
+    },
+  },
+  {
+    "id": "DBF-06",
+    "input": "CAMINO CAMPO FUTBOL 7",
+    "municipality": undefined,
+    "result": {
+      "address": "Camino Campo Fútbol, 7",
+      "confidence": 90,
+      "reason": undefined,
+      "transformations": [
+        "OCR: "/\\bFUTBOL\\b/g" → "Fútbol"",
+        "Expanded: "CAMINO" → "Camino"",
+        "Number format normalized",
+        "Smart capitalization applied",
+      ],
+    },
+  },
+  {
+    "id": "DBF-07",
+    "input": "CAMINO CAMPO DE FÚTBOL N4",
+    "municipality": undefined,
+    "result": {
+      "address": "Camino Campo de Fútbol, 4",
+      "confidence": 90,
+      "reason": undefined,
+      "transformations": [
+        "Expanded: "CAMINO" → "Camino"",
+        "Number format normalized",
+        "Punctuation normalized",
+        "Smart capitalization applied",
+      ],
+    },
+  },
+  {
+    "id": "SYN-01",
+    "input": "Calle Mayor, 15, Villanueva",
+    "municipality": undefined,
+    "result": {
+      "address": "Calle Mayor, 15, Villanueva",
+      "confidence": 100,
+      "reason": undefined,
+      "transformations": [],
+    },
+  },
+  {
+    "id": "SYN-02",
+    "input": "Calle Mayor 15 Villanueva",
+    "municipality": undefined,
+    "result": {
+      "address": "Calle Mayor, 15, Villanueva",
+      "confidence": 100,
+      "reason": undefined,
+      "transformations": [
+        "Punctuation normalized",
+      ],
+    },
+  },
+  {
+    "id": "SYN-03",
+    "input": "C/Mayor, 15, Villanueva",
+    "municipality": undefined,
+    "result": {
+      "address": "Calle Mayor, 15, Villanueva",
+      "confidence": 100,
+      "reason": undefined,
+      "transformations": [
+        "Expanded: "C/" → "Calle"",
+      ],
+    },
+  },
+  {
+    "id": "SYN-04",
+    "input": "Villanueva, Calle Mayor, 15",
+    "municipality": undefined,
+    "result": {
+      "address": "Calle Mayor, 15",
+      "confidence": 90,
+      "reason": undefined,
+      "transformations": [
+        "Pre-street cleanup: "Villanueva,"",
+      ],
+    },
+  },
+  {
+    "id": "SYN-05",
+    "input": "Calle Mayor. 15. Villanueva",
+    "municipality": undefined,
+    "result": {
+      "address": "Calle Mayor, 15, Villanueva",
+      "confidence": 100,
+      "reason": undefined,
+      "transformations": [
+        "Number format normalized",
+        "Punctuation normalized",
+      ],
+    },
+  },
+  {
+    "id": "SYN-06",
+    "input": "Calle Mayor, n/ 15, Villanueva",
+    "municipality": undefined,
+    "result": {
+      "address": "Calle Mayor, 15, Villanueva",
+      "confidence": 100,
+      "reason": undefined,
+      "transformations": [
+        "Number format normalized",
+      ],
+    },
+  },
+  {
+    "id": "SYN-07",
+    "input": "Calle Mayor, nº 15, Villanueva",
+    "municipality": undefined,
+    "result": {
+      "address": "Calle Mayor, 15, Villanueva",
+      "confidence": 100,
+      "reason": undefined,
+      "transformations": [
+        "OCR: "/n\\.?º/gi" → "Nº"",
+        "Number format normalized",
+      ],
+    },
+  },
+  {
+    "id": "SYN-08",
+    "input": "Centro de Salud, Calle Real, 1",
+    "municipality": undefined,
+    "result": {
+      "address": "Calle Real, 1",
+      "confidence": 90,
+      "reason": undefined,
+      "transformations": [
+        "Prefix+name removed: "Centro de Salud,"",
+      ],
+    },
+  },
+  {
+    "id": "SYN-09",
+    "input": "Centro de Salud de Villanueva, Calle Real, 1",
+    "municipality": undefined,
+    "result": {
+      "address": "Calle Real, 1",
+      "confidence": 90,
+      "reason": undefined,
+      "transformations": [
+        "Prefix+name removed: "Centro de Salud de Villanueva,"",
+      ],
+    },
+  },
+  {
+    "id": "SYN-10",
+    "input": "Consultorio Local, Plaza Mayor, s/n",
+    "municipality": undefined,
+    "result": {
+      "address": "Plaza Mayor, s/n",
+      "confidence": 80,
+      "reason": undefined,
+      "transformations": [
+        "Prefix+name removed: "Consultorio Local,"",
+      ],
+    },
+  },
+  {
+    "id": "SYN-11",
+    "input": "CEIP San Juan, Avenida de la Paz, 5",
+    "municipality": undefined,
+    "result": {
+      "address": "Avenida de la Paz, 5",
+      "confidence": 90,
+      "reason": undefined,
+      "transformations": [
+        "Prefix+name removed: "CEIP San Juan,"",
+      ],
+    },
+  },
+  {
+    "id": "SYN-12",
+    "input": "Residencia de Mayores Santa Ana, Calle Nueva, 10",
+    "municipality": undefined,
+    "result": {
+      "address": "Calle Nueva, 10",
+      "confidence": 90,
+      "reason": undefined,
+      "transformations": [
+        "Prefix+name removed: "Residencia de Mayores Santa Ana,"",
+      ],
+    },
+  },
+  {
+    "id": "SYN-13",
+    "input": "Policía Local, Calle Guardia, 3",
+    "municipality": undefined,
+    "result": {
+      "address": "Calle Guardia, 3",
+      "confidence": 90,
+      "reason": undefined,
+      "transformations": [
+        "Prefix+name removed: "Policía Local,"",
+      ],
+    },
+  },
+  {
+    "id": "SYN-14",
+    "input": "Ayuntamiento, Plaza de España, 1",
+    "municipality": undefined,
+    "result": {
+      "address": "Plaza de España, 1",
+      "confidence": 90,
+      "reason": undefined,
+      "transformations": [
+        "Prefix+name removed: "Ayuntamiento,"",
+      ],
+    },
+  },
+  {
+    "id": "SYN-15",
+    "input": "Ayuntamiento de Villanueva, Plaza de España, 1",
+    "municipality": undefined,
+    "result": {
+      "address": "Plaza de España, 1",
+      "confidence": 90,
+      "reason": undefined,
+      "transformations": [
+        "Prefix+name removed: "Ayuntamiento de Villanueva,"",
+      ],
+    },
+  },
+  {
+    "id": "SYN-16",
+    "input": "Calle Real, 1, disponible 24 horas",
+    "municipality": undefined,
+    "result": {
+      "address": "Calle Real, 1",
+      "confidence": 90,
+      "reason": undefined,
+      "transformations": [
+        "Suffix removed: [.,\\-–]?\\s*(disponible\\s+)?24\\...",
+      ],
+    },
+  },
+  {
+    "id": "SYN-17",
+    "input": "Calle Real, 1. Disponibilidad 24 horas.",
+    "municipality": undefined,
+    "result": {
+      "address": "Calle Real, 1",
+      "confidence": 90,
+      "reason": undefined,
+      "transformations": [
+        "Suffix removed: [.,\\-–]?\\s*disponibilidad\\s+24...",
+      ],
+    },
+  },
+  {
+    "id": "SYN-18",
+    "input": "Calle Real, 1, 24h",
+    "municipality": undefined,
+    "result": {
+      "address": "Calle Real, 1",
+      "confidence": 90,
+      "reason": undefined,
+      "transformations": [
+        "Suffix removed: [.,\\-–]?\\s*(disponible\\s+)?24\\...",
+      ],
+    },
+  },
+  {
+    "id": "SYN-19",
+    "input": "Calle Real, 1. Tel: 958123456",
+    "municipality": undefined,
+    "result": {
+      "address": "Calle Real, 1",
+      "confidence": 90,
+      "reason": undefined,
+      "transformations": [
+        "Suffix removed: ,?\\s*tel[éef]?[.:]\\s*[\\d\\s-]+...",
+      ],
+    },
+  },
+  {
+    "id": "SYN-20",
+    "input": "Calle Real, 1, Tlf. 666123456",
+    "municipality": undefined,
+    "result": {
+      "address": "Calle Real, 1",
+      "confidence": 90,
+      "reason": undefined,
+      "transformations": [
+        "Suffix removed: ,?\\s*tlf\\.?\\s*[\\d\\s-]+...",
+      ],
+    },
+  },
+  {
+    "id": "SYN-21",
+    "input": "Calle Real, 1, Villanueva (Almería)",
+    "municipality": undefined,
+    "result": {
+      "address": "Calle Real, 1, Villanueva",
+      "confidence": 100,
+      "reason": undefined,
+      "transformations": [
+        "Suffix removed: \\s*\\((almería|granada|jaén|cór...",
+      ],
+    },
+  },
+  {
+    "id": "SYN-22",
+    "input": "Calle Real, 1, bajo",
+    "municipality": undefined,
+    "result": {
+      "address": "Calle Real, 1",
+      "confidence": 90,
+      "reason": undefined,
+      "transformations": [
+        "Suffix removed: ,?\\s*\\b(bajo|alto|izq(da)?\\.?|...",
+      ],
+    },
+  },
+  {
+    "id": "SYN-23",
+    "input": "Calle Real, 1, Villanueva, 04760",
+    "municipality": undefined,
+    "result": {
+      "address": "Calle Real, 1, Villanueva",
+      "confidence": 100,
+      "reason": undefined,
+      "transformations": [
+        "Suffix removed: ,?\\s*\\b(04|18|14|29|11|21|41|2...",
+      ],
+    },
+  },
+  {
+    "id": "SYN-24",
+    "input": "Calle Real, 1 - horario L-V 8-15",
+    "municipality": undefined,
+    "result": {
+      "address": "Calle Real, 1",
+      "confidence": 90,
+      "reason": undefined,
+      "transformations": [
+        "Suffix removed: [.,\\-–]?\\s*horario.*$...",
+      ],
+    },
+  },
+]
+`;
+
+exports[`AddressExtractor Snapshots - DBF/ODS (7) > [DBF-01] utf8_corrupto 1`] = `
+{
+  "id": "DBF-01",
+  "input": "CALLE ESCUELAS NÂº 1",
+  "municipality": undefined,
+  "result": {
+    "address": "Calle Escuelas, 1",
+    "confidence": 90,
+    "reason": undefined,
+    "transformations": [
+      "OCR: "NÂº" → "Nº"",
+      "Expanded: "CALLE" → "Calle"",
+      "Number format normalized",
+      "Punctuation normalized",
+      "Smart capitalization applied",
+    ],
+  },
+}
+`;
+
+exports[`AddressExtractor Snapshots - DBF/ODS (7) > [DBF-02] mayusculas 1`] = `
+{
+  "id": "DBF-02",
+  "input": "CUESTA MATUETE S/N",
+  "municipality": undefined,
+  "result": {
+    "address": "Cuesta Matuete, s/n",
+    "confidence": 80,
+    "reason": undefined,
+    "transformations": [
+      "Expanded: "CUESTA" → "Cuesta"",
+      "Number format normalized",
+      "Smart capitalization applied",
+    ],
+  },
+}
+`;
+
+exports[`AddressExtractor Snapshots - DBF/ODS (7) > [DBF-03] autovia 1`] = `
+{
+  "id": "DBF-03",
+  "input": "AUTOVIA A-92 DIRECCION GRANADA",
+  "municipality": undefined,
+  "result": {
+    "address": "Autovía A-92, dirección Granada",
+    "confidence": 80,
+    "reason": undefined,
+    "transformations": [
+      "Expanded: "AUTOVIA" → "Autovía"",
+      "Punctuation normalized",
+      "Smart capitalization applied",
+    ],
+  },
+}
+`;
+
+exports[`AddressExtractor Snapshots - DBF/ODS (7) > [DBF-04] sin_tipo_via 1`] = `
+{
+  "id": "DBF-04",
+  "input": "Moredal, 15",
+  "municipality": undefined,
+  "result": {
+    "address": "Moredal, 15",
+    "confidence": 60,
+    "reason": undefined,
+    "transformations": [],
+  },
+}
+`;
+
+exports[`AddressExtractor Snapshots - DBF/ODS (7) > [DBF-05] cl_punto 1`] = `
+{
+  "id": "DBF-05",
+  "input": "CL. Ramón y Cajal 5.",
+  "municipality": undefined,
+  "result": {
+    "address": "Calle Ramón y Cajal, 5",
+    "confidence": 90,
+    "reason": undefined,
+    "transformations": [
+      "Expanded: "CL." → "Calle"",
+      "Number format normalized",
+    ],
+  },
+}
+`;
+
+exports[`AddressExtractor Snapshots - DBF/ODS (7) > [DBF-06] camino 1`] = `
+{
+  "id": "DBF-06",
+  "input": "CAMINO CAMPO FUTBOL 7",
+  "municipality": undefined,
+  "result": {
+    "address": "Camino Campo Fútbol, 7",
+    "confidence": 90,
+    "reason": undefined,
+    "transformations": [
+      "OCR: "/\\bFUTBOL\\b/g" → "Fútbol"",
+      "Expanded: "CAMINO" → "Camino"",
+      "Number format normalized",
+      "Smart capitalization applied",
+    ],
+  },
+}
+`;
+
+exports[`AddressExtractor Snapshots - DBF/ODS (7) > [DBF-07] n_pegado 1`] = `
+{
+  "id": "DBF-07",
+  "input": "CAMINO CAMPO DE FÚTBOL N4",
+  "municipality": undefined,
+  "result": {
+    "address": "Camino Campo de Fútbol, 4",
+    "confidence": 90,
+    "reason": undefined,
+    "transformations": [
+      "Expanded: "CAMINO" → "Camino"",
+      "Number format normalized",
+      "Punctuation normalized",
+      "Smart capitalization applied",
+    ],
+  },
+}
+`;
+
+exports[`AddressExtractor Snapshots - Por Tipo de Problema > problemType: autovia (1 casos) 1`] = `
+[
+  {
+    "id": "DBF-03",
+    "input": "AUTOVIA A-92 DIRECCION GRANADA",
+    "municipality": undefined,
+    "result": {
+      "address": "Autovía A-92, dirección Granada",
+      "confidence": 80,
+      "reason": undefined,
+      "transformations": [
+        "Expanded: "AUTOVIA" → "Autovía"",
+        "Punctuation normalized",
+        "Smart capitalization applied",
+      ],
+    },
+  },
+]
+`;
+
+exports[`AddressExtractor Snapshots - Por Tipo de Problema > problemType: c_plaza_redundante (1 casos) 1`] = `
+[
+  {
+    "id": "BER-05",
+    "input": "C/ PLAZA DE LA CONSTITUCIÓN N.º 6",
+    "municipality": undefined,
+    "result": {
+      "address": "Plaza de la Constitución, 6",
+      "confidence": 90,
+      "reason": undefined,
+      "transformations": [
+        "OCR: "N.º" → "Nº"",
+        "Number format normalized",
+        "Punctuation normalized",
+        "Smart capitalization applied",
+      ],
+    },
+  },
+]
+`;
+
+exports[`AddressExtractor Snapshots - Por Tipo de Problema > problemType: camino (1 casos) 1`] = `
+[
+  {
+    "id": "DBF-06",
+    "input": "CAMINO CAMPO FUTBOL 7",
+    "municipality": undefined,
+    "result": {
+      "address": "Camino Campo Fútbol, 7",
+      "confidence": 90,
+      "reason": undefined,
+      "transformations": [
+        "OCR: "/\\bFUTBOL\\b/g" → "Fútbol"",
+        "Expanded: "CAMINO" → "Camino"",
+        "Number format normalized",
+        "Smart capitalization applied",
+      ],
+    },
+  },
+]
+`;
+
+exports[`AddressExtractor Snapshots - Por Tipo de Problema > problemType: carretera+ref_relativa (1 casos) 1`] = `
+[
+  {
+    "id": "TIJ-08",
+    "input": "Carretera 334, frente Cuartel Guardia Civil, Tíjola",
+    "municipality": "Tíjola",
+    "result": {
+      "address": "Carretera 334, Tíjola",
+      "confidence": 100,
+      "reason": undefined,
+      "transformations": [
+        "Suffix removed: ,?\\s*\\bfrente\\s+(a(l)?\\s+)?[A-...",
+      ],
+    },
+  },
+]
+`;
+
+exports[`AddressExtractor Snapshots - Por Tipo de Problema > problemType: cl_punto (1 casos) 1`] = `
+[
+  {
+    "id": "DBF-05",
+    "input": "CL. Ramón y Cajal 5.",
+    "municipality": undefined,
+    "result": {
+      "address": "Calle Ramón y Cajal, 5",
+      "confidence": 90,
+      "reason": undefined,
+      "transformations": [
+        "Expanded: "CL." → "Calle"",
+        "Number format normalized",
+      ],
+    },
+  },
+]
+`;
+
+exports[`AddressExtractor Snapshots - Por Tipo de Problema > problemType: dir+cp (1 casos) 1`] = `
+[
+  {
+    "id": "BER-01",
+    "input": "Plaza de la Constitución 1.  Berja 04760",
+    "municipality": "Berja",
+    "result": {
+      "address": "Plaza de la Constitución, 1, Berja",
+      "confidence": 100,
+      "reason": undefined,
+      "transformations": [
+        "Suffix removed: ,?\\s*\\b(04|18|14|29|11|21|41|2...",
+        "Number format normalized",
+        "Punctuation normalized",
+      ],
+    },
+  },
+]
+`;
+
+exports[`AddressExtractor Snapshots - Por Tipo de Problema > problemType: dir+piso+horario (1 casos) 1`] = `
+[
+  {
+    "id": "TIJ-03",
+    "input": "C/Garcilaso de la Vega, n/ 5, bajo, Tíjola, disponible 24 horas",
+    "municipality": "Tíjola",
+    "result": {
+      "address": "Calle Garcilaso de la Vega, 5, Tíjola",
+      "confidence": 100,
+      "reason": undefined,
+      "transformations": [
+        "Suffix removed: [.,\\-–]?\\s*(disponible\\s+)?24\\...",
+        "Suffix removed: ,?\\s*\\b(bajo|alto|izq(da)?\\.?|...",
+        "Expanded: "C/" → "Calle"",
+        "Number format normalized",
+      ],
+    },
+  },
+]
+`;
+
+exports[`AddressExtractor Snapshots - Por Tipo de Problema > problemType: dir+telefono (1 casos) 1`] = `
+[
+  {
+    "id": "BER-02",
+    "input": "C/ Carretera de Adra s/n Berja. Teléfono. 600 10 90 00",
+    "municipality": "Berja",
+    "result": {
+      "address": "Calle Carretera de Adra, s/n, Berja",
+      "confidence": 100,
+      "reason": undefined,
+      "transformations": [
+        "Suffix removed: [.,-]?\\s*teléfono\\.?\\s*[\\d\\s]+...",
+        "Expanded: "C/" → "Calle"",
+        "Number format normalized",
+        "Punctuation normalized",
+      ],
+    },
+  },
+]
+`;
+
+exports[`AddressExtractor Snapshots - Por Tipo de Problema > problemType: dir_simple (1 casos) 1`] = `
+[
+  {
+    "id": "TIJ-11",
+    "input": "Avda José Antonio, n/ 18, Tíjola",
+    "municipality": "Tíjola",
+    "result": {
+      "address": "Avenida José Antonio, 18, Tíjola",
+      "confidence": 100,
+      "reason": undefined,
+      "transformations": [
+        "Expanded: "Avda" → "Avenida"",
+        "Number format normalized",
+      ],
+    },
+  },
+]
+`;
+
+exports[`AddressExtractor Snapshots - Por Tipo de Problema > problemType: dir_sin_municipio (1 casos) 1`] = `
+[
+  {
+    "id": "TIJ-12",
+    "input": "C/ Santa María, n/ 1",
+    "municipality": undefined,
+    "result": {
+      "address": "Calle Santa María, 1",
+      "confidence": 90,
+      "reason": undefined,
+      "transformations": [
+        "Expanded: "C/" → "Calle"",
+        "Number format normalized",
+      ],
+    },
+  },
+]
+`;
+
+exports[`AddressExtractor Snapshots - Por Tipo de Problema > problemType: direccion_limpia (1 casos) 1`] = `
+[
+  {
+    "id": "COL-07",
+    "input": "Calle Iglesia, 1",
+    "municipality": undefined,
+    "result": {
+      "address": "Calle Iglesia, 1",
+      "confidence": 90,
+      "reason": undefined,
+      "transformations": [],
+    },
+  },
+]
+`;
+
+exports[`AddressExtractor Snapshots - Por Tipo de Problema > problemType: formato_n_barra (1 casos) 1`] = `
+[
+  {
+    "id": "SYN-06",
+    "input": "Calle Mayor, n/ 15, Villanueva",
+    "municipality": undefined,
+    "result": {
+      "address": "Calle Mayor, 15, Villanueva",
+      "confidence": 100,
+      "reason": undefined,
+      "transformations": [
+        "Number format normalized",
+      ],
+    },
+  },
+]
+`;
+
+exports[`AddressExtractor Snapshots - Por Tipo de Problema > problemType: formato_numero_ordinal (1 casos) 1`] = `
+[
+  {
+    "id": "SYN-07",
+    "input": "Calle Mayor, nº 15, Villanueva",
+    "municipality": undefined,
+    "result": {
+      "address": "Calle Mayor, 15, Villanueva",
+      "confidence": 100,
+      "reason": undefined,
+      "transformations": [
+        "OCR: "/n\\.?º/gi" → "Nº"",
+        "Number format normalized",
+      ],
+    },
+  },
+]
+`;
+
+exports[`AddressExtractor Snapshots - Por Tipo de Problema > problemType: guion_numero (1 casos) 1`] = `
+[
+  {
+    "id": "BER-09",
+    "input": "C/ LOS Geranios - 2",
+    "municipality": undefined,
+    "result": {
+      "address": "Calle Los Geranios, 2",
+      "confidence": 90,
+      "reason": undefined,
+      "transformations": [
+        "Expanded: "C/" → "Calle"",
+        "Number format normalized",
+        "Smart capitalization applied",
+      ],
+    },
+  },
+]
+`;
+
+exports[`AddressExtractor Snapshots - Por Tipo de Problema > problemType: mayusculas (2 casos) 1`] = `
+[
+  {
+    "id": "COL-10",
+    "input": "AV. Benalúa s/n",
+    "municipality": undefined,
+    "result": {
+      "address": "Avenida Benalúa, s/n",
+      "confidence": 80,
+      "reason": undefined,
+      "transformations": [
+        "Expanded: "Av." → "Avenida"",
+        "Number format normalized",
+      ],
+    },
+  },
+  {
+    "id": "DBF-02",
+    "input": "CUESTA MATUETE S/N",
+    "municipality": undefined,
+    "result": {
+      "address": "Cuesta Matuete, s/n",
+      "confidence": 80,
+      "reason": undefined,
+      "transformations": [
+        "Expanded: "CUESTA" → "Cuesta"",
+        "Number format normalized",
+        "Smart capitalization applied",
+      ],
+    },
+  },
+]
+`;
+
+exports[`AddressExtractor Snapshots - Por Tipo de Problema > problemType: minusculas (1 casos) 1`] = `
+[
+  {
+    "id": "BER-08",
+    "input": "c/ llano Vilches 21",
+    "municipality": undefined,
+    "result": {
+      "address": "Calle Llano Vilches, 21",
+      "confidence": 90,
+      "reason": undefined,
+      "transformations": [
+        "Expanded: "C/" → "Calle"",
+        "Number format normalized",
+        "Smart capitalization applied",
+      ],
+    },
+  },
+]
+`;
+
+exports[`AddressExtractor Snapshots - Por Tipo de Problema > problemType: multiples_direcciones (2 casos) 1`] = `
+[
+  {
+    "id": "COL-04",
+    "input": "Avd. Benalua C/ Paz 1 C/ Amapola 8",
+    "municipality": undefined,
+    "result": {
+      "address": null,
+      "confidence": 0,
+      "reason": "multiple_addresses",
+      "transformations": [
+        "Detected as non-geocodable",
+      ],
+    },
+  },
+  {
+    "id": "COL-06",
+    "input": "C/ Pilarillo s/n C/ Cuesta de las Fuentes s/n",
+    "municipality": undefined,
+    "result": {
+      "address": null,
+      "confidence": 0,
+      "reason": "multiple_addresses",
+      "transformations": [
+        "Detected as non-geocodable",
+      ],
+    },
+  },
+]
+`;
+
+exports[`AddressExtractor Snapshots - Por Tipo de Problema > problemType: municipio_primero (1 casos) 1`] = `
+[
+  {
+    "id": "SYN-04",
+    "input": "Villanueva, Calle Mayor, 15",
+    "municipality": undefined,
+    "result": {
+      "address": "Calle Mayor, 15",
+      "confidence": 90,
+      "reason": undefined,
+      "transformations": [
+        "Pre-street cleanup: "Villanueva,"",
+      ],
+    },
+  },
+]
+`;
+
+exports[`AddressExtractor Snapshots - Por Tipo de Problema > problemType: n_pegado (1 casos) 1`] = `
+[
+  {
+    "id": "DBF-07",
+    "input": "CAMINO CAMPO DE FÚTBOL N4",
+    "municipality": undefined,
+    "result": {
+      "address": "Camino Campo de Fútbol, 4",
+      "confidence": 90,
+      "reason": undefined,
+      "transformations": [
+        "Expanded: "CAMINO" → "Camino"",
+        "Number format normalized",
+        "Punctuation normalized",
+        "Smart capitalization applied",
+      ],
+    },
+  },
+]
+`;
+
+exports[`AddressExtractor Snapshots - Por Tipo de Problema > problemType: nave+typo (1 casos) 1`] = `
+[
+  {
+    "id": "BER-03",
+    "input": "C/LOS ACTECAS NAVE N.º 11",
+    "municipality": undefined,
+    "result": {
+      "address": "Calle Los Aztecas, nave 11",
+      "confidence": 80,
+      "reason": undefined,
+      "transformations": [
+        "OCR: "N.º" → "Nº"",
+        "OCR: "/ACTECAS/g" → "Aztecas"",
+        "Expanded: "C/" → "Calle"",
+        "Number format normalized",
+        "Smart capitalization applied",
+      ],
+    },
+  },
+]
+`;
+
+exports[`AddressExtractor Snapshots - Por Tipo de Problema > problemType: no_geocodificable (2 casos) 1`] = `
+[
+  {
+    "id": "TIJ-09",
+    "input": "Lugar más próximo donde se localice la emergencia",
+    "municipality": undefined,
+    "result": {
+      "address": null,
+      "confidence": 0,
+      "reason": "not_geocodable",
+      "transformations": [
+        "Detected as non-geocodable",
+      ],
+    },
+  },
+  {
+    "id": "TIJ-10",
+    "input": "3,- Cargos Políticos, 3,- Funcionarios de Ayuntamiento Tíjola",
+    "municipality": undefined,
+    "result": {
+      "address": null,
+      "confidence": 0,
+      "reason": "not_geocodable",
+      "transformations": [
+        "Detected as non-geocodable",
+      ],
+    },
+  },
+]
+`;
+
+exports[`AddressExtractor Snapshots - Por Tipo de Problema > problemType: nombre+dir (1 casos) 1`] = `
+[
+  {
+    "id": "TIJ-06",
+    "input": "Pabellón Municipal de Deportes, C/ Francisco Quevedo, s/n, Tíjola",
+    "municipality": "Tíjola",
+    "result": {
+      "address": "Calle Francisco Quevedo, s/n, Tíjola",
+      "confidence": 100,
+      "reason": undefined,
+      "transformations": [
+        "Prefix removed: "Pabellón Municipal de Deportes"",
+        "Expanded: "C/" → "Calle"",
+      ],
+    },
+  },
+]
+`;
+
+exports[`AddressExtractor Snapshots - Por Tipo de Problema > problemType: nombre+dir+horario (1 casos) 1`] = `
+[
+  {
+    "id": "TIJ-01",
+    "input": "Centro de Salud Tíjola, Plaza Luis Gonzaga, n/ 1, de Tíjola, disponible 24 horas",
+    "municipality": "Tíjola",
+    "result": {
+      "address": "Plaza Luis Gonzaga, 1, Tíjola",
+      "confidence": 100,
+      "reason": undefined,
+      "transformations": [
+        "Prefix+name removed: "Centro de Salud Tíjola,"",
+        "Suffix removed: [.,\\-–]?\\s*(disponible\\s+)?24\\...",
+        "Number format normalized",
+        "Punctuation normalized",
+      ],
+    },
+  },
+]
+`;
+
+exports[`AddressExtractor Snapshots - Por Tipo de Problema > problemType: nombre+dir+otro_municipio (1 casos) 1`] = `
+[
+  {
+    "id": "TIJ-05",
+    "input": "Consorcio de Bomberos Levante Almeriense, Avda. De la Estación s/n, Albox (Almería)",
+    "municipality": "Albox",
+    "result": {
+      "address": "Avenida de la Estación, s/n, Albox",
+      "confidence": 100,
+      "reason": undefined,
+      "transformations": [
+        "Prefix+name removed: "Consorcio de Bomberos Levante Almeriense,"",
+        "Suffix removed: \\s*\\((almería|granada|jaén|cór...",
+        "Expanded: "Avda." → "Avenida"",
+        "Number format normalized",
+        "Smart capitalization applied",
+      ],
+    },
+  },
+]
+`;
+
+exports[`AddressExtractor Snapshots - Por Tipo de Problema > problemType: nombre+dir+piso (1 casos) 1`] = `
+[
+  {
+    "id": "TIJ-04",
+    "input": "Policía Local, C/Garcilaso de la Vega, n/ 5, bajo, Tíjola",
+    "municipality": "Tíjola",
+    "result": {
+      "address": "Calle Garcilaso de la Vega, 5, Tíjola",
+      "confidence": 100,
+      "reason": undefined,
+      "transformations": [
+        "Prefix+name removed: "Policía Local,"",
+        "Suffix removed: ,?\\s*\\b(bajo|alto|izq(da)?\\.?|...",
+        "Expanded: "C/" → "Calle"",
+        "Number format normalized",
+      ],
+    },
+  },
+]
+`;
+
+exports[`AddressExtractor Snapshots - Por Tipo de Problema > problemType: nombre+extra+tel+horario (1 casos) 1`] = `
+[
+  {
+    "id": "TIJ-02",
+    "input": "Ayuntamiento de Tíjola, despachos municipales, Plaza de España, n/ 1, Tíjola, 950420300- Disponible 24 horas",
+    "municipality": "Tíjola",
+    "result": {
+      "address": "Plaza de España, 1, Tíjola",
+      "confidence": 100,
+      "reason": undefined,
+      "transformations": [
+        "Prefix removed: "Ayuntamiento"",
+        "Pre-street cleanup: "despachos municipales,"",
+        "Suffix removed: [.,\\-–]?\\s*(disponible\\s+)?24\\...",
+        "Suffix removed: ,?\\s*\\d{9}\\s*-?\\s*(disponible)...",
+        "Number format normalized",
+      ],
+    },
+  },
+]
+`;
+
+exports[`AddressExtractor Snapshots - Por Tipo de Problema > problemType: nombre+jefatura+dir (1 casos) 1`] = `
+[
+  {
+    "id": "BER-06",
+    "input": "Policía Local Municipal. Jefatura: Plaza de la Constitución 1.  Berja 04760",
+    "municipality": "Berja",
+    "result": {
+      "address": "Plaza de la Constitución, 1, Berja",
+      "confidence": 100,
+      "reason": undefined,
+      "transformations": [
+        "Prefix removed: "Policía Local Municipal"",
+        "Prefix+name removed: "Jefatura:"",
+        "Suffix removed: ,?\\s*\\b(04|18|14|29|11|21|41|2...",
+        "Number format normalized",
+        "Punctuation normalized",
+      ],
+    },
+  },
+]
+`;
+
+exports[`AddressExtractor Snapshots - Por Tipo de Problema > problemType: nombre_largo+dir (1 casos) 1`] = `
+[
+  {
+    "id": "BER-07",
+    "input": "Consultorio Centro de Salud de Berja - URGENCIAS. C/ Carretera de Adra s/n Berja",
+    "municipality": "Berja",
+    "result": {
+      "address": "Calle Carretera de Adra, s/n, Berja",
+      "confidence": 100,
+      "reason": undefined,
+      "transformations": [
+        "Prefix removed: "Consultorio Centro de Salud"",
+        "Mid-prefix removed: "URGENCIAS."",
+        "Expanded: "C/" → "Calle"",
+        "Number format normalized",
+        "Punctuation normalized",
+      ],
+    },
+  },
+]
+`;
+
+exports[`AddressExtractor Snapshots - Por Tipo de Problema > problemType: numero_pegado (1 casos) 1`] = `
+[
+  {
+    "id": "COL-01",
+    "input": "C/ erillas, 2Colomera",
+    "municipality": "Colomera",
+    "result": {
+      "address": "Calle Erillas, 2, Colomera",
+      "confidence": 100,
+      "reason": undefined,
+      "transformations": [
+        "Expanded: "C/" → "Calle"",
+        "Number format normalized",
+        "Smart capitalization applied",
+      ],
+    },
+  },
+]
+`;
+
+exports[`AddressExtractor Snapshots - Por Tipo de Problema > problemType: orden_normal (1 casos) 1`] = `
+[
+  {
+    "id": "SYN-01",
+    "input": "Calle Mayor, 15, Villanueva",
+    "municipality": undefined,
+    "result": {
+      "address": "Calle Mayor, 15, Villanueva",
+      "confidence": 100,
+      "reason": undefined,
+      "transformations": [],
+    },
+  },
+]
+`;
+
+exports[`AddressExtractor Snapshots - Por Tipo de Problema > problemType: orden_pegado (1 casos) 1`] = `
+[
+  {
+    "id": "SYN-03",
+    "input": "C/Mayor, 15, Villanueva",
+    "municipality": undefined,
+    "result": {
+      "address": "Calle Mayor, 15, Villanueva",
+      "confidence": 100,
+      "reason": undefined,
+      "transformations": [
+        "Expanded: "C/" → "Calle"",
+      ],
+    },
+  },
+]
+`;
+
+exports[`AddressExtractor Snapshots - Por Tipo de Problema > problemType: orden_sin_comas (1 casos) 1`] = `
+[
+  {
+    "id": "SYN-02",
+    "input": "Calle Mayor 15 Villanueva",
+    "municipality": undefined,
+    "result": {
+      "address": "Calle Mayor, 15, Villanueva",
+      "confidence": 100,
+      "reason": undefined,
+      "transformations": [
+        "Punctuation normalized",
+      ],
+    },
+  },
+]
+`;
+
+exports[`AddressExtractor Snapshots - Por Tipo de Problema > problemType: paraje (1 casos) 1`] = `
+[
+  {
+    "id": "COL-09",
+    "input": "Paraje cortijo el chopo",
+    "municipality": undefined,
+    "result": {
+      "address": "Paraje Cortijo El Chopo",
+      "confidence": 50,
+      "reason": undefined,
+      "transformations": [
+        "Smart capitalization applied",
+      ],
+    },
+  },
+]
+`;
+
+exports[`AddressExtractor Snapshots - Por Tipo de Problema > problemType: parcela_catastral (1 casos) 1`] = `
+[
+  {
+    "id": "COL-05",
+    "input": "Pol 14- P 146",
+    "municipality": undefined,
+    "result": {
+      "address": null,
+      "confidence": 0,
+      "reason": "cadastral",
+      "transformations": [
+        "Detected as non-geocodable",
+      ],
+    },
+  },
+]
+`;
+
+exports[`AddressExtractor Snapshots - Por Tipo de Problema > problemType: poligono+calle (1 casos) 1`] = `
+[
+  {
+    "id": "BER-04",
+    "input": "POLIGONO C/ QUINTA AVENIDA S/N",
+    "municipality": undefined,
+    "result": {
+      "address": "Polígono, Calle Quinta Avenida, s/n",
+      "confidence": 70,
+      "reason": undefined,
+      "transformations": [
+        "Expanded: "POLIGONO" → "Polígono"",
+        "Expanded: "AVENIDA" → "Avenida"",
+        "Expanded: "C/" → "Calle"",
+        "Number format normalized",
+        "Smart capitalization applied",
+      ],
+    },
+  },
+]
+`;
+
+exports[`AddressExtractor Snapshots - Por Tipo de Problema > problemType: poligono+typo (1 casos) 1`] = `
+[
+  {
+    "id": "TIJ-07",
+    "input": "Poligono Industrial Tíjola, s/n, Diponibilidad 24 horas",
+    "municipality": "Tíjola",
+    "result": {
+      "address": "Polígono Industrial, s/n, Tíjola",
+      "confidence": 100,
+      "reason": undefined,
+      "transformations": [
+        "OCR: "/diponibilidad/gi" → "disponibilidad"",
+        "Suffix removed: [.,\\-–]?\\s*disponibilidad\\s+24...",
+        "Expanded: "POLIGONO" → "Polígono"",
+        "T07: Polígono Industrial + municipality separated",
+        "Punctuation normalized",
+      ],
+    },
+  },
+]
+`;
+
+exports[`AddressExtractor Snapshots - Por Tipo de Problema > problemType: prefijo_ayuntamiento (1 casos) 1`] = `
+[
+  {
+    "id": "SYN-14",
+    "input": "Ayuntamiento, Plaza de España, 1",
+    "municipality": undefined,
+    "result": {
+      "address": "Plaza de España, 1",
+      "confidence": 90,
+      "reason": undefined,
+      "transformations": [
+        "Prefix+name removed: "Ayuntamiento,"",
+      ],
+    },
+  },
+]
+`;
+
+exports[`AddressExtractor Snapshots - Por Tipo de Problema > problemType: prefijo_ayuntamiento_municipio (1 casos) 1`] = `
+[
+  {
+    "id": "SYN-15",
+    "input": "Ayuntamiento de Villanueva, Plaza de España, 1",
+    "municipality": undefined,
+    "result": {
+      "address": "Plaza de España, 1",
+      "confidence": 90,
+      "reason": undefined,
+      "transformations": [
+        "Prefix+name removed: "Ayuntamiento de Villanueva,"",
+      ],
+    },
+  },
+]
+`;
+
+exports[`AddressExtractor Snapshots - Por Tipo de Problema > problemType: prefijo_ceip (1 casos) 1`] = `
+[
+  {
+    "id": "SYN-11",
+    "input": "CEIP San Juan, Avenida de la Paz, 5",
+    "municipality": undefined,
+    "result": {
+      "address": "Avenida de la Paz, 5",
+      "confidence": 90,
+      "reason": undefined,
+      "transformations": [
+        "Prefix+name removed: "CEIP San Juan,"",
+      ],
+    },
+  },
+]
+`;
+
+exports[`AddressExtractor Snapshots - Por Tipo de Problema > problemType: prefijo_centro_salud (1 casos) 1`] = `
+[
+  {
+    "id": "SYN-08",
+    "input": "Centro de Salud, Calle Real, 1",
+    "municipality": undefined,
+    "result": {
+      "address": "Calle Real, 1",
+      "confidence": 90,
+      "reason": undefined,
+      "transformations": [
+        "Prefix+name removed: "Centro de Salud,"",
+      ],
+    },
+  },
+]
+`;
+
+exports[`AddressExtractor Snapshots - Por Tipo de Problema > problemType: prefijo_centro_salud_municipio (1 casos) 1`] = `
+[
+  {
+    "id": "SYN-09",
+    "input": "Centro de Salud de Villanueva, Calle Real, 1",
+    "municipality": undefined,
+    "result": {
+      "address": "Calle Real, 1",
+      "confidence": 90,
+      "reason": undefined,
+      "transformations": [
+        "Prefix+name removed: "Centro de Salud de Villanueva,"",
+      ],
+    },
+  },
+]
+`;
+
+exports[`AddressExtractor Snapshots - Por Tipo de Problema > problemType: prefijo_consultorio (1 casos) 1`] = `
+[
+  {
+    "id": "SYN-10",
+    "input": "Consultorio Local, Plaza Mayor, s/n",
+    "municipality": undefined,
+    "result": {
+      "address": "Plaza Mayor, s/n",
+      "confidence": 80,
+      "reason": undefined,
+      "transformations": [
+        "Prefix+name removed: "Consultorio Local,"",
+      ],
+    },
+  },
+]
+`;
+
+exports[`AddressExtractor Snapshots - Por Tipo de Problema > problemType: prefijo_policia (1 casos) 1`] = `
+[
+  {
+    "id": "SYN-13",
+    "input": "Policía Local, Calle Guardia, 3",
+    "municipality": undefined,
+    "result": {
+      "address": "Calle Guardia, 3",
+      "confidence": 90,
+      "reason": undefined,
+      "transformations": [
+        "Prefix+name removed: "Policía Local,"",
+      ],
+    },
+  },
+]
+`;
+
+exports[`AddressExtractor Snapshots - Por Tipo de Problema > problemType: prefijo_residencia (1 casos) 1`] = `
+[
+  {
+    "id": "SYN-12",
+    "input": "Residencia de Mayores Santa Ana, Calle Nueva, 10",
+    "municipality": undefined,
+    "result": {
+      "address": "Calle Nueva, 10",
+      "confidence": 90,
+      "reason": undefined,
+      "transformations": [
+        "Prefix+name removed: "Residencia de Mayores Santa Ana,"",
+      ],
+    },
+  },
+]
+`;
+
+exports[`AddressExtractor Snapshots - Por Tipo de Problema > problemType: punto_vs_coma (1 casos) 1`] = `
+[
+  {
+    "id": "COL-02",
+    "input": "Avd Virgen de la Cabeza, 9. Colomera",
+    "municipality": "Colomera",
+    "result": {
+      "address": "Avenida Virgen de la Cabeza, 9, Colomera",
+      "confidence": 100,
+      "reason": undefined,
+      "transformations": [
+        "Expanded: "Avd" → "Avenida"",
+        "Number format normalized",
+      ],
+    },
+  },
+]
+`;
+
+exports[`AddressExtractor Snapshots - Por Tipo de Problema > problemType: puntos_separadores (1 casos) 1`] = `
+[
+  {
+    "id": "SYN-05",
+    "input": "Calle Mayor. 15. Villanueva",
+    "municipality": undefined,
+    "result": {
+      "address": "Calle Mayor, 15, Villanueva",
+      "confidence": 100,
+      "reason": undefined,
+      "transformations": [
+        "Number format normalized",
+        "Punctuation normalized",
+      ],
+    },
+  },
+]
+`;
+
+exports[`AddressExtractor Snapshots - Por Tipo de Problema > problemType: sin_tipo_via (1 casos) 1`] = `
+[
+  {
+    "id": "DBF-04",
+    "input": "Moredal, 15",
+    "municipality": undefined,
+    "result": {
+      "address": "Moredal, 15",
+      "confidence": 60,
+      "reason": undefined,
+      "transformations": [],
+    },
+  },
+]
+`;
+
+exports[`AddressExtractor Snapshots - Por Tipo de Problema > problemType: solo_nombre (1 casos) 1`] = `
+[
+  {
+    "id": "COL-03",
+    "input": "CONSULTORIO MÉDICO DE COLOMERA Y DEL CONSULTORIO AUXILIAR DEL CAURO",
+    "municipality": undefined,
+    "result": {
+      "address": null,
+      "confidence": 0,
+      "reason": "not_geocodable",
+      "transformations": [
+        "Detected as non-geocodable",
+      ],
+    },
+  },
+]
+`;
+
+exports[`AddressExtractor Snapshots - Por Tipo de Problema > problemType: sufijo_24h (1 casos) 1`] = `
+[
+  {
+    "id": "SYN-18",
+    "input": "Calle Real, 1, 24h",
+    "municipality": undefined,
+    "result": {
+      "address": "Calle Real, 1",
+      "confidence": 90,
+      "reason": undefined,
+      "transformations": [
+        "Suffix removed: [.,\\-–]?\\s*(disponible\\s+)?24\\...",
+      ],
+    },
+  },
+]
+`;
+
+exports[`AddressExtractor Snapshots - Por Tipo de Problema > problemType: sufijo_cp (1 casos) 1`] = `
+[
+  {
+    "id": "SYN-23",
+    "input": "Calle Real, 1, Villanueva, 04760",
+    "municipality": undefined,
+    "result": {
+      "address": "Calle Real, 1, Villanueva",
+      "confidence": 100,
+      "reason": undefined,
+      "transformations": [
+        "Suffix removed: ,?\\s*\\b(04|18|14|29|11|21|41|2...",
+      ],
+    },
+  },
+]
+`;
+
+exports[`AddressExtractor Snapshots - Por Tipo de Problema > problemType: sufijo_disponibilidad (1 casos) 1`] = `
+[
+  {
+    "id": "SYN-17",
+    "input": "Calle Real, 1. Disponibilidad 24 horas.",
+    "municipality": undefined,
+    "result": {
+      "address": "Calle Real, 1",
+      "confidence": 90,
+      "reason": undefined,
+      "transformations": [
+        "Suffix removed: [.,\\-–]?\\s*disponibilidad\\s+24...",
+      ],
+    },
+  },
+]
+`;
+
+exports[`AddressExtractor Snapshots - Por Tipo de Problema > problemType: sufijo_horario_24h (1 casos) 1`] = `
+[
+  {
+    "id": "SYN-16",
+    "input": "Calle Real, 1, disponible 24 horas",
+    "municipality": undefined,
+    "result": {
+      "address": "Calle Real, 1",
+      "confidence": 90,
+      "reason": undefined,
+      "transformations": [
+        "Suffix removed: [.,\\-–]?\\s*(disponible\\s+)?24\\...",
+      ],
+    },
+  },
+]
+`;
+
+exports[`AddressExtractor Snapshots - Por Tipo de Problema > problemType: sufijo_horario_lv (1 casos) 1`] = `
+[
+  {
+    "id": "SYN-24",
+    "input": "Calle Real, 1 - horario L-V 8-15",
+    "municipality": undefined,
+    "result": {
+      "address": "Calle Real, 1",
+      "confidence": 90,
+      "reason": undefined,
+      "transformations": [
+        "Suffix removed: [.,\\-–]?\\s*horario.*$...",
+      ],
+    },
+  },
+]
+`;
+
+exports[`AddressExtractor Snapshots - Por Tipo de Problema > problemType: sufijo_piso (1 casos) 1`] = `
+[
+  {
+    "id": "SYN-22",
+    "input": "Calle Real, 1, bajo",
+    "municipality": undefined,
+    "result": {
+      "address": "Calle Real, 1",
+      "confidence": 90,
+      "reason": undefined,
+      "transformations": [
+        "Suffix removed: ,?\\s*\\b(bajo|alto|izq(da)?\\.?|...",
+      ],
+    },
+  },
+]
+`;
+
+exports[`AddressExtractor Snapshots - Por Tipo de Problema > problemType: sufijo_provincia (1 casos) 1`] = `
+[
+  {
+    "id": "SYN-21",
+    "input": "Calle Real, 1, Villanueva (Almería)",
+    "municipality": undefined,
+    "result": {
+      "address": "Calle Real, 1, Villanueva",
+      "confidence": 100,
+      "reason": undefined,
+      "transformations": [
+        "Suffix removed: \\s*\\((almería|granada|jaén|cór...",
+      ],
+    },
+  },
+]
+`;
+
+exports[`AddressExtractor Snapshots - Por Tipo de Problema > problemType: sufijo_telefono (1 casos) 1`] = `
+[
+  {
+    "id": "SYN-19",
+    "input": "Calle Real, 1. Tel: 958123456",
+    "municipality": undefined,
+    "result": {
+      "address": "Calle Real, 1",
+      "confidence": 90,
+      "reason": undefined,
+      "transformations": [
+        "Suffix removed: ,?\\s*tel[éef]?[.:]\\s*[\\d\\s-]+...",
+      ],
+    },
+  },
+]
+`;
+
+exports[`AddressExtractor Snapshots - Por Tipo de Problema > problemType: sufijo_tlf (1 casos) 1`] = `
+[
+  {
+    "id": "SYN-20",
+    "input": "Calle Real, 1, Tlf. 666123456",
+    "municipality": undefined,
+    "result": {
+      "address": "Calle Real, 1",
+      "confidence": 90,
+      "reason": undefined,
+      "transformations": [
+        "Suffix removed: ,?\\s*tlf\\.?\\s*[\\d\\s-]+...",
+      ],
+    },
+  },
+]
+`;
+
+exports[`AddressExtractor Snapshots - Por Tipo de Problema > problemType: typo_sn (1 casos) 1`] = `
+[
+  {
+    "id": "TIJ-13",
+    "input": "C/ Enriqueta Reche, s7n",
+    "municipality": undefined,
+    "result": {
+      "address": "Calle Enriqueta Reche, s/n",
+      "confidence": 80,
+      "reason": undefined,
+      "transformations": [
+        "OCR: "s7n" → "s/n"",
+        "Expanded: "C/" → "Calle"",
+      ],
+    },
+  },
+]
+`;
+
+exports[`AddressExtractor Snapshots - Por Tipo de Problema > problemType: utf8_corrupto (1 casos) 1`] = `
+[
+  {
+    "id": "DBF-01",
+    "input": "CALLE ESCUELAS NÂº 1",
+    "municipality": undefined,
+    "result": {
+      "address": "Calle Escuelas, 1",
+      "confidence": 90,
+      "reason": undefined,
+      "transformations": [
+        "OCR: "NÂº" → "Nº"",
+        "Expanded: "CALLE" → "Calle"",
+        "Number format normalized",
+        "Punctuation normalized",
+        "Smart capitalization applied",
+      ],
+    },
+  },
+]
+`;
+
+exports[`AddressExtractor Snapshots - Por Tipo de Problema > problemType: vereda_sin_num (1 casos) 1`] = `
+[
+  {
+    "id": "COL-08",
+    "input": "Vereda del Camino Real de Madrid",
+    "municipality": undefined,
+    "result": {
+      "address": "Vereda del Camino Real de Madrid",
+      "confidence": 50,
+      "reason": undefined,
+      "transformations": [],
+    },
+  },
+]
+`;
+
+exports[`AddressExtractor Snapshots - Sintéticos (24) > [SYN-01] orden_normal 1`] = `
+{
+  "id": "SYN-01",
+  "input": "Calle Mayor, 15, Villanueva",
+  "municipality": undefined,
+  "result": {
+    "address": "Calle Mayor, 15, Villanueva",
+    "confidence": 100,
+    "reason": undefined,
+    "transformations": [],
+  },
+}
+`;
+
+exports[`AddressExtractor Snapshots - Sintéticos (24) > [SYN-02] orden_sin_comas 1`] = `
+{
+  "id": "SYN-02",
+  "input": "Calle Mayor 15 Villanueva",
+  "municipality": undefined,
+  "result": {
+    "address": "Calle Mayor, 15, Villanueva",
+    "confidence": 100,
+    "reason": undefined,
+    "transformations": [
+      "Punctuation normalized",
+    ],
+  },
+}
+`;
+
+exports[`AddressExtractor Snapshots - Sintéticos (24) > [SYN-03] orden_pegado 1`] = `
+{
+  "id": "SYN-03",
+  "input": "C/Mayor, 15, Villanueva",
+  "municipality": undefined,
+  "result": {
+    "address": "Calle Mayor, 15, Villanueva",
+    "confidence": 100,
+    "reason": undefined,
+    "transformations": [
+      "Expanded: "C/" → "Calle"",
+    ],
+  },
+}
+`;
+
+exports[`AddressExtractor Snapshots - Sintéticos (24) > [SYN-04] municipio_primero 1`] = `
+{
+  "id": "SYN-04",
+  "input": "Villanueva, Calle Mayor, 15",
+  "municipality": undefined,
+  "result": {
+    "address": "Calle Mayor, 15",
+    "confidence": 90,
+    "reason": undefined,
+    "transformations": [
+      "Pre-street cleanup: "Villanueva,"",
+    ],
+  },
+}
+`;
+
+exports[`AddressExtractor Snapshots - Sintéticos (24) > [SYN-05] puntos_separadores 1`] = `
+{
+  "id": "SYN-05",
+  "input": "Calle Mayor. 15. Villanueva",
+  "municipality": undefined,
+  "result": {
+    "address": "Calle Mayor, 15, Villanueva",
+    "confidence": 100,
+    "reason": undefined,
+    "transformations": [
+      "Number format normalized",
+      "Punctuation normalized",
+    ],
+  },
+}
+`;
+
+exports[`AddressExtractor Snapshots - Sintéticos (24) > [SYN-06] formato_n_barra 1`] = `
+{
+  "id": "SYN-06",
+  "input": "Calle Mayor, n/ 15, Villanueva",
+  "municipality": undefined,
+  "result": {
+    "address": "Calle Mayor, 15, Villanueva",
+    "confidence": 100,
+    "reason": undefined,
+    "transformations": [
+      "Number format normalized",
+    ],
+  },
+}
+`;
+
+exports[`AddressExtractor Snapshots - Sintéticos (24) > [SYN-07] formato_numero_ordinal 1`] = `
+{
+  "id": "SYN-07",
+  "input": "Calle Mayor, nº 15, Villanueva",
+  "municipality": undefined,
+  "result": {
+    "address": "Calle Mayor, 15, Villanueva",
+    "confidence": 100,
+    "reason": undefined,
+    "transformations": [
+      "OCR: "/n\\.?º/gi" → "Nº"",
+      "Number format normalized",
+    ],
+  },
+}
+`;
+
+exports[`AddressExtractor Snapshots - Sintéticos (24) > [SYN-08] prefijo_centro_salud 1`] = `
+{
+  "id": "SYN-08",
+  "input": "Centro de Salud, Calle Real, 1",
+  "municipality": undefined,
+  "result": {
+    "address": "Calle Real, 1",
+    "confidence": 90,
+    "reason": undefined,
+    "transformations": [
+      "Prefix+name removed: "Centro de Salud,"",
+    ],
+  },
+}
+`;
+
+exports[`AddressExtractor Snapshots - Sintéticos (24) > [SYN-09] prefijo_centro_salud_municipio 1`] = `
+{
+  "id": "SYN-09",
+  "input": "Centro de Salud de Villanueva, Calle Real, 1",
+  "municipality": undefined,
+  "result": {
+    "address": "Calle Real, 1",
+    "confidence": 90,
+    "reason": undefined,
+    "transformations": [
+      "Prefix+name removed: "Centro de Salud de Villanueva,"",
+    ],
+  },
+}
+`;
+
+exports[`AddressExtractor Snapshots - Sintéticos (24) > [SYN-10] prefijo_consultorio 1`] = `
+{
+  "id": "SYN-10",
+  "input": "Consultorio Local, Plaza Mayor, s/n",
+  "municipality": undefined,
+  "result": {
+    "address": "Plaza Mayor, s/n",
+    "confidence": 80,
+    "reason": undefined,
+    "transformations": [
+      "Prefix+name removed: "Consultorio Local,"",
+    ],
+  },
+}
+`;
+
+exports[`AddressExtractor Snapshots - Sintéticos (24) > [SYN-11] prefijo_ceip 1`] = `
+{
+  "id": "SYN-11",
+  "input": "CEIP San Juan, Avenida de la Paz, 5",
+  "municipality": undefined,
+  "result": {
+    "address": "Avenida de la Paz, 5",
+    "confidence": 90,
+    "reason": undefined,
+    "transformations": [
+      "Prefix+name removed: "CEIP San Juan,"",
+    ],
+  },
+}
+`;
+
+exports[`AddressExtractor Snapshots - Sintéticos (24) > [SYN-12] prefijo_residencia 1`] = `
+{
+  "id": "SYN-12",
+  "input": "Residencia de Mayores Santa Ana, Calle Nueva, 10",
+  "municipality": undefined,
+  "result": {
+    "address": "Calle Nueva, 10",
+    "confidence": 90,
+    "reason": undefined,
+    "transformations": [
+      "Prefix+name removed: "Residencia de Mayores Santa Ana,"",
+    ],
+  },
+}
+`;
+
+exports[`AddressExtractor Snapshots - Sintéticos (24) > [SYN-13] prefijo_policia 1`] = `
+{
+  "id": "SYN-13",
+  "input": "Policía Local, Calle Guardia, 3",
+  "municipality": undefined,
+  "result": {
+    "address": "Calle Guardia, 3",
+    "confidence": 90,
+    "reason": undefined,
+    "transformations": [
+      "Prefix+name removed: "Policía Local,"",
+    ],
+  },
+}
+`;
+
+exports[`AddressExtractor Snapshots - Sintéticos (24) > [SYN-14] prefijo_ayuntamiento 1`] = `
+{
+  "id": "SYN-14",
+  "input": "Ayuntamiento, Plaza de España, 1",
+  "municipality": undefined,
+  "result": {
+    "address": "Plaza de España, 1",
+    "confidence": 90,
+    "reason": undefined,
+    "transformations": [
+      "Prefix+name removed: "Ayuntamiento,"",
+    ],
+  },
+}
+`;
+
+exports[`AddressExtractor Snapshots - Sintéticos (24) > [SYN-15] prefijo_ayuntamiento_municipio 1`] = `
+{
+  "id": "SYN-15",
+  "input": "Ayuntamiento de Villanueva, Plaza de España, 1",
+  "municipality": undefined,
+  "result": {
+    "address": "Plaza de España, 1",
+    "confidence": 90,
+    "reason": undefined,
+    "transformations": [
+      "Prefix+name removed: "Ayuntamiento de Villanueva,"",
+    ],
+  },
+}
+`;
+
+exports[`AddressExtractor Snapshots - Sintéticos (24) > [SYN-16] sufijo_horario_24h 1`] = `
+{
+  "id": "SYN-16",
+  "input": "Calle Real, 1, disponible 24 horas",
+  "municipality": undefined,
+  "result": {
+    "address": "Calle Real, 1",
+    "confidence": 90,
+    "reason": undefined,
+    "transformations": [
+      "Suffix removed: [.,\\-–]?\\s*(disponible\\s+)?24\\...",
+    ],
+  },
+}
+`;
+
+exports[`AddressExtractor Snapshots - Sintéticos (24) > [SYN-17] sufijo_disponibilidad 1`] = `
+{
+  "id": "SYN-17",
+  "input": "Calle Real, 1. Disponibilidad 24 horas.",
+  "municipality": undefined,
+  "result": {
+    "address": "Calle Real, 1",
+    "confidence": 90,
+    "reason": undefined,
+    "transformations": [
+      "Suffix removed: [.,\\-–]?\\s*disponibilidad\\s+24...",
+    ],
+  },
+}
+`;
+
+exports[`AddressExtractor Snapshots - Sintéticos (24) > [SYN-18] sufijo_24h 1`] = `
+{
+  "id": "SYN-18",
+  "input": "Calle Real, 1, 24h",
+  "municipality": undefined,
+  "result": {
+    "address": "Calle Real, 1",
+    "confidence": 90,
+    "reason": undefined,
+    "transformations": [
+      "Suffix removed: [.,\\-–]?\\s*(disponible\\s+)?24\\...",
+    ],
+  },
+}
+`;
+
+exports[`AddressExtractor Snapshots - Sintéticos (24) > [SYN-19] sufijo_telefono 1`] = `
+{
+  "id": "SYN-19",
+  "input": "Calle Real, 1. Tel: 958123456",
+  "municipality": undefined,
+  "result": {
+    "address": "Calle Real, 1",
+    "confidence": 90,
+    "reason": undefined,
+    "transformations": [
+      "Suffix removed: ,?\\s*tel[éef]?[.:]\\s*[\\d\\s-]+...",
+    ],
+  },
+}
+`;
+
+exports[`AddressExtractor Snapshots - Sintéticos (24) > [SYN-20] sufijo_tlf 1`] = `
+{
+  "id": "SYN-20",
+  "input": "Calle Real, 1, Tlf. 666123456",
+  "municipality": undefined,
+  "result": {
+    "address": "Calle Real, 1",
+    "confidence": 90,
+    "reason": undefined,
+    "transformations": [
+      "Suffix removed: ,?\\s*tlf\\.?\\s*[\\d\\s-]+...",
+    ],
+  },
+}
+`;
+
+exports[`AddressExtractor Snapshots - Sintéticos (24) > [SYN-21] sufijo_provincia 1`] = `
+{
+  "id": "SYN-21",
+  "input": "Calle Real, 1, Villanueva (Almería)",
+  "municipality": undefined,
+  "result": {
+    "address": "Calle Real, 1, Villanueva",
+    "confidence": 100,
+    "reason": undefined,
+    "transformations": [
+      "Suffix removed: \\s*\\((almería|granada|jaén|cór...",
+    ],
+  },
+}
+`;
+
+exports[`AddressExtractor Snapshots - Sintéticos (24) > [SYN-22] sufijo_piso 1`] = `
+{
+  "id": "SYN-22",
+  "input": "Calle Real, 1, bajo",
+  "municipality": undefined,
+  "result": {
+    "address": "Calle Real, 1",
+    "confidence": 90,
+    "reason": undefined,
+    "transformations": [
+      "Suffix removed: ,?\\s*\\b(bajo|alto|izq(da)?\\.?|...",
+    ],
+  },
+}
+`;
+
+exports[`AddressExtractor Snapshots - Sintéticos (24) > [SYN-23] sufijo_cp 1`] = `
+{
+  "id": "SYN-23",
+  "input": "Calle Real, 1, Villanueva, 04760",
+  "municipality": undefined,
+  "result": {
+    "address": "Calle Real, 1, Villanueva",
+    "confidence": 100,
+    "reason": undefined,
+    "transformations": [
+      "Suffix removed: ,?\\s*\\b(04|18|14|29|11|21|41|2...",
+    ],
+  },
+}
+`;
+
+exports[`AddressExtractor Snapshots - Sintéticos (24) > [SYN-24] sufijo_horario_lv 1`] = `
+{
+  "id": "SYN-24",
+  "input": "Calle Real, 1 - horario L-V 8-15",
+  "municipality": undefined,
+  "result": {
+    "address": "Calle Real, 1",
+    "confidence": 90,
+    "reason": undefined,
+    "transformations": [
+      "Suffix removed: [.,\\-–]?\\s*horario.*$...",
+    ],
+  },
+}
+`;
+
+exports[`AddressExtractor Snapshots - Tíjola (13) > [TIJ-01] nombre+dir+horario 1`] = `
+{
+  "id": "TIJ-01",
+  "input": "Centro de Salud Tíjola, Plaza Luis Gonzaga, n/ 1, de Tíjola, disponible 24 horas",
+  "municipality": "Tíjola",
+  "result": {
+    "address": "Plaza Luis Gonzaga, 1, Tíjola",
+    "confidence": 100,
+    "reason": undefined,
+    "transformations": [
+      "Prefix+name removed: "Centro de Salud Tíjola,"",
+      "Suffix removed: [.,\\-–]?\\s*(disponible\\s+)?24\\...",
+      "Number format normalized",
+      "Punctuation normalized",
+    ],
+  },
+}
+`;
+
+exports[`AddressExtractor Snapshots - Tíjola (13) > [TIJ-02] nombre+extra+tel+horario 1`] = `
+{
+  "id": "TIJ-02",
+  "input": "Ayuntamiento de Tíjola, despachos municipales, Plaza de España, n/ 1, Tíjola, 950420300- Disponible 24 horas",
+  "municipality": "Tíjola",
+  "result": {
+    "address": "Plaza de España, 1, Tíjola",
+    "confidence": 100,
+    "reason": undefined,
+    "transformations": [
+      "Prefix removed: "Ayuntamiento"",
+      "Pre-street cleanup: "despachos municipales,"",
+      "Suffix removed: [.,\\-–]?\\s*(disponible\\s+)?24\\...",
+      "Suffix removed: ,?\\s*\\d{9}\\s*-?\\s*(disponible)...",
+      "Number format normalized",
+    ],
+  },
+}
+`;
+
+exports[`AddressExtractor Snapshots - Tíjola (13) > [TIJ-03] dir+piso+horario 1`] = `
+{
+  "id": "TIJ-03",
+  "input": "C/Garcilaso de la Vega, n/ 5, bajo, Tíjola, disponible 24 horas",
+  "municipality": "Tíjola",
+  "result": {
+    "address": "Calle Garcilaso de la Vega, 5, Tíjola",
+    "confidence": 100,
+    "reason": undefined,
+    "transformations": [
+      "Suffix removed: [.,\\-–]?\\s*(disponible\\s+)?24\\...",
+      "Suffix removed: ,?\\s*\\b(bajo|alto|izq(da)?\\.?|...",
+      "Expanded: "C/" → "Calle"",
+      "Number format normalized",
+    ],
+  },
+}
+`;
+
+exports[`AddressExtractor Snapshots - Tíjola (13) > [TIJ-04] nombre+dir+piso 1`] = `
+{
+  "id": "TIJ-04",
+  "input": "Policía Local, C/Garcilaso de la Vega, n/ 5, bajo, Tíjola",
+  "municipality": "Tíjola",
+  "result": {
+    "address": "Calle Garcilaso de la Vega, 5, Tíjola",
+    "confidence": 100,
+    "reason": undefined,
+    "transformations": [
+      "Prefix+name removed: "Policía Local,"",
+      "Suffix removed: ,?\\s*\\b(bajo|alto|izq(da)?\\.?|...",
+      "Expanded: "C/" → "Calle"",
+      "Number format normalized",
+    ],
+  },
+}
+`;
+
+exports[`AddressExtractor Snapshots - Tíjola (13) > [TIJ-05] nombre+dir+otro_municipio 1`] = `
+{
+  "id": "TIJ-05",
+  "input": "Consorcio de Bomberos Levante Almeriense, Avda. De la Estación s/n, Albox (Almería)",
+  "municipality": "Albox",
+  "result": {
+    "address": "Avenida de la Estación, s/n, Albox",
+    "confidence": 100,
+    "reason": undefined,
+    "transformations": [
+      "Prefix+name removed: "Consorcio de Bomberos Levante Almeriense,"",
+      "Suffix removed: \\s*\\((almería|granada|jaén|cór...",
+      "Expanded: "Avda." → "Avenida"",
+      "Number format normalized",
+      "Smart capitalization applied",
+    ],
+  },
+}
+`;
+
+exports[`AddressExtractor Snapshots - Tíjola (13) > [TIJ-06] nombre+dir 1`] = `
+{
+  "id": "TIJ-06",
+  "input": "Pabellón Municipal de Deportes, C/ Francisco Quevedo, s/n, Tíjola",
+  "municipality": "Tíjola",
+  "result": {
+    "address": "Calle Francisco Quevedo, s/n, Tíjola",
+    "confidence": 100,
+    "reason": undefined,
+    "transformations": [
+      "Prefix removed: "Pabellón Municipal de Deportes"",
+      "Expanded: "C/" → "Calle"",
+    ],
+  },
+}
+`;
+
+exports[`AddressExtractor Snapshots - Tíjola (13) > [TIJ-07] poligono+typo 1`] = `
+{
+  "id": "TIJ-07",
+  "input": "Poligono Industrial Tíjola, s/n, Diponibilidad 24 horas",
+  "municipality": "Tíjola",
+  "result": {
+    "address": "Polígono Industrial, s/n, Tíjola",
+    "confidence": 100,
+    "reason": undefined,
+    "transformations": [
+      "OCR: "/diponibilidad/gi" → "disponibilidad"",
+      "Suffix removed: [.,\\-–]?\\s*disponibilidad\\s+24...",
+      "Expanded: "POLIGONO" → "Polígono"",
+      "T07: Polígono Industrial + municipality separated",
+      "Punctuation normalized",
+    ],
+  },
+}
+`;
+
+exports[`AddressExtractor Snapshots - Tíjola (13) > [TIJ-08] carretera+ref_relativa 1`] = `
+{
+  "id": "TIJ-08",
+  "input": "Carretera 334, frente Cuartel Guardia Civil, Tíjola",
+  "municipality": "Tíjola",
+  "result": {
+    "address": "Carretera 334, Tíjola",
+    "confidence": 100,
+    "reason": undefined,
+    "transformations": [
+      "Suffix removed: ,?\\s*\\bfrente\\s+(a(l)?\\s+)?[A-...",
+    ],
+  },
+}
+`;
+
+exports[`AddressExtractor Snapshots - Tíjola (13) > [TIJ-09] no_geocodificable 1`] = `
+{
+  "id": "TIJ-09",
+  "input": "Lugar más próximo donde se localice la emergencia",
+  "municipality": undefined,
+  "result": {
+    "address": null,
+    "confidence": 0,
+    "reason": "not_geocodable",
+    "transformations": [
+      "Detected as non-geocodable",
+    ],
+  },
+}
+`;
+
+exports[`AddressExtractor Snapshots - Tíjola (13) > [TIJ-10] no_geocodificable 1`] = `
+{
+  "id": "TIJ-10",
+  "input": "3,- Cargos Políticos, 3,- Funcionarios de Ayuntamiento Tíjola",
+  "municipality": undefined,
+  "result": {
+    "address": null,
+    "confidence": 0,
+    "reason": "not_geocodable",
+    "transformations": [
+      "Detected as non-geocodable",
+    ],
+  },
+}
+`;
+
+exports[`AddressExtractor Snapshots - Tíjola (13) > [TIJ-11] dir_simple 1`] = `
+{
+  "id": "TIJ-11",
+  "input": "Avda José Antonio, n/ 18, Tíjola",
+  "municipality": "Tíjola",
+  "result": {
+    "address": "Avenida José Antonio, 18, Tíjola",
+    "confidence": 100,
+    "reason": undefined,
+    "transformations": [
+      "Expanded: "Avda" → "Avenida"",
+      "Number format normalized",
+    ],
+  },
+}
+`;
+
+exports[`AddressExtractor Snapshots - Tíjola (13) > [TIJ-12] dir_sin_municipio 1`] = `
+{
+  "id": "TIJ-12",
+  "input": "C/ Santa María, n/ 1",
+  "municipality": undefined,
+  "result": {
+    "address": "Calle Santa María, 1",
+    "confidence": 90,
+    "reason": undefined,
+    "transformations": [
+      "Expanded: "C/" → "Calle"",
+      "Number format normalized",
+    ],
+  },
+}
+`;
+
+exports[`AddressExtractor Snapshots - Tíjola (13) > [TIJ-13] typo_sn 1`] = `
+{
+  "id": "TIJ-13",
+  "input": "C/ Enriqueta Reche, s7n",
+  "municipality": undefined,
+  "result": {
+    "address": "Calle Enriqueta Reche, s/n",
+    "confidence": 80,
+    "reason": undefined,
+    "transformations": [
+      "OCR: "s7n" → "s/n"",
+      "Expanded: "C/" → "Calle"",
+    ],
+  },
+}
+`;
+
+exports[`AddressExtractor Stats > estadísticas de resultados 1`] = `
+{
+  "confianzaAlta": 53,
+  "confianzaBaja": 0,
+  "confianzaMedia": 4,
+  "geocodificables": 57,
+  "noGeocodificables": 6,
+  "sinConfianza": 6,
+  "total": 63,
+  "transformacionesPromedio": 2.111111111111111,
+}
+`;
