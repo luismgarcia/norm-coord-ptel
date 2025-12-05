@@ -4,8 +4,9 @@
  * Exporta todos los tipos y funciones para la BBDD IndexedDB local.
  * 
  * @module lib/localData
- * @version 1.0.0
+ * @version 1.1.0
  * @date 2025-12-05
+ * @session B.2
  */
 
 // Esquemas y tipos
@@ -34,3 +35,16 @@ export {
   SYNC_INTERVAL_DAYS,
   SCHEMA_VERSION
 } from './schemas';
+
+// Servicio de carga
+export {
+  // Funciones
+  checkDataLoaded,
+  loadInitialData,
+  clearAllData,
+  
+  // Tipos
+  type LoadProgress,
+  type LoadOptions,
+  type LoadResult
+} from './localDataService';
