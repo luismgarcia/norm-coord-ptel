@@ -48,3 +48,23 @@ export {
   type LoadOptions,
   type LoadResult
 } from './localDataService';
+
+// Singleton Detector (B.3)
+export {
+  // Funciones principales
+  detectSingleton,
+  detectSingletonByNombre,
+  getMunicipioTypologyCounts,
+  isSingletonType,
+  getSingletonFeature,
+  getCandidatesByNombre,
+  getGlobalSingletonStats,
+  
+  // Constantes
+  ALL_TIPOLOGIAS,
+  
+  // Tipos
+  type SingletonResult,
+  type MunicipioTypologyCounts,
+  type DetectionOptions
+} from './singletonDetector';

@@ -3,13 +3,17 @@
  * 
  * Configuración global de tests para Vitest.
  * Mockea fetch para evitar llamadas de red reales.
+ * Configura fake-indexeddb para tests de IndexedDB.
  * 
- * @version 1.0.0
- * @date 2025-12-02
+ * @version 1.1.0
+ * @date 2025-12-05
  */
 
 import { vi, beforeAll, afterEach, afterAll } from 'vitest';
 import { getMockResponseForUrl } from './__mocks__/wfsResponses';
+
+// Importar fake-indexeddb para tests de Dexie
+import 'fake-indexeddb/auto';
 
 // ============================================================================
 // MOCK GLOBAL DE FETCH
