@@ -309,8 +309,14 @@ function normalizeNumber(text: string, transformations: string[]): string {
   // NUEVO: "nave, 11" o "Nave, 11" -> "nave 11" (quitar coma después de nave)
   result = result.replace(/\bnave,\s*(\d+)/gi, 'nave $1');
   
-  // NUEVO: Añadir coma después de Polígono si no hay
-  result = result.replace(/\b(Polígono)\s+([A-Z])/g, '$1, $2');
+  // T07: Manejar "Polígono Industrial [Municipio]" como caso especial
+  // NO añadir coma entre "Polígono" e "Industrial"
+  // Pero SÍ añadir coma después de "Polígono" cuando va seguido de tipo de calle
+  // Patrón: "Polígono Calle X" → "Polígono, Calle X"
+  // EXCEPCIÓN: "Polígono Industrial" se mantiene junto
+  if (!/\bPol[ií]gono\s+Industrial\b/i.test(result)) {
+    result = result.replace(/\b(Pol[ií]gono)\s+(Calle|Avenida|Plaza|C\/)/gi, '$1, $2');
+  }
   
   // Limpiar comas duplicadas
   result = result.replace(/,\s*,/g, ',');
@@ -329,6 +335,22 @@ function normalizeNumber(text: string, transformations: string[]): string {
 
 function normalizePunctuation(text: string, transformations: string[], municipality?: string): string {
   let result = text;
+  
+  // T07: Manejar "Polígono Industrial [Municipio]" como caso especial
+  // Patrón: "Polígono Industrial Tíjola, s/n" → "Polígono Industrial, s/n, Tíjola"
+  if (municipality) {
+    const poligonoMunicipioPattern = new RegExp(
+      `^(Pol[ií]gono\\s+Industrial)\\s+${escapeRegex(municipality)}\\b(.*)`,
+      'i'
+    );
+    const poligonoMatch = result.match(poligonoMunicipioPattern);
+    if (poligonoMatch) {
+      // poligonoMatch[1] = "Polígono Industrial"
+      // poligonoMatch[2] = ", s/n" (el resto)
+      result = `${poligonoMatch[1]}${poligonoMatch[2]}, ${municipality}`;
+      transformations.push(`T07: Polígono Industrial + municipality separated`);
+    }
+  }
   
   // S44: Punto seguido de número → coma (ej: "Mayor. 15" → "Mayor, 15")
   result = result.replace(/\.\s*(\d)/g, ', $1');
