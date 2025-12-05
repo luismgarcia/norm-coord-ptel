@@ -219,15 +219,18 @@ export const NON_GEOCODABLE_PATTERNS: RegExp[] = [
   /\d+,?-\s*cargos?\s+polític/i,
   /\d+,?-\s*funcionarios?\s+de/i,
   
-  // Solo nombres de infraestructura (sin dirección)
-  /^consultorio\s+(médico|local|auxiliar)(\s+de\s+\w+)?(\s+y\s+del?\s+consultorio)?$/i,
+  // C16: Solo nombres de infraestructura (sin dirección) - con variantes de "y"
+  /^consultorio\s+(médico|local|auxiliar)(\s+de\s+\w+)?(\s+y\s+(del?\s+)?consultorio[\s\w]*)?$/i,
 ];
 
 /**
  * Patrón para detectar múltiples direcciones en el mismo texto.
  * Si hay más de 1 match de C/, Av/, etc., es ambiguo.
+ * 
+ * IMPORTANTE: Este patrón se aplica ANTES de expandir abreviaturas.
+ * Usa (?:^|\s) en lugar de \b porque \b no funciona bien con caracteres especiales.
  */
-export const MULTIPLE_STREET_PATTERN = /\b(c\/|av\.|avd|calle|avenida|plaza|pza)\b/gi;
+export const MULTIPLE_STREET_PATTERN = /(?:^|\s)(c\/|av[d.]?\.?|calle|avenida|plaza|pza\.?)(?=\s|$)/gi;
 
 /**
  * Patrón para detectar parcelas catastrales (no geocodificables directamente).
@@ -303,6 +306,13 @@ export const SUFFIX_PATTERNS: RegExp[] = [
   // Pisos/plantas
   /,?\s*\b(bajo|alto|izq(da)?\.?|dcha\.?|derecha|izquierda|pta\.?)\b/gi,
   /,?\s*\bplanta\s+\d+/gi,
+  
+  // T08: Referencias relativas (frente a, junto a, detrás de)
+  // Importante: usar [^,]* (greedy pero parando en coma) para no capturar el municipio final
+  /,?\s*\bfrente\s+(a(l)?\s+)?[A-Za-záéíóúñÁÉÍÓÚÑ\s]+(?=,|$)/gi,
+  /,?\s*\bjunto\s+(a(l)?\s+)?[A-Za-záéíóúñÁÉÍÓÚÑ\s]+(?=,|$)/gi,
+  /,?\s*\bdetr[aá]s\s+de(l)?\s+[A-Za-záéíóúñÁÉÍÓÚÑ\s]+(?=,|$)/gi,
+  /,?\s*\bal\s+lado\s+de(l)?\s+[A-Za-záéíóúñÁÉÍÓÚÑ\s]+(?=,|$)/gi,
 ];
 
 

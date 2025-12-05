@@ -65,8 +65,24 @@ function isNotGeocodable(text: string): { result: boolean; reason?: NonGeocodabl
   }
   
   // Check múltiples direcciones (más de 1 indicador de calle)
+  // IMPORTANTE: Se hace ANTES de expandir abreviaturas para detectar "C/ X ... C/ Y"
   const streetMatches = text.match(MULTIPLE_STREET_PATTERN);
   if (streetMatches && streetMatches.length > 1) {
+    // EXCEPCIÓN: "Polígono + Calle" es válido (dirección dentro de polígono)
+    // Ej: "POLIGONO C/ QUINTA AVENIDA S/N"
+    const hasPoligono = /\bpol[ií]gono?\b/i.test(text);
+    if (hasPoligono && streetMatches.length === 2) {
+      // Permitir: Polígono + 1 tipo de calle
+      return { result: false };
+    }
+    
+    // EXCEPCIÓN: "C/ PLAZA" redundante es válido (una sola dirección)
+    // Ej: "C/ PLAZA DE LA CONSTITUCIÓN"
+    const hasPlazaRedundante = /\bc\/\s*plaza\b/i.test(text);
+    if (hasPlazaRedundante && streetMatches.length === 2) {
+      return { result: false };
+    }
+    
     return { result: true, reason: 'multiple_addresses' };
   }
   
@@ -282,7 +298,10 @@ function normalizeNumber(text: string, transformations: string[]): string {
   result = result.replace(/([a-záéíóúñA-ZÁÉÍÓÚÑ])\s+(s\/n)\b/gi, '$1, $2');
   
   // NUEVO: Añadir coma antes de número final si falta (palabra + espacio + número)
-  result = result.replace(/([a-záéíóúñA-ZÁÉÍÓÚÑ])\s+(\d+)$/gi, '$1, $2');
+  // EXCEPCIÓN: NO para "Carretera 334" o "Autovía A-92" donde el número es parte del nombre
+  if (!/\b(carretera|autov[ií]a|ctra\.?)\s+\w*\d+$/i.test(result)) {
+    result = result.replace(/([a-záéíóúñA-ZÁÉÍÓÚÑ])\s+(\d+)$/gi, '$1, $2');
+  }
   
   // NUEVO: Añadir coma antes de nave si falta (palabra + espacio + Nave)
   result = result.replace(/([a-záéíóúñA-ZÁÉÍÓÚÑ])\s+(nave,?\s*\d+)/gi, '$1, $2');
@@ -324,9 +343,12 @@ function normalizePunctuation(text: string, transformations: string[], municipal
   // Asegurar que "Dirección" al final o antes de palabra quede en minúscula
   result = result.replace(/\bDirecci[oó]n\b/g, 'dirección');
   
-  // B24/B29: Añadir coma antes de número final si sigue a una palabra (no a tipo de vía abreviado)
+  // B24/B29: Añadir coma antes de número si sigue a una palabra (no tipo de vía abreviado)
   // Patrón: "Constitución 1," → "Constitución, 1,"
-  result = result.replace(/([a-záéíóúñ])\s+(\d+)\s*,/gi, '$1, $2,');
+  // EXCEPCIÓN: "Carretera 334," donde el número es identificador de vía
+  if (!/\b(carretera|autov[ií]a|ctra\.?)\s+[\w-]*\d+/i.test(result)) {
+    result = result.replace(/([a-záéíóúñ])\s+(\d+)\s*,/gi, '$1, $2,');
+  }
   
   // B25/B30: Añadir coma después de s/n si sigue una palabra con mayúscula (municipio)
   result = result.replace(/\b(s\/n)\s+([A-ZÁÉÍÓÚÑ][a-záéíóúñ])/gi, '$1, $2');
