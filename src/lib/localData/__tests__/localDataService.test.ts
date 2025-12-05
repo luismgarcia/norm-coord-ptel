@@ -13,49 +13,16 @@ import {
 } from '../localDataService';
 import { db } from '../schemas';
 
-// Mock de fetch global
-const mockFetch = vi.fn();
-global.fetch = mockFetch;
-
-/**
- * Helper para crear Response mock completo
- */
-function createMockResponse(options: {
-  ok: boolean;
-  status?: number;
-  statusText?: string;
-  data?: unknown;
-}): Response {
-  const { ok, status = ok ? 200 : 500, statusText = ok ? 'OK' : 'Error', data } = options;
-  
-  return {
-    ok,
-    status,
-    statusText,
-    headers: new Headers(),
-    redirected: false,
-    type: 'basic' as ResponseType,
-    url: '',
-    clone: () => createMockResponse(options),
-    body: null,
-    bodyUsed: false,
-    arrayBuffer: () => Promise.resolve(new ArrayBuffer(0)),
-    blob: () => Promise.resolve(new Blob()),
-    formData: () => Promise.resolve(new FormData()),
-    text: () => Promise.resolve(JSON.stringify(data ?? '')),
-    json: () => Promise.resolve(data)
-  } as Response;
-}
-
 describe('localDataService', () => {
   beforeEach(async () => {
     // Limpiar la base de datos antes de cada test
     await clearAllData();
-    vi.clearAllMocks();
+    vi.restoreAllMocks();
   });
 
   afterEach(async () => {
     await clearAllData();
+    vi.restoreAllMocks();
   });
 
   describe('checkDataLoaded', () => {
@@ -133,13 +100,16 @@ describe('localDataService', () => {
         centroideY: 4114000
       });
 
+      // Spy para verificar que no se llama a fetch
+      const fetchSpy = vi.spyOn(global, 'fetch');
+
       const result = await loadInitialData({ forceReload: false });
 
       expect(result.success).toBe(true);
       expect(result.deraCount).toBe(1);
       expect(result.ineCount).toBe(1);
       // No debería llamar a fetch
-      expect(mockFetch).not.toHaveBeenCalled();
+      expect(fetchSpy).not.toHaveBeenCalled();
     });
 
     it('reporta progreso durante la carga', async () => {
@@ -174,20 +144,22 @@ describe('localDataService', () => {
         }
       ];
       
-      // Mock de respuestas con Response completo
-      mockFetch.mockImplementation((url: string) => {
+      // Mock fetch con vi.spyOn
+      vi.spyOn(global, 'fetch').mockImplementation((input: RequestInfo | URL) => {
+        const url = typeof input === 'string' ? input : input.toString();
+        
         if (url.includes('all-dera.json')) {
-          return Promise.resolve(createMockResponse({
-            ok: true,
+          return Promise.resolve(new Response(JSON.stringify(mockDeraData), {
             status: 200,
-            data: mockDeraData
+            statusText: 'OK',
+            headers: { 'Content-Type': 'application/json' }
           }));
         }
         if (url.includes('municipios.json')) {
-          return Promise.resolve(createMockResponse({
-            ok: true,
+          return Promise.resolve(new Response(JSON.stringify(mockIneData), {
             status: 200,
-            data: mockIneData
+            statusText: 'OK',
+            headers: { 'Content-Type': 'application/json' }
           }));
         }
         return Promise.reject(new Error('URL no encontrada'));
@@ -210,8 +182,8 @@ describe('localDataService', () => {
     });
 
     it('maneja errores de red correctamente', async () => {
-      // Mock que rechaza la promesa (error de red)
-      mockFetch.mockRejectedValue(new Error('Network error'));
+      // Mock fetch que rechaza (error de red)
+      vi.spyOn(global, 'fetch').mockRejectedValue(new Error('Network error'));
 
       const result = await loadInitialData({ forceReload: true });
 
@@ -221,9 +193,8 @@ describe('localDataService', () => {
     });
 
     it('maneja errores HTTP correctamente', async () => {
-      // Mock con Response HTTP error
-      mockFetch.mockResolvedValue(createMockResponse({
-        ok: false,
+      // Mock fetch con respuesta HTTP error
+      vi.spyOn(global, 'fetch').mockResolvedValue(new Response(null, {
         status: 404,
         statusText: 'Not Found'
       }));
