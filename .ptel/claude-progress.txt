@@ -404,3 +404,106 @@ Fuentes documentadas:
 - Tarea: Definir esquemas IndexedDB
 - Rol: DataMaster + MapWizard
 - Entregable: `src/lib/localData/schemas.ts`
+
+---
+
+## Sesión 05-Dic-2025 - FASE A COMPLETADA ✅
+
+### Sesiones completadas
+- **A.1**: Verificar integración F025 AddressExtractor → Ya integrado
+- **A.2**: Test E2E flujo ODT → coordenadas → 15 tests
+- **A.3**: Definir esquemas IndexedDB → 20 tests
+- **A.4**: Suite benchmark Vitest → 4 suites
+
+### Commits Fase A
+- Schemas Dexie.js con DERAFeature, INEMunicipio, SyncMetadata
+- Tests E2E DocumentExtractor v3.2
+- Benchmark suite configurada
+
+---
+
+## Sesión 05-Dic-2025 - B.1 COMPLETADA ✅
+
+### Objetivo
+Descarga DERA + extracción INE para IndexedDB
+
+### Logros
+- ✅ 11,282 DERA features en formato DERAFeature[]
+- ✅ 785 municipios INE con centroides
+- ✅ Scripts de transformación creados
+
+### Archivos creados
+```
+public/data/dera-dexie/
+├── all-dera.json      # 11,282 (~7 MB)
+├── health.json        # 1,700
+├── education.json     # 6,725
+├── security.json      # 1,259
+├── emergency.json     # 23
+├── energy.json        # 161
+└── municipal.json     # 1,414
+
+public/data/ine/
+└── municipios.json    # 785 (~190 KB)
+```
+
+### Commit
+- `823ea9d` - feat(B.1): datos DERA y municipios INE para IndexedDB
+
+---
+
+## Sesión 05-Dic-2025 - B.2 TERMINAL VALIDADO ✅
+
+### Objetivo
+Carga inicial IndexedDB con Dexie.js
+
+### Trabajo realizado (MapWizard)
+1. **localDataService.ts** (~300 líneas)
+   - checkDataLoaded(), loadInitialData() con progress callbacks
+   - Inserción batch 500 registros
+   - SyncMetadata tracking
+
+2. **useLocalData.ts** (~200 líneas)
+   - Hook React con auto-check al montar
+   - findDERAByMunicipio(), findMunicipio(), countByTipologia()
+
+3. **DataLoader.tsx** (~250 líneas)
+   - Modal con Framer Motion
+   - Barra progreso 0-100%, indicadores fase
+   - Badges dataset (11,282 DERA + 785 INE)
+
+4. **Tests** - localDataService.test.ts (~180 líneas)
+
+### Commits B.2 (7 total)
+- `e0ac671` - localDataService
+- `502c0a1` - useLocalData hook
+- `2e0a4ea` - DataLoader component
+- `297b130` - export index.ts
+- `d086857` - integrar App.tsx
+- `675ba55` - tests
+- `88a1f94` - estado sesión
+- `dc41e34` - pruebas navegador pendientes
+- `8c68262` - handoff B.3
+
+### Validación terminal
+```bash
+git pull     # ✅ Already up to date
+npm test     # ✅ 59/59 tests passing
+npm run dev  # ✅ Server on port 5001
+```
+
+### Pruebas navegador PENDIENTES (6 tests)
+| ID | Descripción |
+|---|---|
+| B2-NAV-01 | Modal aparece en primera carga |
+| B2-NAV-02 | Barra progreso funcional |
+| B2-NAV-03 | Badge «BBDD Local activa» |
+| B2-NAV-04 | IndexedDB tabla DERA: 11,282 |
+| B2-NAV-05 | IndexedDB tabla INE: 785 |
+| B2-NAV-06 | SyncMetadata: completed |
+
+### Próxima sesión: B.3
+- Tarea: SingletonDetector con BBDD local
+- Objetivo: Usar db.dera en vez de WFS
+- Rol: MapWizard
+- Duración: ~2h
