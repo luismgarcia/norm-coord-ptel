@@ -1,26 +1,26 @@
 {
   "fecha": "2025-12-05",
   "version": "0.4.2",
-  "sesion": "B.2 (EN PROGRESO)",
+  "sesion": "B.2 (VALIDACIÓN TERMINAL COMPLETADA)",
   "estado": "FASE B EN PROGRESO",
   "plan_activo": ".ptel/PLAN_CONSOLIDADO_48_SESIONES.md",
   "metricas": {
-    "tests_totales": "1349+ (pendiente npm test)",
+    "tests_totales": "59/59 passing",
     "benchmarks": "4 suites configuradas",
     "features_completadas": "23/24 (96%)",
     "sesiones_plan": "48 sesiones, 7 fases",
     "horas_estimadas": "54h",
-    "sesiones_completadas": "A.1, A.2, A.3, A.4, B.1, B.2 (parcial)",
+    "sesiones_completadas": "A.1, A.2, A.3, A.4, B.1, B.2 (terminal)",
     "dera_features": 11282,
     "ine_municipios": 785
   },
-  "ultimo_commit": "675ba55",
+  "ultimo_commit": "88a1f94",
   "sesion_actual": {
     "id": "B.2",
     "fase": "B - BBDD Local",
     "tarea": "Carga inicial IndexedDB (Dexie.js)",
     "rol": "MapWizard",
-    "resultado": "EN PROGRESO - Código creado, pendiente validación",
+    "resultado": "TERMINAL VALIDADO - Pendiente verificación navegador",
     "archivos_creados": [
       "src/lib/localData/localDataService.ts",
       "src/hooks/useLocalData.ts",
@@ -31,10 +31,49 @@
       "src/lib/localData/index.ts",
       "src/App.tsx"
     ],
-    "pendiente": [
-      "git pull y npm test en local",
-      "Probar carga inicial en navegador",
-      "Verificar progreso visual"
+    "validacion_terminal": {
+      "fecha": "2025-12-05",
+      "git_pull": "✅ Already up to date",
+      "npm_test": "✅ 59/59 tests passing",
+      "npm_run_dev": "✅ Server on port 5001"
+    },
+    "pruebas_navegador_pendientes": [
+      {
+        "id": "B2-NAV-01",
+        "descripcion": "Modal aparece en primera carga",
+        "criterio": "DataLoader modal visible ~3-5 segundos",
+        "estado": "PENDIENTE"
+      },
+      {
+        "id": "B2-NAV-02",
+        "descripcion": "Barra de progreso funcional",
+        "criterio": "Progress bar avanza por todas las fases",
+        "estado": "PENDIENTE"
+      },
+      {
+        "id": "B2-NAV-03",
+        "descripcion": "Badge BBDD Local activa",
+        "criterio": "Badge verde visible tras completar carga",
+        "estado": "PENDIENTE"
+      },
+      {
+        "id": "B2-NAV-04",
+        "descripcion": "IndexedDB tabla DERA",
+        "criterio": "DevTools → Application → IndexedDB → PTELLocalData → dera: 11,282 registros",
+        "estado": "PENDIENTE"
+      },
+      {
+        "id": "B2-NAV-05",
+        "descripcion": "IndexedDB tabla INE",
+        "criterio": "DevTools → Application → IndexedDB → PTELLocalData → ine: 785 registros",
+        "estado": "PENDIENTE"
+      },
+      {
+        "id": "B2-NAV-06",
+        "descripcion": "IndexedDB metadata sync",
+        "criterio": "DevTools → syncMetadata: status 'completed'",
+        "estado": "PENDIENTE"
+      }
     ]
   },
   "fase_a_completada": true,
@@ -80,7 +119,7 @@
     "B.2": {
       "fecha": "2025-12-05",
       "tarea": "Carga inicial IndexedDB",
-      "resultado": "EN PROGRESO - Código creado"
+      "resultado": "TERMINAL VALIDADO - Browser pending"
     }
   }
 }
