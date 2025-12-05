@@ -1,8 +1,8 @@
 # F025 Address Extractor - Progreso de Implementación
 
-> **Última actualización**: 2025-12-05 01:05  
-> **Commit actual**: `2e71715`  
-> **Estado global**: 49/63 tests (77.8%)
+> **Última actualización**: 2025-12-05 01:35  
+> **Commit actual**: `d648c5d`  
+> **Estado global**: 58/63 tests (92%)
 
 ---
 
@@ -10,14 +10,14 @@
 
 | Paso | Nombre | Estado | Valoración |
 |------|--------|--------|------------|
-| 1 | Detectar NO geocodificable | ✅ | 100% |
+| 1 | Detectar NO geocodificable | ⏳ | 90% (C16/C17/C19 pendientes) |
 | 2 | Corregir OCR/UTF-8 | ✅ | 100% |
 | 3 | Eliminar prefijos infraestructura | ✅ | 100% |
 | 4 | Eliminar sufijos | ✅ | 100% |
 | 5 | Expandir abreviaturas | ✅ | 100% |
 | 6 | Normalizar números | ✅ | 100% |
-| 7 | Capitalización inteligente | ✅ | 100% |
-| 8 | Detectar múltiples direcciones | ⏳ | Pendiente |
+| 7 | Normalizar puntuación | ✅ | 100% |
+| 8 | Capitalización inteligente | ✅ | 100% |
 
 ---
 
@@ -25,75 +25,57 @@
 
 | Métrica | Valor |
 |---------|-------|
-| Tests inicio sesión | 28/63 (44.4%) |
-| Tests actuales | **49/63 (77.8%)** |
-| **Tests ganados** | **+21 tests** |
-| **Mejora porcentual** | **+75.0%** |
-| Pasos completados | **7/8 (87.5%)** |
+| Tests inicio sesión | 49/63 (77.8%) |
+| Tests actuales | **58/63 (92%)** |
+| **Tests ganados** | **+9 tests** |
+| **Mejora porcentual** | **+18.4%** |
+| Pasos completados | **7.5/8 (94%)** |
 
 ---
 
-## ✅ Pasos Completados Esta Sesión
+## ✅ Completados Esta Sesión
 
-### Paso 3: Eliminar Prefijos (100%)
-- 12/12 tests verdes
-- Commit: `6f40e2d`
-
-### Paso 4: Eliminar Sufijos (100%)
-- 9/9 tests verdes
-- Patrones: disponibilidad, horarios, teléfonos
-- Commit: `f7a9d6f`
-
-### Paso 5: Expandir Abreviaturas (100%)
-- C/ → Calle, Avda. → Avenida, Pza. → Plaza
-- C/ PLAZA redundante → Plaza
-- Commit: `eb7774a`
-
-### Paso 6: Normalizar Números (100%)
-- s/n con coma: "Benalúa, s/n"
-- nave N.º 11 → nave 11
-- Añadir coma antes número final
-- Commit: `7142395`
-
-### Paso 7: Capitalización (100%)
-- la/el/los/las minúscula solo después de de/del
-- Palabras minúsculas → Title Case
-- nave siempre minúscula
-- Commit: `0f4d9f4`
+### Paso 7: Normalización Puntuación (continuación)
+- D35: `dirección` siempre minúscula
+- D38: `Futbol` → `Fútbol` (tilde OCR)
+- C20: +10 bonus formato perfecto
+- D36: +30 formato sin tipo de vía
+- Commit: `d648c5d`
 
 ---
 
-## ⏳ Tests Pendientes (14)
+## ⏳ Tests Pendientes (5)
 
-### Paso 8: Múltiples Direcciones
-- C16: solo nombre → null
-- C17: múltiples direcciones → null  
+### Detección NO Geocodificable (C16, C17, C19)
+- C16: solo nombre sin dirección → null
+- C17: múltiples direcciones → null
 - C19: múltiples C/ → null
 
-### Normalización Puntuación/Formato
-- B24, B29: "Plaza de la Constitución 1" → ", 1"
-- B25, B30: "s/n Berja" → "s/n, Berja"
-- D35: "Autovía A-92 Direccion" → ", dirección"
-- S43: municipio primero → añadir al final
-
-### Casos Especiales
-- T07: polígono + typo Industrial
-- T08: carretera + referencia relativa
-
-### Confianza/Otros
-- C20: confianza 80 → 90
-- D36: confianza 30 → 60
-- D38: "Futbol" → "Fútbol" (tilde)
+### Casos Especiales (T07, T08)
+- T07: "Polígono Industrial Tíjola" → separar correctamente
+- T08: carretera + referencia relativa → eliminar referencia
 
 ---
 
 ## 🔧 Commits Esta Sesión
 
-1. `6f40e2d` - Paso 3: prefijos infraestructura
-2. `f7a9d6f` - Paso 4: sufijos
-3. `0f4d9f4` - Paso 7: capitalización
-4. `eb7774a` - docs: progreso
-5. `7142395` - Pasos 5+6: abreviaturas y números
+1. `d648c5d` - F025 Paso 7: D35, D38, C20, D36
+
+---
+
+## 📋 Próximos Pasos Recomendados
+
+1. **C16/C17/C19**: Mejorar detección de múltiples direcciones
+   - Problema: expansión de C/→Calle rompe el regex MULTIPLE_STREET_PATTERN
+   - Solución: detectar ANTES de expandir abreviaturas
+   
+2. **T07**: Polígono Industrial
+   - Problema: coma incorrecta después de "Polígono"
+   - Solución: patrón especial para "Polígono Industrial [municipio]"
+
+3. **T08**: Carretera con referencia
+   - Problema: no elimina "frente Cuartel..."
+   - Solución: patrón para eliminar referencias relativas
 
 ---
 
