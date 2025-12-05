@@ -358,3 +358,49 @@ El trabajo de Fase 3 YA ESTABA HECHO pero sin commitear:
 ### Próxima sesión
 - F024: Panel UI progreso geocodificación
 - O validación con datos reales
+
+
+## Sesión 05-Dic-2025 - S2.1 PLAN BBDD LOCALES + F0.1 ✅
+
+### Contexto
+Análisis de CrossValidator.ts reveló implementación ya completa (546 líneas).
+Usuario propuso sistema de BBDDs locales para mejorar validación multi-fase.
+
+### Hallazgos clave
+1. CrossValidator YA implementado con:
+   - `validate()` y `validateEnhanced()` (centroide Huber)
+   - Clustering espacial <25m
+   - Scoring: α=0.40 + β=0.35 + γ=0.25
+   - 75 tests (F023 Fase 2 completada)
+
+2. DERA actualizado 30/06/2025
+3. CDAU API SOAP requiere autorización NAOS desde 31/01/2024
+
+### Plan Maestro BBDDs Locales creado
+- 5 fases, 22 sesiones, ~28h total
+- Mejora estimada: +13 puntos (82% → 95%)
+- Tiempo: 4-8min → <30seg (10-15x más rápido)
+
+### F0.1 Completada (DataMaster)
+Entregable: `src/data/sources/SOURCE_CATALOG.md`
+
+Fuentes documentadas:
+- DERA WFS: G09-G17 (~60MB)
+- CDAU: Portales + direcciones (~340MB)
+- INE: Municipios anual (~2MB)
+- Límites: TopoJSON existente (~15MB)
+- TOTAL: ~420MB IndexedDB local
+
+### Archivos creados
+- `src/data/sources/SOURCE_CATALOG.md`
+- `.ptel/PLAN_MAESTRO_BBDD_LOCAL.md`
+
+### Commits
+- `2bd5b77` Plan Maestro BBDDs Locales
+- `ab00fcf` F0.1: Catálogo fuentes
+- `b0afc1a` Estado sesión actualizado
+
+### Próxima sesión: F0.2
+- Tarea: Definir esquemas IndexedDB
+- Rol: DataMaster + MapWizard
+- Entregable: `src/lib/localData/schemas.ts`

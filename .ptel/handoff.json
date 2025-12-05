@@ -1,54 +1,57 @@
 {
-  "lastSession": {
-    "date": "2025-12-05",
-    "feature": "S1.3",
-    "task": "Crear suite benchmark con Vitest bench",
-    "result": "COMPLETADO - 20 benchmarks configurados con resultados excelentes",
-    "archivosCreados": [
-      "vitest.bench.config.ts",
-      "src/__benchmarks__/geocoding.bench.ts"
+  "sesion_anterior": {
+    "id": "S2.1-F0.1",
+    "fecha": "2025-12-05",
+    "rol": "DataMaster",
+    "duracion": "~1.5h",
+    "estado": "COMPLETADO"
+  },
+  "trabajo_realizado": {
+    "descripcion": "Plan Maestro BBDDs Locales + Inventario de fuentes F0.1",
+    "archivos_creados": [
+      "src/data/sources/SOURCE_CATALOG.md",
+      ".ptel/PLAN_MAESTRO_BBDD_LOCAL.md"
     ],
-    "commit": "94e87f1",
-    "benchmarkResults": {
-      "address_extraction": "0.13ms (objetivo <5ms) - 38x mejor",
-      "coordinate_normalization": "0.001ms (objetivo <1ms) - 1000x mejor",
-      "singleton_detection": "0.18ms (objetivo <50ms) - 277x mejor"
-    },
-    "observaciones": [
-      "Suite con 6 grupos de benchmarks: F025, Normalization, DMS/NMEA, LocalData, F023, Pipeline",
-      "Todos los baselines superados ampliamente",
-      "Ejecutar: npx vitest bench --config vitest.bench.config.ts --run"
+    "commits": [
+      "2bd5b77 - Plan Maestro BBDDs Locales",
+      "ab00fcf - F0.1: Catálogo fuentes DERA, CDAU, INE",
+      "b0afc1a - Estado sesión actualizado"
     ]
   },
-  "nextSession": {
-    "feature": "S1.4",
-    "task": "Snapshot tests para AddressExtractor (63 casos)",
-    "plan": ".ptel/PLAN_TRABAJO_DICIEMBRE_2025.md",
-    "rol": "MapWizard",
-    "duracion": "1h",
-    "criterio": "Snapshots generados para detectar regresiones en F025",
-    "archivos": [
-      "src/utils/__tests__/addressExtractor.snapshot.test.ts (crear)"
-    ],
-    "notas": [
-      "Usar casos existentes de addressExtractor.test.ts como base",
-      "Snapshots detectan cambios inesperados en transformaciones"
-    ]
+  "hallazgos_importantes": {
+    "CrossValidator_completo": "Ya implementado (546 líneas) con clustering, centroide Huber, scoring multi-criterio",
+    "DERA_version": "Última actualización 30/06/2025",
+    "CDAU_auth": "API SOAP requiere autorización NAOS desde 31/01/2024",
+    "tamaño_total_bbdd": "~420MB IndexedDB local"
   },
-  "projectStatus": {
-    "version": "0.4.1",
-    "featuresCompleted": "23/24 (96%)",
-    "pendingFeatures": ["F014:CacheManager", "F015:ProgressPanel"],
-    "testsStatus": "1181/1182 (99.9%)",
-    "testsFallando": 1,
-    "testPendiente": "multiFieldStrategy.test.ts: Quéntar (S1.5)",
-    "benchmarksConfigured": true
+  "plan_bbdd_local": {
+    "fases": 5,
+    "sesiones": 22,
+    "horas_estimadas": 28,
+    "mejora_esperada": "+13 puntos (82% → 95%)",
+    "progreso": "F0.1 completada, F0.2 pendiente"
   },
-  "planResumen": {
-    "fase1": "6-8 Dic: Consolidación (6 sesiones) - S1.1 ✅, S1.2 ✅, S1.3 ✅",
-    "fase2": "9-12 Dic: Validación municipal (8 sesiones)",
-    "fase3": "13-15 Dic: Features pendientes (6 sesiones)",
-    "fase4": "16-18 Dic: Testing avanzado (6 sesiones)",
-    "fase5": "19-22 Dic: Optimización y cierre v0.5.0 (7 sesiones)"
-  }
+  "proxima_sesion": {
+    "id": "F0.2",
+    "tarea": "Definir esquemas IndexedDB",
+    "rol": "DataMaster + MapWizard",
+    "duracion_estimada": "1h",
+    "entregable": "src/lib/localData/schemas.ts",
+    "contexto": "Usar SOURCE_CATALOG.md como referencia para campos y estructura"
+  },
+  "esquemas_a_definir": {
+    "DERAInfrastructure": "id, nombre, nombreNorm, tipologia, municipioINE, x, y, direccion, fechaActualizacion",
+    "CDAUAddress": "id, viaTipo, viaNombre, viaNombreNorm, numero, municipioINE, x, y, codPostal",
+    "INEMunicipio": "codigo, nombre, nombreNorm, variantes[], provincia",
+    "SyncMetadata": "id, lastSync, recordCount, version"
+  },
+  "instrucciones_inicio": [
+    "1. Leer SOURCE_CATALOG.md para estructura de cada fuente",
+    "2. Crear src/lib/localData/schemas.ts con interfaces TypeScript",
+    "3. Incluir índices compuestos para Dexie.js",
+    "4. Documentar campos obligatorios vs opcionales",
+    "5. Tests básicos de tipado"
+  ],
+  "version_proyecto": "0.4.1",
+  "tests_estado": "1314/1314 (100%)"
 }
