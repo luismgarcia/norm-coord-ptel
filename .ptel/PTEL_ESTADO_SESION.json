@@ -1,29 +1,27 @@
 {
   "fecha": "2025-12-05",
   "version": "0.4.1",
-  "sesion": "F025-T07-T08-final",
+  "sesion": "PLAN_TRABAJO_GENERADO",
   "estado": "COMPLETADO",
   "metricas": {
-    "tests_addressExtractor": "63/63 (100%)",
-    "cobertura_patrones": "100%",
-    "casos_reales": 39,
-    "casos_sinteticos": 24
+    "tests_totales": "1151/1159 (99.9%)",
+    "features_completadas": "23/24 (96%)",
+    "municipios_validados": 5,
+    "plan_sesiones": 33
   },
-  "ultimo_commit": "696f450",
-  "features": {
-    "F025": {
-      "estado": "COMPLETADO",
-      "tests": "63/63 (100%)",
-      "descripcion": "Address Extractor - 8 pasos normalización"
-    },
-    "F023": {
-      "estado": "Fase 1 completada, Fase 2 pendiente",
-      "siguiente": "GeocodingErrors.ts → validación cruzada"
-    }
+  "ultimo_commit": "0924c03",
+  "plan_trabajo": {
+    "archivo": ".ptel/PLAN_TRABAJO_DICIEMBRE_2025.md",
+    "fases": 5,
+    "sesiones_totales": 33,
+    "fecha_inicio": "2025-12-06",
+    "fecha_fin": "2025-12-22",
+    "objetivo_version": "0.5.0"
   },
   "siguiente_sesion": {
-    "feature": "F023 Fase 2",
-    "tarea": "Implementar GeocodingErrors.ts",
-    "contexto": "Sistema de errores tipados para validación cruzada multi-geocodificador"
+    "id": "S1.1",
+    "feature": "Integración F025 → GeocodingOrchestrator",
+    "rol": "MapWizard",
+    "duracion_estimada": "1-2h"
   }
 }

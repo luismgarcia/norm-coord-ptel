@@ -1,27 +1,35 @@
 {
   "lastSession": {
     "date": "2025-12-05",
-    "feature": "F025",
-    "task": "T07 + T08 - Polígono Industrial y referencias relativas",
-    "result": "COMPLETADO - 63/63 tests (100%)",
-    "commits": ["36ddcca", "f96a636", "696f450", "92ef605", "f096861"]
+    "feature": "PLAN_TRABAJO",
+    "task": "Generación Plan de Trabajo Diciembre 2025",
+    "result": "COMPLETADO - 5 fases, 33 sesiones planificadas",
+    "commits": ["696f450", "92ef605", "f096861", "ae12cf7", "0924c03"]
   },
   "nextSession": {
-    "feature": "F023 Fase 2",
-    "task": "Validación cruzada multi-geocodificador",
-    "firstStep": "Implementar GeocodingErrors.ts (errores tipados)",
-    "context": "Sistema de errores tipados necesario antes de validación cruzada",
-    "files": [
-      "src/lib/geocoding/GeocodingErrors.ts (crear)",
-      "src/lib/geocoding/crossValidation.ts (crear)"
+    "feature": "S1.1",
+    "task": "Integrar F025 AddressExtractor en GeocodingOrchestrator",
+    "plan": ".ptel/PLAN_TRABAJO_DICIEMBRE_2025.md",
+    "rol": "MapWizard",
+    "duracion": "1-2h",
+    "criterio": "Test E2E pasa con documento real",
+    "archivos": [
+      "src/services/geocoding/GeocodingOrchestrator.ts (modificar)",
+      "src/__tests__/e2e/geocoding.e2e.test.ts (crear)"
     ]
   },
   "projectStatus": {
     "version": "0.4.1",
     "featuresCompleted": "23/24 (96%)",
     "pendingFeatures": ["F014:CacheManager", "F015:ProgressPanel"],
-    "f025Status": "COMPLETADO - 63/63 tests (100%)",
-    "f023Status": "Fase 1 completada, Fase 2 pendiente"
+    "testsStatus": "1151/1159 (99.9%)",
+    "planTrabajo": "PLAN_TRABAJO_DICIEMBRE_2025.md"
   },
-  "notes": "F025 Address Extractor completado. 8 pasos de normalización implementados. Pendiente integración con GeocodingOrchestrator (Fase 3 F025)."
+  "planResumen": {
+    "fase1": "6-8 Dic: Consolidación (6 sesiones)",
+    "fase2": "9-12 Dic: Validación municipal (8 sesiones)",
+    "fase3": "13-15 Dic: Features pendientes (6 sesiones)",
+    "fase4": "16-18 Dic: Testing avanzado (6 sesiones)",
+    "fase5": "19-22 Dic: Optimización y cierre v0.5.0 (7 sesiones)"
+  }
 }
