@@ -1,37 +1,39 @@
 {
   "fecha": "2025-12-05",
   "version": "0.4.1",
-  "sesion": "A.1",
+  "sesion": "A.2",
   "estado": "COMPLETADO",
   "plan_activo": ".ptel/PLAN_CONSOLIDADO_48_SESIONES.md",
   "metricas": {
-    "tests_totales": "1314/1314 (100%)",
+    "tests_totales": "1329/1329 (100%)",
+    "tests_e2e": "15/15 passed",
     "features_completadas": "23/24 (96%)",
     "sesiones_plan": "48 sesiones, 7 fases",
     "horas_estimadas": "54h",
-    "sesiones_completadas": "A.1"
+    "sesiones_completadas": "A.1, A.2"
   },
-  "ultimo_commit": "1f00442",
+  "ultimo_commit": "3a0c32e",
   "sesion_actual": {
-    "id": "A.1",
-    "fase": "A - Integración Inmediata",
-    "tarea": "Integrar F025 AddressExtractor en GeocodingOrchestrator",
-    "rol": "MapWizard",
-    "resultado": "COMPLETADO - Integración ya existía en código (PASO 1.5, líneas 363-392)",
-    "verificacion": {
-      "tests_f025_integracion": "11/11 passed",
-      "tests_totales": "1314/1314 passed",
-      "archivo_principal": "src/services/geocoding/GeocodingOrchestrator.ts",
-      "lineas_integracion": "363-392"
-    },
-    "notas": "F025 AddressExtractor ya estaba integrado en el Orchestrator. Verificación confirma funcionamiento correcto."
-  },
-  "siguiente_sesion": {
     "id": "A.2",
+    "fase": "A - Integración Inmediata",
     "tarea": "Test E2E flujo ODT → coordenadas",
     "rol": "MapWizard",
+    "resultado": "COMPLETADO - Suite E2E con 15 tests creada",
+    "verificacion": {
+      "tests_e2e": "15/15 passed",
+      "tests_totales": "1329/1329 passed",
+      "archivo_creado": "src/lib/__tests__/e2e.odtToCoordinates.test.ts",
+      "municipios_cubiertos": ["Colomera", "Castril", "Berja"],
+      "pipeline_validado": "Parser → Normalizer → AddressExtractor → Geocoder"
+    }
+  },
+  "siguiente_sesion": {
+    "id": "A.3",
+    "tarea": "Definir esquemas IndexedDB (schemas.ts)",
+    "rol": "DataMaster",
     "duracion_estimada": "1h",
-    "objetivo": "Crear suite de tests E2E con documentos reales PTEL"
+    "objetivo": "Estructura de datos para BBDD local",
+    "entregable": "src/lib/localData/schemas.ts"
   },
   "historial_sesiones": {
     "S2.1-F0.1": {
@@ -43,6 +45,11 @@
       "fecha": "2025-12-05",
       "tarea": "Verificar integración F025 AddressExtractor",
       "resultado": "COMPLETADO - Ya integrado"
+    },
+    "A.2": {
+      "fecha": "2025-12-05",
+      "tarea": "Test E2E flujo ODT → coordenadas",
+      "resultado": "COMPLETADO - 15 tests"
     }
   }
 }
