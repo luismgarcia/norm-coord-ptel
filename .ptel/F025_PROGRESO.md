@@ -1,8 +1,8 @@
 # F025 Address Extractor - Progreso de Implementación
 
-> **Última actualización**: 2025-12-05 01:35  
-> **Commit actual**: `d648c5d`  
-> **Estado global**: 58/63 tests (92%)
+> **Última actualización**: 2025-12-05 08:00  
+> **Commit actual**: `36ddcca`  
+> **Estado global**: 62/63 tests (98.4%)
 
 ---
 
@@ -10,7 +10,7 @@
 
 | Paso | Nombre | Estado | Valoración |
 |------|--------|--------|------------|
-| 1 | Detectar NO geocodificable | ⏳ | 90% (C16/C17/C19 pendientes) |
+| 1 | Detectar NO geocodificable | ✅ | 100% |
 | 2 | Corregir OCR/UTF-8 | ✅ | 100% |
 | 3 | Eliminar prefijos infraestructura | ✅ | 100% |
 | 4 | Eliminar sufijos | ✅ | 100% |
@@ -25,58 +25,51 @@
 
 | Métrica | Valor |
 |---------|-------|
-| Tests inicio sesión | 49/63 (77.8%) |
-| Tests actuales | **58/63 (92%)** |
-| **Tests ganados** | **+9 tests** |
-| **Mejora porcentual** | **+18.4%** |
-| Pasos completados | **7.5/8 (94%)** |
+| Tests inicio sesión | 58/63 (92%) |
+| Tests actuales | **62/63 (98.4%)** |
+| **Tests ganados** | **+4 tests** |
+| **Mejora porcentual** | **+6.9%** |
+| Pasos completados | **8/8 (100%)** |
 
 ---
 
 ## ✅ Completados Esta Sesión
 
-### Paso 7: Normalización Puntuación (continuación)
-- D35: `dirección` siempre minúscula
-- D38: `Futbol` → `Fútbol` (tilde OCR)
-- C20: +10 bonus formato perfecto
-- D36: +30 formato sin tipo de vía
-- Commit: `d648c5d`
+### T08: Referencias relativas
+- Corregido patrón sufijo para "frente [lugar]", "junto a [lugar]"
+- Lookahead `(?=,|$)` para preservar coma antes de municipio
+- Excepción B24/B29 para "Carretera + número" (evitar coma incorrecta)
+- Commit: `36ddcca`
+
+### C16/C17/C19: Ya pasaban (verificado)
+- El problema de MULTIPLE_STREET_PATTERN vs expansión de abreviaturas
+  ya estaba resuelto en sesión anterior
 
 ---
 
-## ⏳ Tests Pendientes (5)
+## ⏳ Tests Pendientes (1)
 
-### Detección NO Geocodificable (C16, C17, C19)
-- C16: solo nombre sin dirección → null
-- C17: múltiples direcciones → null
-- C19: múltiples C/ → null
-
-### Casos Especiales (T07, T08)
-- T07: "Polígono Industrial Tíjola" → separar correctamente
-- T08: carretera + referencia relativa → eliminar referencia
+### T07: Polígono Industrial (caso especial)
+- Input: `Poligono Industrial Tíjola, s/n, Diponibilidad 24 horas`
+- Esperado: `Polígono Industrial, s/n, Tíjola`
+- Actual: `Polígono, Industrial Tíjola, s/n`
+- **Problema**: El código no detecta "Polígono Industrial [municipio]" como patrón especial
+- **Requiere**: Lógica específica para separar nombre de polígono vs municipio
 
 ---
 
 ## 🔧 Commits Esta Sesión
 
-1. `d648c5d` - F025 Paso 7: D35, D38, C20, D36
+1. `36ddcca` - F025: T08 referencias relativas - 62/63 tests (98.4%)
 
 ---
 
 ## 📋 Próximos Pasos Recomendados
 
-1. **C16/C17/C19**: Mejorar detección de múltiples direcciones
-   - Problema: expansión de C/→Calle rompe el regex MULTIPLE_STREET_PATTERN
-   - Solución: detectar ANTES de expandir abreviaturas
-   
-2. **T07**: Polígono Industrial
-   - Problema: coma incorrecta después de "Polígono"
-   - Solución: patrón especial para "Polígono Industrial [municipio]"
-
-3. **T08**: Carretera con referencia
-   - Problema: no elimina "frente Cuartel..."
-   - Solución: patrón para eliminar referencias relativas
+1. **T07**: Implementar patrón especial para "Polígono Industrial [Municipio]"
+   - Detectar cuando el nombre del polígono incluye el municipio
+   - Separar correctamente: "Polígono Industrial" + ", s/n" + ", Tíjola"
 
 ---
 
-*Generado: 2025-12-05*
+*Generado: 2025-12-05 08:00*
