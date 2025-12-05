@@ -1,0 +1,449 @@
+{
+  "type": "DERAFeatureCollection",
+  "features": [
+    {
+      "id": "EMERGENCIA_41091_0",
+      "tipologia": "EMERGENCIA",
+      "nombre": "Centro de Protección y Seguridad de ADIF Sevilla",
+      "subtipo": "Centro de Protección y Seguridad de ADIF",
+      "direccion": "Avenida Kansas City, s/n. 41007, Sevilla, Sevilla",
+      "localidad": null,
+      "codMun": "41091",
+      "municipio": "Sevilla",
+      "provincia": "Sevilla",
+      "codProv": "41",
+      "x": 236568.21487277,
+      "y": 4142481.22199599,
+      "capaOrigen": "Centros Emergencias",
+      "metadata": {
+        "id_dera": 11226200000013
+      },
+      "fechaCarga": "2025-12-05T15:56:54.015Z"
+    },
+    {
+      "id": "EMERGENCIA_04075_1",
+      "tipologia": "EMERGENCIA",
+      "nombre": "Centro de Protección y Seguridad de ADIF Valencia",
+      "subtipo": "Centro de Protección y Seguridad de ADIF",
+      "direccion": "Calle Ferrocarril. 0640, Pulpí, Almería",
+      "localidad": null,
+      "codMun": "04075",
+      "municipio": "Pulpí",
+      "provincia": "Almería",
+      "codProv": "04",
+      "x": 610687.69190031,
+      "y": 4139895.81242987,
+      "capaOrigen": "Centros Emergencias",
+      "metadata": {
+        "id_dera": 11226200000015
+      },
+      "fechaCarga": "2025-12-05T15:56:54.015Z"
+    },
+    {
+      "id": "EMERGENCIA_29067_2",
+      "tipologia": "EMERGENCIA",
+      "nombre": "Centro de Protección y Seguridad de ADIF Málaga",
+      "subtipo": "Centro de Protección y Seguridad de ADIF",
+      "direccion": "C/ Explanada de la Estación, s/n. 29002, Málaga, Málaga",
+      "localidad": null,
+      "codMun": "29067",
+      "municipio": "Málaga",
+      "provincia": "Málaga",
+      "codProv": "29",
+      "x": 372143.69447963,
+      "y": 4063892.3542508,
+      "capaOrigen": "Centros Emergencias",
+      "metadata": {
+        "id_dera": 11226200000014
+      },
+      "fechaCarga": "2025-12-05T15:56:54.015Z"
+    },
+    {
+      "id": "EMERGENCIA_29067_3",
+      "tipologia": "EMERGENCIA",
+      "nombre": "Centro Regional 112 Málaga",
+      "subtipo": "Centro 112",
+      "direccion": "Avenida de Aurora, 56. 29006, Málaga, Málaga",
+      "localidad": null,
+      "codMun": "29067",
+      "municipio": "Málaga",
+      "provincia": "Málaga",
+      "codProv": "29",
+      "x": 371301.64014307,
+      "y": 4064236.19877891,
+      "capaOrigen": "Centros Emergencias",
+      "metadata": {
+        "id_dera": 11226200000010
+      },
+      "fechaCarga": "2025-12-05T15:56:54.015Z"
+    },
+    {
+      "id": "EMERGENCIA_29067_4",
+      "tipologia": "EMERGENCIA",
+      "nombre": "Centro Provincial 112 Málaga",
+      "subtipo": "Centro 112",
+      "direccion": "Avenida de Aurora, 56. 29006, Málaga, Málaga",
+      "localidad": null,
+      "codMun": "29067",
+      "municipio": "Málaga",
+      "provincia": "Málaga",
+      "codProv": "29",
+      "x": 371301.64014307,
+      "y": 4064236.19877891,
+      "capaOrigen": "Centros Emergencias",
+      "metadata": {
+        "id_dera": 11226200000008
+      },
+      "fechaCarga": "2025-12-05T15:56:54.015Z"
+    },
+    {
+      "id": "EMERGENCIA_41038_5",
+      "tipologia": "EMERGENCIA",
+      "nombre": "Base Estratégica de Lucha contra la Contaminación (BEC) Salvamento Marítimo Sevilla",
+      "subtipo": "Centro de Coordinación de Salvamento Marítimo",
+      "direccion": "C/ Termas, 3. 41700, Dos Hermanas, Sevilla",
+      "localidad": null,
+      "codMun": "41038",
+      "municipio": "Dos Hermanas",
+      "provincia": "Sevilla",
+      "codProv": "41",
+      "x": 234461.7203094,
+      "y": 4129523.48164416,
+      "capaOrigen": "Centros Emergencias",
+      "metadata": {
+        "id_dera": 11226200000024
+      },
+      "fechaCarga": "2025-12-05T15:56:54.015Z"
+    },
+    {
+      "id": "EMERGENCIA_11012_6",
+      "tipologia": "EMERGENCIA",
+      "nombre": "Centro de Coordinación de Salvamento Marítimo de Cádiz",
+      "subtipo": "Centro de Coordinación de Salvamento Marítimo",
+      "direccion": "Muelle Alfonso XIII, s/n. 11006, Cádiz, Cádiz",
+      "localidad": null,
+      "codMun": "11012",
+      "municipio": "Cádiz",
+      "provincia": "Cádiz",
+      "codProv": "11",
+      "x": 205337.29965631,
+      "y": 4048314.78400254,
+      "capaOrigen": "Centros Emergencias",
+      "metadata": {
+        "id_dera": 11226200000022
+      },
+      "fechaCarga": "2025-12-05T15:56:54.015Z"
+    },
+    {
+      "id": "EMERGENCIA_11012_7",
+      "tipologia": "EMERGENCIA",
+      "nombre": "Centro de Protección y Seguridad de ADIF Cádiz",
+      "subtipo": "Centro de Protección y Seguridad de ADIF",
+      "direccion": "Muelle Reina Victoria, s/n. 11006, Cádiz, Cádiz",
+      "localidad": null,
+      "codMun": "11012",
+      "municipio": "Cádiz",
+      "provincia": "Cádiz",
+      "codProv": "11",
+      "x": 205546.63237176,
+      "y": 4047793.54805039,
+      "capaOrigen": "Centros Emergencias",
+      "metadata": {
+        "id_dera": 11226200000011
+      },
+      "fechaCarga": "2025-12-05T15:56:54.015Z"
+    },
+    {
+      "id": "EMERGENCIA_11012_8",
+      "tipologia": "EMERGENCIA",
+      "nombre": "Centro Provincial 112 Cádiz",
+      "subtipo": "Centro 112",
+      "direccion": "Plaza de España, 19. 11004, Cádiz, Cádiz",
+      "localidad": null,
+      "codMun": "11012",
+      "municipio": "Cádiz",
+      "provincia": "Cádiz",
+      "codProv": "11",
+      "x": 205225.91571645,
+      "y": 4048384.57263651,
+      "capaOrigen": "Centros Emergencias",
+      "metadata": {
+        "id_dera": 11226200000005
+      },
+      "fechaCarga": "2025-12-05T15:56:54.015Z"
+    },
+    {
+      "id": "EMERGENCIA_11035_9",
+      "tipologia": "EMERGENCIA",
+      "nombre": "Centro de Coordinación de Salvamento Marítimo de Tarifa",
+      "subtipo": "Centro de Coordinación de Salvamento Marítimo",
+      "direccion": "Carretera Cádiz-Málaga, km 85, Monte Camorro, s/n. 11380, Tarifa, Cádiz",
+      "localidad": null,
+      "codMun": "11035",
+      "municipio": "Tarifa",
+      "provincia": "Cádiz",
+      "codProv": "11",
+      "x": 267321.8732951,
+      "y": 3989016.88535998,
+      "capaOrigen": "Centros Emergencias",
+      "metadata": {
+        "id_dera": 11226200000021
+      },
+      "fechaCarga": "2025-12-05T15:56:54.015Z"
+    },
+    {
+      "id": "EMERGENCIA_21041_10",
+      "tipologia": "EMERGENCIA",
+      "nombre": "Centro de Coordinación de Salvamento Marítimo de Huelva",
+      "subtipo": "Centro de Coordinación de Salvamento Marítimo",
+      "direccion": "C/ Sanlúcar de Barrameda, 9, 2ª planta. 21001, Huelva, Huelva",
+      "localidad": null,
+      "codMun": "21041",
+      "municipio": "Huelva",
+      "provincia": "Huelva",
+      "codProv": "21",
+      "x": 148899.73749121,
+      "y": 4130372.68397363,
+      "capaOrigen": "Centros Emergencias",
+      "metadata": {
+        "id_dera": 11226200000023
+      },
+      "fechaCarga": "2025-12-05T15:56:54.015Z"
+    },
+    {
+      "id": "EMERGENCIA_21041_11",
+      "tipologia": "EMERGENCIA",
+      "nombre": "Centro Provincial 112 Huelva",
+      "subtipo": "Centro 112",
+      "direccion": "C/ Sanlúcar de Barrameda, 3. 21001, Huelva, Huelva",
+      "localidad": null,
+      "codMun": "21041",
+      "municipio": "Huelva",
+      "provincia": "Huelva",
+      "codProv": "21",
+      "x": 148986.25997714,
+      "y": 4130498.70656549,
+      "capaOrigen": "Centros Emergencias",
+      "metadata": {
+        "id_dera": 11226200000007
+      },
+      "fechaCarga": "2025-12-05T15:56:54.015Z"
+    },
+    {
+      "id": "EMERGENCIA_23050_12",
+      "tipologia": "EMERGENCIA",
+      "nombre": "Centro de Protección y Seguridad de ADIF Manzanares Jaén",
+      "subtipo": "Centro de Protección y Seguridad de ADIF",
+      "direccion": "Plaza Jaén por la Paz, 1. 23007, Jaén, Jaén",
+      "localidad": null,
+      "codMun": "23050",
+      "municipio": "Jaén",
+      "provincia": "Jaén",
+      "codProv": "23",
+      "x": 430368.36989227,
+      "y": 4181680.46683609,
+      "capaOrigen": "Centros Emergencias",
+      "metadata": {
+        "id_dera": 11226200000018
+      },
+      "fechaCarga": "2025-12-05T15:56:54.015Z"
+    },
+    {
+      "id": "EMERGENCIA_23050_13",
+      "tipologia": "EMERGENCIA",
+      "nombre": "Centro Provincial 112 Jáen",
+      "subtipo": "Centro 112",
+      "direccion": "C/ Pintor Pablo Martín del Castillo, 2.  23006, Jaén, Jaén",
+      "localidad": null,
+      "codMun": "23050",
+      "municipio": "Jaén",
+      "provincia": "Jaén",
+      "codProv": "23",
+      "x": 429890.68712165,
+      "y": 4181763.76681522,
+      "capaOrigen": "Centros Emergencias",
+      "metadata": {
+        "id_dera": 11226200000009
+      },
+      "fechaCarga": "2025-12-05T15:56:54.015Z"
+    },
+    {
+      "id": "EMERGENCIA_11004_14",
+      "tipologia": "EMERGENCIA",
+      "nombre": "Centro de Coordinación de Salvamento Marítimo de Algeciras",
+      "subtipo": "Centro de Coordinación de Salvamento Marítimo",
+      "direccion": "Avenida Hispanidad, s/n. 11207, Algeciras, Cádiz",
+      "localidad": null,
+      "codMun": "11004",
+      "municipio": "Algeciras",
+      "provincia": "Cádiz",
+      "codProv": "11",
+      "x": 280215.29158647,
+      "y": 4000403.18022035,
+      "capaOrigen": "Centros Emergencias",
+      "metadata": {
+        "id_dera": 11226200000020
+      },
+      "fechaCarga": "2025-12-05T15:56:54.015Z"
+    },
+    {
+      "id": "EMERGENCIA_18087_15",
+      "tipologia": "EMERGENCIA",
+      "nombre": "Centro de Protección y Seguridad de ADIF Granada",
+      "subtipo": "Centro de Protección y Seguridad de ADIF",
+      "direccion": "Avenida de los Andaluces, s/n. 18014, Granada, Granada",
+      "localidad": null,
+      "codMun": "18087",
+      "municipio": "Granada",
+      "provincia": "Granada",
+      "codProv": "18",
+      "x": 445933.92001159,
+      "y": 4115465.78892645,
+      "capaOrigen": "Centros Emergencias",
+      "metadata": {
+        "id_dera": 11226200000017
+      },
+      "fechaCarga": "2025-12-05T15:56:54.015Z"
+    },
+    {
+      "id": "EMERGENCIA_18087_16",
+      "tipologia": "EMERGENCIA",
+      "nombre": "Centro Provincial 112 Granada",
+      "subtipo": "Centro 112",
+      "direccion": "C/ Pofesor Cavera, 12. 18011, Granada, Granada",
+      "localidad": null,
+      "codMun": "18087",
+      "municipio": "Granada",
+      "provincia": "Granada",
+      "codProv": "18",
+      "x": 447088.15457099,
+      "y": 4116163.33585783,
+      "capaOrigen": "Centros Emergencias",
+      "metadata": {
+        "id_dera": 11226200000001
+      },
+      "fechaCarga": "2025-12-05T15:56:54.015Z"
+    },
+    {
+      "id": "EMERGENCIA_04013_17",
+      "tipologia": "EMERGENCIA",
+      "nombre": "Centro de Coordinación de Salvamento Marítimo de Almería",
+      "subtipo": "Centro de Coordinación de Salvamento Marítimo",
+      "direccion": "Muelle Levante, s/n - planta 12ª. 04071, Almería, Almería",
+      "localidad": null,
+      "codMun": "04013",
+      "municipio": "Almería",
+      "provincia": "Almería",
+      "codProv": "04",
+      "x": 547569.69275472,
+      "y": 4076216.64352172,
+      "capaOrigen": "Centros Emergencias",
+      "metadata": {
+        "id_dera": 11226200000019
+      },
+      "fechaCarga": "2025-12-05T15:56:54.015Z"
+    },
+    {
+      "id": "EMERGENCIA_04013_18",
+      "tipologia": "EMERGENCIA",
+      "nombre": "Centro Provincial 112 Almería",
+      "subtipo": "Centro 112",
+      "direccion": "C/ Hermanos Machado, . 04004, Almería, Almería",
+      "localidad": null,
+      "codMun": "04013",
+      "municipio": "Almería",
+      "provincia": "Almería",
+      "codProv": "04",
+      "x": 548083.0088687,
+      "y": 4076766.99958882,
+      "capaOrigen": "Centros Emergencias",
+      "metadata": {
+        "id_dera": 11226200000002
+      },
+      "fechaCarga": "2025-12-05T15:56:54.015Z"
+    },
+    {
+      "id": "EMERGENCIA_14021_19",
+      "tipologia": "EMERGENCIA",
+      "nombre": "Centro de Protección y Seguridad de ADIF Córdoba",
+      "subtipo": "Centro de Protección y Seguridad de ADIF",
+      "direccion": "Avenida América, s/n. 14005, Córdoba, Córdoba",
+      "localidad": null,
+      "codMun": "14021",
+      "municipio": "Córdoba",
+      "provincia": "Córdoba",
+      "codProv": "14",
+      "x": 342689.32265858,
+      "y": 4194981.57717475,
+      "capaOrigen": "Centros Emergencias",
+      "metadata": {
+        "id_dera": 11226200000012
+      },
+      "fechaCarga": "2025-12-05T15:56:54.015Z"
+    },
+    {
+      "id": "EMERGENCIA_14021_20",
+      "tipologia": "EMERGENCIA",
+      "nombre": "Centro Provincial 112 Córdoba",
+      "subtipo": "Centro 112",
+      "direccion": "C/ San Felipe, 5. o Plaza San Nicolás, 5. 14003, Córdoba, Córdoba",
+      "localidad": null,
+      "codMun": "14021",
+      "municipio": "Córdoba",
+      "provincia": "Córdoba",
+      "codProv": "14",
+      "x": 343291.28504364,
+      "y": 4194453.47706539,
+      "capaOrigen": "Centros Emergencias",
+      "metadata": {
+        "id_dera": 11226200000006
+      },
+      "fechaCarga": "2025-12-05T15:56:54.015Z"
+    },
+    {
+      "id": "EMERGENCIA_41091_21",
+      "tipologia": "EMERGENCIA",
+      "nombre": "Centro Regional 112 Sevilla",
+      "subtipo": "Centro 112",
+      "direccion": "Avenida del Deporte, . 41020, Torreblanca de los Caños, Sevilla",
+      "localidad": null,
+      "codMun": "41091",
+      "municipio": "Sevilla",
+      "provincia": "Sevilla",
+      "codProv": "41",
+      "x": 241789.39899725,
+      "y": 4141793.53785135,
+      "capaOrigen": "Centros Emergencias",
+      "metadata": {
+        "id_dera": 11226200000003
+      },
+      "fechaCarga": "2025-12-05T15:56:54.015Z"
+    },
+    {
+      "id": "EMERGENCIA_41091_22",
+      "tipologia": "EMERGENCIA",
+      "nombre": "Centro Provincial 112 Sevilla",
+      "subtipo": "Centro 112",
+      "direccion": "Avenida del Deporte, . 41020, Torreblanca de los Caños, Sevilla",
+      "localidad": null,
+      "codMun": "41091",
+      "municipio": "Sevilla",
+      "provincia": "Sevilla",
+      "codProv": "41",
+      "x": 241787.93893182,
+      "y": 4141788.76830428,
+      "capaOrigen": "Centros Emergencias",
+      "metadata": {
+        "id_dera": 11226200000004
+      },
+      "fechaCarga": "2025-12-05T15:56:54.015Z"
+    }
+  ],
+  "metadata": {
+    "source": "emergency",
+    "tipologia": "EMERGENCIA",
+    "count": 23,
+    "transformedAt": "2025-12-05T15:56:54.015Z",
+    "originalFile": "emergency.geojson"
+  }
+}

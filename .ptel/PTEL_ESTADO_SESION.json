@@ -1,8 +1,8 @@
 {
   "fecha": "2025-12-05",
   "version": "0.4.1",
-  "sesion": "A.4 (CERRADA)",
-  "estado": "FASE A COMPLETADA",
+  "sesion": "B.1 (COMPLETADA)",
+  "estado": "FASE B EN PROGRESO",
   "plan_activo": ".ptel/PLAN_CONSOLIDADO_48_SESIONES.md",
   "metricas": {
     "tests_totales": "1349/1349 (100%)",
@@ -10,39 +10,43 @@
     "features_completadas": "23/24 (96%)",
     "sesiones_plan": "48 sesiones, 7 fases",
     "horas_estimadas": "54h",
-    "sesiones_completadas": "A.1, A.2, A.3, A.4"
+    "sesiones_completadas": "A.1, A.2, A.3, A.4, B.1",
+    "dera_features": 11282,
+    "ine_municipios": 785
   },
-  "ultimo_commit": "7758fe3",
+  "ultimo_commit": "pendiente",
   "sesion_actual": {
-    "id": "A.4",
-    "fase": "A - Integración Inmediata",
-    "tarea": "Suite benchmark Vitest",
-    "rol": "MapWizard",
-    "resultado": "COMPLETADO - 4 archivos benchmark",
+    "id": "B.1",
+    "fase": "B - BBDD Local",
+    "tarea": "Descarga DERA y extracción INE",
+    "rol": "DataMaster",
+    "resultado": "COMPLETADO - 11,282 features DERA + 785 municipios INE",
     "verificacion": {
       "archivos_creados": [
-        "src/lib/__tests__/benchmarks/coordinateNormalizer.bench.ts",
-        "src/lib/__tests__/benchmarks/addressExtractor.bench.ts",
-        "src/lib/__tests__/benchmarks/localData.bench.ts",
-        "src/lib/__tests__/benchmarks/validation.bench.ts"
+        "public/data/dera-dexie/health.json (1,700 features)",
+        "public/data/dera-dexie/education.json (6,725 features)",
+        "public/data/dera-dexie/security.json (1,259 features)",
+        "public/data/dera-dexie/emergency.json (23 features)",
+        "public/data/dera-dexie/energy.json (161 features)",
+        "public/data/dera-dexie/municipal.json (1,414 features)",
+        "public/data/dera-dexie/all-dera.json (consolidado)",
+        "public/data/ine/municipios.json (785 municipios)",
+        "scripts/dera-download/transform-to-dexie.cjs",
+        "scripts/dera-download/extract-municipios-ine.cjs"
       ],
-      "comando_ejecucion": "npx vitest bench",
-      "metricas_base": {
-        "coordinateNormalizer": "~240k ops/s formato europeo, ~927 ops/s lote 1000",
-        "addressExtractor": "~1.9k ops/s direcciones simples, ~73 ops/s lote 100",
-        "validation": "pendiente medición",
-        "localData": "pendiente medición"
-      }
+      "estructura": "DERAFeature[] compatible con schemas.ts",
+      "crs": "EPSG:25830 (UTM30 ETRS89)",
+      "tamano_total": "~14 MB"
     }
   },
   "fase_a_completada": true,
   "siguiente_sesion": {
-    "id": "B.1",
+    "id": "B.2",
     "fase": "B - BBDD Local",
-    "tarea": "Descarga DERA (TopoJSON/WFS)",
-    "rol": "DataMaster",
+    "tarea": "Carga inicial IndexedDB",
+    "rol": "MapWizard",
     "duracion_estimada": "2h",
-    "objetivo": "Obtener datos DERA en formato TopoJSON"
+    "objetivo": "Cargar datos DERA/INE en Dexie.js al inicio de la app"
   },
   "historial_sesiones": {
     "S2.1-F0.1": {
@@ -69,6 +73,11 @@
       "fecha": "2025-12-05",
       "tarea": "Suite benchmark Vitest",
       "resultado": "COMPLETADO - 4 suites"
+    },
+    "B.1": {
+      "fecha": "2025-12-05",
+      "tarea": "Descarga DERA + extracción INE",
+      "resultado": "COMPLETADO - 11,282 features + 785 municipios"
     }
   }
 }

@@ -1,14 +1,40 @@
 {
-  "lastUpdate": "2025-12-03T08:25:47.739721",
-  "source": "IDEAndalucía DERA WFS",
-  "crs": "EPSG:25830",
-  "layers": {
-    "health": 1700,
-    "security": 1259,
-    "education": 6725,
-    "municipal": 1414,
-    "emergency": 23,
-    "energy": 161
+  "version": "1.0.0",
+  "generatedAt": "2025-12-05T16:00:25.685Z",
+  "session": "B.1",
+  "datasets": {
+    "dera": {
+      "path": "dera-dexie/",
+      "format": "DERAFeature[]",
+      "files": [
+        "health.json",
+        "education.json",
+        "security.json",
+        "emergency.json",
+        "energy.json",
+        "municipal.json",
+        "all-dera.json"
+      ],
+      "totalFeatures": 11282,
+      "crs": "EPSG:25830"
+    },
+    "ine": {
+      "path": "ine/",
+      "format": "INEMunicipio[]",
+      "files": [
+        "municipios.json"
+      ],
+      "totalMunicipios": 785,
+      "crs": "EPSG:25830"
+    },
+    "deraOriginal": {
+      "path": "dera/",
+      "format": "GeoJSON",
+      "note": "Archivos originales de descarga WFS (legacy)"
+    }
   },
-  "totalFeatures": 11282
+  "sources": {
+    "dera": "https://www.ideandalucia.es/services/DERA_g12_servicios/wfs",
+    "note": "Datos Espaciales de Referencia de Andalucía - IECA"
+  }
 }
