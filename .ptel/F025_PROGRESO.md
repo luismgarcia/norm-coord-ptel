@@ -1,8 +1,8 @@
 # F025 Address Extractor - Progreso de Implementación
 
-> **Última actualización**: 2025-12-05 00:45  
-> **Commit actual**: `7142395`  
-> **Estado global**: 47/63 tests (74.6%)
+> **Última actualización**: 2025-12-05 01:05  
+> **Commit actual**: `2e71715`  
+> **Estado global**: 49/63 tests (77.8%)
 
 ---
 
@@ -26,9 +26,9 @@
 | Métrica | Valor |
 |---------|-------|
 | Tests inicio sesión | 28/63 (44.4%) |
-| Tests actuales | **47/63 (74.6%)** |
-| **Tests ganados** | **+19 tests** |
-| **Mejora porcentual** | **+67.9%** |
+| Tests actuales | **49/63 (77.8%)** |
+| **Tests ganados** | **+21 tests** |
+| **Mejora porcentual** | **+75.0%** |
 | Pasos completados | **7/8 (87.5%)** |
 
 ---
@@ -63,23 +63,27 @@
 
 ---
 
-## ⏳ Tests Pendientes (16)
+## ⏳ Tests Pendientes (14)
 
 ### Paso 8: Múltiples Direcciones
-- C16, C17, C19
+- C16: solo nombre → null
+- C17: múltiples direcciones → null  
+- C19: múltiples C/ → null
+
+### Normalización Puntuación/Formato
+- B24, B29: "Plaza de la Constitución 1" → ", 1"
+- B25, B30: "s/n Berja" → "s/n, Berja"
+- D35: "Autovía A-92 Direccion" → ", dirección"
+- S43: municipio primero → añadir al final
 
 ### Casos Especiales
-- T07: polígono + typo
-- T08: carretera + referencia
-- D35: autovía
-- D36: sin tipo vía
-- D38: camino
+- T07: polígono + typo Industrial
+- T08: carretera + referencia relativa
 
-### Otros
-- B24, B25: código postal/teléfono
-- B29, B30: prefijos complejos
-- S41, S43, S44: orden elementos
-- C20: confianza
+### Confianza/Otros
+- C20: confianza 80 → 90
+- D36: confianza 30 → 60
+- D38: "Futbol" → "Fútbol" (tilde)
 
 ---
 

@@ -277,16 +277,16 @@
             "phase": 2,
             "name": "Implementación addressExtractor.ts (8 pasos)",
             "status": "en_progreso",
-            "progress": "74.6%",
-            "tests": "47/63",
+            "progress": "77.8%",
+            "tests": "49/63",
             "pasos": {
               "paso1_no_geocodificable": "parcial (6/9)",
               "paso2_ocr_utf8": "completado",
               "paso3_prefijos": "completado (12/12)",
-              "paso4_sufijos": "parcial (faltan B24,B25,B29,B30)",
+              "paso4_sufijos": "completado (9/9)",
               "paso5_abreviaturas": "completado",
               "paso6_numero": "completado",
-              "paso7_puntuacion": "parcial (faltan S41,S43,S44)",
+              "paso7_puntuacion": "parcial (faltan B24,B25,B29,B30,S43)",
               "paso8_capitalizacion": "parcial (falta D38)"
             }
           },
@@ -297,9 +297,9 @@
             "progress": "0%"
           }
         ],
-        "testsFallando": ["T07", "T08", "C16", "C17", "C19", "C20", "B24", "B25", "B29", "B30", "D35", "D36", "D38", "S41", "S43", "S44"]
+        "testsFallando": ["T07", "T08", "C16", "C17", "C19", "C20", "B24", "B25", "B29", "B30", "D35", "D36", "D38", "S43"]
       },
-      "notes": "Implementación en progreso. Paso 3 (prefijos) 100%. Siguiente: Paso 4 (sufijos) o Paso 7 (puntuación)"
+      "notes": "Implementación en progreso. 49/63 tests (77.8%). Pasos 2-6 completados. Pendiente: múltiples direcciones, puntuación, casos especiales"
     }
   ],
   "summary": {
@@ -314,6 +314,6 @@
     "multiFieldCoverage": "Fase 1-2 completas, Fase 3 opcional (F023)",
     "pendingFeatures": ["F014:CacheManager (parcial)", "F015:ProgressPanel", "F025:AddressExtractor"]
   },
-  "lastUpdated": "2025-12-05T00:50:00Z",
-  "updatedBy": "Claude (sesión 05-Dic-2025 - F025 Paso 3 completado, 47/63 tests)"
+  "lastUpdated": "2025-12-05T01:05:00Z",
+  "updatedBy": "Claude (sesión 05-Dic-2025 - F025 Paso 3 completado, 49/63 tests 77.8%)"
 }
