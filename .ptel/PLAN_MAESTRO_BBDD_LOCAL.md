@@ -207,7 +207,7 @@ interface INEMunicipio {
 
 ## 📋 Seguimiento
 
-- [ ] **F0.1** — Inventario fuentes (EN PROGRESO)
+- [x] **F0.1** — Inventario fuentes ✅ (5 dic 2025)
 - [ ] F0.2 — Esquemas IndexedDB
 - [ ] F1.1-F1.4 — Infraestructura base
 - [ ] F2.1-F2.4 — DERA local

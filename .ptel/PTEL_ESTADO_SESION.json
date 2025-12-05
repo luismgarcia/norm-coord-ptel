@@ -1,69 +1,57 @@
 {
   "fecha": "2025-12-05",
   "version": "0.4.1",
-  "sesion": "S1.3",
+  "sesion": "S2.1-F0.1",
   "estado": "COMPLETADO",
   "metricas": {
-    "tests_totales": "1181/1182 (99.9%)",
+    "tests_totales": "1314/1314 (100%)",
     "features_completadas": "23/24 (96%)",
     "municipios_validados": 5,
-    "plan_sesiones": 33,
+    "plan_bbdd_local": "22 sesiones, 5 fases",
     "benchmarks_configurados": true
   },
-  "ultimo_commit": "94e87f1",
-  "plan_trabajo": {
-    "archivo": ".ptel/PLAN_TRABAJO_DICIEMBRE_2025.md",
+  "ultimo_commit": "ab00fcf",
+  "plan_bbdd_local": {
+    "archivo": ".ptel/PLAN_MAESTRO_BBDD_LOCAL.md",
     "fases": 5,
-    "sesiones_totales": 33,
-    "fecha_inicio": "2025-12-06",
-    "fecha_fin": "2025-12-22",
-    "objetivo_version": "0.5.0"
+    "sesiones_totales": 22,
+    "objetivo": "Sistema multi-BBDD local para validación PTEL",
+    "mejora_estimada": "+13 puntos (82% → 95%)"
   },
   "siguiente_sesion": {
-    "id": "S1.4",
-    "feature": "Snapshot tests para AddressExtractor (63 casos)",
-    "rol": "MapWizard",
-    "duracion_estimada": "1h"
+    "id": "F0.2",
+    "tarea": "Definir esquemas IndexedDB",
+    "rol": "DataMaster + MapWizard",
+    "duracion_estimada": "1h",
+    "entregable": "src/lib/localData/schemas.ts"
   },
   "notas_sesion": {
-    "S1.1": {
-      "tarea": "Integrar F025 AddressExtractor en GeocodingOrchestrator",
-      "resultado": "COMPLETADO - Integración ya existía, creado test de integración",
-      "archivo_creado": "src/services/geocoding/__tests__/F025.integration.test.ts",
-      "tests_nuevos": 11
-    },
-    "S1.2": {
-      "tarea": "Test E2E flujo completo ODT → coordenadas normalizadas",
-      "resultado": "COMPLETADO - Suite E2E ya existía, corregidos fixtures y tests",
-      "archivos_modificados": [
-        "src/__tests__/e2e/documentFlow.e2e.test.ts",
-        "src/__tests__/e2e/fixtures/ptelData.ts"
-      ],
-      "tests_e2e": 19
-    },
-    "S1.3": {
-      "tarea": "Crear suite benchmark con Vitest bench",
-      "resultado": "COMPLETADO - Suite con 20 benchmarks configurada",
+    "S2.1-F0.1": {
+      "tarea": "Inventario de fuentes de datos para BBDDs locales",
+      "resultado": "COMPLETADO",
+      "rol": "DataMaster",
       "archivos_creados": [
-        "vitest.bench.config.ts",
-        "src/__benchmarks__/geocoding.bench.ts"
+        "src/data/sources/SOURCE_CATALOG.md",
+        ".ptel/PLAN_MAESTRO_BBDD_LOCAL.md"
       ],
-      "baselines": {
-        "address_extraction": "0.13ms (<5ms objetivo) ✅",
-        "coordinate_normalization": "0.001ms (<1ms objetivo) ✅",
-        "singleton_detection": "0.18ms (<50ms objetivo) ✅"
-      }
+      "fuentes_documentadas": {
+        "DERA_WFS": "G09-G17 (transportes, energía, hidráulicas, sanitarios, educativos, patrimonio, servicios, divisiones)",
+        "CDAU": "Portal descargas, WFS, API SOAP (requiere autorización)",
+        "INE": "Relación municipios anual (Excel)",
+        "Limites": "TopoJSON ya existente"
+      },
+      "tamaño_estimado_total": "~420MB IndexedDB local",
+      "prioridad_carga": [
+        "1. INE Municipios (~2MB)",
+        "2. DERA sanitarios/educativos (~15MB)",
+        "3. DERA otros servicios (~35MB)",
+        "4. CDAU direcciones (~340MB)"
+      ]
     }
   },
-  "benchmarks": {
-    "grupos": 6,
-    "total_benchmarks": 20,
-    "resultados": {
-      "address_extraction_ms": 0.13,
-      "coordinate_normalization_ms": 0.001,
-      "singleton_detection_ms": 0.18,
-      "parse_dms_ms": 0.0004,
-      "parse_nmea_ms": 0.0003
-    }
+  "hallazgos_relevantes": {
+    "CrossValidator_existente": "Implementación completa (546 líneas) con clustering espacial, centroide ponderado (Huber), scoring multi-criterio",
+    "DERA_actualizado": "Última actualización 30/06/2025",
+    "CDAU_requiere_auth": "API SOAP requiere autorización NAOS desde 31/01/2024"
   }
 }
