@@ -1,8 +1,8 @@
 {
   "fecha": "2025-12-05",
   "version": "0.4.1",
-  "sesion": "A.4",
-  "estado": "COMPLETADO",
+  "sesion": "A.4 (CERRADA)",
+  "estado": "FASE A COMPLETADA",
   "plan_activo": ".ptel/PLAN_CONSOLIDADO_48_SESIONES.md",
   "metricas": {
     "tests_totales": "1349/1349 (100%)",
@@ -12,7 +12,7 @@
     "horas_estimadas": "54h",
     "sesiones_completadas": "A.1, A.2, A.3, A.4"
   },
-  "ultimo_commit": "2752b61",
+  "ultimo_commit": "7758fe3",
   "sesion_actual": {
     "id": "A.4",
     "fase": "A - Integración Inmediata",
