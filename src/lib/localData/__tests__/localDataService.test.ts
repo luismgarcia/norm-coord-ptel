@@ -1,7 +1,7 @@
 /**
  * Tests para localDataService
  * 
- * @session B.2
+ * @session B.2, B.4
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
@@ -16,6 +16,36 @@ import { db } from '../schemas';
 // Mock de fetch global
 const mockFetch = vi.fn();
 global.fetch = mockFetch;
+
+/**
+ * Helper para crear Response mock completo
+ */
+function createMockResponse(options: {
+  ok: boolean;
+  status?: number;
+  statusText?: string;
+  data?: unknown;
+}): Response {
+  const { ok, status = ok ? 200 : 500, statusText = ok ? 'OK' : 'Error', data } = options;
+  
+  return {
+    ok,
+    status,
+    statusText,
+    headers: new Headers(),
+    redirected: false,
+    type: 'basic' as ResponseType,
+    url: '',
+    clone: () => createMockResponse(options),
+    body: null,
+    bodyUsed: false,
+    arrayBuffer: () => Promise.resolve(new ArrayBuffer(0)),
+    blob: () => Promise.resolve(new Blob()),
+    formData: () => Promise.resolve(new FormData()),
+    text: () => Promise.resolve(JSON.stringify(data ?? '')),
+    json: () => Promise.resolve(data)
+  } as Response;
+}
 
 describe('localDataService', () => {
   beforeEach(async () => {
@@ -112,46 +142,53 @@ describe('localDataService', () => {
       expect(mockFetch).not.toHaveBeenCalled();
     });
 
-    it.skip('reporta progreso durante la carga', async () => {
+    it('reporta progreso durante la carga', async () => {
       const progressUpdates: LoadProgress[] = [];
       
-      // Mock de respuestas
+      // Datos mock
+      const mockDeraData = [
+        {
+          id: 'SANITARIO_18051_1',
+          tipologia: 'SANITARIO',
+          nombre: 'Centro Test',
+          codMun: '18051',
+          municipio: 'Granada',
+          provincia: 'Granada',
+          codProv: '18',
+          x: 446000,
+          y: 4114000,
+          capaOrigen: 'test',
+          fechaCarga: new Date().toISOString()
+        }
+      ];
+      
+      const mockIneData = [
+        {
+          codMun: '18051',
+          nombre: 'Granada',
+          nombreNorm: 'GRANADA',
+          provincia: 'Granada',
+          codProv: '18',
+          centroideX: 446000,
+          centroideY: 4114000
+        }
+      ];
+      
+      // Mock de respuestas con Response completo
       mockFetch.mockImplementation((url: string) => {
         if (url.includes('all-dera.json')) {
-          return Promise.resolve({
+          return Promise.resolve(createMockResponse({
             ok: true,
-            json: () => Promise.resolve([
-              {
-                id: 'SANITARIO_18051_1',
-                tipologia: 'SANITARIO',
-                nombre: 'Centro Test',
-                codMun: '18051',
-                municipio: 'Granada',
-                provincia: 'Granada',
-                codProv: '18',
-                x: 446000,
-                y: 4114000,
-                capaOrigen: 'test',
-                fechaCarga: new Date().toISOString()
-              }
-            ])
-          });
+            status: 200,
+            data: mockDeraData
+          }));
         }
         if (url.includes('municipios.json')) {
-          return Promise.resolve({
+          return Promise.resolve(createMockResponse({
             ok: true,
-            json: () => Promise.resolve([
-              {
-                codMun: '18051',
-                nombre: 'Granada',
-                nombreNorm: 'GRANADA',
-                provincia: 'Granada',
-                codProv: '18',
-                centroideX: 446000,
-                centroideY: 4114000
-              }
-            ])
-          });
+            status: 200,
+            data: mockIneData
+          }));
         }
         return Promise.reject(new Error('URL no encontrada'));
       });
@@ -172,7 +209,8 @@ describe('localDataService', () => {
       expect(phases).toContain('complete');
     });
 
-    it.skip('maneja errores de red correctamente', async () => {
+    it('maneja errores de red correctamente', async () => {
+      // Mock que rechaza la promesa (error de red)
       mockFetch.mockRejectedValue(new Error('Network error'));
 
       const result = await loadInitialData({ forceReload: true });
@@ -182,12 +220,13 @@ describe('localDataService', () => {
       expect(result.error?.message).toContain('Network error');
     });
 
-    it.skip('maneja errores HTTP correctamente', async () => {
-      mockFetch.mockResolvedValue({
+    it('maneja errores HTTP correctamente', async () => {
+      // Mock con Response HTTP error
+      mockFetch.mockResolvedValue(createMockResponse({
         ok: false,
         status: 404,
         statusText: 'Not Found'
-      });
+      }));
 
       const result = await loadInitialData({ forceReload: true });
 
