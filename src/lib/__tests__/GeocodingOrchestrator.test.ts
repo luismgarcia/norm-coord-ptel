@@ -181,7 +181,7 @@ describe('F023 Fase 1.5: Integración Singleton en GeocodingOrchestrator', () =>
       console.log(`${F023_1_5_TEST} Escalado test: geocoder=${result.geocoderUsed}, attempts=${result.attempts}`);
       
       // Debe intentar singleton_check pero no encontrar nada
-      expect(result.attempts).toContain('singleton_check');
+      expect(result.attempts).toContain('singleton_indexeddb');
       
       // Puede no encontrar nada si no hay fallback genérico
       // El importante es que intentó la estrategia correcta
@@ -211,7 +211,7 @@ describe('F023 Fase 1.5: Integración Singleton en GeocodingOrchestrator', () =>
   
   describe('Trazabilidad F023-1.5', () => {
     
-    it('debe incluir intento singleton_check en attempts', async () => {
+    it('debe incluir intento singleton_indexeddb en attempts', async () => {
       const result = await orchestrator.geocode({
         name: 'Centro de Salud',
         municipality: 'Añora',
@@ -221,7 +221,7 @@ describe('F023 Fase 1.5: Integración Singleton en GeocodingOrchestrator', () =>
         useGenericFallback: false
       });
       
-      expect(result.attempts).toContain('singleton_check');
+      expect(result.attempts).toContain('singleton_indexeddb');
     });
     
     it('debe tener source con prefijo SINGLETON_ para match directo', async () => {

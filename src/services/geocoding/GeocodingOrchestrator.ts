@@ -37,12 +37,13 @@ import {
 } from '../../types/infrastructure';
 
 // LocalDataService - L0 Geocoding offline (F021 Fase 2)
+// B.4: SingletonDetector usa IndexedDB, pero LocalDataService se mantiene como fallback
 import {
   searchLocal,
   isDataLoaded,
   loadLocalData,
   toGeocodingResult,
-  // F023 Fase 1.5 - Métodos singleton
+  // Fallback para cuando IndexedDB no está lista (tests, primera carga)
   countByType,
   getUniqueByType,
   getFeaturesByMunicipio,
@@ -101,6 +102,16 @@ import {
   extractStreetAddress,
   type AddressExtractionResult,
 } from '../../utils/addressExtractor';
+
+// F023 Fase 1 / B.4: SingletonDetector con BBDD local IndexedDB
+import {
+  detectSingleton,
+  getSingletonFeature,
+  getCandidatesByNombre,
+  type SingletonResult,
+  type InfraTipologia,
+} from '../../lib/localData/singletonDetector';
+import { isDatabaseReady } from '../../lib/localData/schemas';
 
 /**
  * Opciones para geocodificación orquestada
@@ -303,6 +314,42 @@ export class GeocodingOrchestrator {
   }
 
   /**
+   * B.4: Mapea InfrastructureType a InfraTipologia para SingletonDetector
+   * @param type - Tipo de infraestructura del clasificador
+   * @returns Tipología para consulta en BBDD local
+   */
+  private mapTypeToTipologia(type: InfrastructureType): InfraTipologia {
+    switch (type) {
+      case InfrastructureType.HEALTH:
+        return 'SANITARIO';
+      case InfrastructureType.EDUCATION:
+        return 'EDUCATIVO';
+      case InfrastructureType.POLICE:
+      case InfrastructureType.FIRE:
+        return 'SEGURIDAD';
+      case InfrastructureType.EMERGENCY:
+        return 'EMERGENCIA';
+      case InfrastructureType.MUNICIPAL:
+        return 'MUNICIPAL';
+      case InfrastructureType.ENERGY:
+        return 'ENERGIA';
+      case InfrastructureType.HYDRAULIC:
+        return 'HIDRAULICO';
+      case InfrastructureType.CULTURAL:
+        return 'PATRIMONIO';
+      case InfrastructureType.SPORTS:
+        return 'DEPORTIVO';
+      case InfrastructureType.VIAL:
+        return 'TRANSPORTE';
+      case InfrastructureType.TELECOM:
+      case InfrastructureType.INDUSTRIAL:
+      case InfrastructureType.GENERIC:
+      default:
+        return 'OTRO';
+    }
+  }
+
+  /**
    * Precarga datos locales DERA para geocodificación offline (L0)
    * Llamar al inicio de la app para evitar latencia en primera búsqueda
    * 
@@ -404,99 +451,96 @@ export class GeocodingOrchestrator {
       let geocodingResult: GeocodingResult | null = null;
       let geocoderUsed = 'none';
 
-      // ===== F023 FASE 1.5: DETECCIÓN SINGLETON ANTES DE CASCADA =====
-      // Si hay código INE, intentar estrategia singleton primero (más precisa)
+      // ===== B.4: SINGLETON DETECTOR CON BBDD LOCAL (IndexedDB) =====
+      // Nivel L0_LOCAL: Consulta BBDD local antes de cualquier llamada WFS
+      // El 65% de municipios tiene solo 1 infraestructura por tipo → match directo
       const useLocalData = options.useLocalData !== false;
       
       if (useLocalData && options.codMun) {
-        attempts.push('singleton_check');
+        attempts.push('singleton_indexeddb');
         try {
-          const localCategories = this.mapTypeToLocalCategories(classification.type);
+          // Verificar si IndexedDB está lista (datos cargados)
+          const dbReady = await isDatabaseReady();
           
-          // F023-1.5: Intentar singleton para TODAS las tipologías con datos locales
-          // (health, security, education, municipal, energy)
-          // El 65% de los casos son singleton → match directo sin fuzzy
-          if (localCategories.length > 0 && localCategories.length <= 2) {
-            // Solo para tipologías con categoría específica (no 'all')
-            const count = await countByType(classification.type, options.codMun);
+          if (dbReady) {
+            // Mapear tipo a tipología DERA
+            const tipologia = this.mapTypeToTipologia(classification.type);
             
-            if (count === 1) {
+            // Consulta rápida: ¿es singleton?
+            const singletonResult = await detectSingleton(options.codMun, tipologia);
+            
+            console.log(
+              `[B.4] SingletonDetector: ${tipologia} en ${options.codMun} → ` +
+              `count=${singletonResult.count}, singleton=${singletonResult.isSingleton} (${singletonResult.queryTimeMs.toFixed(1)}ms)`
+            );
+            
+            if (singletonResult.isSingleton && singletonResult.feature) {
               // ===== SINGLETON DETECTADO → RETORNO DIRECTO 95% =====
-              const singletonFeature = await getUniqueByType(classification.type, options.codMun);
+              const feature = singletonResult.feature;
               
-              if (singletonFeature) {
-                console.log(
-                  `[F023-1.5] ✅ SINGLETON: ${classification.type} en ${options.codMun} → ` +
-                  `"${singletonFeature.nombre}" (95% confianza)`
-                );
-                
-                geocodingResult = {
-                  x: singletonFeature.x,
-                  y: singletonFeature.y,
-                  confidence: 95, // Máxima confianza para singleton
-                  source: `SINGLETON_${singletonFeature.categoria.toUpperCase()}`,
-                  matchedName: singletonFeature.nombre,
-                  municipality: options.municipality,
-                  province: options.province
-                };
-                geocoderUsed = `singleton:${singletonFeature.categoria}`;
-                
-                // Añadir a sourceResults para posible validación cruzada
-                const sourceResults: SourceResult[] = [{
-                  source: 'LOCAL_DERA' as GeocodingSource,
-                  x: singletonFeature.x,
-                  y: singletonFeature.y,
+              console.log(
+                `[B.4] ✅ SINGLETON: "${feature.nombre}" (95% confianza, skip WFS)`
+              );
+              
+              geocodingResult = {
+                x: feature.x,
+                y: feature.y,
+                confidence: 95,
+                source: `SINGLETON_${tipologia}`,
+                matchedName: feature.nombre,
+                municipality: options.municipality,
+                province: options.province
+              };
+              geocoderUsed = `singleton:${tipologia.toLowerCase()}`;
+              
+              // Retorno inmediato para singleton (sin validación cruzada WFS)
+              const processingTime = Date.now() - startTime;
+              return {
+                geocoding: geocodingResult,
+                classification,
+                geocoderUsed,
+                processingTime,
+                errors,
+                attempts,
+                crossValidationScore: 95,
+                validationStatus: 'CONFIRMED',
+                discrepancyMeters: null,
+                requiresManualReview: false,
+                sourcesConsulted: [{
+                  source: 'LOCAL_INDEXEDDB',
+                  x: feature.x,
+                  y: feature.y,
                   confidence: 95,
-                  matchedName: singletonFeature.nombre,
-                  responseTimeMs: Date.now() - startTime,
-                }];
-                
-                // Para singleton, saltamos directamente al final con score alto
-                const processingTime = Date.now() - startTime;
-                return {
-                  geocoding: geocodingResult,
-                  classification,
-                  geocoderUsed,
-                  processingTime,
-                  errors,
-                  attempts,
-                  crossValidationScore: 95,
-                  validationStatus: 'CONFIRMED',
-                  discrepancyMeters: null,
-                  requiresManualReview: false,
-                  sourcesConsulted: sourceResults.map(s => ({
-                    source: s.source,
-                    x: s.x,
-                    y: s.y,
-                    confidence: s.confidence,
-                    responseTimeMs: s.responseTimeMs,
-                  })),
-                };
-              }
-            } else if (count >= 2) {
+                  responseTimeMs: singletonResult.queryTimeMs,
+                }],
+              };
+              
+            } else if (singletonResult.count >= 2) {
               // ===== MÚLTIPLES CANDIDATOS → DESAMBIGUACIÓN =====
               console.log(
-                `[F023-1.5] 🔄 Múltiples (${count}): ${classification.type} en ${options.codMun} → desambiguación`
+                `[B.4] 🔄 Múltiples (${singletonResult.count}): ${tipologia} en ${options.codMun} → desambiguación`
               );
               
-              // Obtener todos los candidatos del municipio para esta tipología
-              const allFeatures = await getFeaturesByMunicipio(
+              // Obtener candidatos ordenados por similitud con nombre buscado
+              const candidates = await getCandidatesByNombre(
                 options.codMun,
-                localCategories
+                tipologia,
+                options.name,
+                10
               );
               
-              if (allFeatures.length >= 2) {
-                // Convertir a formato de candidatos para desambiguación
-                const candidates: GeocodingCandidate[] = allFeatures.map(f => ({
+              if (candidates.length >= 1) {
+                // Convertir DERAFeature a GeocodingCandidate para desambiguación
+                const geocodingCandidates: GeocodingCandidate[] = candidates.map(f => ({
                   id: f.id,
                   nombre: f.nombre,
-                  direccion: f.direccion,
+                  direccion: f.direccion || '',
                   municipio: f.municipio,
                   codMunicipio: f.codMun,
                   utmX: f.x,
                   utmY: f.y,
                   tipologia: classification.type,
-                  subtipo: f.tipo,
+                  subtipo: f.subtipo || '',
                 }));
                 
                 // Crear registro PTEL para desambiguación
@@ -507,33 +551,35 @@ export class GeocodingOrchestrator {
                   codMunicipio: options.codMun,
                 };
                 
-                // Ejecutar desambiguación multi-campo
-                const disambResult = disambiguate(candidates, ptelRecord, classification.type);
+                // Ejecutar desambiguación multi-campo (F023)
+                const disambResult = disambiguate(
+                  geocodingCandidates, 
+                  ptelRecord, 
+                  classification.type
+                );
                 
                 if (disambResult.selected && disambResult.confidence !== 'NONE') {
                   console.log(
-                    `[F023-1.5] 📊 Desambiguación: "${disambResult.selected.nombre}" ` +
+                    `[B.4] 📊 Desambiguación: "${disambResult.selected.nombre}" ` +
                     `(score=${disambResult.score}, conf=${disambResult.confidence})`
                   );
                   
-                  // Determinar confianza basada en resultado de desambiguación
                   const disambConfidence = 
                     disambResult.confidence === 'HIGH' ? 90 :
-                    disambResult.confidence === 'MEDIUM' ? 75 :
-                    60;
+                    disambResult.confidence === 'MEDIUM' ? 75 : 60;
                   
                   geocodingResult = {
                     x: disambResult.selected.utmX,
                     y: disambResult.selected.utmY,
                     confidence: disambConfidence,
-                    source: `DISAMBIGUATED_LOCAL`,
+                    source: 'DISAMBIGUATED_INDEXEDDB',
                     matchedName: disambResult.selected.nombre,
                     municipality: options.municipality,
                     province: options.province
                   };
-                  geocoderUsed = 'disambiguated:local';
+                  geocoderUsed = 'disambiguated:indexeddb';
                   
-                  // Si confianza es HIGH, podemos retornar directamente
+                  // Si HIGH, retornar directamente
                   if (disambResult.confidence === 'HIGH') {
                     const processingTime = Date.now() - startTime;
                     return {
@@ -549,15 +595,133 @@ export class GeocodingOrchestrator {
                       requiresManualReview: false,
                     };
                   }
-                  // Si es MEDIUM o LOW, continuamos con la cascada para validación cruzada
+                  // MEDIUM/LOW: continuar cascada para validación cruzada
                 }
               }
             }
-            // Si count === 0, continuar con cascada normal (L0-L7)
+            // count === 0: No hay datos locales → fallback a cascada WFS
+          } else {
+            // ===== FALLBACK A LOCALDATA SERVICE (para tests y compatibilidad) =====
+            console.log('[B.4] ⚠️ IndexedDB no lista, intentando LocalDataService...');
+            
+            // Usar el viejo sistema para mantener compatibilidad con tests
+            const localCategories = this.mapTypeToLocalCategories(classification.type);
+            
+            if (localCategories.length > 0 && localCategories.length <= 2) {
+              const count = await countByType(classification.type, options.codMun);
+              
+              if (count === 1) {
+                const singletonFeature = await getUniqueByType(classification.type, options.codMun);
+                
+                if (singletonFeature) {
+                  console.log(
+                    `[B.4] ✅ SINGLETON (LocalDataService): "${singletonFeature.nombre}" (95% confianza)`
+                  );
+                  
+                  geocodingResult = {
+                    x: singletonFeature.x,
+                    y: singletonFeature.y,
+                    confidence: 95,
+                    source: `SINGLETON_${singletonFeature.categoria.toUpperCase()}`,
+                    matchedName: singletonFeature.nombre,
+                    municipality: options.municipality,
+                    province: options.province
+                  };
+                  geocoderUsed = `singleton:${singletonFeature.categoria}`;
+                  
+                  const processingTime = Date.now() - startTime;
+                  return {
+                    geocoding: geocodingResult,
+                    classification,
+                    geocoderUsed,
+                    processingTime,
+                    errors,
+                    attempts,
+                    crossValidationScore: 95,
+                    validationStatus: 'CONFIRMED',
+                    discrepancyMeters: null,
+                    requiresManualReview: false,
+                    sourcesConsulted: [{
+                      source: 'LOCAL_DERA',
+                      x: singletonFeature.x,
+                      y: singletonFeature.y,
+                      confidence: 95,
+                      responseTimeMs: Date.now() - startTime,
+                    }],
+                  };
+                }
+              } else if (count >= 2) {
+                // Múltiples candidatos: usar desambiguación
+                const allFeatures = await getFeaturesByMunicipio(
+                  options.codMun,
+                  localCategories
+                );
+                
+                if (allFeatures.length >= 1) {
+                  const geocodingCandidates: GeocodingCandidate[] = allFeatures.map(f => ({
+                    id: f.id,
+                    nombre: f.nombre,
+                    direccion: f.direccion || '',
+                    municipio: f.municipio,
+                    codMunicipio: f.codMun,
+                    utmX: f.x,
+                    utmY: f.y,
+                    tipologia: classification.type,
+                    subtipo: f.tipo || '',
+                  }));
+                  
+                  const ptelRecord: PTELRecord = {
+                    nombre: options.name,
+                    direccion: options.address,
+                    localidad: options.municipality,
+                    codMunicipio: options.codMun,
+                  };
+                  
+                  const disambResult = disambiguate(
+                    geocodingCandidates,
+                    ptelRecord,
+                    classification.type
+                  );
+                  
+                  if (disambResult.selected && disambResult.confidence !== 'NONE') {
+                    const disambConfidence =
+                      disambResult.confidence === 'HIGH' ? 90 :
+                      disambResult.confidence === 'MEDIUM' ? 75 : 60;
+                    
+                    geocodingResult = {
+                      x: disambResult.selected.utmX,
+                      y: disambResult.selected.utmY,
+                      confidence: disambConfidence,
+                      source: 'DISAMBIGUATED_LOCAL',
+                      matchedName: disambResult.selected.nombre,
+                      municipality: options.municipality,
+                      province: options.province
+                    };
+                    geocoderUsed = 'disambiguated:local';
+                    
+                    if (disambResult.confidence === 'HIGH') {
+                      const processingTime = Date.now() - startTime;
+                      return {
+                        geocoding: geocodingResult,
+                        classification,
+                        geocoderUsed,
+                        processingTime,
+                        errors,
+                        attempts,
+                        crossValidationScore: disambConfidence,
+                        validationStatus: 'CONFIRMED',
+                        discrepancyMeters: null,
+                        requiresManualReview: false,
+                      };
+                    }
+                  }
+                }
+              }
+            }
           }
         } catch (err) {
-          errors.push(`SINGLETON_CHECK: ${err}`);
-          console.warn('[F023-1.5] Error en detección singleton:', err);
+          errors.push(`SINGLETON_INDEXEDDB: ${err}`);
+          console.warn('[B.4] Error en SingletonDetector:', err);
         }
       }
 
