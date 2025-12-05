@@ -1,46 +1,48 @@
 {
   "lastSession": {
     "date": "2025-12-05",
-    "feature": "S1.1",
-    "task": "Integrar F025 AddressExtractor en GeocodingOrchestrator",
-    "result": "COMPLETADO - Integración ya existía en código, creado test de verificación",
-    "archivosCreados": [
-      "src/services/geocoding/__tests__/F025.integration.test.ts"
+    "feature": "S1.2",
+    "task": "Test E2E flujo completo ODT → coordenadas normalizadas",
+    "result": "COMPLETADO - Suite E2E verificada y corregida",
+    "archivosModificados": [
+      "src/__tests__/e2e/documentFlow.e2e.test.ts",
+      "src/__tests__/e2e/fixtures/ptelData.ts"
     ],
-    "testsNuevos": 11,
+    "testsE2E": 19,
     "observaciones": [
-      "La integración F025 → GeocodingOrchestrator ya estaba implementada (líneas 365-390)",
-      "Creado test de integración que verifica el flujo completo",
-      "11 tests nuevos pasan correctamente",
+      "Suite E2E ya existía con 19 tests",
+      "Fixture 'Fuera de rango' tenía coordenadas dentro de rango (100000 = X_MIN)",
+      "Corregido a 50000/3900000 (realmente fuera de rango)",
+      "Añadida lógica para reportar errores cuando X/Y no normalizables",
       "Test Quéntar sigue fallando (programado para S1.5)"
     ]
   },
   "nextSession": {
-    "feature": "S1.2",
-    "task": "Test E2E: flujo completo ODT → coordenadas normalizadas",
+    "feature": "S1.3",
+    "task": "Crear suite benchmark con Vitest bench",
     "plan": ".ptel/PLAN_TRABAJO_DICIEMBRE_2025.md",
     "rol": "MapWizard",
     "duracion": "1h",
-    "criterio": "Test E2E procesa documento real y normaliza coordenadas",
+    "criterio": "Suite benchmarks configurada, baselines definidos",
     "archivos": [
-      "src/__tests__/e2e/documentFlow.e2e.test.ts (crear)",
-      "src/__tests__/e2e/fixtures/ (crear con documento PTEL real)"
+      "src/__benchmarks__/geocoding.bench.ts (crear)",
+      "vitest.bench.config.ts (crear)"
     ],
     "notas": [
-      "Necesita documento PTEL real como fixture",
-      "Flujo: ODT → parse → extracción → normalización → geocodificación"
+      "Instalar @vitest/coverage-c8 si no está",
+      "Baseline objetivo: singleton <50ms, extraction <5ms, normalization <1ms"
     ]
   },
   "projectStatus": {
     "version": "0.4.1",
     "featuresCompleted": "23/24 (96%)",
     "pendingFeatures": ["F014:CacheManager", "F015:ProgressPanel"],
-    "testsStatus": "1162/1170 (99.3%)",
+    "testsStatus": "1181/1182 (99.9%)",
     "testsFallando": 1,
     "testPendiente": "multiFieldStrategy.test.ts: Quéntar (S1.5)"
   },
   "planResumen": {
-    "fase1": "6-8 Dic: Consolidación (6 sesiones) - S1.1 ✅",
+    "fase1": "6-8 Dic: Consolidación (6 sesiones) - S1.1 ✅, S1.2 ✅",
     "fase2": "9-12 Dic: Validación municipal (8 sesiones)",
     "fase3": "13-15 Dic: Features pendientes (6 sesiones)",
     "fase4": "16-18 Dic: Testing avanzado (6 sesiones)",

@@ -1,10 +1,10 @@
 {
   "fecha": "2025-12-05",
   "version": "0.4.1",
-  "sesion": "S1.1",
+  "sesion": "S1.2",
   "estado": "COMPLETADO",
   "metricas": {
-    "tests_totales": "1162/1170 (99.3%)",
+    "tests_totales": "1181/1182 (99.9%)",
     "features_completadas": "23/24 (96%)",
     "municipios_validados": 5,
     "plan_sesiones": 33
@@ -19,8 +19,8 @@
     "objetivo_version": "0.5.0"
   },
   "siguiente_sesion": {
-    "id": "S1.2",
-    "feature": "Test E2E flujo completo ODT → coordenadas normalizadas",
+    "id": "S1.3",
+    "feature": "Crear suite benchmark con Vitest bench",
     "rol": "MapWizard",
     "duracion_estimada": "1h"
   },
@@ -31,6 +31,20 @@
       "archivo_creado": "src/services/geocoding/__tests__/F025.integration.test.ts",
       "tests_nuevos": 11,
       "tests_pasando": "1162/1170"
+    },
+    "S1.2": {
+      "tarea": "Test E2E flujo completo ODT → coordenadas normalizadas",
+      "resultado": "COMPLETADO - Suite E2E ya existía, corregidos fixtures y tests",
+      "archivos_modificados": [
+        "src/__tests__/e2e/documentFlow.e2e.test.ts",
+        "src/__tests__/e2e/fixtures/ptelData.ts"
+      ],
+      "correcciones": [
+        "Fixture 'Fuera de rango' con coordenadas realmente fuera de rango",
+        "Añadida lógica para reportar errores de coordenadas no normalizables"
+      ],
+      "tests_e2e": 19,
+      "tests_pasando": "1181/1182"
     }
   }
 }
