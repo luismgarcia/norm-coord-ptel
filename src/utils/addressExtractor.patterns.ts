@@ -265,6 +265,10 @@ export const OCR_UTF8_CORRECTIONS: Array<[RegExp | string, string]> = [
   [/diponibilidad/gi, 'disponibilidad'],
   [/ACTECAS/g, 'Aztecas'],
   ['actecas', 'Aztecas'],
+  
+  // Tildes omitidas (común en DBF/ODS)
+  [/\bFUTBOL\b/g, 'Fútbol'],
+  [/\bFutbol\b/g, 'Fútbol'],
 ];
 
 // ============================================================================

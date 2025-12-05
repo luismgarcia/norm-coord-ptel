@@ -317,15 +317,27 @@ function normalizePunctuation(text: string, transformations: string[], municipal
   // Punto seguido de espacio(s) y mayúscula → coma (si parece parte de dirección)
   result = result.replace(/\.\s+([A-ZÁÉÍÓÚÑ])/g, ', $1');
   
+  // D35: "DIRECCION" o "Direccion" → ", dirección" (normalizar con coma antes y minúscula)
+  // Este regex captura cualquier variante y la normaliza a minúscula
+  result = result.replace(/\s+(DIRECCI[OÓ]N|Direcci[oó]n|direcci[oó]n)\b/gi, ', dirección');
+  
+  // Asegurar que "Dirección" al final o antes de palabra quede en minúscula
+  result = result.replace(/\bDirecci[oó]n\b/g, 'dirección');
+  
+  // B24/B29: Añadir coma antes de número final si sigue a una palabra (no a tipo de vía abreviado)
+  // Patrón: "Constitución 1," → "Constitución, 1,"
+  result = result.replace(/([a-záéíóúñ])\s+(\d+)\s*,/gi, '$1, $2,');
+  
+  // B25/B30: Añadir coma después de s/n si sigue una palabra con mayúscula (municipio)
+  result = result.replace(/\b(s\/n)\s+([A-ZÁÉÍÓÚÑ][a-záéíóúñ])/gi, '$1, $2');
+  
   // S43: Si el municipio está al principio (seguido de coma), moverlo al final
+  let municipioMovido = false;
   if (municipality) {
-    const municipioPattern = new RegExp(`^${municipality}\\s*,\\s*`, 'i');
+    const municipioPattern = new RegExp(`^${escapeRegex(municipality)}\\s*,\\s*`, 'i');
     if (municipioPattern.test(result)) {
       result = result.replace(municipioPattern, '');
-      // El municipio se añadirá al final si no está ya presente
-      if (!result.toLowerCase().endsWith(municipality.toLowerCase())) {
-        result = `${result}, ${municipality}`;
-      }
+      municipioMovido = true;
       transformations.push(`Municipality moved: ${municipality} to end`);
     }
   }
@@ -348,6 +360,15 @@ function normalizePunctuation(text: string, transformations: string[], municipal
   
   // Limpiar inicio y final
   result = result.replace(/^[,.\s]+|[,.\s]+$/g, '');
+  
+  // S43: Añadir municipio al final si fue movido y no está ya presente
+  if (municipioMovido && municipality) {
+    const resultLower = result.toLowerCase().trim();
+    const municipioLower = municipality.toLowerCase();
+    if (!resultLower.endsWith(municipioLower)) {
+      result = `${result.trim()}, ${municipality}`;
+    }
+  }
   
   if (result !== text) {
     transformations.push('Punctuation normalized');
@@ -402,7 +423,7 @@ function capitalizeWord(word: string, isFirst: boolean, prevWord: string = ''): 
   }
   
   // Artículos/preposiciones siempre en minúscula
-  const alwaysLower = new Set(['de', 'del', 'y', 'e', 'a', 'en', 'con', 'sin', 'nave']);
+  const alwaysLower = new Set(['de', 'del', 'y', 'e', 'a', 'en', 'con', 'sin', 'nave', 'dirección']);
   if (!isFirst && alwaysLower.has(lowerWord)) {
     return lowerWord;
   }
@@ -437,6 +458,12 @@ function calculateConfidence(address: string): number {
   // Tiene tipo de vía reconocido (+40)
   if (STARTS_WITH_STREET_TYPE.test(address)) {
     confidence += 40;
+  } else {
+    // D36: Sin tipo de vía pero con formato "nombre, número" (+30)
+    // Patrón: palabra capitalizada seguida de coma y número
+    if (/^[A-ZÁÉÍÓÚÑ][a-záéíóúñ]+,\s*\d+/.test(address)) {
+      confidence += 30;
+    }
   }
   
   // Tiene número o s/n (+30)
@@ -452,6 +479,12 @@ function calculateConfidence(address: string): number {
   // Tiene nombre de calle (al menos 2 palabras entre tipo y número) (+10)
   const parts = address.split(',')[0].split(/\s+/);
   if (parts.length >= 2) {
+    confidence += 10;
+  }
+  
+  // C20: Bonus formato perfecto "Tipo Nombre, número" (+10)
+  // Patrón: empieza con tipo, tiene coma antes del número
+  if (STARTS_WITH_STREET_TYPE.test(address) && /,\s*\d+/.test(address)) {
     confidence += 10;
   }
   
@@ -514,6 +547,20 @@ export function extractStreetAddress(
   const transformations: string[] = [];
   let text = rawText.trim();
   
+  // S43 FIX: Detectar si el texto comienza con municipio seguido de tipo de vía
+  // (antes de cualquier procesamiento)
+  let municipioAlInicio = false;
+  if (municipality) {
+    const municipioInicioPattern = new RegExp(
+      `^${escapeRegex(municipality)}\\s*,\\s*(?=(?:Calle|C\\/|Avenida|Avda|Plaza|Pza|Paseo|Camino|Carretera)\\b)`,
+      'i'
+    );
+    if (municipioInicioPattern.test(text)) {
+      municipioAlInicio = true;
+      transformations.push(`Municipality detected at start: ${municipality}`);
+    }
+  }
+  
   // PASO 1: Detectar NO geocodificable
   const nonGeoCheck = isNotGeocodable(text);
   if (nonGeoCheck.result) {
@@ -545,6 +592,16 @@ export function extractStreetAddress(
   
   // PASO 8: Capitalización inteligente
   text = smartCapitalize(text, transformations);
+  
+  // S43 FIX: Añadir municipio al final si estaba al inicio y ya no está
+  if (municipioAlInicio && municipality) {
+    const textLower = text.toLowerCase().trim();
+    const municipioLower = municipality.toLowerCase();
+    if (!textLower.endsWith(municipioLower)) {
+      text = `${text.trim()}, ${municipality}`;
+      transformations.push(`Municipality added at end: ${municipality}`);
+    }
+  }
   
   // Verificar si quedó algo útil
   if (!text || text.length < 3) {
