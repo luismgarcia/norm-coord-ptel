@@ -300,21 +300,79 @@
         "testsFallando": []
       },
       "notes": "COMPLETADO 2025-12-05. 63/63 tests (100%). 8 pasos implementados. Pendiente: integración con orquestador."
+    },
+    {
+      "id": "F026",
+      "category": "database",
+      "description": "Sistema BBDD Local IndexedDB (DERA + INE + SingletonDetector)",
+      "priority": "critical",
+      "passes": false,
+      "completedDate": null,
+      "assignedRole": "MapWizard",
+      "implementation": {
+        "phases": [
+          {
+            "session": "B.1",
+            "name": "Descarga DERA + extracción INE",
+            "status": "completada",
+            "commit": "823ea9d",
+            "deliverables": ["11,282 DERA features", "785 municipios INE"]
+          },
+          {
+            "session": "B.2",
+            "name": "Carga inicial IndexedDB (Dexie.js)",
+            "status": "completada",
+            "commits": ["e0ac671", "7fa61f7"],
+            "deliverables": ["localDataService.ts", "useLocalData.ts", "DataLoader.tsx"]
+          },
+          {
+            "session": "B.3",
+            "name": "SingletonDetector con BBDD local",
+            "status": "completada",
+            "commit": "87d5796",
+            "deliverables": ["singletonDetector.ts (13 KB, 6 funciones)"]
+          },
+          {
+            "session": "B.4",
+            "name": "Integrar SingletonDetector en geocodificador",
+            "status": "pendiente",
+            "objective": "Modificar CascadeOrchestrator para usar BBDD local antes de WFS"
+          },
+          {
+            "session": "B.5",
+            "name": "Tests integración BBDD local",
+            "status": "pendiente"
+          }
+        ],
+        "totalProgress": "60%",
+        "filesCreated": [
+          "src/lib/localData/schemas.ts",
+          "src/lib/localData/localDataService.ts",
+          "src/lib/localData/singletonDetector.ts",
+          "src/lib/localData/index.ts",
+          "src/hooks/useLocalData.ts",
+          "src/components/DataLoader.tsx",
+          "public/data/dera-dexie/*.json",
+          "public/data/ine/municipios.json"
+        ]
+      },
+      "notes": "Fase B del Plan Maestro 48 sesiones. B.1-B.3 completadas, B.4-B.5 pendientes."
     }
   ],
   "summary": {
     "completedCount": 23,
-    "pendingCount": 1,
-    "totalCount": 24,
-    "completionRate": "96%",
+    "pendingCount": 2,
+    "totalCount": 25,
+    "completionRate": "92%",
     "geocodingCoverage": "14/14 geocodificadores implementados",
     "validationCoverage": "2/2 validadores implementados (multi-medida + cruzada)",
     "learningCoverage": "2/2 módulos aprendizaje implementados",
     "offlineCoverage": "5/5 fases offline (F021 COMPLETADA)",
     "multiFieldCoverage": "Fase 1-2 completas, Fase 3 opcional (F023)",
     "addressExtractorCoverage": "63/63 tests (100%) - F025 COMPLETADO",
-    "pendingFeatures": ["F014:CacheManager (parcial)", "F015:ProgressPanel"]
+    "localDatabaseCoverage": "3/5 sesiones (B.1-B.3 completadas) - F026 EN PROGRESO",
+    "pendingFeatures": ["F014:CacheManager (parcial)", "F015:ProgressPanel", "F026:BBDD Local (B.4-B.5)"]
   },
-  "lastUpdated": "2025-12-05T08:20:00Z",
-  "updatedBy": "Claude (sesión 05-Dic-2025 - F025 COMPLETADO 63/63 tests 100%)"
+  "lastUpdated": "2025-12-05T19:15:00Z",
+  "updatedBy": "Claude (sesión 05-Dic-2025 19:00 - B.3 SingletonDetector completado)"
 }

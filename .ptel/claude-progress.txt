@@ -502,8 +502,56 @@ npm run dev  # ✅ Server on port 5001
 | B2-NAV-05 | IndexedDB tabla INE: 785 |
 | B2-NAV-06 | SyncMetadata: completed |
 
-### Próxima sesión: B.3
-- Tarea: SingletonDetector con BBDD local
-- Objetivo: Usar db.dera en vez de WFS
+---
+
+## Sesión 05-Dic-2025 (19:00) - B.3 COMPLETADA ✅
+
+### Objetivo
+Implementar SingletonDetector usando IndexedDB local en vez de WFS
+
+### Trabajo realizado (MapWizard)
+1. **singletonDetector.ts** (13 KB, ~400 líneas)
+   - detectSingleton(codMun, tipologia)
+   - detectSingletonByNombre(nombre, tipologia)
+   - getSingletonFeature(codMun, tipologia)
+   - getCandidatesByNombre(codMun, tipologia, nombre)
+   - getMunicipioTypologyCounts(codMun)
+   - getGlobalSingletonStats()
+
+2. **Tests** - singletonDetector.test.ts
+
+3. **Actualización index.ts** - exports SingletonDetector
+
+### Commits B.3
+- `87d5796` - feat(B.2): SingletonDetector + actualización localData y tests
+- `ad79fc9` - docs(.ptel): actualizar estado B.3 completada
+
+### Archivos en GitHub
+```
+src/lib/localData/
+├── schemas.ts          (10.9 KB) ✅
+├── localDataService.ts (10.4 KB) ✅
+├── singletonDetector.ts (13 KB)  ✅  ← NUEVO
+├── index.ts            (1.2 KB)  ✅
+└── __tests__/
+    ├── localDataService.test.ts  ✅
+    └── singletonDetector.test.ts ✅  ← NUEVO
+```
+
+### Estado Fase B
+| Sesión | Tarea | Estado |
+|--------|-------|--------|
+| B.1 | Descarga DERA + INE | ✅ |
+| B.2 | Carga IndexedDB | ✅ |
+| B.3 | SingletonDetector | ✅ |
+| B.4 | Integrar en geocodificador | ⏳ |
+| B.5 | Tests integración | ⏳ |
+
+### Pruebas navegador B.2 siguen PENDIENTES
+- B2-NAV-01 a B2-NAV-06 (validación manual)
+
+### Próxima sesión: B.4
+- Tarea: Integrar SingletonDetector en CascadeOrchestrator
+- Objetivo: Consultar BBDD local antes de llamar WFS
 - Rol: MapWizard
-- Duración: ~2h
+- Duración: ~1.5h

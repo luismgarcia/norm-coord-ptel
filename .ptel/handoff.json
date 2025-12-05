@@ -1,57 +1,76 @@
 {
   "sesion_anterior": {
-    "id": "S2.1-F0.1",
+    "id": "B.3",
     "fecha": "2025-12-05",
-    "rol": "DataMaster",
-    "duracion": "~1.5h",
+    "hora": "19:00",
+    "rol": "MapWizard",
+    "duracion": "~30min",
     "estado": "COMPLETADO"
   },
   "trabajo_realizado": {
-    "descripcion": "Plan Maestro BBDDs Locales + Inventario de fuentes F0.1",
+    "descripcion": "SingletonDetector con BBDD local IndexedDB",
     "archivos_creados": [
-      "src/data/sources/SOURCE_CATALOG.md",
-      ".ptel/PLAN_MAESTRO_BBDD_LOCAL.md"
+      "src/lib/localData/singletonDetector.ts (13 KB)",
+      "src/lib/localData/__tests__/singletonDetector.test.ts"
+    ],
+    "archivos_modificados": [
+      "src/lib/localData/index.ts",
+      "src/lib/__tests__/setup.ts",
+      ".ptel/PTEL_ESTADO_SESION.json"
     ],
     "commits": [
-      "2bd5b77 - Plan Maestro BBDDs Locales",
-      "ab00fcf - F0.1: Catálogo fuentes DERA, CDAU, INE",
-      "b0afc1a - Estado sesión actualizado"
+      "87d5796 - feat(B.2): SingletonDetector + actualización localData y tests",
+      "ad79fc9 - docs(.ptel): actualizar estado B.3 completada con historial commits"
     ]
   },
-  "hallazgos_importantes": {
-    "CrossValidator_completo": "Ya implementado (546 líneas) con clustering, centroide Huber, scoring multi-criterio",
-    "DERA_version": "Última actualización 30/06/2025",
-    "CDAU_auth": "API SOAP requiere autorización NAOS desde 31/01/2024",
-    "tamaño_total_bbdd": "~420MB IndexedDB local"
+  "funciones_implementadas": {
+    "detectSingleton": "Detecta si municipio tiene única infraestructura de un tipo",
+    "detectSingletonByNombre": "Busca por nombre de municipio en vez de código",
+    "getSingletonFeature": "Obtiene singleton directamente (optimizado)",
+    "getCandidatesByNombre": "Fuzzy matching básico para múltiples candidatos",
+    "getMunicipioTypologyCounts": "Estadísticas por tipología en municipio",
+    "getGlobalSingletonStats": "Estadísticas globales de singletons"
   },
-  "plan_bbdd_local": {
-    "fases": 5,
-    "sesiones": 22,
-    "horas_estimadas": 28,
-    "mejora_esperada": "+13 puntos (82% → 95%)",
-    "progreso": "F0.1 completada, F0.2 pendiente"
+  "estado_fase_b": {
+    "B.1": { "estado": "✅", "commit": "823ea9d", "desc": "Descarga DERA + INE" },
+    "B.2": { "estado": "✅", "commit": "7fa61f7", "desc": "Carga IndexedDB" },
+    "B.3": { "estado": "✅", "commit": "87d5796", "desc": "SingletonDetector" },
+    "B.4": { "estado": "⏳", "desc": "Integrar en geocodificador" },
+    "B.5": { "estado": "⏳", "desc": "Tests integración" }
+  },
+  "pruebas_navegador_pendientes": {
+    "B2-NAV-01": "Modal aparece en primera carga (~3-5s)",
+    "B2-NAV-02": "Barra de progreso funcional (0-100%)",
+    "B2-NAV-03": "Badge 'BBDD Local activa' visible",
+    "B2-NAV-04": "IndexedDB tabla DERA: 11,282 registros",
+    "B2-NAV-05": "IndexedDB tabla INE: 785 registros",
+    "B2-NAV-06": "SyncMetadata status: 'completed'",
+    "instrucciones": "Abrir http://localhost:5001/norm-coord-ptel/ y verificar en DevTools"
   },
   "proxima_sesion": {
-    "id": "F0.2",
-    "tarea": "Definir esquemas IndexedDB",
-    "rol": "DataMaster + MapWizard",
-    "duracion_estimada": "1h",
-    "entregable": "src/lib/localData/schemas.ts",
-    "contexto": "Usar SOURCE_CATALOG.md como referencia para campos y estructura"
+    "id": "B.4",
+    "tarea": "Integrar SingletonDetector en geocodificador",
+    "rol": "MapWizard",
+    "duracion_estimada": "1.5h",
+    "objetivo": "Modificar CascadeOrchestrator para consultar BBDD local antes de WFS",
+    "archivo_principal": "src/services/geocoding/CascadeOrchestrator.ts"
   },
-  "esquemas_a_definir": {
-    "DERAInfrastructure": "id, nombre, nombreNorm, tipologia, municipioINE, x, y, direccion, fechaActualizacion",
-    "CDAUAddress": "id, viaTipo, viaNombre, viaNombreNorm, numero, municipioINE, x, y, codPostal",
-    "INEMunicipio": "codigo, nombre, nombreNorm, variantes[], provincia",
-    "SyncMetadata": "id, lastSync, recordCount, version"
+  "plan_b4": {
+    "paso_1": "Leer CascadeOrchestrator.ts actual (19.9 KB)",
+    "paso_2": "Importar SingletonDetector de lib/localData",
+    "paso_3": "Añadir nivel L0_LOCAL antes de L0_CACHE",
+    "paso_4": "Llamar detectSingleton() con codMun + tipología",
+    "paso_5": "Si singleton: devolver con 95% confianza, skip WFS",
+    "paso_6": "Si múltiples: pasar candidatos a fuzzy matching",
+    "paso_7": "Si vacío: fallback a WFS normal",
+    "paso_8": "Tests de integración"
   },
-  "instrucciones_inicio": [
-    "1. Leer SOURCE_CATALOG.md para estructura de cada fuente",
-    "2. Crear src/lib/localData/schemas.ts con interfaces TypeScript",
-    "3. Incluir índices compuestos para Dexie.js",
-    "4. Documentar campos obligatorios vs opcionales",
-    "5. Tests básicos de tipado"
-  ],
-  "version_proyecto": "0.4.1",
-  "tests_estado": "1314/1314 (100%)"
+  "archivos_relevantes": {
+    "singleton": "src/lib/localData/singletonDetector.ts",
+    "orchestrator": "src/services/geocoding/CascadeOrchestrator.ts",
+    "schemas": "src/lib/localData/schemas.ts"
+  },
+  "version_proyecto": "0.4.2",
+  "tests_estado": "59/59 passing",
+  "ultimo_commit": "ad79fc9"
 }
