@@ -1,50 +1,177 @@
 {
   "fecha": "2025-12-05",
   "version": "0.4.2",
-  "sesion": "B.3 (EN PROGRESO)",
+  "sesion": "B.3 (COMPLETADA)",
   "estado": "FASE B EN PROGRESO",
   "plan_activo": ".ptel/PLAN_CONSOLIDADO_48_SESIONES.md",
+  "ultimo_commit": "87d5796",
+  
   "metricas": {
     "tests_totales": "59/59 passing",
     "benchmarks": "4 suites configuradas",
     "features_completadas": "23/24 (96%)",
     "sesiones_plan": "48 sesiones, 7 fases",
     "horas_estimadas": "54h",
-    "sesiones_completadas": "A.1, A.2, A.3, A.4, B.1, B.2",
+    "sesiones_completadas": "A.1, A.2, A.3, A.4, B.1, B.2, B.3",
     "dera_features": 11282,
     "ine_municipios": 785
   },
-  "ultimo_commit": "7fa61f7",
-  "sesion_actual": {
-    "id": "B.3",
-    "fase": "B - BBDD Local",
-    "tarea": "SingletonDetector con BBDD local",
-    "rol": "MapWizard",
-    "objetivo": "Usar db.dera para detectar singletons en vez de WFS",
-    "resultado": "EN PROGRESO"
+
+  "tareas_completadas": {
+    "fase_a": {
+      "estado": "✅ COMPLETADA",
+      "sesiones": {
+        "A.1": {
+          "tarea": "Verificar integración F025 AddressExtractor",
+          "fecha": "2025-12-05",
+          "commit": "fa429a0",
+          "documentacion_repo": true,
+          "resultado": "F025 ya integrado, sin cambios necesarios"
+        },
+        "A.2": {
+          "tarea": "Test E2E flujo ODT → coordenadas",
+          "fecha": "2025-12-05",
+          "commit": "7758fe3",
+          "documentacion_repo": true,
+          "resultado": "15 tests E2E creados"
+        },
+        "A.3": {
+          "tarea": "Definir esquemas IndexedDB (Dexie.js)",
+          "fecha": "2025-12-05",
+          "commit": "7758fe3",
+          "documentacion_repo": true,
+          "resultado": "20 tests, 5 tablas definidas"
+        },
+        "A.4": {
+          "tarea": "Suite benchmark Vitest",
+          "fecha": "2025-12-05",
+          "commit": "e475bd3",
+          "documentacion_repo": true,
+          "resultado": "4 suites benchmark configuradas"
+        }
+      }
+    },
+    "fase_b": {
+      "estado": "🔄 EN PROGRESO (3/5)",
+      "sesiones": {
+        "B.1": {
+          "tarea": "Descarga DERA + extracción INE",
+          "fecha": "2025-12-05",
+          "commit": "823ea9d",
+          "documentacion_repo": true,
+          "archivos_creados": [
+            "public/data/dera-dexie/*.json (6 archivos, ~7 MB)",
+            "public/data/ine/municipios.json (785 registros)",
+            "scripts/dera-download/transform-to-dexie.cjs",
+            "scripts/dera-download/extract-municipios-ine.cjs"
+          ],
+          "resultado": "11,282 DERA + 785 INE descargados"
+        },
+        "B.2": {
+          "tarea": "Carga inicial IndexedDB (Dexie.js)",
+          "fecha": "2025-12-05",
+          "commits": ["e0ac671", "502c0a1", "2e0a4ea", "297b130", "d086857", "675ba55", "88a1f94", "dc41e34", "8c68262", "7fa61f7"],
+          "documentacion_repo": true,
+          "archivos_creados": [
+            "src/lib/localData/schemas.ts (10.9 KB)",
+            "src/lib/localData/localDataService.ts (10.4 KB)",
+            "src/lib/localData/index.ts",
+            "src/lib/localData/__tests__/localDataService.test.ts",
+            "src/hooks/useLocalData.ts (7.4 KB)",
+            "src/components/DataLoader.tsx (7.9 KB)"
+          ],
+          "resultado": "IndexedDB funcional, carga automática en App"
+        },
+        "B.3": {
+          "tarea": "SingletonDetector con BBDD local",
+          "fecha": "2025-12-05",
+          "commit": "87d5796",
+          "documentacion_repo": true,
+          "archivos_creados": [
+            "src/lib/localData/singletonDetector.ts (13 KB)",
+            "src/lib/localData/__tests__/singletonDetector.test.ts"
+          ],
+          "funciones_implementadas": [
+            "detectSingleton(codMun, tipologia)",
+            "detectSingletonByNombre(nombre, tipologia)",
+            "getSingletonFeature(codMun, tipologia)",
+            "getCandidatesByNombre(codMun, tipologia, nombre)",
+            "getMunicipioTypologyCounts(codMun)",
+            "getGlobalSingletonStats()"
+          ],
+          "resultado": "SingletonDetector completo con 6 funciones"
+        }
+      }
+    }
   },
-  "pruebas_navegador_B2": {
-    "B2-NAV-01": "Modal aparece en primera carga - PENDIENTE",
-    "B2-NAV-02": "Barra de progreso funcional - PENDIENTE",
-    "B2-NAV-03": "Badge BBDD Local activa - PENDIENTE",
-    "B2-NAV-04": "IndexedDB tabla DERA 11,282 - PENDIENTE",
-    "B2-NAV-05": "IndexedDB tabla INE 785 - PENDIENTE",
-    "B2-NAV-06": "IndexedDB metadata sync - PENDIENTE"
+
+  "tareas_pendientes": {
+    "fase_b": {
+      "B.4": {
+        "tarea": "Integrar SingletonDetector en geocodificador",
+        "rol": "MapWizard",
+        "duracion_estimada": "1.5h",
+        "dependencias": ["B.3"],
+        "documentacion_repo": false,
+        "objetivo": "Modificar CascadeOrchestrator para usar SingletonDetector antes de WFS"
+      },
+      "B.5": {
+        "tarea": "Tests integración BBDD local",
+        "rol": "MapWizard",
+        "duracion_estimada": "1h",
+        "dependencias": ["B.4"],
+        "documentacion_repo": false,
+        "objetivo": "Tests E2E con datos reales de municipios"
+      }
+    },
+    "pruebas_navegador_B2": {
+      "estado": "⏳ PENDIENTE (requiere validación manual)",
+      "pruebas": [
+        {"id": "B2-NAV-01", "desc": "Modal aparece en primera carga (~3-5s)"},
+        {"id": "B2-NAV-02", "desc": "Barra de progreso funcional (0-100%)"},
+        {"id": "B2-NAV-03", "desc": "Badge 'BBDD Local activa' visible"},
+        {"id": "B2-NAV-04", "desc": "IndexedDB tabla DERA: 11,282 registros"},
+        {"id": "B2-NAV-05", "desc": "IndexedDB tabla INE: 785 registros"},
+        {"id": "B2-NAV-06", "desc": "SyncMetadata status: 'completed'"}
+      ],
+      "instrucciones": "Abrir http://localhost:5001/norm-coord-ptel/ y verificar en DevTools"
+    }
   },
-  "fase_a_completada": true,
+
+  "commits_recientes": [
+    {"sha": "87d5796", "fecha": "2025-12-05T18:08", "mensaje": "feat(B.2): SingletonDetector + actualización localData y tests"},
+    {"sha": "7fa61f7", "fecha": "2025-12-05T17:54", "mensaje": "docs(.ptel): registrar sesiones Fase A, B.1 y B.2"},
+    {"sha": "8c68262", "fecha": "2025-12-05T17:51", "mensaje": "docs(.ptel): crear handoff B.3"},
+    {"sha": "dc41e34", "fecha": "2025-12-05T17:34", "mensaje": "chore(.ptel): actualizar estado B.2"},
+    {"sha": "823ea9d", "fecha": "2025-12-05T16:03", "mensaje": "feat(B.1): datos DERA y municipios INE"}
+  ],
+
+  "resumen_archivos_github": {
+    "localData": {
+      "ruta": "src/lib/localData/",
+      "archivos": [
+        {"nombre": "schemas.ts", "tamaño": "10.9 KB", "estado": "✅ En GitHub"},
+        {"nombre": "localDataService.ts", "tamaño": "10.4 KB", "estado": "✅ En GitHub"},
+        {"nombre": "singletonDetector.ts", "tamaño": "13 KB", "estado": "✅ En GitHub"},
+        {"nombre": "index.ts", "tamaño": "1.2 KB", "estado": "✅ En GitHub"},
+        {"nombre": "__tests__/", "tamaño": "-", "estado": "✅ En GitHub"}
+      ]
+    },
+    "datos": {
+      "ruta": "public/data/",
+      "archivos": [
+        {"nombre": "dera-dexie/*.json", "tamaño": "~7 MB", "estado": "✅ En GitHub"},
+        {"nombre": "ine/municipios.json", "tamaño": "~190 KB", "estado": "✅ En GitHub"}
+      ]
+    }
+  },
+
   "siguiente_sesion": {
     "id": "B.4",
     "fase": "B - BBDD Local",
     "tarea": "Integrar SingletonDetector en geocodificador",
     "rol": "MapWizard",
-    "duracion_estimada": "1.5h"
-  },
-  "historial_sesiones": {
-    "A.1": { "fecha": "2025-12-05", "tarea": "Verificar integración F025", "resultado": "COMPLETADO" },
-    "A.2": { "fecha": "2025-12-05", "tarea": "Test E2E flujo ODT", "resultado": "COMPLETADO - 15 tests" },
-    "A.3": { "fecha": "2025-12-05", "tarea": "Definir esquemas IndexedDB", "resultado": "COMPLETADO - 20 tests" },
-    "A.4": { "fecha": "2025-12-05", "tarea": "Suite benchmark Vitest", "resultado": "COMPLETADO - 4 suites" },
-    "B.1": { "fecha": "2025-12-05", "tarea": "Descarga DERA + INE", "resultado": "COMPLETADO - 11,282 + 785" },
-    "B.2": { "fecha": "2025-12-05", "tarea": "Carga inicial IndexedDB", "resultado": "COMPLETADO - SingletonDetector creado" }
+    "duracion_estimada": "1.5h",
+    "objetivo": "Modificar CascadeOrchestrator.ts para consultar SingletonDetector antes de llamar a WFS"
   }
 }
