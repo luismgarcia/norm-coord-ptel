@@ -308,11 +308,31 @@ function normalizeNumber(text: string, transformations: string[]): string {
 // PASO 7: NORMALIZAR PUNTUACIÓN Y ESPACIOS
 // ============================================================================
 
-function normalizePunctuation(text: string, transformations: string[]): string {
+function normalizePunctuation(text: string, transformations: string[], municipality?: string): string {
   let result = text;
+  
+  // S44: Punto seguido de número → coma (ej: "Mayor. 15" → "Mayor, 15")
+  result = result.replace(/\.\s*(\d)/g, ', $1');
   
   // Punto seguido de espacio(s) y mayúscula → coma (si parece parte de dirección)
   result = result.replace(/\.\s+([A-ZÁÉÍÓÚÑ])/g, ', $1');
+  
+  // S43: Si el municipio está al principio (seguido de coma), moverlo al final
+  if (municipality) {
+    const municipioPattern = new RegExp(`^${municipality}\\s*,\\s*`, 'i');
+    if (municipioPattern.test(result)) {
+      result = result.replace(municipioPattern, '');
+      // El municipio se añadirá al final si no está ya presente
+      if (!result.toLowerCase().endsWith(municipality.toLowerCase())) {
+        result = `${result}, ${municipality}`;
+      }
+      transformations.push(`Municipality moved: ${municipality} to end`);
+    }
+  }
+  
+  // S41: Detectar patrón "Tipo Nombre Número Municipio" sin comas y añadirlas
+  // Patrón: "Calle Mayor 15 Granada" → detectar número sin coma antes
+  result = result.replace(/([a-záéíóúñA-ZÁÉÍÓÚÑ])\s+(\d+(?:\s*[-\/]\s*\d+)?)\s+([A-ZÁÉÍÓÚÑ])/g, '$1, $2, $3');
   
   // Múltiples espacios → uno
   result = result.replace(/\s+/g, ' ');
@@ -521,7 +541,7 @@ export function extractStreetAddress(
   text = normalizeNumber(text, transformations);
   
   // PASO 7: Normalizar puntuación y espacios
-  text = normalizePunctuation(text, transformations);
+  text = normalizePunctuation(text, transformations, municipality);
   
   // PASO 8: Capitalización inteligente
   text = smartCapitalize(text, transformations);
