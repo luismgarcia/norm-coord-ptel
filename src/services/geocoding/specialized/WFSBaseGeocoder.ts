@@ -8,7 +8,7 @@
  */
 
 import axios, { AxiosInstance, AxiosRequestConfig } from 'axios';
-import Fuse from 'fuse.js';
+import { FastFuzzy } from '../../../lib/fuzzySearch';
 import { GeocodingResult, SpecializedGeocoderConfig } from '../../../types/infrastructure';
 
 /**
@@ -215,25 +215,22 @@ export abstract class WFSBaseGeocoder {
       return null;
     }
 
-    // Configurar Fuse para fuzzy matching
-    const fuse = new Fuse(features, {
+    // Configurar FastFuzzy para fuzzy matching (uFuzzy)
+    const fuzzy = new FastFuzzy(features, {
       keys: ['name'],
-      threshold: 1 - this.config.fuzzyThreshold, // Fuse usa distancia inversa
-      includeScore: true,
-      ignoreLocation: true,
-      distance: 100
+      threshold: 1 - this.config.fuzzyThreshold  // FastFuzzy: menor = más estricto
     });
 
     // Buscar matches
-    const results = fuse.search(searchName);
+    const results = fuzzy.search(searchName);
 
     if (results.length === 0) {
       return null;
     }
 
-    // Mejor resultado
+    // Mejor resultado - FastFuzzy devuelve score donde menor = mejor
     const best = results[0];
-    const score = 1 - (best.score || 1); // Convertir a similaridad 0-1
+    const score = 1 - best.score; // Convertir a similaridad 0-1
 
     return {
       feature: best.item,

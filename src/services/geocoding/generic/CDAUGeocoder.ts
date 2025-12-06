@@ -14,7 +14,7 @@
  */
 
 import axios, { AxiosInstance } from 'axios';
-import Fuse from 'fuse.js';
+import { FastFuzzy } from '../../../lib/fuzzySearch';
 import { GeocodingResult } from '../../../types/infrastructure';
 
 /**
@@ -300,20 +300,18 @@ export class CDAUGeocoder {
   ): { feature: CDAUFeature; score: number } | null {
     if (features.length === 0) return null;
 
-    // Preparar datos para Fuse
+    // Preparar datos para FastFuzzy (uFuzzy)
     const items = features.map(f => ({
       feature: f,
       name: f.properties.NOMBRE_VIA || ''
     }));
 
-    const fuse = new Fuse(items, {
+    const fuzzy = new FastFuzzy(items, {
       keys: ['name'],
-      threshold: 0.6,
-      includeScore: true,
-      ignoreLocation: true
+      threshold: 0.6  // FastFuzzy: menor = más estricto
     });
 
-    const results = fuse.search(searchStreet);
+    const results = fuzzy.search(searchStreet);
 
     if (results.length === 0) {
       // Si no hay match, devolver el primero
@@ -323,7 +321,7 @@ export class CDAUGeocoder {
     const best = results[0];
     return {
       feature: best.item.feature,
-      score: 1 - (best.score || 0)
+      score: 1 - best.score
     };
   }
 
