@@ -46,11 +46,12 @@
       }
     },
     "fase_c": {
-      "estado": "🔄 EN PROGRESO (3/4)",
+      "estado": "✅ COMPLETADA (3/3 + 1 pospuesto)",
       "sesiones": {
         "C.1": { "tarea": "uFuzzy para fuzzy search", "fecha": "2025-12-06", "commit": "624a7006", "resultado": "400x más rápido" },
         "C.2": { "tarea": "Serialización Flatbush IndexedDB", "fecha": "2025-12-06", "commit": "603cca27", "resultado": "Persistencia índice espacial" },
-        "C.3": { "tarea": "Cache LRU geocoding", "fecha": "2025-12-07", "commit": "pendiente", "resultado": "32 tests, serialización" }
+        "C.3": { "tarea": "Cache LRU geocoding", "fecha": "2025-12-07", "commit": "4983afd", "resultado": "32 tests, serialización" },
+        "C.4": { "tarea": "Worker threads", "estado": "POSPUESTO", "razon": "I/O bound 95%, reabrir si >500 batch o lag UI" }
       }
     },
     "utf8": {
@@ -70,7 +71,11 @@
 
   "tareas_pendientes": {
     "fase_c": {
-      "C.4": { "tarea": "Worker threads proceso batch", "duracion": "1.5h" }
+      "C.4": { 
+        "tarea": "Worker threads proceso batch", 
+        "estado": "POSPUESTO",
+        "razon": "95% tiempo es I/O (fetch, IndexedDB). Workers solo benefician 5% CPU. Reabrir si >500 registros batch o lag UI reportado."
+      }
     },
     "utf8_pendientes": {
       "UTF8-3": { "tarea": "Clase EncodingCorrector con tiers", "duracion": "1h" },
