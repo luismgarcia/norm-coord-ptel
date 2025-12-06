@@ -243,6 +243,38 @@ export interface SyncMetadata {
 }
 
 // ============================================================================
+// TIPOS: ÍNDICE ESPACIAL SERIALIZADO (C.2)
+// ============================================================================
+
+/**
+ * Índice espacial Flatbush serializado para persistencia
+ * 
+ * El índice R-tree se serializa como ArrayBuffer y se almacena
+ * en IndexedDB para evitar reconstrucción en cada carga.
+ * 
+ * @see https://github.com/mourner/flatbush#static-index
+ */
+export interface SpatialIndexData {
+  /** Identificador del índice (ej: 'flatbush_dera') */
+  id: string;
+  
+  /** Datos del índice Flatbush serializados (ArrayBuffer) */
+  data: ArrayBuffer;
+  
+  /** Número de features indexados */
+  featureCount: number;
+  
+  /** Número de items (mismo que featureCount para puntos) */
+  numItems: number;
+  
+  /** Timestamp de creación */
+  createdAt: string;  // ISO 8601
+  
+  /** Versión del formato de serialización */
+  version: string;
+}
+
+// ============================================================================
 // DEFINICIÓN DE LA BASE DE DATOS
 // ============================================================================
 
@@ -255,6 +287,7 @@ export interface SyncMetadata {
  * - boundaries: Límites municipales (~15MB)
  * - geocodingCache: Cache de resultados
  * - syncMetadata: Estado de sincronización
+ * - spatialIndexes: Índices espaciales serializados (C.2)
  * 
  * Índices optimizados para:
  * - Búsqueda singleton: [tipologia+codMun]
@@ -268,6 +301,7 @@ export class PTELDatabase extends Dexie {
   boundaries!: Table<MunicipioBoundary, string>;
   geocodingCache!: Table<GeocodingCache, string>;
   syncMetadata!: Table<SyncMetadata, string>;
+  spatialIndexes!: Table<SpatialIndexData, string>;  // C.2: Flatbush serializado
 
   constructor() {
     super('PTELLocalData');
@@ -289,6 +323,17 @@ export class PTELDatabase extends Dexie {
       
       // Sync: una entrada por fuente
       syncMetadata: 'id, status, lastSync'
+    });
+    
+    // Versión 2: Añade tabla spatialIndexes (C.2 - Flatbush serializado)
+    this.version(2).stores({
+      dera: 'id, tipologia, codMun, [tipologia+codMun], nombre, capaOrigen',
+      ine: 'codMun, nombre, nombreNorm, provincia, codProv',
+      boundaries: 'codMun',
+      geocodingCache: 'id, codMun, tipologia, expiresAt',
+      syncMetadata: 'id, status, lastSync',
+      // Nueva tabla para índices espaciales serializados
+      spatialIndexes: 'id, featureCount, createdAt'
     });
   }
 }
@@ -412,4 +457,7 @@ export const CACHE_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 export const SYNC_INTERVAL_DAYS = 90;
 
 /** Versión del esquema de datos */
-export const SCHEMA_VERSION = 1;
+export const SCHEMA_VERSION = 2;
+
+/** ID del índice Flatbush principal */
+export const SPATIAL_INDEX_ID = 'flatbush_dera';
