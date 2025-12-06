@@ -1,11 +1,11 @@
 {
   "fecha": "2025-12-06",
-  "version": "0.4.5",
-  "sesion": "Plan UTF8 Cascada - Intercalado con Fase C",
-  "estado": "🔄 FASE C EN PROGRESO + PLAN UTF8",
+  "version": "0.4.6",
+  "sesion": "C.1 - Migración Fuse.js → uFuzzy completada",
+  "estado": "🔄 FASE C EN PROGRESO",
   "plan_activo": ".ptel/PLAN_CONSOLIDADO_48_SESIONES.md",
   "plan_utf8": ".ptel/PLAN_UTF8_CASCADA.md",
-  "ultimo_commit": "6a2bcfe",
+  "ultimo_commit": "d39be16",
   
   "metricas": {
     "tests_totales": "59 passed (suite normalización)",
@@ -13,7 +13,7 @@
     "features_completadas": "24/27 (89%)",
     "sesiones_plan": "48 sesiones, 7 fases",
     "horas_estimadas": "54h",
-    "sesiones_completadas": "A.1, A.2, A.3, A.4, B.1, B.2, B.3, B.4, B.5, UTF8-1",
+    "sesiones_completadas": "A.1, A.2, A.3, A.4, B.1, B.2, B.3, B.4, B.5, UTF8-1, C.1",
     "dera_features": 11282,
     "ine_municipios": 785
   },
@@ -50,10 +50,10 @@
 
   "tareas_pendientes": {
     "fase_c": {
-      "estado": "⏳ PRÓXIMA",
+      "estado": "🔄 EN PROGRESO",
       "descripcion": "Optimizaciones búsqueda",
       "sesiones": {
-        "C.1": { "tarea": "uFuzzy para fuzzy search", "duracion": "1h", "nota": "Reemplazar Fuse.js (400x más rápido)" },
+        "C.1": { "tarea": "uFuzzy para fuzzy search", "duracion": "30min", "fecha": "2025-12-06", "resultado": "AutoGeocodingService migrado de Fuse.js a FastFuzzy" },
         "C.2": { "tarea": "Flatbush índice espacial", "duracion": "1h" },
         "C.3": { "tarea": "Cache LRU geocoding", "duracion": "1h" },
         "C.4": { "tarea": "Worker threads proceso batch", "duracion": "1.5h" }
@@ -93,12 +93,12 @@
   "siguiente_sesion": {
     "opciones": [
       {
-        "id": "C.1",
+        "id": "C.2",
         "fase": "C - Optimizaciones",
-        "tarea": "Implementar uFuzzy para fuzzy search",
+        "tarea": "Implementar Flatbush para índice espacial",
         "rol": "MapWizard",
         "duracion_estimada": "1h",
-        "objetivo": "Reemplazar Fuse.js con uFuzzy (400x más rápido)"
+        "objetivo": "Búsquedas geográficas O(log n) en lugar de O(n)"
       },
       {
         "id": "UTF8-2",
@@ -109,6 +109,6 @@
         "objetivo": "Evitar procesamiento innecesario en textos limpios"
       }
     ],
-    "nota": "Ambas sesiones usan rol MapWizard. Se pueden intercalar 1:1 (C.1 → UTF8-2 → C.2 → UTF8-3...)"
+    "nota": "C.1 completada. Ambas sesiones usan rol MapWizard. Se pueden intercalar."
   }
 }
