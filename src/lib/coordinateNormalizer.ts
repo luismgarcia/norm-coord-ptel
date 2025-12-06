@@ -1,10 +1,20 @@
 /**
- * PTEL Andalucía - Normalizador de Coordenadas v2.4
+ * PTEL Andalucía - Normalizador de Coordenadas v2.5
  * 
  * Implementa la taxonomía completa de 52 patrones de coordenadas
  * identificados en documentos municipales andaluces.
  * 
  * Sistema objetivo: EPSG:25830 (UTM Zona 30N, ETRS89)
+ * 
+ * CHANGELOG v2.5 (06-Dic-2025):
+ * - REFACTOR: FASE 1 Mojibake - patrones extraídos a array MOJIBAKE_PATTERNS_TIER1
+ * - NEW: Ordenación longest-match-first para evitar conflictos entre patrones
+ * - NEW: 17 patrones UTF-8 organizados (vs 10 anteriores)
+ * - NEW: Soporte vocales mayúsculas acentuadas (Á, É, Í, Ó, Ú, Ñ)
+ * - NEW: Soporte diéresis ü (Güéjar Sierra, Agüero)
+ * - FIX: Detección mejorada con regex /[ÃÂ]/ (detecta ambos indicadores)
+ * - PERF: Uso de split().join() en lugar de replace() encadenado
+ * - DOC: Plan UTF8 Cascada - Sesión UTF8-1 completada
  * 
  * CHANGELOG v2.4 (01-Dic-2025):
  * - NEW: Parser NMEA GPS - 4 formatos D1-D4
@@ -39,8 +49,8 @@
  * - NEW: Integración en procesarParCoordenadas()
  * - TEST: Casos adicionales para coordenadas concatenadas
  * 
- * @version 2.3.0
- * @date Noviembre 2025
+ * @version 2.5.0
+ * @date Diciembre 2025
  */
 
 // ============================================================================
@@ -1173,20 +1183,44 @@ export function normalizarCoordenada(input: string): ResultadoNormalizacion {
     }
   }
   
-  // FASE 1: Corrección Mojibake
-  if (/Â/.test(valor)) {
+  // FASE 1: Corrección Mojibake (UTF-8 → Latin1 → UTF-8)
+  // Patrones ordenados por longitud descendente (longest-match-first)
+  // para evitar que patrones cortos interfieran con más largos
+  if (/[ÃÂ]/.test(valor)) {
     const valorAntes = valor;
-    valor = valor
-      .replace(/Â´/g, '´')
-      .replace(/Âº/g, 'º')
-      .replace(/Â°/g, '°')
-      .replace(/Â±/g, '±')
-      .replace(/Ã±/g, 'ñ')
-      .replace(/Ã¡/g, 'á')
-      .replace(/Ã©/g, 'é')
-      .replace(/Ã­/g, 'í')
-      .replace(/Ã³/g, 'ó')
-      .replace(/Ãº/g, 'ú');
+    
+    // Patrones organizados por frecuencia y longitud
+    // Tier 1 - Hot: Patrones más comunes en español andaluz
+    const MOJIBAKE_PATTERNS_TIER1 = [
+      // Vocales acentuadas minúsculas (muy frecuentes)
+      { corrupted: 'Ã¡', correct: 'á' },  // á
+      { corrupted: 'Ã©', correct: 'é' },  // é
+      { corrupted: 'Ã­', correct: 'í' },  // í
+      { corrupted: 'Ã³', correct: 'ó' },  // ó
+      { corrupted: 'Ãº', correct: 'ú' },  // ú
+      { corrupted: 'Ã±', correct: 'ñ' },  // ñ (eñe - MUY común en topónimos)
+      { corrupted: 'Ã¼', correct: 'ü' },  // ü (Güéjar, Agüero)
+      // Vocales acentuadas mayúsculas
+      { corrupted: 'Ã', correct: 'Á' },   // Á (Ávila, Álvarez)
+      { corrupted: 'Ã‰', correct: 'É' },  // É
+      { corrupted: 'Ã', correct: 'Í' },   // Í
+      { corrupted: 'Ã"', correct: 'Ó' },  // Ó
+      { corrupted: 'Ãš', correct: 'Ú' },  // Ú (Úbeda)
+      { corrupted: 'Ã'', correct: 'Ñ' },  // Ñ mayúscula
+      // Símbolos de coordenadas
+      { corrupted: 'Â´', correct: '´' },  // tilde/acento agudo
+      { corrupted: 'Âº', correct: 'º' },  // símbolo ordinal/grado
+      { corrupted: 'Â°', correct: '°' },  // símbolo grado
+      { corrupted: 'Â±', correct: '±' },  // más/menos
+    ];
+    
+    // Aplicar patrones ordenados por longitud (longest-first)
+    const sortedPatterns = [...MOJIBAKE_PATTERNS_TIER1]
+      .sort((a, b) => b.corrupted.length - a.corrupted.length);
+    
+    for (const pattern of sortedPatterns) {
+      valor = valor.split(pattern.corrupted).join(pattern.correct);
+    }
     
     if (valor !== valorAntes) {
       resultado.fasesAplicadas.push('FASE_1_MOJIBAKE');
