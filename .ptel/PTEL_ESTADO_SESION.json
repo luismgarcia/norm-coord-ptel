@@ -1,95 +1,74 @@
 {
-  "fecha": "2025-12-06",
-  "version": "0.4.9",
-  "sesion": "C.2 - Serialización Flatbush COMPLETADA + Push GitHub",
+  "fecha": "2025-12-07",
+  "version": "0.4.10",
+  "sesion": "UTF8-3 - EncodingCorrector con tiers COMPLETADA",
   "estado": "🔄 FASE C + UTF8 EN PROGRESO",
   "plan_activo": ".ptel/PLAN_CONSOLIDADO_48_SESIONES.md",
   "plan_utf8": ".ptel/PLAN_UTF8_CASCADA.md",
-  "ultimo_commit": "603cca27",
+  "ultimo_commit": "2fe4685",
   
   "metricas": {
-    "tests_totales": "82 passed",
-    "benchmarks": "4 suites + benchmark Flatbush vs lineal",
-    "features_completadas": "24/27 (89%)",
+    "tests_totales": "106 passed (59 base + 60 UTF8-2 + 32 C.3 + 24 UTF8-3 - solapamientos)",
+    "features_completadas": "25/27 (93%)",
     "sesiones_plan": "48 sesiones, 7 fases",
-    "horas_estimadas": "54h",
-    "sesiones_completadas": "A.1-A.4, B.1-B.5, UTF8-1, UTF8-2, C.1, C.2, C.3",
+    "sesiones_completadas": "A.1-A.4, B.1-B.5, UTF8-1, UTF8-2, UTF8-3, C.1, C.2, C.3",
     "dera_features": 11282,
     "ine_municipios": 785
   },
 
-  "tests_skipped_intencionalmente": {
-    "descripcion": "7 tests skipped requieren APIs externas o servidor HTTP",
-    "archivos": [
-      "ValidacionMunicipiosConocidos.test.ts - 7 tests (requiere WFS real)"
-    ]
-  },
-
   "tareas_completadas": {
-    "fase_a": {
-      "estado": "✅ COMPLETADA",
-      "sesiones": {
-        "A.1": { "tarea": "Verificar integración F025 AddressExtractor", "fecha": "2025-12-05", "commit": "fa429a0" },
-        "A.2": { "tarea": "Test E2E flujo ODT → coordenadas", "fecha": "2025-12-05", "commit": "7758fe3" },
-        "A.3": { "tarea": "Definir esquemas IndexedDB (Dexie.js)", "fecha": "2025-12-05", "commit": "7758fe3" },
-        "A.4": { "tarea": "Suite benchmark Vitest", "fecha": "2025-12-05", "commit": "e475bd3" }
-      }
-    },
-    "fase_b": {
-      "estado": "✅ COMPLETADA",
-      "sesiones": {
-        "B.1": { "tarea": "Descarga DERA + extracción INE", "fecha": "2025-12-05", "commit": "823ea9d" },
-        "B.2": { "tarea": "Carga inicial IndexedDB", "fecha": "2025-12-05", "commit": "7fa61f7" },
-        "B.3": { "tarea": "SingletonDetector con BBDD local", "fecha": "2025-12-05", "commit": "87d5796" },
-        "B.4": { "tarea": "Integrar SingletonDetector", "fecha": "2025-12-05", "commit": "d5fa572" },
-        "B.5": { "tarea": "Tests E2E BBDD local", "fecha": "2025-12-05", "commit": "0a03a90" }
-      }
-    },
     "fase_c": {
       "estado": "✅ COMPLETADA (3/3 + 1 pospuesto)",
       "sesiones": {
-        "C.1": { "tarea": "uFuzzy para fuzzy search", "fecha": "2025-12-06", "commit": "624a7006", "resultado": "400x más rápido" },
-        "C.2": { "tarea": "Serialización Flatbush IndexedDB", "fecha": "2025-12-06", "commit": "603cca27", "resultado": "Persistencia índice espacial" },
-        "C.3": { "tarea": "Cache LRU geocoding", "fecha": "2025-12-07", "commit": "4983afd", "resultado": "32 tests, serialización" },
-        "C.4": { "tarea": "Worker threads", "estado": "POSPUESTO", "razon": "I/O bound 95%, reabrir si >500 batch o lag UI" }
+        "C.1": { "tarea": "uFuzzy para fuzzy search", "fecha": "2025-12-06", "commit": "624a7006" },
+        "C.2": { "tarea": "Serialización Flatbush", "fecha": "2025-12-06", "commit": "603cca27" },
+        "C.3": { "tarea": "Cache LRU geocoding", "fecha": "2025-12-07", "commit": "4983afd" },
+        "C.4": { 
+          "tarea": "Worker threads", 
+          "estado": "POSPUESTO",
+          "razon": "95% I/O bound. Reabrir si: >500 registros batch, lag UI reportado, o preprocesamiento 786 municipios"
+        }
       }
     },
     "utf8": {
-      "estado": "🔄 EN PROGRESO (2/6)",
+      "estado": "🔄 EN PROGRESO (3/6)",
       "sesiones": {
-        "UTF8-1": { "tarea": "Reordenar patrones longest-first", "fecha": "2025-12-06", "commit": "6a2bcfe" },
-        "UTF8-2": { "tarea": "Early-exit isSuspicious()", "fecha": "2025-12-07", "commit": "pendiente" }
+        "UTF8-1": { "tarea": "Patrones longest-first", "fecha": "2025-12-06", "commit": "6a2bcfe" },
+        "UTF8-2": { "tarea": "Early-exit isSuspicious()", "fecha": "2025-12-07", "commit": "f238618", "tests": 60 },
+        "UTF8-3": { "tarea": "EncodingCorrector tiers", "fecha": "2025-12-07", "commit": "2fe4685", "tests": 24 }
       }
     }
   },
 
   "commits_hoy": [
-    { "sha": "603cca27", "msg": "feat(C.2): Flatbush IndexedDB serialization", "hora": "18:43 UTC" },
-    { "sha": "91d5882d", "msg": "feat(C.2): SpatialIndexData + spatialIndexes table v2", "hora": "18:27 UTC" },
-    { "sha": "624a7006", "msg": "C.1: Migrar AutoGeocodingService a uFuzzy", "hora": "16:39 UTC" }
+    { "sha": "2fe4685", "msg": "feat(UTF8-3): EncodingCorrector con tiers cascada", "hora": "23:35 UTC" },
+    { "sha": "4983afd", "msg": "feat(C.3): LRUCache geocodificación", "hora": "22:xx UTC" },
+    { "sha": "f238618", "msg": "feat(UTF8-2): isSuspicious() early-exit", "hora": "21:xx UTC" }
+  ],
+
+  "archivos_nuevos_utf8_3": [
+    "src/lib/mojibakePatterns.ts",
+    "src/lib/EncodingCorrector.ts",
+    "src/__tests__/EncodingCorrector.test.ts"
   ],
 
   "tareas_pendientes": {
-    "fase_c": {
-      "C.4": { 
-        "tarea": "Worker threads proceso batch", 
-        "estado": "POSPUESTO",
-        "razon": "95% tiempo es I/O (fetch, IndexedDB). Workers solo benefician 5% CPU. Reabrir si >500 registros batch o lag UI reportado."
-      }
-    },
     "utf8_pendientes": {
-      "UTF8-3": { "tarea": "Clase EncodingCorrector con tiers", "duracion": "1h" },
-      "UTF8-4": { "tarea": "Tests unitarios completos", "duracion": "45min" },
+      "UTF8-4": { "tarea": "Tests unitarios completos DataMaster", "duracion": "45min" },
       "UTF8-5": { "tarea": "Integración en pipeline", "duracion": "45min" },
       "UTF8-6": { "tarea": "Tests E2E", "duracion": "30min" }
+    },
+    "fase_d": {
+      "D.1": { "tarea": "F014 Cache UI + F015 Progress", "duracion": "2h" }
     }
   },
 
   "siguiente_sesion": {
-    "opciones": [
-      { "id": "C.4", "tarea": "Worker threads proceso batch", "rol": "MapWizard", "duracion": "1.5h" },
-      { "id": "UTF8-3", "tarea": "Clase EncodingCorrector con tiers", "rol": "MapWizard", "duracion": "1h" }
-    ],
-    "nota": "Intercalar C.4 ↔ UTF8-3 según preferencia"
+    "recomendado": "UTF8-4",
+    "descripcion": "Tests unitarios completos para EncodingCorrector (DataMaster)",
+    "alternativas": [
+      { "id": "UTF8-5", "tarea": "Integración en pipeline coordinateNormalizer.ts" },
+      { "id": "D.1", "tarea": "Cache UI + Progress (UX usuarios)" }
+    ]
   }
 }
