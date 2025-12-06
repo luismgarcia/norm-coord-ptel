@@ -1,84 +1,68 @@
 {
   "sesion_anterior": {
-    "id": "Cierre Fase B",
+    "id": "C.2",
     "fecha": "2025-12-06",
-    "hora": "00:30",
+    "hora": "19:45",
     "rol": "MapWizard",
-    "duracion": "~15min",
+    "duracion": "~45min",
     "estado": "COMPLETADO"
   },
   "trabajo_realizado": {
-    "descripcion": "Verificación estado tests y documentación cierre Fase B",
-    "hallazgos": [
-      "Tests localDataService NO estaban skip (funcionan correctamente)",
-      "B.5 ya estaba completada con 3 commits previos",
-      "7 tests skipped son intencionales (requieren APIs externas)",
-      "1396/1403 tests passing"
+    "descripcion": "Serialización Flatbush IndexedDB para persistencia índice espacial",
+    "archivos_modificados": [
+      "src/lib/localData/schemas.ts (v1 → v2, SpatialIndexData, spatialIndexes table)",
+      "src/lib/LocalDataService.ts (serialización/deserialización Flatbush)"
     ],
-    "acciones": [
-      "Verificación estado completo de tests",
-      "Actualización documentación .ptel/",
-      "Preparación handoff para Fase C"
+    "funcionalidades": [
+      "Carga índice de IndexedDB si existe y featureCount coincide",
+      "Flatbush.from() para deserialización instantánea",
+      "Guardado automático tras construcción",
+      "clearSpatialIndexCache() para invalidación manual"
+    ],
+    "commits": [
+      { "sha": "603cca27", "msg": "feat(C.2): Flatbush IndexedDB serialization" },
+      { "sha": "91d5882d", "msg": "feat(C.2): SpatialIndexData + spatialIndexes table v2" }
     ]
   },
-  "estado_fase_b": {
-    "B.1": { "estado": "✅", "commit": "823ea9d", "desc": "11,282 DERA + 785 INE" },
-    "B.2": { "estado": "✅", "commit": "7fa61f7", "desc": "IndexedDB + DataLoader" },
-    "B.3": { "estado": "✅", "commit": "87d5796", "desc": "SingletonDetector 6 funciones" },
-    "B.4": { "estado": "✅", "commit": "d5fa572", "desc": "Integración (ya existía, sync tests)" },
-    "B.5": { "estado": "✅", "commit": "0a03a90", "desc": "20 tests E2E" }
+  "estado_fase_c": {
+    "C.1": { "estado": "✅", "commit": "624a7006", "desc": "uFuzzy 400x más rápido" },
+    "C.2": { "estado": "✅", "commit": "603cca27", "desc": "Flatbush IndexedDB persistente" },
+    "C.3": { "estado": "⏳", "desc": "Cache LRU geocodificación" },
+    "C.4": { "estado": "⏳", "desc": "Worker threads batch" }
   },
-  "tests_estado": {
-    "vitest": "1396 passing, 7 skipped",
-    "skipped_reason": "Requieren WFS real (ValidacionMunicipiosConocidos.test.ts)",
-    "nota": "Tests localDataService funcionan correctamente"
-  },
-  "mejoras_fase_b": {
-    "latencia": "500-2000ms WFS → 5-20ms IndexedDB",
-    "tasa_exito": "75% → 92% estimado",
-    "llamadas_wfs": "Reducidas 60-70%",
-    "offline": "100% para singletons (65% municipios)"
-  },
-  "pruebas_navegador_pendientes": {
-    "instrucciones": "npm run dev → http://localhost:5001/norm-coord-ptel/",
-    "B2-NAV-01": "Modal primera carga",
-    "B2-NAV-02": "Barra progreso",
-    "B2-NAV-03": "Badge BBDD Local activa",
-    "B2-NAV-04": "DERA: 11,282",
-    "B2-NAV-05": "INE: 785",
-    "B2-NAV-06": "SyncMetadata: completed"
+  "estado_utf8": {
+    "UTF8-1": { "estado": "✅", "commit": "6a2bcfe" },
+    "UTF8-2": { "estado": "✅", "commit": "pendiente" },
+    "UTF8-3": { "estado": "⏳" },
+    "UTF8-4": { "estado": "⏳" },
+    "UTF8-5": { "estado": "⏳" },
+    "UTF8-6": { "estado": "⏳" }
   },
   "proxima_sesion": {
-    "id": "C.1",
-    "fase": "C - Optimizaciones",
-    "tarea": "Implementar uFuzzy para fuzzy search",
-    "rol": "MapWizard",
-    "duracion_estimada": "1h",
-    "objetivo": "Reemplazar Fuse.js con uFuzzy (400x más rápido)",
-    "pasos": [
-      "1. npm install @leeoniya/ufuzzy",
-      "2. Modificar src/lib/fuzzySearch.ts",
-      "3. Actualizar tests",
-      "4. Benchmark comparativo Fuse.js vs uFuzzy",
-      "5. Commit + push"
-    ],
-    "archivos_relevantes": [
-      "src/lib/fuzzySearch.ts",
-      "src/lib/__tests__/fuzzySearch.test.ts"
-    ]
-  },
-  "alternativas_proxima_sesion": [
-    {
-      "id": "C.2",
-      "tarea": "Flatbush índice espacial",
-      "duracion": "1h"
+    "recomendada": {
+      "id": "C.3",
+      "fase": "C - Optimizaciones",
+      "tarea": "Cache LRU para geocodificación",
+      "rol": "MapWizard",
+      "duracion_estimada": "1h",
+      "objetivo": "Evitar geocodificaciones repetidas con LRU cache en memoria",
+      "pasos": [
+        "1. Crear src/lib/geocoding/GeocodingCache.ts",
+        "2. Implementar LRU con Map + límite 1000 entradas",
+        "3. Key: normalizado(nombre+municipio+tipo)",
+        "4. Integrar en GeocodingOrchestrator",
+        "5. Tests unitarios",
+        "6. Commit + push"
+      ]
     },
-    {
-      "id": "B2-NAV",
-      "tarea": "Validación manual navegador",
-      "duracion": "15min"
+    "alternativa": {
+      "id": "UTF8-3",
+      "fase": "F027 - UTF8 Cascada",
+      "tarea": "Clase EncodingCorrector con tiers Hot/Warm/Cold",
+      "duracion_estimada": "1h"
     }
-  ],
-  "version_proyecto": "0.4.4",
-  "ultimo_commit": "0a03a90"
+  },
+  "version_proyecto": "0.4.9",
+  "ultimo_commit": "603cca27",
+  "github_verificado": true
 }
