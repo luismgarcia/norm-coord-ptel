@@ -1200,13 +1200,13 @@ export function normalizarCoordenada(input: string): ResultadoNormalizacion {
       { corrupted: 'Ãº', correct: 'ú' },  // ú
       { corrupted: 'Ã±', correct: 'ñ' },  // ñ (eñe - MUY común en topónimos)
       { corrupted: 'Ã¼', correct: 'ü' },  // ü (Güéjar, Agüero)
-      // Vocales acentuadas mayúsculas
-      { corrupted: 'Ã', correct: 'Á' },   // Á (Ávila, Álvarez)
-      { corrupted: 'Ã‰', correct: 'É' },  // É
-      { corrupted: 'Ã', correct: 'Í' },   // Í
-      { corrupted: 'Ã"', correct: 'Ó' },  // Ó
-      { corrupted: 'Ãš', correct: 'Ú' },  // Ú (Úbeda)
-      { corrupted: 'Ã'', correct: 'Ñ' },  // Ñ mayúscula
+      // Vocales acentuadas mayúsculas (usando hex escape para caracteres problemáticos)
+      { corrupted: 'Ã\x81', correct: 'Á' },   // Á (Ávila, Álvarez)
+      { corrupted: 'Ã\x89', correct: 'É' },   // É
+      { corrupted: 'Ã\x8D', correct: 'Í' },   // Í
+      { corrupted: 'Ã\x93', correct: 'Ó' },   // Ó
+      { corrupted: 'Ã\x9A', correct: 'Ú' },   // Ú (Úbeda)
+      { corrupted: 'Ã\x91', correct: 'Ñ' },   // Ñ mayúscula
       // Símbolos de coordenadas
       { corrupted: 'Â´', correct: '´' },  // tilde/acento agudo
       { corrupted: 'Âº', correct: 'º' },  // símbolo ordinal/grado
