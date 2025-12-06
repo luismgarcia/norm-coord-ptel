@@ -3,7 +3,7 @@
 **Proyecto**: PTEL Andalucía - Normalizador de Coordenadas  
 **Versión Plan**: 1.0  
 **Fecha**: 2025-12-06  
-**Estado**: 🔄 EN PROGRESO (1/6 completada)  
+**Estado**: 🔄 EN PROGRESO (2/6 completadas)  
 **Feature asociada**: F027 (nueva)
 
 ---
@@ -45,7 +45,7 @@ Este plan implementa las **estrategias de corrección UTF-8 en cascada** documen
 | Sesión | ID | Tarea | Duración | Rol | Estado |
 |--------|----|----|----------|-----|--------|
 | 1 | UTF8-1 | Reordenar patrones longest-first | 30 min | MapWizard | ✅ Completada |
-| 2 | UTF8-2 | Función `isSuspicious()` early-exit | 45 min | MapWizard | ⏳ Pendiente |
+| 2 | UTF8-2 | Función `isSuspicious()` early-exit | 45 min | MapWizard | ✅ Completada |
 | 3 | UTF8-3 | Clase `EncodingCorrector` con tiers | 1h | MapWizard | ⏳ Pendiente |
 | 4 | UTF8-4 | Tests unitarios completos | 45 min | DataMaster | ⏳ Pendiente |
 | 5 | UTF8-5 | Integración en pipeline normalización | 45 min | MapWizard | ⏳ Pendiente |
@@ -71,6 +71,31 @@ Este plan implementa las **estrategias de corrección UTF-8 en cascada** documen
 refactor(UTF8-1): Reordenar patrones mojibake longest-match-first
 Commit: 6a2bcfe
 ```
+
+---
+
+## ✅ Sesión UTF8-2 Completada (07-Dic-2025)
+
+### Cambios Realizados
+- Creado `src/lib/encodingDetector.ts` (~150 líneas)
+- Función `isSuspicious()` para early-exit
+- Función `isCleanASCII()` para fast-path
+- Función `detectEncodingIssue()` para diagnóstico detallado
+- Función `analyzeTexts()` para análisis batch
+- Creados 60 tests en `src/__tests__/encodingDetector.test.ts`
+
+### Funciones Implementadas
+
+| Función | Propósito | Rendimiento |
+|---------|-----------|-------------|
+| `isCleanASCII(text)` | Detecta ASCII puro | <0.01ms |
+| `isSuspicious(text)` | Detecta mojibake | <0.1ms |
+| `detectEncodingIssue(text)` | Diagnóstico detallado | <0.1ms |
+| `analyzeTexts(texts[])` | Análisis batch | ~0.1ms/texto |
+
+### Tests
+- 60 tests nuevos pasando
+- Cobertura: topónimos limpios, mojibake, coordenadas, casos límite
 
 ---
 
@@ -152,7 +177,7 @@ El Plan UTF8 está diseñado para **intercalarse** con la Fase C planificada:
 Al completar F027:
 
 - [x] UTF8-1: Patrones ordenados longest-first
-- [ ] UTF8-2: Early-exit implementado
+- [x] UTF8-2: Early-exit implementado
 - [ ] UTF8-3: EncodingCorrector con tiers
 - [ ] UTF8-4: >95% cobertura en tests
 - [ ] UTF8-5: Integración en pipeline

@@ -13,7 +13,7 @@
     "features_completadas": "24/27 (89%)",
     "sesiones_plan": "48 sesiones, 7 fases",
     "horas_estimadas": "54h",
-    "sesiones_completadas": "A.1-A.4, B.1-B.5, UTF8-1, C.1, C.2",
+    "sesiones_completadas": "A.1-A.4, B.1-B.5, UTF8-1, UTF8-2, C.1, C.2",
     "dera_features": 11282,
     "ine_municipios": 785
   },
@@ -53,11 +53,11 @@
       }
     },
     "utf8": {
-      "estado": "🔄 EN PROGRESO (1/6)",
+      "estado": "🔄 EN PROGRESO (2/6)",
       "sesiones": {
-        "UTF8-1": { "tarea": "Reordenar patrones longest-first", "fecha": "2025-12-06", "commit": "6a2bcfe" }
-      },
-      "nota_correccion": "UTF8-2 NO fue implementada - error corregido 2025-12-07"
+        "UTF8-1": { "tarea": "Reordenar patrones longest-first", "fecha": "2025-12-06", "commit": "6a2bcfe" },
+        "UTF8-2": { "tarea": "Early-exit isSuspicious()", "fecha": "2025-12-07", "commit": "pendiente" }
+      }
     }
   },
 
@@ -73,7 +73,6 @@
       "C.4": { "tarea": "Worker threads proceso batch", "duracion": "1.5h" }
     },
     "utf8_pendientes": {
-      "UTF8-2": { "tarea": "Early-exit isSuspicious()", "duracion": "45min", "archivo": "src/lib/encodingDetector.ts" },
       "UTF8-3": { "tarea": "Clase EncodingCorrector con tiers", "duracion": "1h" },
       "UTF8-4": { "tarea": "Tests unitarios completos", "duracion": "45min" },
       "UTF8-5": { "tarea": "Integración en pipeline", "duracion": "45min" },
@@ -84,8 +83,8 @@
   "siguiente_sesion": {
     "opciones": [
       { "id": "C.3", "tarea": "Cache LRU geocoding", "rol": "MapWizard", "duracion": "1h" },
-      { "id": "UTF8-2", "tarea": "Early-exit isSuspicious()", "rol": "MapWizard", "duracion": "45min" }
+      { "id": "UTF8-3", "tarea": "Clase EncodingCorrector con tiers", "rol": "MapWizard", "duracion": "1h" }
     ],
-    "nota": "Intercalar C.3 ↔ UTF8-2 según preferencia"
+    "nota": "Intercalar C.3 ↔ UTF8-3 según preferencia"
   }
 }
