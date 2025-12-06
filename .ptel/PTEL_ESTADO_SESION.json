@@ -13,7 +13,7 @@
     "features_completadas": "24/27 (89%)",
     "sesiones_plan": "48 sesiones, 7 fases",
     "horas_estimadas": "54h",
-    "sesiones_completadas": "A.1-A.4, B.1-B.5, UTF8-1, UTF8-2, C.1, C.2",
+    "sesiones_completadas": "A.1-A.4, B.1-B.5, UTF8-1, UTF8-2, C.1, C.2, C.3",
     "dera_features": 11282,
     "ine_municipios": 785
   },
@@ -46,10 +46,11 @@
       }
     },
     "fase_c": {
-      "estado": "🔄 EN PROGRESO (2/4)",
+      "estado": "🔄 EN PROGRESO (3/4)",
       "sesiones": {
         "C.1": { "tarea": "uFuzzy para fuzzy search", "fecha": "2025-12-06", "commit": "624a7006", "resultado": "400x más rápido" },
-        "C.2": { "tarea": "Serialización Flatbush IndexedDB", "fecha": "2025-12-06", "commit": "603cca27", "resultado": "Persistencia índice espacial" }
+        "C.2": { "tarea": "Serialización Flatbush IndexedDB", "fecha": "2025-12-06", "commit": "603cca27", "resultado": "Persistencia índice espacial" },
+        "C.3": { "tarea": "Cache LRU geocoding", "fecha": "2025-12-07", "commit": "pendiente", "resultado": "32 tests, serialización" }
       }
     },
     "utf8": {
@@ -69,7 +70,6 @@
 
   "tareas_pendientes": {
     "fase_c": {
-      "C.3": { "tarea": "Cache LRU geocoding", "duracion": "1h" },
       "C.4": { "tarea": "Worker threads proceso batch", "duracion": "1.5h" }
     },
     "utf8_pendientes": {
@@ -82,9 +82,9 @@
 
   "siguiente_sesion": {
     "opciones": [
-      { "id": "C.3", "tarea": "Cache LRU geocoding", "rol": "MapWizard", "duracion": "1h" },
+      { "id": "C.4", "tarea": "Worker threads proceso batch", "rol": "MapWizard", "duracion": "1.5h" },
       { "id": "UTF8-3", "tarea": "Clase EncodingCorrector con tiers", "rol": "MapWizard", "duracion": "1h" }
     ],
-    "nota": "Intercalar C.3 ↔ UTF8-3 según preferencia"
+    "nota": "Intercalar C.4 ↔ UTF8-3 según preferencia"
   }
 }
