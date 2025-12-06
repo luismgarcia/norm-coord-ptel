@@ -1,18 +1,19 @@
 {
   "fecha": "2025-12-06",
-  "version": "0.4.4",
-  "sesion": "Cierre Fase B - Verificación y documentación",
-  "estado": "✅ FASE B 100% COMPLETADA",
+  "version": "0.4.5",
+  "sesion": "Plan UTF8 Cascada - Intercalado con Fase C",
+  "estado": "🔄 FASE C EN PROGRESO + PLAN UTF8",
   "plan_activo": ".ptel/PLAN_CONSOLIDADO_48_SESIONES.md",
-  "ultimo_commit": "0a03a90",
+  "plan_utf8": ".ptel/PLAN_UTF8_CASCADA.md",
+  "ultimo_commit": "6a2bcfe",
   
   "metricas": {
-    "tests_totales": "1396/1403 passing (7 skipped intencionales)",
+    "tests_totales": "59 passed (suite normalización)",
     "benchmarks": "4 suites configuradas",
-    "features_completadas": "24/25 (96%)",
+    "features_completadas": "24/27 (89%)",
     "sesiones_plan": "48 sesiones, 7 fases",
     "horas_estimadas": "54h",
-    "sesiones_completadas": "A.1, A.2, A.3, A.4, B.1, B.2, B.3, B.4, B.5",
+    "sesiones_completadas": "A.1, A.2, A.3, A.4, B.1, B.2, B.3, B.4, B.5, UTF8-1",
     "dera_features": 11282,
     "ine_municipios": 785
   },
@@ -90,17 +91,24 @@
   },
 
   "siguiente_sesion": {
-    "id": "C.1",
-    "fase": "C - Optimizaciones",
-    "tarea": "Implementar uFuzzy para fuzzy search",
-    "rol": "MapWizard",
-    "duracion_estimada": "1h",
-    "objetivo": "Reemplazar Fuse.js con uFuzzy (400x más rápido)",
-    "pasos": [
-      "npm install @leeoniya/ufuzzy",
-      "Modificar fuzzySearch.ts",
-      "Actualizar tests",
-      "Benchmark comparativo"
-    ]
+    "opciones": [
+      {
+        "id": "C.1",
+        "fase": "C - Optimizaciones",
+        "tarea": "Implementar uFuzzy para fuzzy search",
+        "rol": "MapWizard",
+        "duracion_estimada": "1h",
+        "objetivo": "Reemplazar Fuse.js con uFuzzy (400x más rápido)"
+      },
+      {
+        "id": "UTF8-2",
+        "fase": "F027 - Plan UTF8 Cascada",
+        "tarea": "Función isSuspicious() early-exit",
+        "rol": "MapWizard",
+        "duracion_estimada": "45min",
+        "objetivo": "Evitar procesamiento innecesario en textos limpios"
+      }
+    ],
+    "nota": "Ambas sesiones usan rol MapWizard. Se pueden intercalar 1:1 (C.1 → UTF8-2 → C.2 → UTF8-3...)"
   }
 }

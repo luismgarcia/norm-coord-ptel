@@ -252,15 +252,37 @@
         }
       },
       "notes": "FASE B COMPLETADA 2025-12-05. SingletonDetector integrado en GeocodingOrchestrator."
+    },
+    {
+      "id": "F027",
+      "category": "encoding",
+      "description": "Plan UTF8 Cascada - Corrección UTF-8 en cascada con tiers",
+      "priority": "medium",
+      "passes": false,
+      "completedDate": null,
+      "assignedRole": "MapWizard",
+      "implementation": {
+        "phases": [
+          { "session": "UTF8-1", "name": "Reordenar patrones longest-first", "status": "completada", "commit": "6a2bcfe" },
+          { "session": "UTF8-2", "name": "Early-exit isSuspicious()", "status": "pendiente" },
+          { "session": "UTF8-3", "name": "EncodingCorrector con tiers", "status": "pendiente" },
+          { "session": "UTF8-4", "name": "Tests unitarios", "status": "pendiente" },
+          { "session": "UTF8-5", "name": "Integración pipeline", "status": "pendiente" },
+          { "session": "UTF8-6", "name": "Tests E2E", "status": "pendiente" }
+        ],
+        "totalProgress": "17%"
+      },
+      "planDocument": ".ptel/PLAN_UTF8_CASCADA.md",
+      "notes": "Sesión UTF8-1 completada 2025-12-06. Patrones organizados en v2.5.0."
     }
   ],
   "summary": {
     "completedCount": 24,
-    "pendingCount": 2,
-    "totalCount": 26,
-    "completionRate": "92%",
-    "pendingFeatures": ["F014:CacheManager (parcial)", "F015:ProgressPanel"]
+    "pendingCount": 3,
+    "totalCount": 27,
+    "completionRate": "89%",
+    "pendingFeatures": ["F014:CacheManager (parcial)", "F015:ProgressPanel", "F027:UTF8 Cascada (1/6)"]
   },
-  "lastUpdated": "2025-12-06T00:30:00Z",
-  "updatedBy": "Claude (sesión cierre Fase B)"
+  "lastUpdated": "2025-12-06T12:00:00Z",
+  "updatedBy": "Claude (sesión UTF8-1 completada)"
 }
