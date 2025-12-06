@@ -25,6 +25,7 @@
 import { FastFuzzy, normalizeForSearch } from './fuzzySearch';
 import Flatbush from 'flatbush';
 import { InfrastructureType } from '../types/infrastructure';
+import { db, SPATIAL_INDEX_ID, type SpatialIndexData } from './localData/schemas';
 
 // ============================================================================
 // TIPOS
@@ -291,10 +292,48 @@ export async function loadLocalData(): Promise<LoadStats> {
     const allFeatures = Array.from(dataStore.values()).flat();
     if (allFeatures.length > 0) {
       spatialFeatures = allFeatures;
-      spatialIndex = new Flatbush(allFeatures.length);
-      for (const f of allFeatures) spatialIndex.add(f.x, f.y, f.x, f.y);
-      spatialIndex.finish();
-      console.log(`[LocalDataService] Índice espacial Flatbush creado: ${allFeatures.length} puntos`);
+      
+      // C.2: Intentar cargar índice serializado de IndexedDB
+      let indexLoaded = false;
+      try {
+        const savedIndex = await db.spatialIndexes.get(SPATIAL_INDEX_ID);
+        if (savedIndex && savedIndex.featureCount === allFeatures.length) {
+          // Deserializar índice existente
+          spatialIndex = Flatbush.from(savedIndex.data);
+          indexLoaded = true;
+          console.log(`[LocalDataService] Índice Flatbush cargado de IndexedDB: ${allFeatures.length} puntos (${Math.round(savedIndex.data.byteLength / 1024)}KB)`);
+        } else if (savedIndex) {
+          console.log(`[LocalDataService] Índice guardado obsoleto (${savedIndex.featureCount} vs ${allFeatures.length}), reconstruyendo...`);
+        }
+      } catch (dbErr) {
+        console.warn('[LocalDataService] Error leyendo índice de IndexedDB:', dbErr);
+      }
+      
+      // Si no se cargó, construir nuevo índice y guardarlo
+      if (!indexLoaded) {
+        const buildStart = performance.now();
+        spatialIndex = new Flatbush(allFeatures.length);
+        for (const f of allFeatures) spatialIndex.add(f.x, f.y, f.x, f.y);
+        spatialIndex.finish();
+        const buildTime = Math.round(performance.now() - buildStart);
+        console.log(`[LocalDataService] Índice Flatbush construido: ${allFeatures.length} puntos en ${buildTime}ms`);
+        
+        // Guardar en IndexedDB para próxima carga
+        try {
+          const indexData: SpatialIndexData = {
+            id: SPATIAL_INDEX_ID,
+            data: spatialIndex.data,
+            featureCount: allFeatures.length,
+            numItems: allFeatures.length,
+            createdAt: new Date().toISOString(),
+            version: '1.0.0'
+          };
+          await db.spatialIndexes.put(indexData);
+          console.log(`[LocalDataService] Índice Flatbush guardado en IndexedDB: ${Math.round(spatialIndex.data.byteLength / 1024)}KB`);
+        } catch (saveErr) {
+          console.warn('[LocalDataService] Error guardando índice en IndexedDB:', saveErr);
+        }
+      }
     }
     loadStats = stats;
     isLoaded = true;
@@ -482,10 +521,25 @@ export function clearLocalData(): void {
   dataStore.clear();
   municipioIndex.clear();
   fastFuzzyInstances.clear();
+  spatialIndex = null;
+  spatialFeatures = [];
   isLoaded = false;
   isLoading = false;
   loadError = null;
   loadStats = null;
+}
+
+/**
+ * C.2: Invalida el índice Flatbush serializado en IndexedDB
+ * Útil cuando los datos DERA se actualizan
+ */
+export async function clearSpatialIndexCache(): Promise<void> {
+  try {
+    await db.spatialIndexes.delete(SPATIAL_INDEX_ID);
+    console.log('[LocalDataService] Índice Flatbush eliminado de IndexedDB');
+  } catch (err) {
+    console.warn('[LocalDataService] Error eliminando índice de IndexedDB:', err);
+  }
 }
 
 export function injectTestData(data: Map<InfrastructureCategory, LocalFeature[]>): LoadStats {
@@ -554,5 +608,5 @@ export default {
   getFeaturesByMunicipio, getFeatureCountByMunicipio, listMunicipiosConDatos,
   countByType, getUniqueByType, TYPOLOGY_TO_CATEGORY,
   findNearby, findNearest,
-  toGeocodingResult, geocodeWithLocalFallback, clearLocalData, injectTestData,
+  toGeocodingResult, geocodeWithLocalFallback, clearLocalData, clearSpatialIndexCache, injectTestData,
 };
