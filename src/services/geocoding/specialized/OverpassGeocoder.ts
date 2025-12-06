@@ -23,7 +23,7 @@
  */
 
 import axios, { AxiosInstance } from 'axios';
-import Fuse from 'fuse.js';
+import { FastFuzzy } from '../../../lib/fuzzySearch';
 import { GeocodingResult, InfrastructureType } from '../../../types/infrastructure';
 import proj4 from 'proj4';
 
@@ -565,14 +565,12 @@ export class OverpassGeocoder {
       return null;
     }
 
-    const fuse = new Fuse(elements, {
+    const fuzzy = new FastFuzzy(elements, {
       keys: ['name'],
-      threshold: 0.6, // Más permisivo para OSM
-      includeScore: true,
-      ignoreLocation: true
+      threshold: 0.6 // Más permisivo para OSM
     });
 
-    const results = fuse.search(searchName);
+    const results = fuzzy.search(searchName);
 
     if (results.length === 0) {
       // Si no hay match fuzzy, retornar el primero si hay pocos resultados
