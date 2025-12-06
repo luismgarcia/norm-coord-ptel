@@ -1,66 +1,57 @@
 /**
  * PTEL Andalucía - EncodingCorrector
  * 
- * Servicio reutilizable para corrección de mojibake UTF-8 con sistema de tiers.
- * Implementa estrategia longest-match-first y early-exit para documentos limpios.
+ * Servicio de corrección UTF-8 con sistema de tiers en cascada.
+ * Implementa early-exit para documentos limpios y corrección progresiva.
  * 
- * Características:
- * - Sistema de 3 tiers (hot/warm/cold) para optimización
- * - Early-exit para textos ASCII puros (~90% de coordenadas)
- * - Ordenación longest-match-first para evitar conflictos
- * - Explicación detallada de correcciones (audit log)
- * - Intento de fix de doble encoding con TextDecoder nativo
+ * Pipeline:
+ * 1. Early-exit si texto limpio (isSuspicious = false)
+ * 2. Intenta doble encoding primero
+ * 3. Aplica Tier 1 (Hot) - 80% de casos
+ * 4. Si persiste mojibake → Tier 2 (Warm)
+ * 5. Si aún persiste → Tier 3 (Cold)
+ * 6. Normaliza con NFC
  * 
  * @version 1.0.0
  * @date Diciembre 2025
  */
 
 import {
-  MojibakePattern,
-  PatternTier,
   TIER1_HOT_PATTERNS,
   TIER2_WARM_PATTERNS,
   TIER3_COLD_PATTERNS,
-  ALL_PATTERNS,
   MOJIBAKE_INDICATORS,
-  PATTERN_COUNTS,
+  type MojibakePattern,
 } from './mojibakePatterns';
-
 import { isSuspicious, isCleanASCII } from './encodingDetector';
 
 // ============================================================================
-// TIPOS
+// TIPOS E INTERFACES
 // ============================================================================
 
 export interface CorrectionResult {
-  original: string;
+  /** Texto corregido (o original si no hubo cambios) */
   corrected: string;
+  /** Si se modificó el texto */
   wasModified: boolean;
-  tiersApplied: PatternTier[];
-  patternsMatched: string[];
-  confidence: number;
+  /** Tiers aplicados (vacío si early-exit) */
+  tiersApplied: ('TIER1' | 'TIER2' | 'TIER3' | 'DOUBLE_ENCODING' | 'NFC')[];
+  /** Número de patrones que coincidieron */
+  patternsMatched: number;
+  /** Razón de early-exit si aplica */
+  earlyExitReason?: 'CLEAN_ASCII' | 'NO_MOJIBAKE' | 'EMPTY';
+  /** Duración en ms */
+  durationMs: number;
 }
 
-export interface CorrectionExplanation extends CorrectionResult {
-  operations: CorrectionOperation[];
-  processingTimeMs: number;
-  skippedReason?: 'clean_ascii' | 'no_indicators' | 'empty';
-}
-
-export interface CorrectionOperation {
-  tier: PatternTier;
-  pattern: string;
-  replacement: string;
-  description: string;
-  occurrences: number;
-}
-
-export interface CorrectorStats {
-  textsProcessed: number;
-  textsModified: number;
-  earlyExitCount: number;
-  tierUsage: Record<PatternTier, number>;
-  averageProcessingMs: number;
+export interface CorrectionStats {
+  totalProcessed: number;
+  earlyExits: number;
+  tier1Only: number;
+  tier2Required: number;
+  tier3Required: number;
+  doubleEncodingFixed: number;
+  averageDurationMs: number;
 }
 
 // ============================================================================
@@ -68,343 +59,257 @@ export interface CorrectorStats {
 // ============================================================================
 
 export class EncodingCorrector {
-  private sortedPatterns: {
-    hot: MojibakePattern[];
-    warm: MojibakePattern[];
-    cold: MojibakePattern[];
-  };
-  
-  private stats: CorrectorStats = {
-    textsProcessed: 0,
-    textsModified: 0,
-    earlyExitCount: 0,
-    tierUsage: { hot: 0, warm: 0, cold: 0 },
-    averageProcessingMs: 0,
-  };
-  
-  private totalProcessingMs = 0;
+  /** Patrones Tier 1 ordenados por longitud */
+  private tier1Patterns: MojibakePattern[];
+  /** Patrones Tier 2 ordenados por longitud */
+  private tier2Patterns: MojibakePattern[];
+  /** Patrones Tier 3 ordenados por longitud */
+  private tier3Patterns: MojibakePattern[];
+  /** Estadísticas de uso */
+  private stats: CorrectionStats;
 
   constructor() {
-    // Pre-ordenar patrones por longitud descendente (longest-match-first)
-    this.sortedPatterns = {
-      hot: this.sortByLength(TIER1_HOT_PATTERNS),
-      warm: this.sortByLength(TIER2_WARM_PATTERNS),
-      cold: this.sortByLength(TIER3_COLD_PATTERNS),
+    // Pre-ordenar patrones por longitud descendente
+    this.tier1Patterns = [...TIER1_HOT_PATTERNS].sort(
+      (a, b) => b.corrupted.length - a.corrupted.length
+    );
+    this.tier2Patterns = [...TIER2_WARM_PATTERNS].sort(
+      (a, b) => b.corrupted.length - a.corrupted.length
+    );
+    this.tier3Patterns = [...TIER3_COLD_PATTERNS].sort(
+      (a, b) => b.corrupted.length - a.corrupted.length
+    );
+    
+    this.stats = {
+      totalProcessed: 0,
+      earlyExits: 0,
+      tier1Only: 0,
+      tier2Required: 0,
+      tier3Required: 0,
+      doubleEncodingFixed: 0,
+      averageDurationMs: 0,
     };
   }
 
   /**
-   * Ordena patrones por longitud descendente
+   * Corrige mojibake en texto con sistema de tiers.
+   * Early-exit para textos limpios.
    */
-  private sortByLength(patterns: MojibakePattern[]): MojibakePattern[] {
-    return [...patterns].sort(
-      (a, b) => b.corrupted.length - a.corrupted.length
+  correct(text: string): CorrectionResult {
+    const startTime = performance.now();
+    this.stats.totalProcessed++;
+    
+    // Early-exit: texto vacío o null
+    if (!text || text.length === 0) {
+      this.stats.earlyExits++;
+      return this.buildResult(text, text, [], 0, 'EMPTY', startTime);
+    }
+    
+    // Early-exit: ASCII puro (90% de coordenadas)
+    if (isCleanASCII(text)) {
+      this.stats.earlyExits++;
+      return this.buildResult(text, text, [], 0, 'CLEAN_ASCII', startTime);
+    }
+    
+    // Early-exit: no hay indicadores de mojibake
+    if (!isSuspicious(text)) {
+      this.stats.earlyExits++;
+      return this.buildResult(text, text, [], 0, 'NO_MOJIBAKE', startTime);
+    }
+    
+    // Procesamiento completo
+    let current = text;
+    const tiersApplied: CorrectionResult['tiersApplied'] = [];
+    let totalMatches = 0;
+    
+    // 1. Intentar corrección de doble encoding primero
+    if (MOJIBAKE_INDICATORS.DOUBLE_ENCODING.test(current)) {
+      const doubleFixed = this.tryFixDoubleEncoding(current);
+      if (doubleFixed !== current) {
+        current = doubleFixed;
+        tiersApplied.push('DOUBLE_ENCODING');
+        this.stats.doubleEncodingFixed++;
+      }
+    }
+
+    
+    // 2. Aplicar Tier 1 (Hot) - siempre
+    const { result: afterTier1, matches: matches1 } = this.applyPatterns(
+      current,
+      this.tier1Patterns
+    );
+    if (matches1 > 0) {
+      current = afterTier1;
+      totalMatches += matches1;
+      tiersApplied.push('TIER1');
+    }
+    
+    // 3. Aplicar Tier 2 (Warm) - solo si aún hay mojibake
+    if (this.stillHasMojibake(current)) {
+      const { result: afterTier2, matches: matches2 } = this.applyPatterns(
+        current,
+        this.tier2Patterns
+      );
+      if (matches2 > 0) {
+        current = afterTier2;
+        totalMatches += matches2;
+        tiersApplied.push('TIER2');
+        this.stats.tier2Required++;
+      }
+    }
+    
+    // 4. Aplicar Tier 3 (Cold) - solo si aún hay mojibake
+    if (this.stillHasMojibake(current)) {
+      const { result: afterTier3, matches: matches3 } = this.applyPatterns(
+        current,
+        this.tier3Patterns
+      );
+      if (matches3 > 0) {
+        current = afterTier3;
+        totalMatches += matches3;
+        tiersApplied.push('TIER3');
+        this.stats.tier3Required++;
+      }
+    }
+    
+    // 5. Normalización Unicode NFC
+    const normalized = current.normalize('NFC');
+    if (normalized !== current) {
+      current = normalized;
+      tiersApplied.push('NFC');
+    }
+    
+    // Actualizar estadísticas
+    if (tiersApplied.length === 1 && tiersApplied[0] === 'TIER1') {
+      this.stats.tier1Only++;
+    }
+    
+    return this.buildResult(text, current, tiersApplied, totalMatches, undefined, startTime);
+  }
+
+  /**
+   * Aplica un array de patrones al texto.
+   * Usa split().join() para máxima compatibilidad.
+   */
+  private applyPatterns(
+    text: string,
+    patterns: MojibakePattern[]
+  ): { result: string; matches: number } {
+    let result = text;
+    let matches = 0;
+    
+    for (const pattern of patterns) {
+      if (result.includes(pattern.corrupted)) {
+        const before = result;
+        result = result.split(pattern.corrupted).join(pattern.correct);
+        if (result !== before) {
+          matches++;
+        }
+      }
+    }
+    
+    return { result, matches };
+  }
+
+  /**
+   * Verifica si aún quedan indicadores de mojibake.
+   */
+  private stillHasMojibake(text: string): boolean {
+    return (
+      MOJIBAKE_INDICATORS.PRIMARY.test(text) ||
+      MOJIBAKE_INDICATORS.SECONDARY.test(text)
     );
   }
 
   /**
-   * Corrección básica - retorna resultado simple
+   * Intenta corregir doble encoding (UTF-8 → Latin-1 → UTF-8).
+   * Usa TextDecoder nativo del browser.
    */
-  correct(text: string): CorrectionResult {
-    const explanation = this.correctWithExplanation(text);
-    return {
-      original: explanation.original,
-      corrected: explanation.corrected,
-      wasModified: explanation.wasModified,
-      tiersApplied: explanation.tiersApplied,
-      patternsMatched: explanation.patternsMatched,
-      confidence: explanation.confidence,
-    };
-  }
-
-  /**
-   * Corrección con explicación detallada (para auditoría)
-   */
-  correctWithExplanation(text: string): CorrectionExplanation {
-    const startTime = performance.now();
-    this.stats.textsProcessed++;
-
-    // Early-exit: texto vacío/null
-    if (!text || text.length === 0) {
-      return this.createSkippedResult(text, 'empty', startTime);
-    }
-
-    // Early-exit: ASCII puro (fast-path)
-    if (isCleanASCII(text)) {
-      this.stats.earlyExitCount++;
-      return this.createSkippedResult(text, 'clean_ascii', startTime);
-    }
-
-    // Early-exit: sin indicadores de mojibake
-    if (!isSuspicious(text)) {
-      this.stats.earlyExitCount++;
-      return this.createSkippedResult(text, 'no_indicators', startTime);
-    }
-
-    // Procesar con tiers
-    const operations: CorrectionOperation[] = [];
-    const tiersApplied: PatternTier[] = [];
-    let corrected = text;
-
-    // Intentar fix de doble encoding primero
-    const doubleFixed = this.tryFixDoubleEncoding(corrected);
-    if (doubleFixed !== corrected) {
-      operations.push({
-        tier: 'cold',
-        pattern: '[double-encoding]',
-        replacement: '[decoded]',
-        description: 'Doble encoding corregido con TextDecoder',
-        occurrences: 1,
-      });
-      corrected = doubleFixed;
-    }
-
-    // Tier 1: Hot (siempre evaluar)
-    const tier1Result = this.applyTier(corrected, 'hot');
-    if (tier1Result.modified) {
-      corrected = tier1Result.text;
-      tiersApplied.push('hot');
-      operations.push(...tier1Result.operations);
-      this.stats.tierUsage.hot++;
-    }
-
-    // Tier 2: Warm (solo si aún hay indicadores)
-    if (this.hasIndicators(corrected, 'warm')) {
-      const tier2Result = this.applyTier(corrected, 'warm');
-      if (tier2Result.modified) {
-        corrected = tier2Result.text;
-        tiersApplied.push('warm');
-        operations.push(...tier2Result.operations);
-        this.stats.tierUsage.warm++;
-      }
-    }
-
-    // Tier 3: Cold (solo si Tier 1+2 no resolvieron)
-    if (this.hasIndicators(corrected, 'cold')) {
-      const tier3Result = this.applyTier(corrected, 'cold');
-      if (tier3Result.modified) {
-        corrected = tier3Result.text;
-        tiersApplied.push('cold');
-        operations.push(...tier3Result.operations);
-        this.stats.tierUsage.cold++;
-      }
-    }
-
-    // Normalización NFC final
-    corrected = corrected.normalize('NFC');
-
-    const wasModified = text !== corrected;
-    if (wasModified) {
-      this.stats.textsModified++;
-    }
-
-    const endTime = performance.now();
-    const processingTimeMs = endTime - startTime;
-    this.totalProcessingMs += processingTimeMs;
-    this.stats.averageProcessingMs = 
-      this.totalProcessingMs / this.stats.textsProcessed;
-
-    return {
-      original: text,
-      corrected,
-      wasModified,
-      tiersApplied,
-      patternsMatched: operations.map(op => op.pattern),
-      confidence: this.calculateConfidence(operations, corrected),
-      operations,
-      processingTimeMs,
-    };
-  }
-
-  /**
-   * Aplica patrones de un tier específico
-   */
-  private applyTier(
-    text: string,
-    tier: PatternTier
-  ): { text: string; modified: boolean; operations: CorrectionOperation[] } {
-    const patterns = this.sortedPatterns[tier];
-    const operations: CorrectionOperation[] = [];
-    let result = text;
-    let modified = false;
-
-    for (const pattern of patterns) {
-      const before = result;
-      result = result.split(pattern.corrupted).join(pattern.correct);
-      
-      if (result !== before) {
-        modified = true;
-        const occurrences = (before.length - result.length) / 
-          (pattern.corrupted.length - pattern.correct.length) || 1;
-        
-        operations.push({
-          tier,
-          pattern: pattern.corrupted,
-          replacement: pattern.correct,
-          description: pattern.description,
-          occurrences: Math.round(occurrences),
-        });
-      }
-    }
-
-    return { text: result, modified, operations };
-  }
-
-  /**
-   * Verifica si hay indicadores para un tier específico
-   */
-  private hasIndicators(text: string, tier: PatternTier): boolean {
-    switch (tier) {
-      case 'warm':
-        return MOJIBAKE_INDICATORS.secondary.test(text) ||
-               text.includes('â€');
-      case 'cold':
-        return MOJIBAKE_INDICATORS.doubleEncoding.test(text) ||
-               isSuspicious(text);
-      default:
-        return MOJIBAKE_INDICATORS.primary.test(text);
-    }
-  }
-
-  /**
-   * Intenta corregir doble encoding usando TextDecoder nativo
-   */
-  tryFixDoubleEncoding(text: string): string {
-    // Solo intentar si hay indicadores de doble encoding
-    if (!MOJIBAKE_INDICATORS.doubleEncoding.test(text)) {
-      return text;
-    }
-
+  private tryFixDoubleEncoding(text: string): string {
     try {
-      // Convertir a bytes interpretando como Latin-1
-      const bytes = new Uint8Array(
-        text.split('').map(c => c.charCodeAt(0))
-      );
-      
-      // Intentar decodificar como UTF-8
-      const decoder = new TextDecoder('utf-8', { fatal: true });
-      const decoded = decoder.decode(bytes);
-      
-      // Verificar que el resultado es mejor
-      if (decoded.length > 0 && !isSuspicious(decoded)) {
-        return decoded;
-      }
+      // Convertir a bytes como si fuera Latin-1
+      const bytes = new Uint8Array(text.split('').map(c => c.charCodeAt(0)));
+      // Decodificar como UTF-8
+      const decoded = new TextDecoder('utf-8', { fatal: true }).decode(bytes);
+      return decoded;
     } catch {
       // Si falla, retornar original
+      return text;
     }
-    
-    return text;
   }
 
   /**
-   * Calcula confianza basada en operaciones realizadas
+   * Construye el resultado de corrección.
    */
-  private calculateConfidence(
-    operations: CorrectionOperation[],
-    result: string
-  ): number {
-    if (operations.length === 0) return 1.0;
-
-    // Base: 1.0
-    let confidence = 1.0;
-
-    // Penalizar por número de operaciones (más operaciones = menos certeza)
-    confidence -= operations.length * 0.01;
-
-    // Penalizar por doble encoding (menos predecible)
-    if (operations.some(op => op.pattern === '[double-encoding]')) {
-      confidence -= 0.05;
-    }
-
-    // Penalizar si aún hay indicadores en el resultado
-    if (isSuspicious(result)) {
-      confidence -= 0.1;
-    }
-
-    // Bonus por usar solo Tier 1 (patrones muy confiables)
-    if (operations.every(op => op.tier === 'hot')) {
-      confidence += 0.02;
-    }
-
-    return Math.max(0, Math.min(1, confidence));
-  }
-
-  /**
-   * Crea resultado para casos de early-exit
-   */
-  private createSkippedResult(
-    text: string,
-    reason: 'clean_ascii' | 'no_indicators' | 'empty',
+  private buildResult(
+    original: string,
+    corrected: string,
+    tiersApplied: CorrectionResult['tiersApplied'],
+    patternsMatched: number,
+    earlyExitReason: CorrectionResult['earlyExitReason'],
     startTime: number
-  ): CorrectionExplanation {
-    const endTime = performance.now();
+  ): CorrectionResult {
+    const durationMs = performance.now() - startTime;
+    
+    // Actualizar promedio de duración
+    const n = this.stats.totalProcessed;
+    this.stats.averageDurationMs =
+      (this.stats.averageDurationMs * (n - 1) + durationMs) / n;
+    
     return {
-      original: text,
-      corrected: text,
-      wasModified: false,
-      tiersApplied: [],
-      patternsMatched: [],
-      confidence: 1.0,
-      operations: [],
-      processingTimeMs: endTime - startTime,
-      skippedReason: reason,
+      corrected,
+      wasModified: original !== corrected,
+      tiersApplied,
+      patternsMatched,
+      earlyExitReason,
+      durationMs,
     };
   }
 
   /**
-   * Obtiene estadísticas de uso
+   * Obtiene estadísticas de uso.
    */
-  getStats(): CorrectorStats {
+  getStats(): CorrectionStats {
     return { ...this.stats };
   }
 
   /**
-   * Resetea estadísticas
+   * Resetea estadísticas.
    */
   resetStats(): void {
     this.stats = {
-      textsProcessed: 0,
-      textsModified: 0,
-      earlyExitCount: 0,
-      tierUsage: { hot: 0, warm: 0, cold: 0 },
-      averageProcessingMs: 0,
+      totalProcessed: 0,
+      earlyExits: 0,
+      tier1Only: 0,
+      tier2Required: 0,
+      tier3Required: 0,
+      doubleEncodingFixed: 0,
+      averageDurationMs: 0,
     };
-    this.totalProcessingMs = 0;
-  }
-
-  /**
-   * Información sobre patrones disponibles
-   */
-  static getPatternInfo(): typeof PATTERN_COUNTS {
-    return PATTERN_COUNTS;
   }
 }
 
 // ============================================================================
-// INSTANCIA SINGLETON PARA USO GLOBAL
+// INSTANCIA GLOBAL (SINGLETON)
 // ============================================================================
 
 /**
- * Instancia global del corrector para uso en toda la aplicación
+ * Instancia global de EncodingCorrector para uso en toda la aplicación.
+ * Reutiliza patrones pre-ordenados para máximo rendimiento.
  */
 export const encodingCorrector = new EncodingCorrector();
 
-// ============================================================================
-// FUNCIONES DE UTILIDAD
-// ============================================================================
-
 /**
- * Corrección rápida sin crear nueva instancia
+ * Función de conveniencia para corrección rápida.
+ * Usa la instancia global.
  */
-export function correctEncoding(text: string): string {
-  return encodingCorrector.correct(text).corrected;
+export function correctEncoding(text: string): CorrectionResult {
+  return encodingCorrector.correct(text);
 }
 
 /**
- * Corrección con explicación usando instancia global
+ * Función simplificada que solo retorna el texto corregido.
  */
-export function correctEncodingWithExplanation(
-  text: string
-): CorrectionExplanation {
-  return encodingCorrector.correctWithExplanation(text);
+export function fixMojibake(text: string): string {
+  return encodingCorrector.correct(text).corrected;
 }

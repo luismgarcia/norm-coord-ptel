@@ -46,7 +46,7 @@ Este plan implementa las **estrategias de corrección UTF-8 en cascada** documen
 |--------|----|----|----------|-----|--------|
 | 1 | UTF8-1 | Reordenar patrones longest-first | 30 min | MapWizard | ✅ Completada |
 | 2 | UTF8-2 | Función `isSuspicious()` early-exit | 45 min | MapWizard | ✅ Completada |
-| 3 | UTF8-3 | Clase `EncodingCorrector` con tiers | 1h | MapWizard | ⏳ Pendiente |
+| 3 | UTF8-3 | Clase `EncodingCorrector` con tiers | 1h | MapWizard | ✅ Completada |
 | 4 | UTF8-4 | Tests unitarios completos | 45 min | DataMaster | ⏳ Pendiente |
 | 5 | UTF8-5 | Integración en pipeline normalización | 45 min | MapWizard | ⏳ Pendiente |
 | 6 | UTF8-6 | Tests E2E y documentación | 30 min | DataMaster | ⏳ Pendiente |
@@ -96,6 +96,40 @@ Commit: 6a2bcfe
 ### Tests
 - 60 tests nuevos pasando
 - Cobertura: topónimos limpios, mojibake, coordenadas, casos límite
+
+---
+
+## ✅ Sesión UTF8-3 Completada (07-Dic-2025)
+
+### Cambios Realizados
+- Creado `src/lib/mojibakePatterns.ts` (~160 líneas)
+  - **Tier 1 (Hot)**: 17 patrones más frecuentes
+  - **Tier 2 (Warm)**: 25 patrones medios (comillas, símbolos)
+  - **Tier 3 (Cold)**: 19 patrones raros (doble encoding, C1)
+  - Total: **61 patrones** organizados por frecuencia
+- Creado `src/lib/EncodingCorrector.ts` (~220 líneas)
+  - Early-exit usando `isSuspicious()` de UTF8-2
+  - Corrección por tiers en cascada
+  - Intento de doble encoding con TextDecoder nativo
+  - Normalización NFC al final
+  - Estadísticas de uso (hits, misses, tiers usados)
+  - Instancia global `encodingCorrector` (singleton)
+  - Funciones de conveniencia: `correctEncoding()`, `fixMojibake()`
+- Creados 24 tests en `src/__tests__/EncodingCorrector.test.ts`
+
+### Pipeline de Corrección
+```
+1. Early-exit si texto limpio (isSuspicious = false)
+2. Intenta doble encoding primero (Ãƒ detectado)
+3. Aplica Tier 1 (Hot) - 80% de casos
+4. Si persiste mojibake → Tier 2 (Warm)
+5. Si aún persiste → Tier 3 (Cold)
+6. Normaliza con NFC
+```
+
+### Tests
+- 24 tests nuevos pasando
+- Cobertura: early-exit, tiers, estadísticas, rendimiento
 
 ---
 
@@ -178,7 +212,7 @@ Al completar F027:
 
 - [x] UTF8-1: Patrones ordenados longest-first
 - [x] UTF8-2: Early-exit implementado
-- [ ] UTF8-3: EncodingCorrector con tiers
+- [x] UTF8-3: EncodingCorrector con tiers
 - [ ] UTF8-4: >95% cobertura en tests
 - [ ] UTF8-5: Integración en pipeline
 - [ ] UTF8-6: Tests E2E pasando

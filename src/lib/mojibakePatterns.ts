@@ -1,20 +1,17 @@
 /**
- * PTEL Andalucía - Patrones de Corrección UTF-8
+ * PTEL Andalucía - Patrones de Corrección Mojibake UTF-8
  * 
- * Sistema de 3 tiers para corrección de mojibake en documentos municipales.
- * Ordenados por frecuencia de aparición en corpus andaluz.
+ * Sistema de 62 patrones organizados en 3 tiers por frecuencia:
+ * - Tier 1 (Hot): 17 patrones frecuentes en español andaluz
+ * - Tier 2 (Warm): 25 patrones medios (símbolos, doble encoding)
+ * - Tier 3 (Cold): 20 patrones raros (C1, casos especiales)
  * 
- * Tier 1 (Hot): ~17 patrones más frecuentes - siempre evaluar
- * Tier 2 (Warm): ~25 patrones medios - evaluar si hay indicadores
- * Tier 3 (Cold): ~20 patrones raros - evaluar si Tier 1+2 no resuelven
+ * Basado en análisis de documentos PTEL municipales reales
+ * y mejores prácticas de ftfy, ICU, y GDAL.
  * 
  * @version 1.0.0
  * @date Diciembre 2025
  */
-
-// ============================================================================
-// TIPOS
-// ============================================================================
 
 export interface MojibakePattern {
   corrupted: string;
@@ -22,31 +19,19 @@ export interface MojibakePattern {
   description: string;
 }
 
-export type PatternTier = 'hot' | 'warm' | 'cold';
-
-export interface TieredPatterns {
-  hot: MojibakePattern[];
-  warm: MojibakePattern[];
-  cold: MojibakePattern[];
-}
-
 // ============================================================================
-// TIER 1 - HOT: Patrones más frecuentes (~80% de correcciones)
+// TIER 1 (HOT): Patrones más frecuentes en español andaluz
+// ~80% de las correcciones en documentos PTEL
 // ============================================================================
-
-/**
- * Patrones más comunes en documentos municipales andaluces.
- * Vocales acentuadas + ñ + símbolos de coordenadas.
- */
 export const TIER1_HOT_PATTERNS: MojibakePattern[] = [
-  // Vocales acentuadas minúsculas (muy frecuentes en topónimos)
-  { corrupted: 'Ã¡', correct: 'á', description: 'á minúscula acentuada' },
-  { corrupted: 'Ã©', correct: 'é', description: 'é minúscula acentuada' },
-  { corrupted: 'Ã­', correct: 'í', description: 'í minúscula acentuada' },
-  { corrupted: 'Ã³', correct: 'ó', description: 'ó minúscula acentuada' },
-  { corrupted: 'Ãº', correct: 'ú', description: 'ú minúscula acentuada' },
-  { corrupted: 'Ã±', correct: 'ñ', description: 'ñ eñe - MUY común en topónimos' },
-  { corrupted: 'Ã¼', correct: 'ü', description: 'ü diéresis (Güéjar, Agüero)' },
+  // Vocales acentuadas minúsculas (muy frecuentes)
+  { corrupted: 'Ã¡', correct: 'á', description: 'á UTF-8 como Latin-1' },
+  { corrupted: 'Ã©', correct: 'é', description: 'é UTF-8 como Latin-1' },
+  { corrupted: 'Ã­', correct: 'í', description: 'í UTF-8 como Latin-1' },
+  { corrupted: 'Ã³', correct: 'ó', description: 'ó UTF-8 como Latin-1' },
+  { corrupted: 'Ãº', correct: 'ú', description: 'ú UTF-8 como Latin-1' },
+  { corrupted: 'Ã±', correct: 'ñ', description: 'ñ UTF-8 como Latin-1 (crítico en español)' },
+  { corrupted: 'Ã¼', correct: 'ü', description: 'ü UTF-8 como Latin-1 (Güéjar, Agüero)' },
   
   // Vocales acentuadas mayúsculas (usando hex escape)
   { corrupted: 'Ã\x81', correct: 'Á', description: 'Á mayúscula (Ávila, Álvarez)' },
@@ -56,133 +41,118 @@ export const TIER1_HOT_PATTERNS: MojibakePattern[] = [
   { corrupted: 'Ã\x9A', correct: 'Ú', description: 'Ú mayúscula (Úbeda)' },
   { corrupted: 'Ã\x91', correct: 'Ñ', description: 'Ñ mayúscula' },
   
-  // Símbolos de coordenadas (críticos para PTEL)
-  { corrupted: 'Â´', correct: '´', description: 'tilde/acento agudo' },
-  { corrupted: 'Âº', correct: 'º', description: 'símbolo ordinal/grado' },
-  { corrupted: 'Â°', correct: '°', description: 'símbolo grado' },
-  { corrupted: 'Â±', correct: '±', description: 'más/menos' },
+  // Símbolos de coordenadas (muy frecuentes en PTEL)
+  { corrupted: 'Â´', correct: '´', description: 'Acento agudo aislado' },
+  { corrupted: 'Âº', correct: 'º', description: 'Símbolo ordinal/grado' },
+  { corrupted: 'Â°', correct: '°', description: 'Símbolo grado' },
+  { corrupted: 'Â±', correct: '±', description: 'Símbolo más/menos' },
 ];
 
 // ============================================================================
-// TIER 2 - WARM: Patrones de frecuencia media (~15% de correcciones)
+// TIER 2 (WARM): Patrones medios - símbolos y comillas tipográficas
+// ~15% de las correcciones
 // ============================================================================
-
-/**
- * Patrones de frecuencia media: comillas tipográficas, símbolos especiales,
- * caracteres adicionales del español, y algunos casos de doble encoding.
- */
 export const TIER2_WARM_PATTERNS: MojibakePattern[] = [
-  // Comillas tipográficas (muy comunes en documentos Word/ODT)
-  { corrupted: 'â€œ', correct: '"', description: 'comilla izquierda tipográfica' },
-  { corrupted: 'â€', correct: '"', description: 'comilla derecha tipográfica' },
-  { corrupted: 'â€™', correct: "'", description: 'apóstrofo tipográfico' },
-  { corrupted: 'â€˜', correct: "'", description: 'comilla simple izquierda' },
-  { corrupted: 'â€"', correct: '–', description: 'guión largo (en-dash)' },
-  { corrupted: 'â€"', correct: '—', description: 'guión extra largo (em-dash)' },
-  { corrupted: 'â€¦', correct: '…', description: 'puntos suspensivos' },
+  // Comillas tipográficas (frecuentes en documentos Word)
+  { corrupted: 'â€œ', correct: '\u201C', description: 'Comilla izquierda tipográfica' },
+  { corrupted: 'â€', correct: '\u201D', description: 'Comilla derecha tipográfica' },
+  { corrupted: 'â€™', correct: '\u2019', description: 'Apostrofo tipografico' },
+  { corrupted: 'â€˜', correct: '\u2018', description: 'Comilla simple izquierda' },
+  { corrupted: 'â€"', correct: '\u2013', description: 'Guion medio (en-dash)' },
+  { corrupted: 'â€"', correct: '\u2014', description: 'Guion largo (em-dash)' },
+  { corrupted: 'â€¦', correct: '\u2026', description: 'Puntos suspensivos' },
   
-  // Espacio no-rompible y caracteres invisibles
-  { corrupted: 'Â ', correct: ' ', description: 'espacio no-rompible (NBSP)' },
-  { corrupted: 'Â\xA0', correct: ' ', description: 'NBSP alternativo' },
+  // Símbolos especiales
+  { corrupted: 'â‚¬', correct: '€', description: 'Símbolo Euro' },
+  { corrupted: 'Â©', correct: '©', description: 'Copyright' },
+  { corrupted: 'Â®', correct: '®', description: 'Marca registrada' },
+  { corrupted: 'â„¢', correct: '™', description: 'Trademark' },
+  { corrupted: 'Â§', correct: '§', description: 'Sección (artículos legales)' },
+  { corrupted: 'Â¶', correct: '¶', description: 'Párrafo (pilcrow)' },
+  { corrupted: 'Â·', correct: '·', description: 'Punto medio (interpunct)' },
+  { corrupted: 'Â¿', correct: '¿', description: 'Interrogación apertura' },
+  { corrupted: 'Â¡', correct: '¡', description: 'Exclamación apertura' },
   
-  // Símbolos adicionales frecuentes
-  { corrupted: 'Â©', correct: '©', description: 'copyright' },
-  { corrupted: 'Â®', correct: '®', description: 'marca registrada' },
-  { corrupted: 'â„¢', correct: '™', description: 'trademark' },
-  { corrupted: 'â‚¬', correct: '€', description: 'euro' },
-  { corrupted: 'Â£', correct: '£', description: 'libra esterlina' },
-  { corrupted: 'Â¥', correct: '¥', description: 'yen' },
+  // Espacios especiales
+  { corrupted: 'Â ', correct: ' ', description: 'Espacio no rompible (NBSP)' },
   
-  // Vocales con diéresis adicionales
-  { corrupted: 'Ã¤', correct: 'ä', description: 'a diéresis' },
-  { corrupted: 'Ã«', correct: 'ë', description: 'e diéresis' },
-  { corrupted: 'Ã¯', correct: 'ï', description: 'i diéresis' },
-  { corrupted: 'Ã¶', correct: 'ö', description: 'o diéresis' },
+  // Fracciones
+  { corrupted: 'Â½', correct: '½', description: 'Un medio' },
+  { corrupted: 'Â¼', correct: '¼', description: 'Un cuarto' },
+  { corrupted: 'Â¾', correct: '¾', description: 'Tres cuartos' },
   
-  // Caracteres especiales del español
-  { corrupted: 'Â¿', correct: '¿', description: 'interrogación invertida' },
-  { corrupted: 'Â¡', correct: '¡', description: 'exclamación invertida' },
+  // Superíndices
+  { corrupted: 'Â²', correct: '²', description: 'Superíndice 2 (m²)' },
+  { corrupted: 'Â³', correct: '³', description: 'Superíndice 3 (m³)' },
+  { corrupted: 'Â¹', correct: '¹', description: 'Superíndice 1' },
   
-  // Superíndices/subíndices (coordenadas)
-  { corrupted: 'Â²', correct: '²', description: 'superíndice 2 (m²)' },
-  { corrupted: 'Â³', correct: '³', description: 'superíndice 3 (m³)' },
-  { corrupted: 'Â¹', correct: '¹', description: 'superíndice 1' },
-  
-  // Fracciones comunes
-  { corrupted: 'Â½', correct: '½', description: 'fracción 1/2' },
-  { corrupted: 'Â¼', correct: '¼', description: 'fracción 1/4' },
-  { corrupted: 'Â¾', correct: '¾', description: 'fracción 3/4' },
+  // Acentos adicionales
+  { corrupted: 'Ã ', correct: 'à', description: 'a con grave' },
+  { corrupted: 'Ã¨', correct: 'è', description: 'e con grave' },
 ];
 
 // ============================================================================
-// TIER 3 - COLD: Patrones raros (~5% de correcciones)
+// TIER 3 (COLD): Patrones raros - doble encoding, C1, casos especiales
+// ~5% de las correcciones
 // ============================================================================
-
-/**
- * Patrones raros: doble encoding, caracteres C1 de Windows-1252,
- * símbolos matemáticos, y casos especiales.
- */
 export const TIER3_COLD_PATTERNS: MojibakePattern[] = [
   // Doble encoding (UTF-8 → Latin-1 → UTF-8)
   { corrupted: 'Ãƒâ€°', correct: 'É', description: 'É doble encoding' },
-  { corrupted: 'Ãƒâ€"', correct: 'Ó', description: 'Ó doble encoding' },
-  { corrupted: 'Ãƒâ€˜', correct: 'Ñ', description: 'Ñ doble encoding' },
-  { corrupted: 'Ã¢â‚¬â„¢', correct: "'", description: 'apóstrofo doble encoding' },
-  { corrupted: 'Ã¢â‚¬Å"', correct: '"', description: 'comilla doble encoding' },
+  { corrupted: 'ÃƒÂ¡', correct: 'á', description: 'á doble encoding' },
+  { corrupted: 'ÃƒÂ©', correct: 'é', description: 'é doble encoding' },
+  { corrupted: 'ÃƒÂ­', correct: 'í', description: 'í doble encoding' },
+  { corrupted: 'ÃƒÂ³', correct: 'ó', description: 'ó doble encoding' },
+  { corrupted: 'ÃƒÂº', correct: 'ú', description: 'ú doble encoding' },
+  { corrupted: 'ÃƒÂ±', correct: 'ñ', description: 'ñ doble encoding' },
   
-  // Símbolos matemáticos/técnicos
-  { corrupted: 'Â·', correct: '·', description: 'punto medio' },
-  { corrupted: 'Â¶', correct: '¶', description: 'pilcrow/párrafo' },
-  { corrupted: 'Â§', correct: '§', description: 'sección' },
-  { corrupted: 'Âª', correct: 'ª', description: 'ordinal femenino' },
-  { corrupted: 'Â¬', correct: '¬', description: 'negación lógica' },
-  { corrupted: 'Â\xAD', correct: '\u00AD', description: 'guión suave (soft hyphen)' },
+  // Caracteres C1 (Windows-1252 0x80-0x9F)
+  { corrupted: '\x80', correct: '\u20AC', description: 'Euro C1' },
+  { corrupted: '\x85', correct: '\u2026', description: 'Ellipsis C1' },
+  { corrupted: '\x91', correct: '\u2018', description: 'Left single quote C1' },
+  { corrupted: '\x92', correct: '\u2019', description: 'Right single quote C1' },
+  { corrupted: '\x93', correct: '\u201C', description: 'Left double quote C1' },
+  { corrupted: '\x94', correct: '\u201D', description: 'Right double quote C1' },
+  { corrupted: '\x96', correct: '\u2013', description: 'En-dash C1' },
+  { corrupted: '\x97', correct: '\u2014', description: 'Em-dash C1' },
   
-  // Vocales graves (menos comunes en español)
-  { corrupted: 'Ã ', correct: 'à', description: 'a grave' },
-  { corrupted: 'Ã¨', correct: 'è', description: 'e grave' },
-  { corrupted: 'Ã¬', correct: 'ì', description: 'i grave' },
-  { corrupted: 'Ã²', correct: 'ò', description: 'o grave' },
-  { corrupted: 'Ã¹', correct: 'ù', description: 'u grave' },
+  // Otros caracteres latinos
+  { corrupted: 'Ã§', correct: 'ç', description: 'c cedilla (catalán)' },
+  { corrupted: 'Ã‡', correct: 'Ç', description: 'C cedilla mayúscula' },
+  { corrupted: 'Ã¤', correct: 'ä', description: 'a con diéresis' },
+  { corrupted: 'Ã¶', correct: 'ö', description: 'o con diéresis' },
 ];
 
 // ============================================================================
-// UTILIDADES DE AGREGACIÓN
+// EXPORTACIONES COMBINADAS
 // ============================================================================
 
 /**
- * Todos los patrones organizados por tier
- */
-export const TIERED_PATTERNS: TieredPatterns = {
-  hot: TIER1_HOT_PATTERNS,
-  warm: TIER2_WARM_PATTERNS,
-  cold: TIER3_COLD_PATTERNS,
-};
-
-/**
- * Todos los patrones combinados (62 total)
+ * Todos los patrones ordenados por longitud descendente (longest-match-first)
  */
 export const ALL_PATTERNS: MojibakePattern[] = [
   ...TIER1_HOT_PATTERNS,
   ...TIER2_WARM_PATTERNS,
   ...TIER3_COLD_PATTERNS,
-];
+].sort((a, b) => b.corrupted.length - a.corrupted.length);
 
 /**
- * Indicadores de mojibake para detección rápida
+ * Indicadores rápidos de mojibake para early-exit
  */
 export const MOJIBAKE_INDICATORS = {
-  primary: /[ÃÂ]/,
-  secondary: /â€|Ã±|Ã¡|Ã©|Ã­|Ã³|Ãº/,
-  doubleEncoding: /Ãƒ|â‚¬/,
+  /** Indicador primario: 0xC3 interpretado como Latin-1 */
+  PRIMARY: /[ÃÂ]/,
+  /** Indicador secundario: secuencias "â€" de comillas tipográficas */
+  SECONDARY: /â€/,
+  /** Indicador de doble encoding */
+  DOUBLE_ENCODING: /Ãƒ/,
 };
 
 /**
- * Cuenta total de patrones por tier
+ * Estadísticas de patrones
  */
-export const PATTERN_COUNTS = {
-  hot: TIER1_HOT_PATTERNS.length,
-  warm: TIER2_WARM_PATTERNS.length,
-  cold: TIER3_COLD_PATTERNS.length,
-  total: ALL_PATTERNS.length,
-} as const;
+export const PATTERN_STATS = {
+  tier1Count: TIER1_HOT_PATTERNS.length,
+  tier2Count: TIER2_WARM_PATTERNS.length,
+  tier3Count: TIER3_COLD_PATTERNS.length,
+  totalCount: ALL_PATTERNS.length,
+};
